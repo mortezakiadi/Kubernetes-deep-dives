@@ -83,10 +83,23 @@ spec:
     image: my-company/api:1.4
 ```
 
-- **Taints and tolerations (the "keep out" sign):** a taint lets a node repel pods; only pods with a matching toleration may stay in the list.
+- **Taints and tolerations (the "keep out" sign):** a taint lets a node repel pods; only pods with a matching toleration may stay in the list. The taint is set on the **node** and the toleration on the **pod**; the YAML below shows both.
 
 ```yaml
-# taint on the node:  kubectl taint nodes gpu-node-1 dedicated=gpu:NoSchedule
+# 1. The taint lives on the NODE. You add it with a command:
+#      kubectl taint nodes gpu-node-1 dedicated=gpu:NoSchedule #!
+#    (or in the node group / Karpenter NodePool config). The node then looks like this:
+apiVersion: v1
+kind: Node
+metadata:
+  name: gpu-node-1
+spec:
+  taints: #!
+  - key: dedicated #!
+    value: gpu #!
+    effect: NoSchedule        # pods without a matching toleration are filtered out #!
+---
+# 2. The toleration lives on the POD that is allowed in
 apiVersion: v1
 kind: Pod
 metadata:
