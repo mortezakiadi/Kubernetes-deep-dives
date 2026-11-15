@@ -472,12 +472,12 @@ spec:
             nvidia.com/gpu: 1
 ```
 
-**Why does this example have two tolerations?** `tolerations` is a list, and each entry tolerates one kind of taint. A pod can tolerate as many as it needs; here the two entries do different jobs.
-
-- **Entry 1, our own GPU taint (`dedicated=gpu`, `NoSchedule`):** it matches the taint we put on the GPU nodes, so it decides *where the pod may go*. `operator: Equal` means the key and the value must both match.
-- **Entry 2, a built-in taint (`node.kubernetes.io/unreachable`, `NoExecute`):** nobody adds this one by hand. Kubernetes adds it automatically when a node stops talking to the control plane (a crash, a lost network). A `NoExecute` taint doesn't only block new pods; it evicts pods already running there. `operator: Exists` matches any taint with that key, whatever its value.
-- **What `tolerationSeconds: 60` changes:** Kubernetes already gives every pod this toleration automatically, with a default of 300 seconds. Writing it yourself only changes the timing: the pod stays on an unreachable node for 60 seconds, then is evicted and recreated on a healthy node. For a GPU inference service, 5 minutes on a dead node is a long outage. The trade-off is that a short network blip could move the pod unnecessarily.
-- **In short:** entry 1 controls *where the pod may go*; entry 2 controls *how quickly it leaves* when its node fails.
+> **Why does this example have two tolerations?** `tolerations` is a list, and each entry tolerates one kind of taint. A pod can tolerate as many as it needs; here the two entries do different jobs.
+>
+> - **Entry 1, our own GPU taint (`dedicated=gpu`, `NoSchedule`):** it matches the taint we put on the GPU nodes, so it decides *where the pod may go*. `operator: Equal` means the key and the value must both match.
+> - **Entry 2, a built-in taint (`node.kubernetes.io/unreachable`, `NoExecute`):** nobody adds this one by hand. Kubernetes adds it automatically when a node stops talking to the control plane (a crash, a lost network). A `NoExecute` taint doesn't only block new pods; it evicts pods already running there. `operator: Exists` matches any taint with that key, whatever its value.
+> - **What `tolerationSeconds: 60` changes:** Kubernetes already gives every pod this toleration automatically, with a default of 300 seconds. Writing it yourself only changes the timing: the pod stays on an unreachable node for 60 seconds, then is evicted and recreated on a healthy node. For a GPU inference service, 5 minutes on a dead node is a long outage. The trade-off is that a short network blip could move the pod unnecessarily.
+> - **In short:** entry 1 controls *where the pod may go*; entry 2 controls *how quickly it leaves* when its node fails.
 
 - **Affinity and anti-affinity violations:** a required node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
 

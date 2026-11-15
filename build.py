@@ -5,6 +5,7 @@ import pathlib
 import re
 
 import markdown
+from bs4 import BeautifulSoup, NavigableString, Tag
 
 ROOT = pathlib.Path(__file__).resolve().parent
 
@@ -75,7 +76,7 @@ def read_md(path):
             text = re.sub(r"<[^>]+>", "", mh.group(1))
             hid = meta.get("id", "s") + "-" + re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
         parts[i] = f'<h3 id="{hid}">{mh.group(1)}</h3>'
-    return meta, highlight("".join(parts))
+    return meta, accordionize(highlight("".join(parts)))
 
 
 def toc(body_html):
@@ -196,6 +197,73 @@ def code_blocks(h):
         lines = body.rstrip("\n").split("\n")
         return f'<pre class="snippet"><code class="language-{lang}">' + "".join(_fmt_line(l, lang) for l in lines) + "</code></pre>"
     return re.sub(r'<pre><code class="language-(\w+)">(.*?)</code></pre>', rep, h, flags=re.S)
+
+
+
+# ---- "What the picture shows": one collapsible accordion per item in the picture ----
+def _label(node):
+    if isinstance(node, Tag) and node.name == "p":
+        st = node.find("strong", recursive=False)
+        if st is not None and node.contents and node.contents[0] is st:
+            return st.get_text().strip()
+    return None
+
+
+def accordionize(h):
+    soup = BeautifulSoup(f"<div id='__root'>{h}</div>", "html.parser")
+    root = soup.find(id="__root")
+    nodes = [n for n in root.children if isinstance(n, Tag)]
+    i = 0
+    while i < len(nodes):
+        if _label(nodes[i]) != "What the picture shows.":
+            i += 1
+            continue
+        j = i + 1
+        region = []
+        while j < len(nodes) and nodes[j].name not in ("h2", "h3") and _label(nodes[j]) not in ("Going deeper.", "Scenario."):
+            region.append(nodes[j]); j += 1
+        n_items = sum(len(u.find_all("li", recursive=False)) for u in region if u.name == "ul")
+        if n_items >= 2:
+            wrap = soup.new_tag("div", attrs={"class": "acc-region"})
+            bar = BeautifulSoup('<div class="acc-tools"><button type="button" data-acc="open">Expand all</button>'
+                                '<button type="button" data-acc="close">Collapse all</button></div>', "html.parser")
+            wrap.append(bar)
+            region[0].insert_before(wrap)
+            num, last = 0, None
+            for node in region:
+                node = node.extract()
+                if node.name == "ul":
+                    for li in node.find_all("li", recursive=False):
+                        num += 1
+                        det = soup.new_tag("details", attrs={"class": "acc"})
+                        summ = soup.new_tag("summary")
+                        body = soup.new_tag("div", attrs={"class": "acc-body"})
+                        first = li.find(["p"], recursive=False) or li
+                        st = first.find("strong", recursive=False)
+                        lead = [x for x in first.contents if not (isinstance(x, NavigableString) and not x.strip())]
+                        if st is not None and lead and lead[0] is st:
+                            title = st.get_text().strip().rstrip(":").strip()
+                            st.extract()
+                            if first.contents and isinstance(first.contents[0], NavigableString):
+                                first.contents[0].replace_with(first.contents[0].lstrip().lstrip(":").lstrip())
+                        else:
+                            t = li.get_text(" ", strip=True)
+                            title = (t[:70] + "…") if len(t) > 70 else t
+                        badge = soup.new_tag("span", attrs={"class": "acc-num"}); badge.string = str(num)
+                        tt = soup.new_tag("span", attrs={"class": "acc-title"}); tt.string = title
+                        summ.append(badge); summ.append(tt)
+                        for ch in list(li.contents):
+                            body.append(ch.extract())
+                        det.append(summ); det.append(body)
+                        wrap.append(det)
+                        last = body
+                elif node.name in ("pre", "blockquote", "table", "div") and last is not None:
+                    last.append(node)
+                else:
+                    wrap.append(node)
+                    last = None
+        i = j
+    return root.decode_contents()
 
 
 def main():
