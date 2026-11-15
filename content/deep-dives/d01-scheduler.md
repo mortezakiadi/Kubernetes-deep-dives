@@ -54,7 +54,146 @@ profiles:
 > - **It isn't a Kubernetes object.** It has `apiVersion` and `kind`, but you don't `kubectl apply` it (the API would reject it). It's a config file the kube-scheduler program reads at startup, passed with `--config`.
 > - **The defaults are built in.** With no file, the scheduler runs with built-in settings that match the snippet: NodeResourcesFit scoring with LeastAllocated, CPU and memory weighted 1 each, and the default plugin weights. The snippet just makes those hidden defaults visible.
 > - **Self-managed clusters** (for example kubeadm): you can point the scheduler's static pod at your own file, for example to switch to MostAllocated bin-packing or change plugin weights.
-> - **Managed clusters** (EKS, GKE, AKS): the provider runs the control plane, so you can't change the default scheduler's config. To customize, deploy a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers.
+> - **Managed clusters** (EKS, GKE, AKS): the provider runs the control plane, so you can't change the default scheduler's config. To customize, deploy a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete example follows: permissions, the config in a ConfigMap, the scheduler Deployment, and a workload that opts in.
+
+```yaml
+# 1. Identity: a ServiceAccount that reuses the built-in scheduler permissions
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-scheduler
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: my-scheduler-as-kube-scheduler
+subjects:
+- kind: ServiceAccount
+  name: my-scheduler
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-scheduler        # read pods/nodes, bind pods #!
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: my-scheduler-as-volume-scheduler
+subjects:
+- kind: ServiceAccount
+  name: my-scheduler
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:volume-scheduler      # needed for pods with PVCs #!
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: my-scheduler-auth-reader
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: my-scheduler
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+---
+# 2. The scheduler's own config, stored in a ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-scheduler-config #!
+  namespace: kube-system
+data:
+  config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: true                # 2 replicas, only one active #!
+      resourceNamespace: kube-system
+      resourceName: affinity-first-scheduler
+    profiles:
+    - schedulerName: affinity-first-scheduler #!
+      plugins:
+        score:
+          enabled:
+          - name: InterPodAffinity
+            weight: 100
+          - name: ImageLocality
+            weight: 1
+      pluginConfig:
+      - name: NodeResourcesFit
+        args:
+          scoringStrategy:
+            type: MostAllocated        # bin-pack instead of spread #!
+            resources:
+            - name: cpu
+              weight: 1
+            - name: memory
+              weight: 1
+---
+# 3. Run it as an ordinary Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-scheduler
+  namespace: kube-system
+spec:
+  replicas: 2 #!
+  selector:
+    matchLabels: {component: my-scheduler}
+  template:
+    metadata:
+      labels: {component: my-scheduler}
+    spec:
+      serviceAccountName: my-scheduler
+      priorityClassName: system-cluster-critical
+      containers:
+      - name: kube-scheduler
+        image: registry.k8s.io/kube-scheduler:v1.35.0   # match your cluster's version
+        command:
+        - kube-scheduler
+        - --config=/etc/kubernetes/my-scheduler/config.yaml #!
+        livenessProbe:
+          httpGet: {path: /healthz, port: 10259, scheme: HTTPS}
+          initialDelaySeconds: 15
+        readinessProbe:
+          httpGet: {path: /healthz, port: 10259, scheme: HTTPS}
+        resources:
+          requests: {cpu: 100m, memory: 128Mi}
+        volumeMounts:
+        - name: config
+          mountPath: /etc/kubernetes/my-scheduler
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: my-scheduler-config #!
+---
+# 4. Opt in per workload; every other pod keeps the default scheduler
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: api}
+  template:
+    metadata:
+      labels: {app: api}
+    spec:
+      schedulerName: affinity-first-scheduler #!
+      containers:
+      - name: api
+        image: my-company/api:1.4
+```
 
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.
 
