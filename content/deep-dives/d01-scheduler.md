@@ -59,12 +59,12 @@ profiles:
           weight: 1
 ```
 
-> **Note: is `KubeSchedulerConfiguration` something you add?** Normally, no; it's there by default.
+> **Note: when would you actually write a `KubeSchedulerConfiguration`?** Only when you want to *change* the scheduler's built-in settings. Two things to know first:
 >
 > - **It isn't a Kubernetes object.** It has `apiVersion` and `kind`, but you don't `kubectl apply` it (the API would reject it). It's a config file the kube-scheduler program reads at startup, passed with `--config`.
-> - **The defaults are built in.** With no file, the scheduler runs with built-in settings that match the snippet: NodeResourcesFit scoring with LeastAllocated, CPU and memory weighted 1 each, and the default plugin weights. The snippet just makes those hidden defaults visible.
-> - **Self-managed clusters** (for example kubeadm): you can point the scheduler's static pod at your own file, for example to switch to MostAllocated bin-packing or change plugin weights.
-> - **Managed clusters** (EKS, GKE, AKS): the provider runs the control plane, so you can't change the default scheduler's config. To customize, deploy a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete, ready-to-apply example (permissions, the config in a ConfigMap, the scheduler Deployment, and a workload that opts in) is in [Appendix A: Running a second scheduler](#appendix-second-scheduler). For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see [Built-in plugins, and what a second scheduler changes](#d01-9).
+> - **Where you can use it depends on who runs the scheduler:**
+>   - **Self-managed clusters** (for example kubeadm): point the scheduler's static pod at your own file, for example to switch to MostAllocated bin-packing or change plugin weights.
+>   - **Managed clusters** (EKS, GKE, AKS): the provider runs the default scheduler, so you can't change its file. Instead, run a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete, ready-to-apply example is in [Appendix A: Running a second scheduler](#appendix-second-scheduler). For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see [Built-in plugins, and what a second scheduler changes](#d01-9).
 
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.
 
