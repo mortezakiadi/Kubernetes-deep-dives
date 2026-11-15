@@ -656,7 +656,7 @@ spec:
 
 > **Note: what this example does, line by line**
 >
-> Together, the two manifests ask for "any NVIDIA GPU with at least 40 GiB of memory". With `nvidia.com/gpu: 1` you could only ask for "one GPU, whichever one".
+> Together, the two manifests ask for "any NVIDIA GPU with at least 40 GiB of memory". Notice there is no `nvidia.com/gpu: 1` anywhere in this YAML: that line belongs to the older device-plugin way used in the previous bullet (Option 1 and Option 2), not to DRA.
 >
 > **Part 1: the `ResourceClaimTemplate` describes the GPU you want**
 >
@@ -670,7 +670,7 @@ spec:
 >
 > - **`spec.resourceClaims`:** create a claim for this pod from the `gpu-40gb-plus` template. Each pod gets its own ResourceClaim (named something like `inference-dra-gpu-x7k2p`), which is deleted with the pod. That's why it's a *template*: ten replicas get ten separate claims instead of fighting over one GPU.
 > - **`containers[].resources.claims: - name: gpu`:** give the `server` container access to that device. In a pod with several containers, you choose which ones see the GPU.
-> - **No `nvidia.com/gpu: 1` limit:** the claim *is* the request.
+> - **No GPU count under `resources.limits`:** the container lists `claims` instead. The claim *is* the request, so there is nothing to count.
 >
 > **What happens when you apply it**
 >
@@ -679,7 +679,7 @@ spec:
 > 3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container.
 > 4. **The server starts:** vLLM starts and sees exactly one GPU that's big enough.
 >
-> **Why this is better than the old way:** `nvidia.com/gpu: 1` only counts GPUs, so getting a big one needed node labels plus a `nodeSelector` or affinity (the example above). With DRA the pod describes the *device itself*, and the scheduler matches on the GPU's properties whatever the node is called or labeled.
+> **How this compares with the previous bullet:** Option 2 there gets the same "at least 40 GB" result without DRA. It labels the **node** with its GPU memory, filters nodes with node affinity, then asks the device plugin for `nvidia.com/gpu: 1`, which only counts GPUs. DRA instead describes the **device** itself, so the scheduler checks each GPU's own properties. For one big GPU both work; DRA matters when GPUs on a node differ, when several devices must fit together (two GPUs on the same PCIe switch, a GPU plus the network card next to it), when pods share a GPU, or when you want a fallback ("an H100, or else two A100s").
 
 > **Note: how do you install DRA?**
 >
