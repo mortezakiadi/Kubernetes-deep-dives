@@ -60,7 +60,7 @@ def main():
     tabs = sorted((ROOT / "content" / "deep-dives").glob("*.md"))
     nav_posts, nav, body = [], [], []
     n_sections = 0
-    entries = [("post", p) for p in posts] + [("tab", p) for p in tabs]
+    entries = [("tab", p) for p in tabs] + [("post", p) for p in posts]
     tabno = 0
     for kind, p in entries:
         meta, h = read_md(p)
@@ -73,7 +73,7 @@ def main():
             tag = f"Tab {label} · {n} section" + ("s" if n != 1 else "")
             nav.append(f'<li><a href="#{sid}"><b>{label}</b> {html.escape(meta["short"])}</a></li>')
         else:
-            tag = "Start here"
+            tag = "Further research"
             nav_posts.append(f'<li class="notes"><a href="#{sid}">{html.escape(meta["short"])}</a></li>')
         body.append(f"""
 <section class="entry {kind}" id="{sid}" aria-labelledby="{sid}-h">

@@ -136,14 +136,6 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
   <aside class="rail">
     <p class="brand">Kubernetes deep dives</p>
     <nav aria-label="Contents">
-      <h3>Start here</h3>
-      <ul><li class="notes"><a href="#post-serving">Serving LLMs on Kubernetes</a></li>
-<li class="notes"><a href="#post-model-data">Getting model weights into pods</a></li>
-<li class="notes"><a href="#post-production">Running LLMs in production</a></li>
-<li class="notes"><a href="#post-observability">Observing LLMs</a></li>
-<li class="notes"><a href="#post-customizing">Customizing models</a></li>
-<li class="notes"><a href="#post-ai-apps">RAG and agents on Kubernetes</a></li>
-<li class="notes"><a href="#post-agents-prod">Running agents in production</a></li></ul>
       <h3>Deep dives</h3>
       <ul><li><a href="#d-scheduler"><b>01</b> EKS Scheduler</a></li>
 <li><a href="#d-multischeduler"><b>02</b> EKS Multi-Scheduler</a></li>
@@ -159,6 +151,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><a href="#d-optimization"><b>12</b> EKS Optimization</a></li>
 <li><a href="#d-security"><b>13</b> EKS Security</a></li>
 <li><a href="#d-storage-basics"><b>14</b> StorageClass, PV and PVC</a></li></ul>
+      <h3>Further research</h3>
+      <ul><li class="notes"><a href="#post-serving">Serving LLMs on Kubernetes</a></li>
+<li class="notes"><a href="#post-model-data">Getting model weights into pods</a></li>
+<li class="notes"><a href="#post-production">Running LLMs in production</a></li>
+<li class="notes"><a href="#post-observability">Observing LLMs</a></li>
+<li class="notes"><a href="#post-customizing">Customizing models</a></li>
+<li class="notes"><a href="#post-ai-apps">RAG and agents on Kubernetes</a></li>
+<li class="notes"><a href="#post-agents-prod">Running agents in production</a></li></ul>
     </nav>
   </aside>
   <main>
@@ -175,347 +175,6 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       </ul>
     </header>
     
-<section class="entry post" id="post-serving" aria-labelledby="post-serving-h">
-  <header class="entry-head">
-    <span class="tag">Start here</span>
-    <h2 id="post-serving-h">Serving LLMs on Kubernetes</h2>
-  </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-serving-from-a-python-script-to-a-model-server">From a Python script to a model server</a></li><li><a href="#post-serving-the-serving-runtimes-worth-knowing">The serving runtimes worth knowing</a></li><li><a href="#post-serving-deploying-by-hand">Deploying by hand</a></li><li><a href="#post-serving-kserve-separate-the-runtime-from-the-model">KServe: separate the runtime from the model</a></li><li><a href="#post-serving-ray-serve-and-kuberay">Ray Serve and KubeRay</a></li></ol></nav>
-  <div class="prose"><p>Before the deep dives, here's the workload most of them end up hosting: a large language model behind an API. This post covers what it takes to go from a model on a laptop to a production endpoint on Kubernetes.</p>
-<h3 id="post-serving-from-a-python-script-to-a-model-server">From a Python script to a model server</h3>
-<p>Loading a model with the Transformers library and calling it works for a demo, but it is one process, one hard-coded prompt and no API. Wrapping it in FastAPI is the next step, and at that point you are rebuilding a <strong>model server</strong>: a runtime that loads the model, exposes it over REST or gRPC, and is tuned for throughput and latency. Memory is the first constraint: as a rule of thumb, a 7B model needs a GPU with about 15 GB, and a 70B model needs about 140 GB.</p>
-<h3 id="post-serving-the-serving-runtimes-worth-knowing">The serving runtimes worth knowing</h3>
-<ul>
-<li><strong>vLLM:</strong> the most widely used open-source server, with an OpenAI-compatible API, PagedAttention and continuous batching.</li>
-<li><strong>TGI (Hugging Face):</strong> similar, and can switch backends (CUDA, TensorRT-LLM, llama.cpp, AWS Neuron for Trainium/Inferentia).</li>
-<li><strong>llama.cpp:</strong> for laptops and edge devices; it is where the GGUF format comes from.</li>
-<li><strong>NVIDIA NIM:</strong> curated, pre-optimized images per model family, with a model cache on a PersistentVolume.</li>
-<li><strong>SGLang:</strong> strong at reusing the KV cache across requests that share a prompt prefix (agents, multi-turn chats).</li>
-</ul>
-<p>A platform team doesn't need to master every inference optimization (quantization, speculative decoding, FlashAttention). Pick an actively maintained server and watch the settings that change the <em>topology</em>: multi-GPU and multi-node serving make the deployment stateful and need extra coordination.</p>
-<h3 id="post-serving-deploying-by-hand">Deploying by hand</h3>
-<p>A plain Deployment for vLLM already needs a GPU limit, a toleration for tainted GPU nodes, a Secret for gated models, and a PVC as a model cache so a restart doesn't re-download 100 GB. Multiply that by every model and the case for a controller is obvious.
-→ See <a href="#d06-1">The NVIDIA device plugin</a>.</p>
-<h3 id="post-serving-kserve-separate-the-runtime-from-the-model">KServe: separate the runtime from the model</h3>
-<p>KServe splits <strong>ServingRuntime</strong> (the model server image and defaults, owned by the platform team) from <strong>InferenceService</strong> (one model, owned by data scientists), so runtime upgrades and model releases can move at their own pace.</p>
-<ul>
-<li><strong>Standard mode</strong> creates plain Deployments, which is the usual choice for large LLMs.</li>
-<li><strong>Knative mode</strong> adds scale-to-zero.</li>
-<li><strong>ModelMesh</strong> packs many small models together.</li>
-</ul>
-<p>The newer <strong>LLMInferenceService</strong> adds KV-cache-aware routing, disaggregated serving and tensor/data/expert parallelism for 7B–405B models.
-→ See <a href="#d03-1">Workloads and node tiers</a> and <a href="#d03-3">Placement, autoscaling and cost</a>.</p>
-<h3 id="post-serving-ray-serve-and-kuberay">Ray Serve and KubeRay</h3>
-<p>Ray defines its own cluster (a head node plus workers) and its own scheduling, and KubeRay's <strong>RayService</strong> maps it onto Kubernetes. Python teams get full control from code, at the cost of a second orchestration layer on top of Kubernetes.
-→ See <a href="#d02-1">How a Pod finds its scheduler</a>.</p></div>
-</section>
-
-<section class="entry post" id="post-model-data" aria-labelledby="post-model-data-h">
-  <header class="entry-head">
-    <span class="tag">Start here</span>
-    <h2 id="post-model-data-h">Getting model weights into pods</h2>
-  </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-model-data-what-s-in-a-model-file">What's in a model file</a></li><li><a href="#post-model-data-model-registries">Model registries</a></li><li><a href="#post-model-data-four-ways-to-get-weights-into-a-pod">Four ways to get weights into a pod</a></li><li><a href="#post-model-data-why-oci-images-fit-models-well">Why OCI images fit models well</a></li><li><a href="#post-model-data-my-rule-of-thumb">My rule of thumb</a></li></ol></nav>
-  <div class="prose"><p>LLM weights range from a few GB (Mistral 7B is about 14 GB) to nearly a terabyte (Llama 3.1 405B is about 750 GB). Moving that much data into pods quickly and cheaply is a storage, network and startup-time problem. This post covers the formats, the registries, and four ways to get weights to a model server.</p>
-<h3 id="post-model-data-what-s-in-a-model-file">What's in a model file</h3>
-<ul>
-<li><strong>Weight-only formats</strong> (PyTorch <code>.pt</code>/<code>.pth</code>, TensorFlow checkpoints, NumPy) need the original code to rebuild the network.</li>
-<li><strong>"Mostly self-contained" formats</strong> carry more:</li>
-<li><strong>Safetensors</strong> is safe to load (unlike pickle, it can't execute code), memory-maps tensors without copies, and shards large models into many files with an index.</li>
-<li><strong>GGUF</strong> packs quantized weights plus tokenizer data into one file for llama.cpp and vLLM.</li>
-<li><strong>ONNX</strong> carries the graph but not the tokenizer.</li>
-</ul>
-<p>None is fully self-contained yet. <code>config.json</code> and <code>tokenizer.json</code> still travel alongside the weights.
-→ See <a href="#d13-2">The build pipeline</a>.</p>
-<h3 id="post-model-data-model-registries">Model registries</h3>
-<p>A registry tracks versions, metadata, lineage, stage (experiment → staging → production) and access, but usually stores only <em>pointers</em> to the weights in object storage. Common choices are the Hugging Face Hub (public), MLflow, the Kubeflow Model Registry, and plain OCI registries.</p>
-<h3 id="post-model-data-four-ways-to-get-weights-into-a-pod">Four ways to get weights into a pod</h3>
-<table>
-<thead>
-<tr>
-<th>Approach</th>
-<th>How</th>
-<th>Good for</th>
-<th>Watch out for</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Init-container copy</td>
-<td>Download (S3, HTTP, HF) into an <code>emptyDir</code> before the server starts</td>
-<td>Fastest reads, single replica</td>
-<td>Slow startup, one copy per pod per node</td>
-</tr>
-<tr>
-<td>Shared PersistentVolume</td>
-<td>One copy on NFS/EFS/Ceph, mounted <code>ReadOnlyMany</code> by every replica</td>
-<td>Many replicas, models managed outside the cluster</td>
-<td>Every read crosses the network; struggles at hundreds of replicas</td>
-</tr>
-<tr>
-<td>Modelcar</td>
-<td>Model in an OCI image, run as a sidecar; the server reads it through a <code>/proc</code> symlink</td>
-<td>Fine-tuned models sharing base layers</td>
-<td>Needs <code>shareProcessNamespace</code> (a security concern), startup races</td>
-</tr>
-<tr>
-<td>OCI image volume</td>
-<td>Mount the model image directly as a read-only volume (beta in Kubernetes 1.35)</td>
-<td>The clean, native future</td>
-<td>Feature gates and runtime versions still required</td>
-</tr>
-</tbody>
-</table>
-<p>→ See <a href="#d14-1">StorageClass, PV and PVC</a>, <a href="#d08-2">Storage and StatefulSet mechanics</a> and <a href="#d12-3">Storage (cost)</a>.</p>
-<h3 id="post-model-data-why-oci-images-fit-models-well">Why OCI images fit models well</h3>
-<p>Container images are layered, cached per node and content-addressed. Put a base model in one layer and LoRA adapters on top, and ten fine-tuned variants share one copy of the base on each node. The CNCF <strong>ModelPack</strong> spec is standardizing this. Pre-pulling or prefetching model images keeps scale-up predictable.
-→ See <a href="#d12-2">Networking (cost)</a>.</p>
-<h3 id="post-model-data-my-rule-of-thumb">My rule of thumb</h3>
-<p>Pick the access method per tier. Use PersistentVolumes in development for easy updates and OCI images in production for speed and repeatability. Always measure <em>time from pod scheduled to model ready</em>, because that is where large-model autoscaling breaks down.</p></div>
-</section>
-
-<section class="entry post" id="post-production" aria-labelledby="post-production-h">
-  <header class="entry-head">
-    <span class="tag">Start here</span>
-    <h2 id="post-production-h">Running LLMs in production</h2>
-  </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-production-1-choose-the-model-with-numbers-not-vibes">1. Choose the model with numbers, not vibes</a></li><li><a href="#post-production-2-compress-then-evaluate-again">2. Compress, then evaluate again</a></li><li><a href="#post-production-3-do-the-memory-math">3. Do the memory math</a></li><li><a href="#post-production-4-tune-the-runtime-for-the-workload">4. Tune the runtime for the workload</a></li><li><a href="#post-production-5-benchmark-like-production">5. Benchmark like production</a></li><li><a href="#post-production-6-scale-start-fast-route-smartly">6. Scale, start fast, route smartly</a></li></ol></nav>
-  <div class="prose"><p>Getting a model to answer once is easy. Keeping it fast, affordable and correct under real traffic is the hard part. These are the steps I'd go through before calling an LLM deployment production-ready.</p>
-<h3 id="post-production-1-choose-the-model-with-numbers-not-vibes">1. Choose the model with numbers, not vibes</h3>
-<p>Two models of the same size can behave very differently on your task. Use public leaderboards (MMLU for knowledge, HellaSwag for commonsense, TruthfulQA for truthfulness) only to build a shortlist, because published scores can't be verified. Then re-run the evaluations yourself with tools like EleutherAI's <strong>lm-evaluation-harness</strong>. Benchmarks take minutes to hours, so run them as asynchronous jobs in a pipeline. TrustyAI wraps the harness as an <code>LMEvalJob</code> custom resource. Add task-specific checks too: <strong>Ragas</strong> for RAG quality and <strong>garak</strong> for security probing.</p>
-<h3 id="post-production-2-compress-then-evaluate-again">2. Compress, then evaluate again</h3>
-<p>An 8B model at 16 bits needs about 16 GB for its weights alone. <strong>Quantization</strong> to FP8 or INT8 roughly halves that and can double or triple throughput on the same GPU, often keeping 99% or more of the accuracy. Two conditions apply: the runtime must have native kernels for the quantized format (vLLM does), and the result must be re-evaluated, because a bad quantization can quietly ruin quality. Pre-quantized, validated models are the low-risk option.</p>
-<h3 id="post-production-3-do-the-memory-math">3. Do the memory math</h3>
-<p>A rough GPU memory budget for one replica:</p>
-<ul>
-<li>the weights (parameters × bytes per parameter);</li>
-<li>about 1 GB of runtime overhead;</li>
-<li>activations, which grow quickly with sequence length;</li>
-<li>the output tensor;</li>
-<li>everything left goes to the <strong>KV cache</strong>.</li>
-</ul>
-<p>Example: an 8B fp16 model with a 2k context and batch size 1 needs about 17 GB. At batch size 10 it needs about 28 GB. vLLM prints this breakdown at startup, and warns when it has to evict KV-cache blocks because it ran out of room.</p>
-<h3 id="post-production-4-tune-the-runtime-for-the-workload">4. Tune the runtime for the workload</h3>
-<p>vLLM's defaults are good. The settings that matter most are:</p>
-<ul>
-<li><code>gpu-memory-utilization</code>: how much of the GPU it may claim.</li>
-<li><code>max-model-len</code>: caps the context, which sizes the KV cache. Don't cut it below what RAG prompts need.</li>
-<li><code>max-num-seqs</code>: batch size, a trade between throughput and memory.</li>
-<li><code>tensor-parallel-size</code> / <code>pipeline-parallel-size</code>: more GPUs, and more KV-cache room.</li>
-<li><code>cpu-offload-gb</code>: lets bigger models fit, but is too slow for production.</li>
-</ul>
-<h3 id="post-production-5-benchmark-like-production">5. Benchmark like production</h3>
-<p>Use LLM-aware load generators that report TTFT and inter-token latency: <strong>GuideLLM</strong>, <strong>inference-perf</strong> (from Kubernetes WG-Serving), MLPerf Inference, or vLLM's benchmark scripts. Run them in CI on the same GPU type and count as production, store the results, and use them for capacity planning, rate limits and autoscaling targets.</p>
-<h3 id="post-production-6-scale-start-fast-route-smartly">6. Scale, start fast, route smartly</h3>
-<p>Autoscaling, startup time and routing each have their own section with the details:</p>
-<ul>
-<li><a href="#d03-3">Placement, autoscaling and cost</a>: scale on token metrics with KEDA.</li>
-<li><a href="#d12-2">Networking (cost)</a>: from minutes to seconds to ready.</li>
-<li><a href="#d09-4">kube-proxy: iptables vs. IPVS</a>: KV-cache- and LoRA-aware routing.</li>
-<li><a href="#d10-5">Latency and EFA</a>: disaggregated serving.</li>
-</ul>
-<p>At the largest scale, <strong>disaggregated serving</strong> (llm-d, NVIDIA Dynamo) splits prefill (compute-heavy, drives time to first token) from decode (memory-heavy, drives time per token). The two pools scale separately and share a distributed KV cache (LMCache, NIXL) over very fast networks.</p></div>
-</section>
-
-<section class="entry post" id="post-observability" aria-labelledby="post-observability-h">
-  <header class="entry-head">
-    <span class="tag">Start here</span>
-    <h2 id="post-observability-h">Observing LLMs</h2>
-  </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-observability-1-the-usual-stack-still-applies">1. The usual stack still applies</a></li><li><a href="#post-observability-2-measure-tokens-not-requests">2. Measure tokens, not requests</a></li><li><a href="#post-observability-3-fast-isn-t-enough-watch-quality">3. Fast isn't enough: watch quality</a></li><li><a href="#post-observability-4-responsible-ai">4. Responsible AI</a></li></ol></nav>
-  <div class="prose"><p>Kubernetes heals crashed pods, but it can't tell you that answers got slow, or wrong. LLM observability starts with the usual logs, metrics and traces, then switches to tokens instead of requests, and finally adds a layer most services never need: checking that the answers are any good.</p>
-<h3 id="post-observability-1-the-usual-stack-still-applies">1. The usual stack still applies</h3>
-<ul>
-<li><strong>Logs</strong> go to stdout and need a log store such as Loki. A vLLM startup log already tells you a lot: version and arguments, the model config, how much GPU memory the weights took and how much is left for the KV cache, and the routes it serves.</li>
-<li><strong>Metrics</strong> are scraped in Prometheus/OpenMetrics format. KServe has annotations that turn scraping on for a model, plus an aggregator for multi-container pods.</li>
-<li><strong>Traces:</strong> vLLM emits OpenTelemetry spans (send them to Jaeger, for example), and OpenTelemetry is defining semantic conventions specifically for generative AI.</li>
-</ul>
-<h3 id="post-observability-2-measure-tokens-not-requests">2. Measure tokens, not requests</h3>
-<p>The GPU does the work, so CPU usage says little. The two phases also behave differently: prefill is compute-heavy and decode is memory-heavy. The core metrics:</p>
-<ul>
-<li><strong>Time to first token (TTFT):</strong> what a chat user feels as "waiting". It reflects the prefill phase.</li>
-<li><strong>Time per output token (TPOT), or inter-token latency:</strong> reading speed. About 4–5 tokens per second keeps up with a human reader.</li>
-<li><strong>Throughput:</strong> prompt and generated tokens per second.</li>
-<li><strong>End-to-end latency</strong> per request.</li>
-<li><strong>Queue:</strong> <code>num_requests_waiting</code> and <code>num_requests_running</code>, the earliest sign of overload.</li>
-</ul>
-<p>Turn them into SLIs and SLOs (for example "TPOT under 0.3 s for 99.9% of requests"), alert on them with PrometheusRules, and link a runbook. GPU health comes from vendor exporters (NVIDIA DCGM, AMD, Intel) alongside these.
-→ See <a href="#d02-8">What every scheduler relies on</a>.</p>
-<h3 id="post-observability-3-fast-isn-t-enough-watch-quality">3. Fast isn't enough: watch quality</h3>
-<p>A model rarely crashes on bad input. It answers confidently and wrongly, which is a <strong>hallucination</strong>. Benchmarks before deployment help, but in production I'd sample 1–10% of responses into an asynchronous <strong>LLM-as-a-judge</strong> pipeline. Its quality scores are exported as Prometheus metrics, so they can be trended and alerted on like latency. For narrow tasks a cheap metric can work instead, such as ROUGE overlap for summaries. Judges work best with specific questions ("Does this reply include personal data?") rather than "Is this answer good?"</p>
-<h3 id="post-observability-4-responsible-ai">4. Responsible AI</h3>
-<p>Explanations are expensive to compute, so capture requests and responses with an inference logger and explain only the disputed cases later. <strong>Bias</strong> can appear at runtime through data drift even if training was clean, so monitor fairness metrics on protected attributes continuously (KServe with TrustyAI can do this). Input and output <strong>guardrails</strong> are covered in <a href="#d13-6">Identity and model endpoints</a>.</p></div>
-</section>
-
-<section class="entry post" id="post-customizing" aria-labelledby="post-customizing-h">
-  <header class="entry-head">
-    <span class="tag">Start here</span>
-    <h2 id="post-customizing-h">Customizing models: prompts, RAG, LoRA and training jobs</h2>
-  </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-customizing-1-try-the-cheap-options-first">1. Try the cheap options first</a></li><li><a href="#post-customizing-2-full-fine-tuning-vs-lora">2. Full fine-tuning vs. LoRA</a></li><li><a href="#post-customizing-3-running-tuning-jobs-on-kubernetes">3. Running tuning jobs on Kubernetes</a></li></ol></nav>
-  <div class="prose"><p>Almost nobody trains an LLM from scratch. Pre-training takes thousands of GPUs for weeks, and alignment then teaches the base model to follow instructions safely. What platform teams actually run is <strong>post-training</strong>: adapting an already aligned model to their domain. The first question is whether you need to train at all.</p>
-<h3 id="post-customizing-1-try-the-cheap-options-first">1. Try the cheap options first</h3>
-<ul>
-<li><strong>Prompt engineering:</strong> a system prompt that sets the scenario, the role and the boundaries. It is not a security control, because prompt injection can bypass it.</li>
-<li><strong>Context engineering and RAG:</strong> fetch relevant documents at request time and put them in the prompt. Update the knowledge base in minutes, with no training job.</li>
-</ul>
-<p>Training becomes worth it when large, slow-changing knowledge would otherwise ride along in every prompt. Long contexts cost GPU memory on every request, so a bank might bake lending and risk knowledge into a model and keep RAG for fresh facts. A small, specialized model (8–16B parameters), possibly <strong>distilled</strong> from a large one, can match a big general model at a fraction of the serving cost.</p>
-<h3 id="post-customizing-2-full-fine-tuning-vs-lora">2. Full fine-tuning vs. LoRA</h3>
-<ul>
-<li><strong>Full fine-tuning</strong> updates every weight. It needs hundreds of thousands of labelled examples and many GPUs, risks "catastrophic forgetting", and produces a separate model that needs its own GPUs to serve.</li>
-<li><strong>Parameter-efficient fine-tuning (PEFT)</strong>, mainly <strong>LoRA</strong>, freezes the base model and trains small adapter matrices, often under 1% of the parameters. It needs only 100–1,000 examples and finishes in hours. At serving time one base model can host many adapters (vLLM loads them side by side), which is why <a href="#d09-4">LoRA-aware routing</a> matters. QLoRA adds quantization to cut training memory further.</li>
-</ul>
-<p>Hugging Face TRL's <code>SFTTrainer</code> handles both, and newer methods (DPO, GRPO, reward modelling) show up as multi-step pipelines with several GPU components.</p>
-<h3 id="post-customizing-3-running-tuning-jobs-on-kubernetes">3. Running tuning jobs on Kubernetes</h3>
-<ul>
-<li>Even small fine-tunes usually span several GPUs and often several nodes. Sharded training (PyTorch FSDP2) moves weights between GPUs on every layer, so the <a href="#d10-4">network</a> becomes the bottleneck.</li>
-<li><strong>Kubeflow Trainer</strong> separates the roles:</li>
-<li>the platform team defines <code>TrainingRuntime</code>s (PyTorch, DeepSpeed, MLX, MPI);</li>
-<li>data scientists submit <code>TrainJob</code>s from Python, where their function is serialized into the job, so there is no image rebuild per experiment;</li>
-<li>the controller turns them into a <strong>JobSet</strong>.</li>
-<li>Alternatives: <strong>Ray/KubeRay</strong> (<code>RayJob</code> on a RayCluster; code ships in images or repos), <strong>DeepSpeed</strong> as a training library, and <strong>Unsloth</strong> for fast single-GPU fine-tuning.</li>
-<li>Checkpoints must go to persistent storage, and multi-node jobs need <a href="#d02-2">gang scheduling</a> and <a href="#d02-4">quota</a>.</li>
-</ul></div>
-</section>
-
-<section class="entry post" id="post-ai-apps" aria-labelledby="post-ai-apps-h">
-  <header class="entry-head">
-    <span class="tag">Start here</span>
-    <h2 id="post-ai-apps-h">RAG and agents on Kubernetes</h2>
-  </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-ai-apps-1-two-application-shapes">1. Two application shapes</a></li><li><a href="#post-ai-apps-2-rag-end-to-end">2. RAG, end to end</a></li><li><a href="#post-ai-apps-3-agents">3. Agents</a></li></ol></nav>
-  <div class="prose"><p>In a real product, the model is one service among many. The application owns the logic: it fetches context, calls tools, keeps state, and uses the LLM for generation and reasoning. This post maps those pieces onto Kubernetes.</p>
-<h3 id="post-ai-apps-1-two-application-shapes">1. Two application shapes</h3>
-<ul>
-<li><strong>Chat apps:</strong> gateway → orchestrator → LLM → state store, all within one synchronous request. Latency rules, so everything stays warm, and browser-based sign-in (OAuth2) is easy.</li>
-<li><strong>Backend AI services:</strong> triggered by events (an order placed, a payment made) or by a schedule. They need idempotency, buffering and eventual consistency more than raw speed, and can scale to zero.</li>
-</ul>
-<p>Around these sit nightly CronJobs, always-on agent loops (single-replica Deployments that watch a feed, like a controller with an LLM inside), and multi-step automations that run as Jobs.
-→ See <a href="#d03-1">Workloads and node tiers</a> and <a href="#d05-8">Thundering herd</a>.</p>
-<h3 id="post-ai-apps-2-rag-end-to-end">2. RAG, end to end</h3>
-<p><strong>Ingestion</strong> (offline, as Jobs or CronJobs):</p>
-<ol>
-<li>parse documents (e.g. with Docling);</li>
-<li>split them into chunks by sentence, paragraph or heading;</li>
-<li>embed each chunk;</li>
-<li>upsert the vectors with metadata (source, section, version) into a vector database.</li>
-</ol>
-<p><strong>Query time:</strong> embed the question with the <em>same</em> embedding model, run a similarity search (optionally hybrid with keyword ranking), optionally rerank, build the prompt from a template, generate, then add citations and run guardrails before returning.</p>
-<table>
-<thead>
-<tr>
-<th>Component</th>
-<th>Kubernetes shape</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Vector DB (Milvus, Weaviate, Qdrant, pgvector)</td>
-<td>StatefulSet + PVC, snapshots, NetworkPolicy</td>
-</tr>
-<tr>
-<td>Embedding model</td>
-<td>Deployment, sidecar, or in-process</td>
-</tr>
-<tr>
-<td>Orchestrator</td>
-<td>Deployment + Service/Ingress; prompts in ConfigMaps, keys in Secrets</td>
-</tr>
-<tr>
-<td>Reranker</td>
-<td>Optional Deployment for high-stakes queries</td>
-</tr>
-<tr>
-<td>Ingestion</td>
-<td>CronJob / Job with limits so it can't starve users</td>
-</tr>
-</tbody>
-</table>
-<p>If you change the embedding model, you must re-embed every document.
-→ See <a href="#d08-1">Workloads, node groups and scheduling</a>.</p>
-<h3 id="post-ai-apps-3-agents">3. Agents</h3>
-<p>An agent wraps the model in a loop: perceive → think → act (call a tool) → observe → reflect → remember. ReAct is the classic form.</p>
-<ul>
-<li><strong>Tools</strong> run either on the client (the model asks your code to run a function) or on the server, increasingly through <strong>MCP</strong> servers.</li>
-<li><strong>Frameworks:</strong> client-side libraries (LangChain, LangGraph, CrewAI) or server-side runtimes behind an API (the OpenAI-style Responses API, Llama Stack, vLLM's emerging support). Server-side runtimes handle state and human approval steps for you.</li>
-<li><strong>On Kubernetes:</strong> operators like <strong>Kagent</strong> declare agents, tools and A2A skills as custom resources. Agents are Deployments, tools are Services, memory lives in StatefulSets, and heavy work goes to Jobs.</li>
-<li><strong>Multi-agent systems</strong> use either a coordinator or peer-to-peer messaging, plus shared memory. Plan for failures (sagas) and require <strong>human approval</strong> for risky actions.</li>
-</ul>
-<p>More in <a href="#post-agents-prod">Running agents in production</a>.</p></div>
-</section>
-
-<section class="entry post" id="post-agents-prod" aria-labelledby="post-agents-prod-h">
-  <header class="entry-head">
-    <span class="tag">Start here</span>
-    <h2 id="post-agents-prod-h">Running agents in production</h2>
-  </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-agents-prod-1-mcp-one-protocol-for-tools">1. MCP: one protocol for tools</a></li><li><a href="#post-agents-prod-2-whose-identity-reaches-the-backend">2. Whose identity reaches the backend?</a></li><li><a href="#post-agents-prod-3-a2a-agents-talking-to-agents">3. A2A: agents talking to agents</a></li><li><a href="#post-agents-prod-4-memory-and-long-running-work">4. Memory and long-running work</a></li></ol></nav>
-  <div class="prose"><p>Agents bring three problems that plain microservices don't: <strong>who they act as</strong>, <strong>how they talk to each other</strong>, and <strong>what they remember</strong>. The protocols are still young, but the operational patterns below hold regardless of framework.</p>
-<h3 id="post-agents-prod-1-mcp-one-protocol-for-tools">1. MCP: one protocol for tools</h3>
-<p>The <strong>Model Context Protocol</strong> replaces one-off integrations between every agent and every tool (M×N) with a single protocol (M+N). Tools describe themselves with a name, a description and a JSON schema, and calls use JSON-RPC. On Kubernetes:</p>
-<ul>
-<li>Run each MCP server as a Deployment behind a Service, keep session state external, and scale with HPA.</li>
-<li>Use a sidecar only when the tool must share the agent's files.</li>
-<li>Group related tools into a single server to keep the number of services manageable. Watch the total tool count, because agents choose less well from very long lists.</li>
-</ul>
-<p>MCP now sits under the Linux Foundation's Agentic AI Foundation, together with goose and AGENTS.md.</p>
-<h3 id="post-agents-prod-2-whose-identity-reaches-the-backend">2. Whose identity reaches the backend?</h3>
-<table>
-<thead>
-<tr>
-<th>Pattern</th>
-<th>How</th>
-<th>Strength</th>
-<th>Watch out for</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Token passthrough</td>
-<td>Agent forwards the user's OAuth token</td>
-<td>Existing per-user RBAC and audit just work</td>
-<td>Token expiry on long tasks, broad scopes, stolen tokens</td>
-</tr>
-<tr>
-<td>ServiceAccount delegation</td>
-<td>Pod ServiceAccount tokens; validate with <code>TokenReview</code>, authorize with <code>SubjectAccessReview</code> on app-specific "virtual" resources</td>
-<td>No extra identity provider inside the cluster</td>
-<td>Workload identity only, no user</td>
-</tr>
-<tr>
-<td>Token exchange (RFC 8693)</td>
-<td>Identity provider issues a token with the user in <code>sub</code> and the agent in <code>act</code></td>
-<td>User <em>and</em> agent visible; composite policies</td>
-<td>Run and cache an exchange service</td>
-</tr>
-<tr>
-<td>SPIFFE/SPIRE mTLS</td>
-<td>SPIRE issues short-lived X.509 identities per pod via a node agent</td>
-<td>No secrets to steal; auto-rotation</td>
-<td>Significant setup and operations</td>
-</tr>
-</tbody>
-</table>
-<p>Production setups combine them: SPIFFE mTLS between workloads, the user's identity in a header or exchanged token, and a policy engine (OPA) that requires both. <strong>MCP gateways</strong> (Envoy AI Gateway, agentgateway, ContextForge and others) centralize authentication, authorization, rate limits and audit, at the cost of an extra hop that must be highly available.
-→ See <a href="#d13-6">Identity and model endpoints</a>.</p>
-<h3 id="post-agents-prod-3-a2a-agents-talking-to-agents">3. A2A: agents talking to agents</h3>
-<p>MCP connects an agent to <em>tools</em>. The <strong>Agent-to-Agent (A2A)</strong> protocol connects an agent to other <em>agents</em>, which can reason and take time. It has three building blocks:</p>
-<ul>
-<li>an <strong>agent card</strong> that advertises skills and formats, like an OpenAPI spec;</li>
-<li>a <strong>task lifecycle</strong> (created → in progress → completed / failed / cancelled) that outlives any single HTTP call;</li>
-<li><strong>streamed artifacts</strong> for partial results.</li>
-</ul>
-<p>Each agent is its own Deployment, with NetworkPolicies between them and circuit breakers in the mesh. Treat the agent card as a contract you check in CI, and alert on tasks stuck in progress.</p>
-<h3 id="post-agents-prod-4-memory-and-long-running-work">4. Memory and long-running work</h3>
-<ul>
-<li><strong>In-memory state</strong> is fine for development and lost on the first restart or scale-out.</li>
-<li><strong>Short-term memory</strong> (the session) belongs in a key-value store such as Redis, run as a StatefulSet with a TTL per session, so any replica can serve the next turn.</li>
-<li><strong>Long-term memory</strong> (preferences, audit trail, cross-session analytics) belongs in a database, written asynchronously.</li>
-<li><strong>Long-running agents</strong> checkpoint after each major step to a PVC and run as Jobs with <code>restartPolicy: OnFailure</code>, so an evicted pod resumes where it left off. The checkpoints double as a debugging trail.</li>
-</ul>
-<p>Start with plain Deployments, Services, RBAC and StatefulSets, and add meshes, gateways and operators only when a real limitation shows up.</p></div>
-</section>
-
 <section class="entry tab" id="d-scheduler" aria-labelledby="d-scheduler-h">
   <header class="entry-head">
     <span class="tag">Tab 01 · 8 sections</span>
@@ -1123,6 +782,347 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </ul>
 <p>The YAML examples show dynamic provisioning end to end. Mountpoint for S3 gives you a file-system view of a bucket; it is still object storage.</p>
 <p><strong>Going deeper.</strong> The same objects serve model weights. One PersistentVolume on NFS or EFS with <code>ReadOnlyMany</code> access, mounted <code>readOnly: true</code> by every replica, stores the model once and lets the OS cache it aggressively. It works well for tens of replicas. At hundreds, the shared backend becomes the bottleneck.</p></div>
+</section>
+
+<section class="entry post" id="post-serving" aria-labelledby="post-serving-h">
+  <header class="entry-head">
+    <span class="tag">Further research</span>
+    <h2 id="post-serving-h">Serving LLMs on Kubernetes</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-serving-from-a-python-script-to-a-model-server">From a Python script to a model server</a></li><li><a href="#post-serving-the-serving-runtimes-worth-knowing">The serving runtimes worth knowing</a></li><li><a href="#post-serving-deploying-by-hand">Deploying by hand</a></li><li><a href="#post-serving-kserve-separate-the-runtime-from-the-model">KServe: separate the runtime from the model</a></li><li><a href="#post-serving-ray-serve-and-kuberay">Ray Serve and KubeRay</a></li></ol></nav>
+  <div class="prose"><p>Before the deep dives, here's the workload most of them end up hosting: a large language model behind an API. This post covers what it takes to go from a model on a laptop to a production endpoint on Kubernetes.</p>
+<h3 id="post-serving-from-a-python-script-to-a-model-server">From a Python script to a model server</h3>
+<p>Loading a model with the Transformers library and calling it works for a demo, but it is one process, one hard-coded prompt and no API. Wrapping it in FastAPI is the next step, and at that point you are rebuilding a <strong>model server</strong>: a runtime that loads the model, exposes it over REST or gRPC, and is tuned for throughput and latency. Memory is the first constraint: as a rule of thumb, a 7B model needs a GPU with about 15 GB, and a 70B model needs about 140 GB.</p>
+<h3 id="post-serving-the-serving-runtimes-worth-knowing">The serving runtimes worth knowing</h3>
+<ul>
+<li><strong>vLLM:</strong> the most widely used open-source server, with an OpenAI-compatible API, PagedAttention and continuous batching.</li>
+<li><strong>TGI (Hugging Face):</strong> similar, and can switch backends (CUDA, TensorRT-LLM, llama.cpp, AWS Neuron for Trainium/Inferentia).</li>
+<li><strong>llama.cpp:</strong> for laptops and edge devices; it is where the GGUF format comes from.</li>
+<li><strong>NVIDIA NIM:</strong> curated, pre-optimized images per model family, with a model cache on a PersistentVolume.</li>
+<li><strong>SGLang:</strong> strong at reusing the KV cache across requests that share a prompt prefix (agents, multi-turn chats).</li>
+</ul>
+<p>A platform team doesn't need to master every inference optimization (quantization, speculative decoding, FlashAttention). Pick an actively maintained server and watch the settings that change the <em>topology</em>: multi-GPU and multi-node serving make the deployment stateful and need extra coordination.</p>
+<h3 id="post-serving-deploying-by-hand">Deploying by hand</h3>
+<p>A plain Deployment for vLLM already needs a GPU limit, a toleration for tainted GPU nodes, a Secret for gated models, and a PVC as a model cache so a restart doesn't re-download 100 GB. Multiply that by every model and the case for a controller is obvious.
+→ See <a href="#d06-1">The NVIDIA device plugin</a>.</p>
+<h3 id="post-serving-kserve-separate-the-runtime-from-the-model">KServe: separate the runtime from the model</h3>
+<p>KServe splits <strong>ServingRuntime</strong> (the model server image and defaults, owned by the platform team) from <strong>InferenceService</strong> (one model, owned by data scientists), so runtime upgrades and model releases can move at their own pace.</p>
+<ul>
+<li><strong>Standard mode</strong> creates plain Deployments, which is the usual choice for large LLMs.</li>
+<li><strong>Knative mode</strong> adds scale-to-zero.</li>
+<li><strong>ModelMesh</strong> packs many small models together.</li>
+</ul>
+<p>The newer <strong>LLMInferenceService</strong> adds KV-cache-aware routing, disaggregated serving and tensor/data/expert parallelism for 7B–405B models.
+→ See <a href="#d03-1">Workloads and node tiers</a> and <a href="#d03-3">Placement, autoscaling and cost</a>.</p>
+<h3 id="post-serving-ray-serve-and-kuberay">Ray Serve and KubeRay</h3>
+<p>Ray defines its own cluster (a head node plus workers) and its own scheduling, and KubeRay's <strong>RayService</strong> maps it onto Kubernetes. Python teams get full control from code, at the cost of a second orchestration layer on top of Kubernetes.
+→ See <a href="#d02-1">How a Pod finds its scheduler</a>.</p></div>
+</section>
+
+<section class="entry post" id="post-model-data" aria-labelledby="post-model-data-h">
+  <header class="entry-head">
+    <span class="tag">Further research</span>
+    <h2 id="post-model-data-h">Getting model weights into pods</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-model-data-what-s-in-a-model-file">What's in a model file</a></li><li><a href="#post-model-data-model-registries">Model registries</a></li><li><a href="#post-model-data-four-ways-to-get-weights-into-a-pod">Four ways to get weights into a pod</a></li><li><a href="#post-model-data-why-oci-images-fit-models-well">Why OCI images fit models well</a></li><li><a href="#post-model-data-my-rule-of-thumb">My rule of thumb</a></li></ol></nav>
+  <div class="prose"><p>LLM weights range from a few GB (Mistral 7B is about 14 GB) to nearly a terabyte (Llama 3.1 405B is about 750 GB). Moving that much data into pods quickly and cheaply is a storage, network and startup-time problem. This post covers the formats, the registries, and four ways to get weights to a model server.</p>
+<h3 id="post-model-data-what-s-in-a-model-file">What's in a model file</h3>
+<ul>
+<li><strong>Weight-only formats</strong> (PyTorch <code>.pt</code>/<code>.pth</code>, TensorFlow checkpoints, NumPy) need the original code to rebuild the network.</li>
+<li><strong>"Mostly self-contained" formats</strong> carry more:</li>
+<li><strong>Safetensors</strong> is safe to load (unlike pickle, it can't execute code), memory-maps tensors without copies, and shards large models into many files with an index.</li>
+<li><strong>GGUF</strong> packs quantized weights plus tokenizer data into one file for llama.cpp and vLLM.</li>
+<li><strong>ONNX</strong> carries the graph but not the tokenizer.</li>
+</ul>
+<p>None is fully self-contained yet. <code>config.json</code> and <code>tokenizer.json</code> still travel alongside the weights.
+→ See <a href="#d13-2">The build pipeline</a>.</p>
+<h3 id="post-model-data-model-registries">Model registries</h3>
+<p>A registry tracks versions, metadata, lineage, stage (experiment → staging → production) and access, but usually stores only <em>pointers</em> to the weights in object storage. Common choices are the Hugging Face Hub (public), MLflow, the Kubeflow Model Registry, and plain OCI registries.</p>
+<h3 id="post-model-data-four-ways-to-get-weights-into-a-pod">Four ways to get weights into a pod</h3>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>How</th>
+<th>Good for</th>
+<th>Watch out for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Init-container copy</td>
+<td>Download (S3, HTTP, HF) into an <code>emptyDir</code> before the server starts</td>
+<td>Fastest reads, single replica</td>
+<td>Slow startup, one copy per pod per node</td>
+</tr>
+<tr>
+<td>Shared PersistentVolume</td>
+<td>One copy on NFS/EFS/Ceph, mounted <code>ReadOnlyMany</code> by every replica</td>
+<td>Many replicas, models managed outside the cluster</td>
+<td>Every read crosses the network; struggles at hundreds of replicas</td>
+</tr>
+<tr>
+<td>Modelcar</td>
+<td>Model in an OCI image, run as a sidecar; the server reads it through a <code>/proc</code> symlink</td>
+<td>Fine-tuned models sharing base layers</td>
+<td>Needs <code>shareProcessNamespace</code> (a security concern), startup races</td>
+</tr>
+<tr>
+<td>OCI image volume</td>
+<td>Mount the model image directly as a read-only volume (beta in Kubernetes 1.35)</td>
+<td>The clean, native future</td>
+<td>Feature gates and runtime versions still required</td>
+</tr>
+</tbody>
+</table>
+<p>→ See <a href="#d14-1">StorageClass, PV and PVC</a>, <a href="#d08-2">Storage and StatefulSet mechanics</a> and <a href="#d12-3">Storage (cost)</a>.</p>
+<h3 id="post-model-data-why-oci-images-fit-models-well">Why OCI images fit models well</h3>
+<p>Container images are layered, cached per node and content-addressed. Put a base model in one layer and LoRA adapters on top, and ten fine-tuned variants share one copy of the base on each node. The CNCF <strong>ModelPack</strong> spec is standardizing this. Pre-pulling or prefetching model images keeps scale-up predictable.
+→ See <a href="#d12-2">Networking (cost)</a>.</p>
+<h3 id="post-model-data-my-rule-of-thumb">My rule of thumb</h3>
+<p>Pick the access method per tier. Use PersistentVolumes in development for easy updates and OCI images in production for speed and repeatability. Always measure <em>time from pod scheduled to model ready</em>, because that is where large-model autoscaling breaks down.</p></div>
+</section>
+
+<section class="entry post" id="post-production" aria-labelledby="post-production-h">
+  <header class="entry-head">
+    <span class="tag">Further research</span>
+    <h2 id="post-production-h">Running LLMs in production</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-production-1-choose-the-model-with-numbers-not-vibes">1. Choose the model with numbers, not vibes</a></li><li><a href="#post-production-2-compress-then-evaluate-again">2. Compress, then evaluate again</a></li><li><a href="#post-production-3-do-the-memory-math">3. Do the memory math</a></li><li><a href="#post-production-4-tune-the-runtime-for-the-workload">4. Tune the runtime for the workload</a></li><li><a href="#post-production-5-benchmark-like-production">5. Benchmark like production</a></li><li><a href="#post-production-6-scale-start-fast-route-smartly">6. Scale, start fast, route smartly</a></li></ol></nav>
+  <div class="prose"><p>Getting a model to answer once is easy. Keeping it fast, affordable and correct under real traffic is the hard part. These are the steps I'd go through before calling an LLM deployment production-ready.</p>
+<h3 id="post-production-1-choose-the-model-with-numbers-not-vibes">1. Choose the model with numbers, not vibes</h3>
+<p>Two models of the same size can behave very differently on your task. Use public leaderboards (MMLU for knowledge, HellaSwag for commonsense, TruthfulQA for truthfulness) only to build a shortlist, because published scores can't be verified. Then re-run the evaluations yourself with tools like EleutherAI's <strong>lm-evaluation-harness</strong>. Benchmarks take minutes to hours, so run them as asynchronous jobs in a pipeline. TrustyAI wraps the harness as an <code>LMEvalJob</code> custom resource. Add task-specific checks too: <strong>Ragas</strong> for RAG quality and <strong>garak</strong> for security probing.</p>
+<h3 id="post-production-2-compress-then-evaluate-again">2. Compress, then evaluate again</h3>
+<p>An 8B model at 16 bits needs about 16 GB for its weights alone. <strong>Quantization</strong> to FP8 or INT8 roughly halves that and can double or triple throughput on the same GPU, often keeping 99% or more of the accuracy. Two conditions apply: the runtime must have native kernels for the quantized format (vLLM does), and the result must be re-evaluated, because a bad quantization can quietly ruin quality. Pre-quantized, validated models are the low-risk option.</p>
+<h3 id="post-production-3-do-the-memory-math">3. Do the memory math</h3>
+<p>A rough GPU memory budget for one replica:</p>
+<ul>
+<li>the weights (parameters × bytes per parameter);</li>
+<li>about 1 GB of runtime overhead;</li>
+<li>activations, which grow quickly with sequence length;</li>
+<li>the output tensor;</li>
+<li>everything left goes to the <strong>KV cache</strong>.</li>
+</ul>
+<p>Example: an 8B fp16 model with a 2k context and batch size 1 needs about 17 GB. At batch size 10 it needs about 28 GB. vLLM prints this breakdown at startup, and warns when it has to evict KV-cache blocks because it ran out of room.</p>
+<h3 id="post-production-4-tune-the-runtime-for-the-workload">4. Tune the runtime for the workload</h3>
+<p>vLLM's defaults are good. The settings that matter most are:</p>
+<ul>
+<li><code>gpu-memory-utilization</code>: how much of the GPU it may claim.</li>
+<li><code>max-model-len</code>: caps the context, which sizes the KV cache. Don't cut it below what RAG prompts need.</li>
+<li><code>max-num-seqs</code>: batch size, a trade between throughput and memory.</li>
+<li><code>tensor-parallel-size</code> / <code>pipeline-parallel-size</code>: more GPUs, and more KV-cache room.</li>
+<li><code>cpu-offload-gb</code>: lets bigger models fit, but is too slow for production.</li>
+</ul>
+<h3 id="post-production-5-benchmark-like-production">5. Benchmark like production</h3>
+<p>Use LLM-aware load generators that report TTFT and inter-token latency: <strong>GuideLLM</strong>, <strong>inference-perf</strong> (from Kubernetes WG-Serving), MLPerf Inference, or vLLM's benchmark scripts. Run them in CI on the same GPU type and count as production, store the results, and use them for capacity planning, rate limits and autoscaling targets.</p>
+<h3 id="post-production-6-scale-start-fast-route-smartly">6. Scale, start fast, route smartly</h3>
+<p>Autoscaling, startup time and routing each have their own section with the details:</p>
+<ul>
+<li><a href="#d03-3">Placement, autoscaling and cost</a>: scale on token metrics with KEDA.</li>
+<li><a href="#d12-2">Networking (cost)</a>: from minutes to seconds to ready.</li>
+<li><a href="#d09-4">kube-proxy: iptables vs. IPVS</a>: KV-cache- and LoRA-aware routing.</li>
+<li><a href="#d10-5">Latency and EFA</a>: disaggregated serving.</li>
+</ul>
+<p>At the largest scale, <strong>disaggregated serving</strong> (llm-d, NVIDIA Dynamo) splits prefill (compute-heavy, drives time to first token) from decode (memory-heavy, drives time per token). The two pools scale separately and share a distributed KV cache (LMCache, NIXL) over very fast networks.</p></div>
+</section>
+
+<section class="entry post" id="post-observability" aria-labelledby="post-observability-h">
+  <header class="entry-head">
+    <span class="tag">Further research</span>
+    <h2 id="post-observability-h">Observing LLMs</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-observability-1-the-usual-stack-still-applies">1. The usual stack still applies</a></li><li><a href="#post-observability-2-measure-tokens-not-requests">2. Measure tokens, not requests</a></li><li><a href="#post-observability-3-fast-isn-t-enough-watch-quality">3. Fast isn't enough: watch quality</a></li><li><a href="#post-observability-4-responsible-ai">4. Responsible AI</a></li></ol></nav>
+  <div class="prose"><p>Kubernetes heals crashed pods, but it can't tell you that answers got slow, or wrong. LLM observability starts with the usual logs, metrics and traces, then switches to tokens instead of requests, and finally adds a layer most services never need: checking that the answers are any good.</p>
+<h3 id="post-observability-1-the-usual-stack-still-applies">1. The usual stack still applies</h3>
+<ul>
+<li><strong>Logs</strong> go to stdout and need a log store such as Loki. A vLLM startup log already tells you a lot: version and arguments, the model config, how much GPU memory the weights took and how much is left for the KV cache, and the routes it serves.</li>
+<li><strong>Metrics</strong> are scraped in Prometheus/OpenMetrics format. KServe has annotations that turn scraping on for a model, plus an aggregator for multi-container pods.</li>
+<li><strong>Traces:</strong> vLLM emits OpenTelemetry spans (send them to Jaeger, for example), and OpenTelemetry is defining semantic conventions specifically for generative AI.</li>
+</ul>
+<h3 id="post-observability-2-measure-tokens-not-requests">2. Measure tokens, not requests</h3>
+<p>The GPU does the work, so CPU usage says little. The two phases also behave differently: prefill is compute-heavy and decode is memory-heavy. The core metrics:</p>
+<ul>
+<li><strong>Time to first token (TTFT):</strong> what a chat user feels as "waiting". It reflects the prefill phase.</li>
+<li><strong>Time per output token (TPOT), or inter-token latency:</strong> reading speed. About 4–5 tokens per second keeps up with a human reader.</li>
+<li><strong>Throughput:</strong> prompt and generated tokens per second.</li>
+<li><strong>End-to-end latency</strong> per request.</li>
+<li><strong>Queue:</strong> <code>num_requests_waiting</code> and <code>num_requests_running</code>, the earliest sign of overload.</li>
+</ul>
+<p>Turn them into SLIs and SLOs (for example "TPOT under 0.3 s for 99.9% of requests"), alert on them with PrometheusRules, and link a runbook. GPU health comes from vendor exporters (NVIDIA DCGM, AMD, Intel) alongside these.
+→ See <a href="#d02-8">What every scheduler relies on</a>.</p>
+<h3 id="post-observability-3-fast-isn-t-enough-watch-quality">3. Fast isn't enough: watch quality</h3>
+<p>A model rarely crashes on bad input. It answers confidently and wrongly, which is a <strong>hallucination</strong>. Benchmarks before deployment help, but in production I'd sample 1–10% of responses into an asynchronous <strong>LLM-as-a-judge</strong> pipeline. Its quality scores are exported as Prometheus metrics, so they can be trended and alerted on like latency. For narrow tasks a cheap metric can work instead, such as ROUGE overlap for summaries. Judges work best with specific questions ("Does this reply include personal data?") rather than "Is this answer good?"</p>
+<h3 id="post-observability-4-responsible-ai">4. Responsible AI</h3>
+<p>Explanations are expensive to compute, so capture requests and responses with an inference logger and explain only the disputed cases later. <strong>Bias</strong> can appear at runtime through data drift even if training was clean, so monitor fairness metrics on protected attributes continuously (KServe with TrustyAI can do this). Input and output <strong>guardrails</strong> are covered in <a href="#d13-6">Identity and model endpoints</a>.</p></div>
+</section>
+
+<section class="entry post" id="post-customizing" aria-labelledby="post-customizing-h">
+  <header class="entry-head">
+    <span class="tag">Further research</span>
+    <h2 id="post-customizing-h">Customizing models: prompts, RAG, LoRA and training jobs</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-customizing-1-try-the-cheap-options-first">1. Try the cheap options first</a></li><li><a href="#post-customizing-2-full-fine-tuning-vs-lora">2. Full fine-tuning vs. LoRA</a></li><li><a href="#post-customizing-3-running-tuning-jobs-on-kubernetes">3. Running tuning jobs on Kubernetes</a></li></ol></nav>
+  <div class="prose"><p>Almost nobody trains an LLM from scratch. Pre-training takes thousands of GPUs for weeks, and alignment then teaches the base model to follow instructions safely. What platform teams actually run is <strong>post-training</strong>: adapting an already aligned model to their domain. The first question is whether you need to train at all.</p>
+<h3 id="post-customizing-1-try-the-cheap-options-first">1. Try the cheap options first</h3>
+<ul>
+<li><strong>Prompt engineering:</strong> a system prompt that sets the scenario, the role and the boundaries. It is not a security control, because prompt injection can bypass it.</li>
+<li><strong>Context engineering and RAG:</strong> fetch relevant documents at request time and put them in the prompt. Update the knowledge base in minutes, with no training job.</li>
+</ul>
+<p>Training becomes worth it when large, slow-changing knowledge would otherwise ride along in every prompt. Long contexts cost GPU memory on every request, so a bank might bake lending and risk knowledge into a model and keep RAG for fresh facts. A small, specialized model (8–16B parameters), possibly <strong>distilled</strong> from a large one, can match a big general model at a fraction of the serving cost.</p>
+<h3 id="post-customizing-2-full-fine-tuning-vs-lora">2. Full fine-tuning vs. LoRA</h3>
+<ul>
+<li><strong>Full fine-tuning</strong> updates every weight. It needs hundreds of thousands of labelled examples and many GPUs, risks "catastrophic forgetting", and produces a separate model that needs its own GPUs to serve.</li>
+<li><strong>Parameter-efficient fine-tuning (PEFT)</strong>, mainly <strong>LoRA</strong>, freezes the base model and trains small adapter matrices, often under 1% of the parameters. It needs only 100–1,000 examples and finishes in hours. At serving time one base model can host many adapters (vLLM loads them side by side), which is why <a href="#d09-4">LoRA-aware routing</a> matters. QLoRA adds quantization to cut training memory further.</li>
+</ul>
+<p>Hugging Face TRL's <code>SFTTrainer</code> handles both, and newer methods (DPO, GRPO, reward modelling) show up as multi-step pipelines with several GPU components.</p>
+<h3 id="post-customizing-3-running-tuning-jobs-on-kubernetes">3. Running tuning jobs on Kubernetes</h3>
+<ul>
+<li>Even small fine-tunes usually span several GPUs and often several nodes. Sharded training (PyTorch FSDP2) moves weights between GPUs on every layer, so the <a href="#d10-4">network</a> becomes the bottleneck.</li>
+<li><strong>Kubeflow Trainer</strong> separates the roles:</li>
+<li>the platform team defines <code>TrainingRuntime</code>s (PyTorch, DeepSpeed, MLX, MPI);</li>
+<li>data scientists submit <code>TrainJob</code>s from Python, where their function is serialized into the job, so there is no image rebuild per experiment;</li>
+<li>the controller turns them into a <strong>JobSet</strong>.</li>
+<li>Alternatives: <strong>Ray/KubeRay</strong> (<code>RayJob</code> on a RayCluster; code ships in images or repos), <strong>DeepSpeed</strong> as a training library, and <strong>Unsloth</strong> for fast single-GPU fine-tuning.</li>
+<li>Checkpoints must go to persistent storage, and multi-node jobs need <a href="#d02-2">gang scheduling</a> and <a href="#d02-4">quota</a>.</li>
+</ul></div>
+</section>
+
+<section class="entry post" id="post-ai-apps" aria-labelledby="post-ai-apps-h">
+  <header class="entry-head">
+    <span class="tag">Further research</span>
+    <h2 id="post-ai-apps-h">RAG and agents on Kubernetes</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-ai-apps-1-two-application-shapes">1. Two application shapes</a></li><li><a href="#post-ai-apps-2-rag-end-to-end">2. RAG, end to end</a></li><li><a href="#post-ai-apps-3-agents">3. Agents</a></li></ol></nav>
+  <div class="prose"><p>In a real product, the model is one service among many. The application owns the logic: it fetches context, calls tools, keeps state, and uses the LLM for generation and reasoning. This post maps those pieces onto Kubernetes.</p>
+<h3 id="post-ai-apps-1-two-application-shapes">1. Two application shapes</h3>
+<ul>
+<li><strong>Chat apps:</strong> gateway → orchestrator → LLM → state store, all within one synchronous request. Latency rules, so everything stays warm, and browser-based sign-in (OAuth2) is easy.</li>
+<li><strong>Backend AI services:</strong> triggered by events (an order placed, a payment made) or by a schedule. They need idempotency, buffering and eventual consistency more than raw speed, and can scale to zero.</li>
+</ul>
+<p>Around these sit nightly CronJobs, always-on agent loops (single-replica Deployments that watch a feed, like a controller with an LLM inside), and multi-step automations that run as Jobs.
+→ See <a href="#d03-1">Workloads and node tiers</a> and <a href="#d05-8">Thundering herd</a>.</p>
+<h3 id="post-ai-apps-2-rag-end-to-end">2. RAG, end to end</h3>
+<p><strong>Ingestion</strong> (offline, as Jobs or CronJobs):</p>
+<ol>
+<li>parse documents (e.g. with Docling);</li>
+<li>split them into chunks by sentence, paragraph or heading;</li>
+<li>embed each chunk;</li>
+<li>upsert the vectors with metadata (source, section, version) into a vector database.</li>
+</ol>
+<p><strong>Query time:</strong> embed the question with the <em>same</em> embedding model, run a similarity search (optionally hybrid with keyword ranking), optionally rerank, build the prompt from a template, generate, then add citations and run guardrails before returning.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Kubernetes shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vector DB (Milvus, Weaviate, Qdrant, pgvector)</td>
+<td>StatefulSet + PVC, snapshots, NetworkPolicy</td>
+</tr>
+<tr>
+<td>Embedding model</td>
+<td>Deployment, sidecar, or in-process</td>
+</tr>
+<tr>
+<td>Orchestrator</td>
+<td>Deployment + Service/Ingress; prompts in ConfigMaps, keys in Secrets</td>
+</tr>
+<tr>
+<td>Reranker</td>
+<td>Optional Deployment for high-stakes queries</td>
+</tr>
+<tr>
+<td>Ingestion</td>
+<td>CronJob / Job with limits so it can't starve users</td>
+</tr>
+</tbody>
+</table>
+<p>If you change the embedding model, you must re-embed every document.
+→ See <a href="#d08-1">Workloads, node groups and scheduling</a>.</p>
+<h3 id="post-ai-apps-3-agents">3. Agents</h3>
+<p>An agent wraps the model in a loop: perceive → think → act (call a tool) → observe → reflect → remember. ReAct is the classic form.</p>
+<ul>
+<li><strong>Tools</strong> run either on the client (the model asks your code to run a function) or on the server, increasingly through <strong>MCP</strong> servers.</li>
+<li><strong>Frameworks:</strong> client-side libraries (LangChain, LangGraph, CrewAI) or server-side runtimes behind an API (the OpenAI-style Responses API, Llama Stack, vLLM's emerging support). Server-side runtimes handle state and human approval steps for you.</li>
+<li><strong>On Kubernetes:</strong> operators like <strong>Kagent</strong> declare agents, tools and A2A skills as custom resources. Agents are Deployments, tools are Services, memory lives in StatefulSets, and heavy work goes to Jobs.</li>
+<li><strong>Multi-agent systems</strong> use either a coordinator or peer-to-peer messaging, plus shared memory. Plan for failures (sagas) and require <strong>human approval</strong> for risky actions.</li>
+</ul>
+<p>More in <a href="#post-agents-prod">Running agents in production</a>.</p></div>
+</section>
+
+<section class="entry post" id="post-agents-prod" aria-labelledby="post-agents-prod-h">
+  <header class="entry-head">
+    <span class="tag">Further research</span>
+    <h2 id="post-agents-prod-h">Running agents in production</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-agents-prod-1-mcp-one-protocol-for-tools">1. MCP: one protocol for tools</a></li><li><a href="#post-agents-prod-2-whose-identity-reaches-the-backend">2. Whose identity reaches the backend?</a></li><li><a href="#post-agents-prod-3-a2a-agents-talking-to-agents">3. A2A: agents talking to agents</a></li><li><a href="#post-agents-prod-4-memory-and-long-running-work">4. Memory and long-running work</a></li></ol></nav>
+  <div class="prose"><p>Agents bring three problems that plain microservices don't: <strong>who they act as</strong>, <strong>how they talk to each other</strong>, and <strong>what they remember</strong>. The protocols are still young, but the operational patterns below hold regardless of framework.</p>
+<h3 id="post-agents-prod-1-mcp-one-protocol-for-tools">1. MCP: one protocol for tools</h3>
+<p>The <strong>Model Context Protocol</strong> replaces one-off integrations between every agent and every tool (M×N) with a single protocol (M+N). Tools describe themselves with a name, a description and a JSON schema, and calls use JSON-RPC. On Kubernetes:</p>
+<ul>
+<li>Run each MCP server as a Deployment behind a Service, keep session state external, and scale with HPA.</li>
+<li>Use a sidecar only when the tool must share the agent's files.</li>
+<li>Group related tools into a single server to keep the number of services manageable. Watch the total tool count, because agents choose less well from very long lists.</li>
+</ul>
+<p>MCP now sits under the Linux Foundation's Agentic AI Foundation, together with goose and AGENTS.md.</p>
+<h3 id="post-agents-prod-2-whose-identity-reaches-the-backend">2. Whose identity reaches the backend?</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>How</th>
+<th>Strength</th>
+<th>Watch out for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Token passthrough</td>
+<td>Agent forwards the user's OAuth token</td>
+<td>Existing per-user RBAC and audit just work</td>
+<td>Token expiry on long tasks, broad scopes, stolen tokens</td>
+</tr>
+<tr>
+<td>ServiceAccount delegation</td>
+<td>Pod ServiceAccount tokens; validate with <code>TokenReview</code>, authorize with <code>SubjectAccessReview</code> on app-specific "virtual" resources</td>
+<td>No extra identity provider inside the cluster</td>
+<td>Workload identity only, no user</td>
+</tr>
+<tr>
+<td>Token exchange (RFC 8693)</td>
+<td>Identity provider issues a token with the user in <code>sub</code> and the agent in <code>act</code></td>
+<td>User <em>and</em> agent visible; composite policies</td>
+<td>Run and cache an exchange service</td>
+</tr>
+<tr>
+<td>SPIFFE/SPIRE mTLS</td>
+<td>SPIRE issues short-lived X.509 identities per pod via a node agent</td>
+<td>No secrets to steal; auto-rotation</td>
+<td>Significant setup and operations</td>
+</tr>
+</tbody>
+</table>
+<p>Production setups combine them: SPIFFE mTLS between workloads, the user's identity in a header or exchanged token, and a policy engine (OPA) that requires both. <strong>MCP gateways</strong> (Envoy AI Gateway, agentgateway, ContextForge and others) centralize authentication, authorization, rate limits and audit, at the cost of an extra hop that must be highly available.
+→ See <a href="#d13-6">Identity and model endpoints</a>.</p>
+<h3 id="post-agents-prod-3-a2a-agents-talking-to-agents">3. A2A: agents talking to agents</h3>
+<p>MCP connects an agent to <em>tools</em>. The <strong>Agent-to-Agent (A2A)</strong> protocol connects an agent to other <em>agents</em>, which can reason and take time. It has three building blocks:</p>
+<ul>
+<li>an <strong>agent card</strong> that advertises skills and formats, like an OpenAPI spec;</li>
+<li>a <strong>task lifecycle</strong> (created → in progress → completed / failed / cancelled) that outlives any single HTTP call;</li>
+<li><strong>streamed artifacts</strong> for partial results.</li>
+</ul>
+<p>Each agent is its own Deployment, with NetworkPolicies between them and circuit breakers in the mesh. Treat the agent card as a contract you check in CI, and alert on tasks stuck in progress.</p>
+<h3 id="post-agents-prod-4-memory-and-long-running-work">4. Memory and long-running work</h3>
+<ul>
+<li><strong>In-memory state</strong> is fine for development and lost on the first restart or scale-out.</li>
+<li><strong>Short-term memory</strong> (the session) belongs in a key-value store such as Redis, run as a StatefulSet with a TTL per session, so any replica can serve the next turn.</li>
+<li><strong>Long-term memory</strong> (preferences, audit trail, cross-session analytics) belongs in a database, written asynchronously.</li>
+<li><strong>Long-running agents</strong> checkpoint after each major step to a PVC and run as Jobs with <code>restartPolicy: OnFailure</code>, so an evicted pod resumes where it left off. The checkpoints double as a debugging trail.</li>
+</ul>
+<p>Start with plain Deployments, Services, RBAC and StatefulSets, and add meshes, gateways and operators only when a real limitation shows up.</p></div>
 </section>
     <footer>
       <p>Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing.</p>
