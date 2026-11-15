@@ -678,7 +678,118 @@ spec:
 > 3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container.
 > 4. **The server starts:** vLLM starts and sees exactly one GPU that's big enough.
 >
-> **How this compares with the previous bullet:** Option 2 there gets the same "at least 40 GB" result without DRA. It labels the **node** with its GPU memory, filters nodes with node affinity, then asks the device plugin for `nvidia.com/gpu: 1`, which only counts GPUs. DRA instead describes the **device** itself, so the scheduler checks each GPU's own properties. For one big GPU both work; DRA matters when GPUs on a node differ, when several devices must fit together (two GPUs on the same PCIe switch, a GPU plus the network card next to it), when pods share a GPU, or when you want a fallback ("an H100, or else two A100s").
+> **How this compares with the previous bullet:** Option 2 there gets the same "at least 40 GB" result without DRA. It labels the **node** with its GPU memory, filters nodes with node affinity, then asks the device plugin for `nvidia.com/gpu: 1`, which only counts GPUs. DRA instead describes the **device** itself, so the scheduler checks each GPU's own properties. For one big GPU both work. The examples below show where DRA goes further.
+>
+> - **When GPUs on a node differ:** a node label describes the node as one thing, so a node with one 80 GB and one 24 GB GPU can't be described honestly. DRA checks every GPU separately, so asking for two big GPUs only matches if *both* are big:
+>
+>     ```yaml
+>     apiVersion: resource.k8s.io/v1
+>     kind: ResourceClaimTemplate
+>     metadata:
+>       name: two-big-gpus
+>     spec:
+>       spec:
+>         devices:
+>           requests:
+>           - name: gpus
+>             exactly:
+>               deviceClassName: gpu.nvidia.com
+>               count: 2                          # two devices... #!
+>               selectors:
+>               - cel:                            # ...and each one must pass this check
+>                   expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
+>     ```
+>
+> - **When several devices must fit together:** a GPU and the network card it sends data through should sit on the same PCIe root, so traffic doesn't cross the CPU. Both drivers publish the standard attribute `resource.kubernetes.io/pcieRoot`, and `matchAttribute` requires the two devices to share it. On EKS the network card is an EFA device, offered by the dranet driver:
+>
+>     ```yaml
+>     apiVersion: resource.k8s.io/v1
+>     kind: ResourceClaimTemplate
+>     metadata:
+>       name: gpu-plus-efa
+>     spec:
+>       spec:
+>         devices:
+>           requests:
+>           - name: gpu
+>             exactly:
+>               deviceClassName: gpu.nvidia.com
+>           - name: efa
+>             exactly:
+>               deviceClassName: efa.networking.k8s.aws   # from the dranet driver
+>           constraints:
+>           - requests: ["gpu", "efa"]                   # these two devices... #!
+>             matchAttribute: resource.kubernetes.io/pcieRoot   # ...must share a PCIe root #!
+>     ```
+>
+>     The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root.
+>
+> - **When pods share a GPU:** create one `ResourceClaim` by name (not a template) and point several pods at it, so they all get the same GPU. How they share it is a driver setting; here NVIDIA's time-slicing (it may need to be turned on in the driver):
+>
+>     ```yaml
+>     apiVersion: resource.k8s.io/v1
+>     kind: ResourceClaim                # one claim, not a template
+>     metadata:
+>       name: shared-gpu
+>     spec:
+>       devices:
+>         requests:
+>         - name: gpu
+>           exactly:
+>             deviceClassName: gpu.nvidia.com
+>         config:
+>         - requests: ["gpu"]
+>           opaque:                      # passed to the driver as-is
+>             driver: gpu.nvidia.com
+>             parameters:
+>               apiVersion: resource.nvidia.com/v1beta1
+>               kind: GpuConfig
+>               sharing:
+>                 strategy: TimeSlicing #!
+>     ---
+>     apiVersion: v1
+>     kind: Pod
+>     metadata:
+>       name: notebook-a                 # notebook-b is the same, with its own name
+>     spec:
+>       resourceClaims:
+>       - name: gpu
+>         resourceClaimName: shared-gpu  # by name, so every pod gets the same GPU #!
+>       containers:
+>       - name: jupyter
+>         image: jupyter/base-notebook:latest
+>         resources:
+>           claims:
+>           - name: gpu
+>     ```
+>
+> - **When you want a fallback:** `firstAvailable` lists options in order of preference, and the scheduler uses the first one it can satisfy. Here: one Hopper GPU, or else two Ampere GPUs:
+>
+>     ```yaml
+>     apiVersion: resource.k8s.io/v1
+>     kind: ResourceClaimTemplate
+>     metadata:
+>       name: h100-or-two-a100
+>     spec:
+>       spec:
+>         devices:
+>           requests:
+>           - name: gpu
+>             firstAvailable:                 # try these in order #!
+>             - name: one-hopper
+>               deviceClassName: gpu.nvidia.com
+>               selectors:
+>               - cel:
+>                   expression: device.attributes["gpu.nvidia.com"].architecture == "Hopper"
+>             - name: two-ampere              # only if no Hopper GPU is free
+>               deviceClassName: gpu.nvidia.com
+>               count: 2
+>               selectors:
+>               - cel:
+>                   expression: device.attributes["gpu.nvidia.com"].architecture == "Ampere"
+>     ```
+>
+>     The application has to cope with either result (one GPU or two), for example by reading how many GPUs it was given at startup.
 
 > **Note: how do you install DRA?**
 >
