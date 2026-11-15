@@ -524,7 +524,6 @@ spec:
       hostPort: 80       # only one pod per node can claim host port 80 #!
 ```
 
-
 **Going deeper.**
 
 - For GPUs, these same filters do the steering.
@@ -818,11 +817,16 @@ spec:
 > - **Old-style requests aren't DRA:** a pod that asks for `nvidia.com/gpu: 1` under `resources.limits` still goes through the device plugin path, even with a DRA driver installed.
 > - **On EKS:** Bottlerocket nodes aren't supported by the NVIDIA DRA driver; Karpenter needs `settings.enableDRA: true` (alpha); and support for EKS Auto Mode was announced in November 2026 for Kubernetes 1.36+, so check the current AWS docs.
 
-- Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the [gang problem](#d02-2).
+- Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the [gang problem](#d02-2). Setting `parallelism` doesn't fix this; it only creates the pods together. "All 8 or none" needs something that knows the pods belong together:
+  - a queue in front of the scheduler, such as **Kueue**, which admits the whole job only when there's room for all of it ([Volcano vs. Kueue](#d02-6));
+  - a batch scheduler such as **Volcano**, **KAI** or **YuniKorn**, running as a second scheduler ([what a second scheduler changes](#d01-9), [the landscape](#d02-7));
+  - the **coscheduling plugin** (a PodGroup with `minMember`) or, from Kubernetes 1.35, the alpha **Workload API**, both covered in [gang scheduling](#d02-2).
 
 ```yaml
-# 8 workers that must all run together, but the default scheduler
-# filters and places each pod on its own: 6 can start while 2 stay Pending.
+# 8 workers that must all run together, but nothing here says so.
+# parallelism only lets the Job controller create 8 pods at once; it does NOT
+# make them a gang. The default scheduler filters and places each pod on its
+# own: with 6 free GPUs, 6 start (and sit idle) while 2 stay Pending.
 apiVersion: batch/v1
 kind: Job
 metadata:
