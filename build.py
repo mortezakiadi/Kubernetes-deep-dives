@@ -184,9 +184,10 @@ def main():
     intro_meta, intro_html = read_md(ROOT / "content" / "00-intro.md")
     posts = sorted((ROOT / "content" / "notes").glob("*.md"))
     tabs = sorted((ROOT / "content" / "deep-dives").glob("*.md"))
-    nav_posts, nav, body = [], [], []
+    apps = sorted((ROOT / "content" / "appendix").glob("*.md"))
+    nav_posts, nav, nav_app, body = [], [], [], []
     n_sections = 0
-    entries = [("tab", p) for p in tabs] + [("post", p) for p in posts]
+    entries = [("tab", p) for p in tabs] + [("post", p) for p in posts] + [("appendix", p) for p in apps]
     tabno = 0
     for kind, p in entries:
         meta, h = read_md(p)
@@ -198,6 +199,9 @@ def main():
             label = f"{tabno:02d}"
             tag = f"Deep dive {label} · {n} section" + ("s" if n != 1 else "")
             nav.append(f'<li><a href="#{sid}"><b>{label}</b> {html.escape(meta["short"])}</a></li>')
+        elif kind == "appendix":
+            tag = "Appendix"
+            nav_app.append(f'<li class="notes"><a href="#{sid}">{html.escape(meta["short"])}</a></li>')
         else:
             tag = "Further research"
             nav_posts.append(f'<li class="notes"><a href="#{sid}">{html.escape(meta["short"])}</a></li>')
@@ -224,6 +228,7 @@ def main():
         intro=intro_html,
         nav="\n".join(nav),
         nav_posts="\n".join(nav_posts),
+        nav_appendix="\n".join(nav_app),
         body="\n".join(body),
         n_tabs=len(tabs),
         n_sections=n_sections,
