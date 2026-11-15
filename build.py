@@ -54,22 +54,63 @@ def toc(body_html):
     return f'<nav class="toc" aria-label="Sections in this deep dive"><ol>{lis}</ol></nav>'
 
 
-# ---- key-term highlighting: first use of each term per section ----
+# ---- key-term highlighting: first use of each term per block ----
 _ACTIONS = [r"filter(?:s|ed|ing)?", r"scor(?:e|es|ed|ing)", r"bind(?:s|ing)?", r"preempt(?:s|ed|ing|ion)?",
-            r"evict(?:s|ed|ing|ion)?", r"admit(?:s|ted|ting)?", r"borrow(?:s|ed|ing)?", r"throttl(?:e|es|ed|ing)",
-            r"reclaim(?:s|ed|ing)?", r"autoscal(?:e|es|ed|ing|er)", r"scale[sd]? (?:up|down|out|to zero)", r"bin-pack(?:s|ed|ing)?",
-            r"checkpoint(?:s|ed|ing)?", r"cordon(?:s|ed)?|drain(?:s|ed|ing)?"]
-_CONCEPTS = [r"gang scheduling", r"fair[- ]sharing", r"quotas?", r"cohorts?", r"topology-aware(?: scheduling)?", r"Kueue",
-             r"Volcano", r"KAI(?: Scheduler)?", r"JobSets?", r"DRA", r"MIG", r"time[- ]slicing", r"Karpenter",
-             r"Cluster Autoscaler", r"HPA", r"KEDA", r"PriorityClass(?:es)?", r"QoS", r"cgroups?", r"CFS", r"OOM ?kill(?:s|ed|er)?",
-             r"TTFT", r"TPOT", r"KV cache", r"prefix cach(?:e|ing)", r"LoRA", r"vLLM", r"KServe", r"NetworkPolic(?:y|ies)",
-             r"ServiceAccounts?", r"IRSA", r"Pod Identity", r"SPIFFE(?:/SPIRE)?", r"mTLS", r"MCP", r"A2A", r"RAG", r"NUMA",
-             r"EFA", r"RDMA", r"NVLink", r"VPC CNI", r"prefix delegation", r"conntrack", r"SNAT", r"ENIs?", r"CoreDNS",
-             r"taints?", r"tolerations?", r"(?:node |pod )?affinity", r"PDBs?", r"StatefulSets?", r"PVCs?", r"EBS", r"EFS",
-             r"FSx(?: for Lustre)?", r"NVMe", r"requests and limits", r"device plugin", r"GPU Operator", r"guardrails?",
-             r"disaggregated serving", r"TokenReview", r"SubjectAccessReview", r"token exchange"]
-_KW = re.compile(r"(?<![\w-])(?:(?P<a>" + "|".join(_ACTIONS) + r")|(?P<c>" + "|".join(_CONCEPTS) + r"))(?![\w-])", re.I)
-_SKIP = {"code", "pre", "a", "h1", "h2", "h3", "h4", "strong", "figcaption", "button", "figure", "mark", "th", "script", "style"}
+            r"evict(?:s|ed|ing|ion)?", r"admit(?:s|ted|ting)?", r"admission", r"borrow(?:s|ed|ing)?", r"throttl(?:e|es|ed|ing)",
+            r"reclaim(?:s|ed|ing)?", r"autoscal(?:e|es|ed|ing)", r"scale[sd]? (?:up|down|out|to zero)", r"scale-to-zero",
+            r"bin-pack(?:s|ed|ing)?", r"checkpoint(?:s|ed|ing)?", r"cordon(?:s|ed)?", r"drain(?:s|ed|ing)?",
+            r"consolidat(?:e|es|ed|ing|ion)", r"requeu(?:e|es|ed|ing)", r"quantiz(?:e|es|ed|ing|ation)",
+            r"spread(?:s|ing)?", r"force-detach(?:es|ed|ing)?", r"rotat(?:e|es|ed|ing|ion)"]
+_CONCEPTS_I = [r"gang scheduling", r"all-or-nothing", r"fair[- ]sharing", r"quotas?", r"cohorts?", r"topology-aware(?: scheduling| routing)?",
+             r"Dynamic Resource Allocation", r"time[- ]slicing", r"cgroups?(?: v[12])?", r"OOM[- ]?kill(?:s|ed|er)?",
+             r"KV[- ]cache", r"prefix cach(?:e|ing)", r"prefill", r"decode", r"requests and limits", r"device plugin",
+             r"guardrails?", r"disaggregated serving", r"token exchange", r"envelope encryption", r"hallucinations?",
+             r"LLM-as-a-judge", r"tensor parallelism", r"pipeline parallelism", r"all-reduce", r"rendezvous",
+             r"page cache", r"working set(?: size)?", r"write amplification", r"jumbo frames", r"prefix delegation",
+             r"ENI trunking", r"trunk ENI", r"branch ENI", r"VPC endpoints?", r"node affinity", r"pod affinity",
+             r"(?:pod )?anti-affinity", r"affinity", r"taints?", r"tolerations?", r"topology spread(?: constraints)?",
+             r"user namespaces?", r"agent card", r"vector database", r"embedding(?: model)?s?", r"rerank(?:er|ers|ing)",
+             r"idempotent", r"Saga pattern", r"write-ahead log", r"burst credits", r"fuel tank", r"warm pool",
+             r"noisy neighbou?r", r"blast radius", r"zero[- ]trust", r"mutating webhook", r"headless Service",
+             r"Pod Security (?:Standards|Admission)", r"user-space kernel", r"scheduling profile", r"priority classes",
+             r"CPU shares", r"quota window", r"latency jitter", r"I/O wait", r"Direct I/O"]
+_CONCEPTS_C = [r"DRA", r"MIG", r"PriorityClass(?:es)?", r"QoS", r"Guaranteed", r"Burstable", r"BestEffort", r"CFS", r"EEVDF",
+             r"TTFT", r"TPOT", r"LoRA", r"QLoRA", r"PEFT", r"RAG", r"NetworkPolic(?:y|ies)", r"ServiceAccounts?", r"RBAC",
+             r"seccomp", r"AppArmor", r"SELinux", r"mTLS", r"NUMA", r"CPU [Mm]anager", r"Topology Manager", r"SR-IOV",
+             r"RDMA", r"NVLink", r"NVSwitch", r"InfiniBand", r"RoCE", r"EFA", r"GPUDirect(?: RDMA| Storage)?", r"conntrack",
+             r"[Nn]etfilter", r"PREROUTING", r"FORWARD", r"POSTROUTING", r"DNAT", r"SNAT", r"MTU", r"ndots", r"ENIs?",
+             r"PrivateLink", r"PDBs?", r"PodDisruptionBudgets?", r"StatefulSets?", r"PVCs?", r"PersistentVolumes?",
+             r"PersistentVolumeClaims?", r"StorageClass(?:es)?", r"EBS", r"EFS", r"FSx(?: for Lustre)?", r"NVMe", r"IOPS",
+             r"gp2", r"gp3", r"io2(?: Block Express)?", r"Multi-Attach", r"TokenReview", r"SubjectAccessReview", r"IRSA",
+             r"EKS Pod Identity", r"Pod Identity", r"KMS", r"Safetensors", r"GGUF", r"Spot", r"On-Demand", r"WAL",
+             r"ResourceFlavors?", r"ClusterQueues?", r"LocalQueues?", r"ResourceQuotas?", r"LimitRanges?", r"Workload API",
+             r"PodGroups?", r"InferencePool", r"endpoint picker", r"RuntimeClass", r"OIDC", r"FSDP2?", r"VXLAN",
+             r"LeastAllocated", r"MostAllocated", r"NodeResourcesFit", r"ImageLocality", r"BalancedResourceAllocation",
+             r"InterPodAffinity", r"ENA(?: Express)?", r"SRD", r"XFS", r"ext4"]
+_TOOLS = [r"Kueue", r"Volcano", r"KAI(?: Scheduler)?", r"YuniKorn", r"Armada", r"Run:ai", r"JobSets?", r"LeaderWorkerSet",
+          r"Kubeflow Trainer", r"TrainJobs?", r"Karpenter", r"Cluster Autoscaler", r"HPA", r"KEDA", r"Knative",
+          r"descheduler", r"kube-proxy", r"kube-scheduler", r"kubelet", r"CoreDNS", r"NodeLocal DNSCache", r"Calico",
+          r"Cilium", r"VPC CNI", r"iptables", r"IPVS", r"nftables", r"eBPF", r"XDP", r"WireGuard", r"IPsec", r"Istio",
+          r"Linkerd", r"gVisor", r"Kata Containers", r"Kata", r"Fargate", r"vLLM", r"KServe", r"SGLang", r"TGI",
+          r"NVIDIA NIM", r"llm-d", r"NVIDIA Dynamo", r"Ray Serve", r"KubeRay", r"GPU Operator", r"DCGM(?: exporter)?",
+          r"GPU Feature Discovery", r"Node Feature Discovery", r"NCCL", r"Velero", r"OPA Gatekeeper", r"OPA", r"Kyverno",
+          r"Falco", r"Trivy", r"Cosign", r"Snyk", r"Prometheus", r"Thanos", r"Fluent Bit", r"Jaeger", r"OpenTelemetry",
+          r"SPIFFE(?:/SPIRE)?", r"MCP", r"A2A", r"Gateway API Inference Extension", r"Envoy AI Gateway", r"Kuadrant",
+          r"Mountpoint for S3(?: CSI driver)?", r"EBS CSI driver", r"Node Termination Handler", r"Kagent", r"LMCache",
+          r"NIXL", r"GuideLLM", r"inference-perf", r"lm-evaluation-harness", r"TrustyAI", r"Ragas", r"garak",
+          r"Unsloth", r"DeepSpeed", r"Hugging Face TRL", r"Docling", r"Llama Guard", r"Granite Guardian",
+          r"NeMo Guardrails", r"Kubecost", r"Goldilocks", r"StormForge", r"KRR", r"Graviton", r"Capacity Blocks",
+          r"Savings Plans", r"Topograph", r"Network Operator", r"agent sandbox"]
+def _alt(xs): return "|".join(sorted(xs, key=len, reverse=True))
+_KW = re.compile(r"(?<![\w/-])(?:(?P<a>(?i:" + _alt(_ACTIONS) + r"))|(?P<t>" + _alt(_TOOLS) + r")|(?P<c>(?i:" + _alt(_CONCEPTS_I)
+                 + r")|" + _alt(_CONCEPTS_C) + r"))(?![\w-])")
+_SKIP = {"code", "pre", "a", "h1", "h2", "h3", "h4", "strong", "figcaption", "button", "figure", "mark", "th", "script", "style", "table"}
+_LABELS = {"Scenario.", "What the picture shows.", "Going deeper."}
+
+
+def _norm(w):
+    w = w.lower()
+    return re.sub(r"(?:es|s|ed|ing|ion|ation)$", "", w) if len(w) > 4 else w
 
 
 def highlight(h):
@@ -79,25 +120,50 @@ def highlight(h):
             m = re.match(r"<(/?)([a-zA-Z0-9]+)", tok)
             if m:
                 name = m.group(2).lower()
-                if name == "h3" and not m.group(1):
+                if name in ("h3", "h2") and not m.group(1):
                     seen = set()
                 if name in _SKIP and not tok.endswith("/>"):
                     depth += -1 if m.group(1) else 1
             out.append(tok)
             continue
+        if tok.strip() in _LABELS:
+            seen = set()
         if depth > 0 or not tok.strip():
             out.append(tok)
             continue
 
         def rep(mm):
-            key = re.sub(r"(?:es|s|ed|ing|ion|er|d|ted|ting)$", "", mm.group(0).lower())[:6]
+            key = _norm(mm.group(0))
             if key in seen:
                 return mm.group(0)
             seen.add(key)
-            cls = "kw-act" if mm.group("a") else "kw"
+            cls = "kw-act" if mm.group("a") else ("kw-tool" if mm.group("t") else "kw")
             return f'<mark class="{cls}">{mm.group(0)}</mark>'
         out.append(_KW.sub(rep, tok))
-    return "".join(out)
+    return code_blocks("".join(out))
+
+
+# ---- config snippets: light syntax colouring + key lines (marked with a trailing "#!") ----
+def _fmt_line(line, lang):
+    key = line.rstrip().endswith("#!")
+    if key:
+        line = re.sub(r"\s*#!\s*$", "", line)
+    code, comment = line, ""
+    m = re.search(r"(^|\s)#(?!!)", line)
+    if m:
+        code, comment = line[:m.start()] + m.group(1), line[m.start() + len(m.group(1)):]
+    if lang == "yaml":
+        code = re.sub(r"^(\s*(?:- )?)([A-Za-z0-9_.\/-]+)(:)(?=\s|$)", r'\1<span class="tk">\2</span>\3', code)
+    html_line = code + (f'<span class="tc">{comment}</span>' if comment else "")
+    return f'<span class="ln{" kl" if key else ""}">{html_line or " "}</span>'
+
+
+def code_blocks(h):
+    def rep(m):
+        lang, body = m.group(1), m.group(2)
+        lines = body.rstrip("\n").split("\n")
+        return f'<pre class="snippet"><code class="language-{lang}">' + "".join(_fmt_line(l, lang) for l in lines) + "</code></pre>"
+    return re.sub(r'<pre><code class="language-(\w+)">(.*?)</code></pre>', rep, h, flags=re.S)
 
 
 def main():

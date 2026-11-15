@@ -28,11 +28,11 @@ spec:
     image: my-company/app:1.0
     volumeMounts:
     - name: data
-      mountPath: /var/lib/data    # where the "desk" appears in the container
+      mountPath: /var/lib/data    # where the "desk" appears in the container #!
   volumes:
   - name: data
-    persistentVolumeClaim:
-      claimName: data             # the "order slip"
+    persistentVolumeClaim: #!
+      claimName: data             # the "order slip" #!
 ```
 
 - **Mountpoint for S3 CSI driver:** a different kind of "desk": it mounts S3 as a file system, not a block device.

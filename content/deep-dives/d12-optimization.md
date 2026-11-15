@@ -53,7 +53,7 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-  trafficDistribution: PreferClose     # stay in the caller's zone when possible
+  trafficDistribution: PreferClose     # stay in the caller's zone when possible #!
 ```
 
   - **Karpenter:** can provision nodes in the same AZ as the workloads that talk to each other.
@@ -66,7 +66,7 @@ metadata:
   name: web
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: external
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip #!
 spec:
   type: LoadBalancer
   selector: {app: web}

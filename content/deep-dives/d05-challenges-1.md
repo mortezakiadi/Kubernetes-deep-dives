@@ -32,10 +32,10 @@ spec:
     metadata:
       labels: {app: postgres}
     spec:
-      topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: DoNotSchedule
+      topologySpreadConstraints: #!
+      - maxSkew: 1 #!
+        topologyKey: kubernetes.io/hostname #!
+        whenUnsatisfiable: DoNotSchedule #!
         labelSelector:
           matchLabels: {app: postgres}
       containers:
@@ -83,7 +83,7 @@ kind: StorageClass
 metadata:
   name: gp3-wffc
 provisioner: ebs.csi.aws.com
-volumeBindingMode: WaitForFirstConsumer
+volumeBindingMode: WaitForFirstConsumer #!
 parameters:
   type: gp3
 ---
@@ -94,10 +94,10 @@ metadata:
 spec:
   storageClassName: gp3-wffc
   accessModes: ["ReadWriteOnce"]
-  dataSource:                      # restore from a VolumeSnapshot
+  dataSource:                      # restore from a VolumeSnapshot #!
     apiGroup: snapshot.storage.k8s.io
-    kind: VolumeSnapshot
-    name: db-snap-2026-11-01
+    kind: VolumeSnapshot #!
+    name: db-snap-2026-11-01 #!
   resources:
     requests:
       storage: 100Gi
@@ -136,8 +136,8 @@ provisioner: ebs.csi.aws.com
 volumeBindingMode: WaitForFirstConsumer
 parameters:
   type: gp3
-  iops: "10000"
-  throughput: "500"     # MiB/s
+  iops: "10000" #!
+  throughput: "500"     # MiB/s #!
 ```
 
 ### Cross-AZ transfer costs
@@ -180,7 +180,7 @@ spec:
     image: my-company/etl:1.0
     resources:
       requests:
-        memory: 8Gi     # no limit: killed only if the node itself runs out
+        memory: 8Gi     # no limit: killed only if the node itself runs out #!
 ```
 
   - **Widen the gap:** set the limit well above the request to pay the "page cache tax".
@@ -200,8 +200,8 @@ spec:
   - name: etl
     image: my-company/etl:1.0
     resources:
-      requests: {cpu: "4", memory: 16Gi}
-      limits:   {cpu: "4", memory: 16Gi}   # Guaranteed QoS
+      requests: {cpu: "4", memory: 16Gi} #!
+      limits:   {cpu: "4", memory: 16Gi}   # Guaranteed QoS #!
 ```
 
 ### Thundering herd
@@ -243,19 +243,19 @@ kind: Job
 metadata:
   name: nightly-batch
   labels:
-    kueue.x-k8s.io/queue-name: batch   # admitted only when capacity exists
+    kueue.x-k8s.io/queue-name: batch   # admitted only when capacity exists #!
 spec:
   parallelism: 50
   completions: 50
   backoffLimit: 6
-  podFailurePolicy:
+  podFailurePolicy: #!
     rules:
-    - action: Ignore                  # preemption doesn't burn the retry budget
+    - action: Ignore                  # preemption doesn't burn the retry budget #!
       onPodConditions:
-      - type: DisruptionTarget
+      - type: DisruptionTarget #!
   template:
     spec:
-      priorityClassName: batch-low    # preemptionPolicy: Never
+      priorityClassName: batch-low    # preemptionPolicy: Never #!
       restartPolicy: Never
       containers:
       - name: worker
@@ -292,7 +292,7 @@ spec:
       - name: builder
         image: my-company/feature-builder:1.0
         resources:
-          requests: {cpu: "6"}
-          limits:   {cpu: "8"}   # small gap: a steady share, no 7-core surprise
+          requests: {cpu: "6"} #!
+          limits:   {cpu: "8"}   # small gap: a steady share, no 7-core surprise #!
 ```
 

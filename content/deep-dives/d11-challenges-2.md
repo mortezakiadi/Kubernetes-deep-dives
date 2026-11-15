@@ -22,9 +22,9 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 apiVersion: crd.k8s.amazonaws.com/v1alpha1
 kind: ENIConfig
 metadata:
-  name: us-east-1a             # one per AZ, named after the zone
+  name: us-east-1a             # one per AZ, named after the zone #!
 spec:
-  subnet: subnet-0abc1234def567890     # a subnet in the 100.64.0.0/16 range
+  subnet: subnet-0abc1234def567890     # a subnet in the 100.64.0.0/16 range #!
   securityGroups: ["sg-0123456789abcdef0"]
 ```
 
@@ -79,8 +79,8 @@ spec:
     spec:
       dnsConfig:
         options:
-        - name: ndots
-          value: "2"
+        - name: ndots #!
+          value: "2" #!
       containers:
       - name: client
         image: my-company/llm-client:1.0
@@ -112,7 +112,7 @@ spec:
   - **VPC default, 9001 bytes (jumbo frames):** works inside a VPC (and over Direct Connect if configured). The VPC CNI already gives pods MTU 9001 by default; `AWS_VPC_ENI_MTU` changes it.
 
 ```bash
-kubectl set env daemonset aws-node -n kube-system AWS_VPC_ENI_MTU=9001
+kubectl set env daemonset aws-node -n kube-system AWS_VPC_ENI_MTU=9001 #!
 ```
 
   - **Internet, 1500 bytes:** the standard Ethernet size. Traffic leaving the VPC through an internet or NAT gateway is limited to 1500, and path-MTU discovery normally shrinks packets automatically, unless something blocks the ICMP "fragmentation needed" messages.

@@ -39,12 +39,12 @@ spec:
       labels: {app: cassandra}
     spec:
       tolerations:
-      - key: stateful
+      - key: stateful #!
         operator: Equal
         value: "true"
-        effect: NoSchedule
+        effect: NoSchedule #!
       nodeSelector:
-        workload: stateful
+        workload: stateful #!
       containers:
       - name: cassandra
         image: cassandra:5.0
@@ -64,7 +64,7 @@ kind: PodDisruptionBudget
 metadata:
   name: cassandra-pdb
 spec:
-  minAvailable: 2          # keep quorum of a 3-node ring
+  minAvailable: 2          # keep quorum of a 3-node ring #!
   selector:
     matchLabels:
       app: cassandra
@@ -102,12 +102,12 @@ kind: StorageClass
 metadata:
   name: db-gp3
 provisioner: ebs.csi.aws.com
-reclaimPolicy: Retain
-volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain #!
+volumeBindingMode: WaitForFirstConsumer #!
 allowVolumeExpansion: true
 parameters:
   type: gp3
-  csi.storage.k8s.io/fstype: xfs
+  csi.storage.k8s.io/fstype: xfs #!
 ```
 
 - **Affinity:** node affinity for hardware placement and pod anti-affinity to spread replicas across nodes.
@@ -174,13 +174,13 @@ spec:
       labels: {app: cassandra}
     spec:
       topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: topology.kubernetes.io/zone
-        whenUnsatisfiable: DoNotSchedule      # hard
+      - maxSkew: 1 #!
+        topologyKey: topology.kubernetes.io/zone #!
+        whenUnsatisfiable: DoNotSchedule      # hard #!
         labelSelector: {matchLabels: {app: cassandra}}
-      - maxSkew: 2
+      - maxSkew: 2 #!
         topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: ScheduleAnyway     # soft
+        whenUnsatisfiable: ScheduleAnyway     # soft #!
         labelSelector: {matchLabels: {app: cassandra}}
       containers:
       - name: cassandra
@@ -205,9 +205,9 @@ spec:
 ```yaml
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
-cpuManagerPolicy: static
-topologyManagerPolicy: single-numa-node
-memoryManagerPolicy: Static
+cpuManagerPolicy: static #!
+topologyManagerPolicy: single-numa-node #!
+memoryManagerPolicy: Static #!
 reservedSystemCPUs: "0,1"
 reservedMemory:                 # required by the Static memory manager
 - numaNode: 0
@@ -260,7 +260,7 @@ spec:
       labels: {app: db, zone: a}
     spec:
       nodeSelector:
-        topology.kubernetes.io/zone: us-east-1a
+        topology.kubernetes.io/zone: us-east-1a #!
       containers:
       - name: postgres
         image: postgres:17
@@ -330,10 +330,10 @@ metadata:
 provisioner: ebs.csi.aws.com
 volumeBindingMode: WaitForFirstConsumer
 mountOptions:
-- noatime
+- noatime #!
 parameters:
   type: gp3
-  csi.storage.k8s.io/fstype: xfs
+  csi.storage.k8s.io/fstype: xfs #!
 ```
 
   - **`data=writeback` (ext4 journaling):** only metadata is journaled, so data may reach the disk after the metadata pointing to it. It's faster, but after a crash a file can contain stale or garbage blocks. Most production databases keep the default `data=ordered` and rely on their own write-ahead log plus `fsync`.
@@ -382,11 +382,11 @@ kind: PersistentVolumeClaim
 metadata:
   name: data
 spec:
-  accessModes: ["ReadWriteOnce"]
-  storageClassName: gp3      # the "brochure" tier
+  accessModes: ["ReadWriteOnce"] #!
+  storageClassName: gp3      # the "brochure" tier #!
   resources:
     requests:
-      storage: 50Gi
+      storage: 50Gi #!
 ```
 
   - **StorageClass (SC), the "brochure":** lists the available tiers (for example "Gold" for io2, "Silver" for gp3) and tells Kubernetes which CSI driver and parameters (like IOPS) to use.

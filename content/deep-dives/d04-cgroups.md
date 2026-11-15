@@ -27,8 +27,8 @@ spec:
   - name: web
     image: my-company/web:1.0
     resources:
-      requests: {cpu: 1000m}
-      limits:   {cpu: 2000m}
+      requests: {cpu: 1000m} #!
+      limits:   {cpu: 2000m} #!
 ---
 apiVersion: v1
 kind: Pod
@@ -39,8 +39,8 @@ spec:
   - name: batch
     image: my-company/batch:1.0
     resources:
-      requests: {cpu: 250m}
-      limits:   {cpu: 500m}
+      requests: {cpu: 250m} #!
+      limits:   {cpu: 500m} #!
 ```
 
   - **Kubelet (the translator):** reads these specs and writes them into cgroups.

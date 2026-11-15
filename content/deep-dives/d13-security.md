@@ -65,17 +65,17 @@ metadata:
   name: api
 spec:
   securityContext:
-    runAsNonRoot: true
+    runAsNonRoot: true #!
     runAsUser: 10001
   containers:
   - name: api
     image: my-company/api:1.4
     securityContext:
-      allowPrivilegeEscalation: false
+      allowPrivilegeEscalation: false #!
       privileged: false
-      readOnlyRootFilesystem: true
+      readOnlyRootFilesystem: true #!
       capabilities:
-        drop: ["ALL"]
+        drop: ["ALL"] #!
 ```
 
 - **Follow the Pod Security Standards:** enforce them with Pod Security Admission, and isolate workloads in namespaces with different levels (privileged, baseline, restricted).
@@ -130,7 +130,7 @@ metadata:
   name: model-loader
   namespace: serving
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/model-s3-read
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/model-s3-read #!
 ---
 apiVersion: v1
 kind: Pod
@@ -138,7 +138,7 @@ metadata:
   name: model-server
   namespace: serving
 spec:
-  serviceAccountName: model-loader   # gets short-lived AWS credentials
+  serviceAccountName: model-loader   # gets short-lived AWS credentials #!
   containers:
   - name: server
     image: my-company/model-server:1.0

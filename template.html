@@ -21,6 +21,7 @@
   --accent-soft: #e3eafc;
   --mark: #b45309;
   --mark-soft: #fdf0dc;
+  --tool: #0f766e;
   --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -29,12 +30,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #0f1318; --sheet: #ffffff; --ink: #e6eaef; --muted: #9aa5b1; --line: #2a323c;
-    --accent: #8fb0ff; --accent-soft: #1b2741; --mark: #f2b366; --mark-soft: #33261a; color-scheme: dark;
+    --accent: #8fb0ff; --accent-soft: #1b2741; --mark: #f2b366; --mark-soft: #33261a; --tool: #5eead4; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #0f1318; --sheet: #ffffff; --ink: #e6eaef; --muted: #9aa5b1; --line: #2a323c;
-  --accent: #8fb0ff; --accent-soft: #1b2741; --mark: #f2b366; --mark-soft: #33261a; color-scheme: dark;
+  --accent: #8fb0ff; --accent-soft: #1b2741; --mark: #f2b366; --mark-soft: #33261a; --tool: #5eead4; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 16px; }
@@ -109,6 +110,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose blockquote p { margin: 0; }
 .prose pre { max-width: 88ch; margin: 8px 0 14px 22px; padding: 12px 14px; background: #0f1720; color: #e6edf3; border-radius: 8px; overflow-x: auto; font: 13px/1.55 var(--font-mono); }
 .prose pre code { background: none; padding: 0; font: inherit; color: inherit; }
+.prose mark.kw-tool { background: none; color: var(--tool); font-weight: 600; }
+.prose pre.snippet .ln { display: block; min-height: 1.55em; white-space: pre; }
+.prose pre.snippet .tk { color: #7dd3fc; }
+.prose pre.snippet .tc { color: #8b949e; font-style: italic; }
+.prose pre.snippet .kl { background: rgba(250, 204, 21, .16); box-shadow: inset 3px 0 #facc15; margin: 0 -14px; padding: 0 14px; color: #fff3c4; }
+.prose pre.snippet .kl .tk { color: #fde68a; font-weight: 600; }
+.prose pre.snippet .kl .tc { color: #e5c76b; }
+.legend mark { margin-right: 2px; }
 .prose mark.kw { background: none; color: var(--accent); font-weight: 600; }
 .prose mark.kw-act { background: var(--mark-soft); color: var(--mark); font-weight: 600; padding: 0 3px; border-radius: 3px; }
 .prose p > strong:first-child { font: 600 12px/1 var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin-right: 4px; }

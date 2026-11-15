@@ -37,14 +37,14 @@ This deep dive follows a packet from the moment a pod gets its IP, through Servi
 
 ```bash
 kubectl set env daemonset aws-node -n kube-system \
-  WARM_IP_TARGET=5 MINIMUM_IP_TARGET=10
+  WARM_IP_TARGET=5 MINIMUM_IP_TARGET=10 #!
 ```
 
 - **IP allocation strategies:**
   - **Prefix delegation (advanced):** assigns `/28` blocks (16 IPs) instead of single secondary IPs. If you hit the per-instance limit often, you don't need a bigger, pricier instance; an `m5.large` goes from 29 to 110 pods.
 
 ```bash
-kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true
+kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true #!
 ```
 
   - **Custom networking (`ENIConfig`):** puts pod IPs in a dedicated secondary subnet, which solves IP exhaustion in specific AZs.
@@ -111,9 +111,9 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
 cat /proc/sys/net/netfilter/nf_conntrack_count /proc/sys/net/netfilter/nf_conntrack_max
 # kube-proxy owns these settings; raise the size in its config (KubeProxyConfiguration):
 #   conntrack:
-#     maxPerCore: 131072
-#     tcpEstablishedTimeout: 24h
-#     tcpCloseWaitTimeout: 1h
+#     maxPerCore: 131072 #!
+#     tcpEstablishedTimeout: 24h #!
+#     tcpCloseWaitTimeout: 1h #!
 ```
 
 ### Security groups for pods and network policies
@@ -141,9 +141,9 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: payment-service
+      app: payment-service #!
   securityGroups:
-    groupIds: ["sg-0123456789abcdef0"]
+    groupIds: ["sg-0123456789abcdef0"] #!
 ```
 
   - **Density cost:** the trunk ENI uses one of the instance's ENI slots, so fewer regular pods fit on the node.
@@ -189,12 +189,12 @@ metadata:
   namespace: shop
 spec:
   podSelector:
-    matchLabels: {role: backend}
+    matchLabels: {role: backend} #!
   policyTypes: ["Ingress"]
   ingress:
   - from:
     - podSelector:
-        matchLabels: {role: frontend}
+        matchLabels: {role: frontend} #!
 ```
 
 - **2. The translator, Calico:** Calico is the controller on every node, watching the Kubernetes API. When it sees a new NetworkPolicy, it works out what this node must allow or block, and translates the YAML into something the kernel understands.
@@ -225,11 +225,11 @@ spec:
 
 ```yaml
 # Helm values for the cilium chart (helm install cilium cilium/cilium -f values.yaml)
-kubeProxyReplacement: true
+kubeProxyReplacement: true #!
 k8sServiceHost: <API server endpoint>
 k8sServicePort: 443
-routingMode: native
+routingMode: native #!
 loadBalancer:
-  mode: dsr
+  mode: dsr #!
 ```
 

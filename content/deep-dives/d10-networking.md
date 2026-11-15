@@ -50,9 +50,9 @@ spec:
     - ports: [{port: "53", protocol: ANY}]
       rules:
         dns: [{matchPattern: "*"}]
-  - toFQDNs:
-    - matchName: api.openai.com
-    - matchName: api.anthropic.com
+  - toFQDNs: #!
+    - matchName: api.openai.com #!
+    - matchName: api.anthropic.com #!
     toPorts:
     - ports: [{port: "443", protocol: TCP}]
 ```
@@ -121,8 +121,8 @@ spec:
     resources:
       limits:
         nvidia.com/gpu: 8
-        vpc.amazonaws.com/efa: 4     # advertised by the EFA device plugin
-        hugepages-2Mi: 5120Mi
+        vpc.amazonaws.com/efa: 4     # advertised by the EFA device plugin #!
+        hugepages-2Mi: 5120Mi #!
         memory: 64Gi
 ```
 

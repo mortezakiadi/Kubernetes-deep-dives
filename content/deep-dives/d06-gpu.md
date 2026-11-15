@@ -28,7 +28,7 @@ spec:
     image: vllm/vllm-openai:latest
     resources:
       limits:
-        nvidia.com/gpu: 1    # schedulable only after the device plugin registers GPUs
+        nvidia.com/gpu: 1    # schedulable only after the device plugin registers GPUs #!
 ```
 
 **Going deeper.**

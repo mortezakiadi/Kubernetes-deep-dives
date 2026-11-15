@@ -31,12 +31,12 @@ spec:
       requirements:
       - key: karpenter.sh/capacity-type
         operator: In
-        values: ["spot"]
+        values: ["spot"] #!
       - key: karpenter.k8s.aws/instance-family
         operator: In
         values: ["m5", "m5a", "m6i"]
       taints:
-      - key: workload
+      - key: workload #!
         value: batch
         effect: NoSchedule
       nodeClassRef:
@@ -44,8 +44,8 @@ spec:
         kind: EC2NodeClass
         name: default
   disruption:
-    consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 30s
+    consolidationPolicy: WhenEmptyOrUnderutilized #!
+    consolidateAfter: 30s #!
 ```
 
   - **Tier 3, shared / burstable (utilization):** a mixed lifecycle pool, overprovisioned with placeholder pods so sudden spikes get capacity instantly.
@@ -55,7 +55,7 @@ apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: placeholder
-value: -10                   # any real pod can preempt these
+value: -10                   # any real pod can preempt these #!
 preemptionPolicy: Never
 ---
 apiVersion: apps/v1
@@ -70,7 +70,7 @@ spec:
     metadata:
       labels: {app: placeholder}
     spec:
-      priorityClassName: placeholder
+      priorityClassName: placeholder #!
       containers:
       - name: pause
         image: registry.k8s.io/pause:3.10
@@ -104,21 +104,21 @@ apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: web-critical
-value: 10000
+value: 10000 #!
 ---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: batch-low
-value: 100
-preemptionPolicy: Never      # batch never pushes other pods out
+value: 100 #!
+preemptionPolicy: Never      # batch never pushes other pods out #!
 ---
 apiVersion: v1
 kind: Pod
 metadata:
   name: web
 spec:
-  priorityClassName: web-critical
+  priorityClassName: web-critical #!
   containers:
   - name: web
     image: my-company/web:1.0
@@ -140,8 +140,8 @@ spec:
   - name: web
     image: my-company/web:1.0
     resources:
-      requests: {cpu: "1", memory: 2Gi}
-      limits:   {cpu: "1", memory: 2Gi}
+      requests: {cpu: "1", memory: 2Gi} #!
+      limits:   {cpu: "1", memory: 2Gi} #!
 ---
 apiVersion: v1
 kind: Pod
@@ -152,8 +152,8 @@ spec:
   - name: batch
     image: my-company/batch:1.0
     resources:
-      requests: {cpu: 250m, memory: 512Mi}
-      limits:   {cpu: "2",  memory: 2Gi}
+      requests: {cpu: 250m, memory: 512Mi} #!
+      limits:   {cpu: "2",  memory: 2Gi} #!
 ```
 
   - **The effect:** when a node runs out of RAM, the order usually works out as BestEffort → Burstable → Guaranteed. Strictly, the kubelet ranks by "using more than requested", then priority, then how far over the request; QoS follows from that.
@@ -198,14 +198,14 @@ spec:
   - type: Resource
     resource:
       name: cpu
-      target: {type: Utilization, averageUtilization: 60}
+      target: {type: Utilization, averageUtilization: 60} #!
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 0
       policies:
-      - {type: Percent, value: 100, periodSeconds: 15}
+      - {type: Percent, value: 100, periodSeconds: 15} #!
     scaleDown:
-      stabilizationWindowSeconds: 300
+      stabilizationWindowSeconds: 300 #!
 ```
 
   - **Karpenter (batch):** intent-based scale-up; it removes empty nodes within about 30 s to cut waste. If one instance type isn't available at provisioning time, Karpenter picks whatever is available to get the job started. At runtime, as jobs finish and nodes are left half-used, it consolidates them.
@@ -250,7 +250,7 @@ spec:
   - name: web
     image: my-company/web:1.0
     resources:
-      requests: {cpu: 1000m}   # -> 1024 shares
+      requests: {cpu: 1000m}   # -> 1024 shares #!
 ---
 apiVersion: v1
 kind: Pod
@@ -261,7 +261,7 @@ spec:
   - name: batch
     image: my-company/batch:1.0
     resources:
-      requests: {cpu: 500m}    # -> 512 shares
+      requests: {cpu: 500m}    # -> 512 shares #!
 ```
 
   - **The CFS logic:** the kernel's fair scheduler (CFS, or EEVDF on Linux 6.6+) tracks how much CPU time each process has had and favours the ones that have had less.
@@ -281,7 +281,7 @@ spec:
     image: my-company/api:1.4
     resources:
       requests: {cpu: 250m}
-      limits:   {cpu: 500m}    # 50 ms of CPU time per 100 ms window
+      limits:   {cpu: 500m}    # 50 ms of CPU time per 100 ms window #!
 ```
 
   - **The sprint:** a multi-threaded app can use all 50 ms in the first 10 ms of the window, and is then frozen for the remaining 90 ms.
@@ -351,8 +351,8 @@ kind: Pod
 metadata:
   name: backup-sync
   annotations:
-    kubernetes.io/ingress-bandwidth: 1G   # needs a CNI with the bandwidth plugin
-    kubernetes.io/egress-bandwidth: 1G
+    kubernetes.io/ingress-bandwidth: 1G   # needs a CNI with the bandwidth plugin #!
+    kubernetes.io/egress-bandwidth: 1G #!
 spec:
   containers:
   - name: sync

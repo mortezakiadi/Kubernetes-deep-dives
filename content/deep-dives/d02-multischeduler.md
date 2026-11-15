@@ -24,9 +24,9 @@ metadata:
 fargateProfiles:
 - name: staging-serverless
   selectors:
-  - namespace: staging
+  - namespace: staging #!
     labels:
-      type: serverless
+      type: serverless #!
 ```
 
 - **Step 2 (EKS control plane, mutating webhook):** the EKS mutating webhook sees the pod, checks it against your profiles, and on a match injects `schedulerName: fargate-scheduler` into the pod spec, before scheduling starts. Pods that don't match keep the standard spec.
@@ -41,7 +41,7 @@ metadata:
   labels:
     type: serverless
 spec:
-  schedulerName: fargate-scheduler   # injected by EKS, not written by you
+  schedulerName: fargate-scheduler   # injected by EKS, not written by you #!
   containers:
   - name: web
     image: my-company/web:1.0
@@ -102,15 +102,15 @@ kind: Pod
 metadata:
   name: trainer-2
   labels:
-    job: my-training-run
+    job: my-training-run #!
 spec:
   affinity:
-    podAffinity:
+    podAffinity: #!
       requiredDuringSchedulingIgnoredDuringExecution:
       - labelSelector:
           matchLabels:
-            job: my-training-run
-        topologyKey: kubernetes.io/hostname   # same node as the other trainers
+            job: my-training-run #!
+        topologyKey: kubernetes.io/hostname   # same node as the other trainers #!
   containers:
   - name: trainer
     image: my-company/trainer:2.0
@@ -153,7 +153,7 @@ metadata:
   namespace: marketing
 spec:
   hard:
-    requests.nvidia.com/gpu: "10"   # static: idle GPUs can't be lent to others
+    requests.nvidia.com/gpu: "10"   # static: idle GPUs can't be lent to others #!
 ```
 
   - **The failure point:** these quotas are static. If marketing isn't using its 10 GPUs, no one else can borrow them. And a team that hits its limit gets an immediate error; the pod doesn't queue and start later when space opens up.
@@ -188,8 +188,8 @@ metadata:
   name: fp4-inference
 spec:
   nodeSelector:
-    gpu-gen: blackwell
-    network: infiniband
+    gpu-gen: blackwell #!
+    network: infiniband #!
   tolerations:
   - key: nvidia.com/gpu
     operator: Exists
@@ -227,8 +227,8 @@ kind: Job
 metadata:
   name: pytorch-train
 spec:
-  schedulerName: volcano
-  minAvailable: 9            # gang: start nothing until all 9 pods fit
+  schedulerName: volcano #!
+  minAvailable: 9            # gang: start nothing until all 9 pods fit #!
   tasks:
   - name: master
     replicas: 1
@@ -267,7 +267,7 @@ kind: ClusterQueue
 metadata:
   name: data-science
 spec:
-  cohort: gpu-pool             # queues in one cohort can lend to each other
+  cohort: gpu-pool             # queues in one cohort can lend to each other #!
   namespaceSelector: {}
   resourceGroups:
   - coveredResources: ["nvidia.com/gpu"]
@@ -275,10 +275,10 @@ spec:
     - name: a100
       resources:
       - name: nvidia.com/gpu
-        nominalQuota: 50
-        borrowingLimit: 10
+        nominalQuota: 50 #!
+        borrowingLimit: 10 #!
   preemption:
-    reclaimWithinCohort: Any   # a lender can take its GPUs back
+    reclaimWithinCohort: Any   # a lender can take its GPUs back #!
 ---
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: LocalQueue
@@ -286,7 +286,7 @@ metadata:
   name: ds-queue
   namespace: data-science
 spec:
-  clusterQueue: data-science
+  clusterQueue: data-science #!
 ---
 # a Job joins the queue with one label
 apiVersion: batch/v1
@@ -295,7 +295,7 @@ metadata:
   name: fine-tune
   namespace: data-science
   labels:
-    kueue.x-k8s.io/queue-name: ds-queue
+    kueue.x-k8s.io/queue-name: ds-queue #!
 spec:
   template:
     spec:

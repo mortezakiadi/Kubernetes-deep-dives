@@ -25,8 +25,8 @@ metadata:
   name: default-deny
   namespace: tenant-a
 spec:
-  podSelector: {}          # every pod in the namespace
-  policyTypes: ["Ingress", "Egress"]
+  podSelector: {}          # every pod in the namespace #!
+  policyTypes: ["Ingress", "Egress"] #!
 ```
 
   - **Pod Security Standards, enforced by Pod Security Admission (PSA):** three levels, Privileged (no restrictions, the danger zone), Baseline (reasonable defaults) and Restricted (maximum, production-grade hardening). The example labels the `prod` namespace with `pod-security.kubernetes.io/enforce: restricted`.
@@ -37,7 +37,7 @@ kind: Namespace
 metadata:
   name: prod
   labels:
-    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce: restricted #!
 ```
 
   - **RBAC-scoped service accounts:** the identity each pod runs as. Service accounts always live in a namespace; the point is to grant them namespace `Role`s and `RoleBinding`s, never cluster-wide `ClusterRoleBinding`s.
@@ -108,10 +108,10 @@ apiVersion: node.k8s.io/v1
 kind: RuntimeClass
 metadata:
   name: gvisor
-handler: runsc
+handler: runsc #!
 scheduling:
   nodeSelector:
-    sandbox.gvisor: "true"         # only nodes where gVisor is installed
+    sandbox.gvisor: "true"         # only nodes where gVisor is installed #!
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -126,7 +126,7 @@ spec:
     metadata:
       labels: {app: my-app}
     spec:
-      runtimeClassName: gvisor     # the one extra line
+      runtimeClassName: gvisor     # the one extra line #!
       containers:
       - name: my-container
         image: my-company/standard-app:1.0
@@ -156,12 +156,12 @@ kind: Pod
 metadata:
   name: tenant-app
 spec:
-  hostUsers: false               # root in the pod maps to an unprivileged host UID
+  hostUsers: false               # root in the pod maps to an unprivileged host UID #!
   securityContext:
     seccompProfile:
-      type: RuntimeDefault
+      type: RuntimeDefault #!
     appArmorProfile:
-      type: RuntimeDefault
+      type: RuntimeDefault #!
   containers:
   - name: app
     image: my-company/tenant-app:1.0

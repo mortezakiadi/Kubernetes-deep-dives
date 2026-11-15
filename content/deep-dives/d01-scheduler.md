@@ -27,9 +27,9 @@ spec:
   - name: api
     image: my-company/api:1.4
     resources:
-      requests:          # the scheduler adds up requests, not real usage
-        cpu: "500m"
-        memory: "1Gi"
+      requests:          # the scheduler adds up requests, not real usage #!
+        cpu: "500m" #!
+        memory: "1Gi" #!
 ```
 
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.
@@ -40,8 +40,8 @@ kind: Pod
 metadata:
   name: api
 spec:
-  nodeSelector:
-    disktype: ssd        # only nodes labelled disktype=ssd pass the filter
+  nodeSelector: #!
+    disktype: ssd        # only nodes labelled disktype=ssd pass the filter #!
   containers:
   - name: api
     image: my-company/api:1.4
@@ -56,11 +56,11 @@ kind: Pod
 metadata:
   name: trainer
 spec:
-  tolerations:
-  - key: dedicated
+  tolerations: #!
+  - key: dedicated #!
     operator: Equal
-    value: gpu
-    effect: NoSchedule
+    value: gpu #!
+    effect: NoSchedule #!
   containers:
   - name: trainer
     image: my-company/trainer:2.0
@@ -78,18 +78,18 @@ metadata:
 spec:
   affinity:
     nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
+      requiredDuringSchedulingIgnoredDuringExecution: #!
         nodeSelectorTerms:
         - matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
-            values: ["us-east-1a"]
+            values: ["us-east-1a"] #!
     podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
+      requiredDuringSchedulingIgnoredDuringExecution: #!
       - labelSelector:
           matchLabels:
             app: api
-        topologyKey: kubernetes.io/hostname   # never two api pods on one node
+        topologyKey: kubernetes.io/hostname   # never two api pods on one node #!
   containers:
   - name: api
     image: my-company/api:1.4
@@ -108,7 +108,7 @@ spec:
     image: nginx:1.27
     ports:
     - containerPort: 8080
-      hostPort: 80       # only one pod per node can claim host port 80
+      hostPort: 80       # only one pod per node can claim host port 80 #!
 ```
 
 The `0/12 nodes are available` event lists how many nodes each of these rules removed, which tells you where to look.
@@ -200,10 +200,10 @@ spec:
     spec:
       affinity:
         podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:   # now a filter, not a score
+          requiredDuringSchedulingIgnoredDuringExecution:   # now a filter, not a score #!
           - labelSelector:
-              matchLabels: {app: cache}
-            topologyKey: kubernetes.io/hostname
+              matchLabels: {app: cache} #!
+            topologyKey: kubernetes.io/hostname #!
       containers:
       - name: api
         image: my-company/api:1.4
@@ -216,14 +216,14 @@ spec:
 apiVersion: kubescheduler.config.k8s.io/v1
 kind: KubeSchedulerConfiguration
 profiles:
-- schedulerName: affinity-first-scheduler
+- schedulerName: affinity-first-scheduler #!
   plugins:
     score:
       enabled:
-      - name: InterPodAffinity
-        weight: 100
-      - name: ImageLocality
-        weight: 1
+      - name: InterPodAffinity #!
+        weight: 100 #!
+      - name: ImageLocality #!
+        weight: 1 #!
 ```
 
 ### A worked example
@@ -262,7 +262,7 @@ metadata:
 spec:
   affinity:
     nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:   # no weight: pass or fail
+      requiredDuringSchedulingIgnoredDuringExecution:   # no weight: pass or fail #!
         nodeSelectorTerms:
         - matchExpressions:
           - key: node.kubernetes.io/instance-type
@@ -286,14 +286,14 @@ metadata:
 spec:
   affinity:
     nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100        # "I really want this"
+      preferredDuringSchedulingIgnoredDuringExecution: #!
+      - weight: 100        # "I really want this" #!
         preference:
           matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
             values: ["us-east-1a"]
-      - weight: 1          # "nice to have"
+      - weight: 1          # "nice to have" #!
         preference:
           matchExpressions:
           - key: disktype
