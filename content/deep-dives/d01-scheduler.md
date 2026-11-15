@@ -15,7 +15,7 @@ Every pod goes through the same decision. The scheduler first **chooses** a node
 
 - **Kubernetes scheduler ("EKS Scheduler" box):** the "brain" that decides where every new pod lives.
 - **Phase 1: Filtering (the "predicate" phase):** the goal is simple, keep only the nodes that can run the pod.
-- **Insufficient resources (the fit check):** the scheduler takes the node's total capacity and subtracts the *requests* of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper. This is a yes/no feasibility check, not bin-packing. It's done by a scheduler plugin called **NodeResourcesFit**, which lives inside kube-scheduler, so you never write its name in your pod: the pod only supplies the `requests`, and the plugin's own settings sit in the scheduler's configuration (both are shown below). The check doesn't prefer full or empty nodes. That preference is decided later, in scoring, where the default strategy (LeastAllocated) actually *spreads* pods; bin-packing (MostAllocated) has to be turned on deliberately (see [Phase 2: scoring plugins](#d01-3)).
+- **Insufficient resources (the fit check):** the scheduler takes the node's total capacity and subtracts the *requests* of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper. This is a yes/no feasibility check, not bin-packing. It's done by a scheduler plugin called **NodeResourcesFit**, which lives inside kube-scheduler, so you never write its name in your pod: the pod only supplies the `requests`, and the plugin's own settings sit in the scheduler's configuration file (both are shown below). You normally never write that file: without it the scheduler runs with built-in defaults, and on managed control planes like EKS you can't change it at all. The check doesn't prefer full or empty nodes. That preference is decided later, in scoring, where the default strategy (LeastAllocated) actually *spreads* pods; bin-packing (MostAllocated) has to be turned on deliberately (see [Phase 2: scoring plugins](#d01-3)).
 
 ```yaml
 apiVersion: v1
@@ -31,7 +31,8 @@ spec:
         cpu: "500m" #!
         memory: "1Gi" #!
 ---
-# kube-scheduler's own config (not part of your pod): where NodeResourcesFit lives
+# kube-scheduler's own config file, passed with --config. NOT applied with kubectl.
+# Without it, the scheduler uses these same built-in defaults.
 apiVersion: kubescheduler.config.k8s.io/v1
 kind: KubeSchedulerConfiguration
 profiles:
