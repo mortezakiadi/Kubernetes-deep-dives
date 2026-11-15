@@ -148,7 +148,7 @@ spec:
 >       - name: builder
 >         image: my-company/report-builder:3.1
 >     ```
-> - **Preferred (soft) rules** are scored: their `weight` decides how much each counts, not their position in the list.
+> - **Preferred (soft) rules are wishes with points:** each node earns the `weight` of every preferred rule it matches, and the node with the most points is favoured. The order you list the rules in doesn't make one more important. In the example below, a node in zone a earns 90 points, an SSD node earns 10, a node with both earns 100 and a node with neither earns 0, and swapping the two rules in the YAML gives exactly the same result. (Those points then become NodeAffinity's score, which is added to the other plugins' scores.)
 >
 >     ```yaml
 >     apiVersion: v1
