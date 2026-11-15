@@ -100,7 +100,7 @@ _CONCEPTS_C = [r"DRA", r"MIG", r"PriorityClass(?:es)?", r"QoS", r"Guaranteed", r
              r"ResourceFlavors?", r"ClusterQueues?", r"LocalQueues?", r"ResourceQuotas?", r"LimitRanges?", r"Workload API",
              r"PodGroups?", r"InferencePool", r"endpoint picker", r"RuntimeClass", r"OIDC", r"FSDP2?", r"VXLAN",
              r"LeastAllocated", r"MostAllocated", r"NodeResourcesFit", r"ImageLocality", r"BalancedResourceAllocation",
-             r"InterPodAffinity", r"ENA(?: Express)?", r"SRD", r"XFS", r"ext4"]
+             r"InterPodAffinity", r"NodeUnschedulable", r"NodeName", r"NodePorts", r"TaintToleration", r"NodeAffinity", r"PodTopologySpread", r"VolumeBinding", r"VolumeZone", r"VolumeRestrictions", r"NodeVolumeLimits", r"DynamicResources", r"PrioritySort", r"DefaultPreemption", r"DefaultBinder", r"SchedulingGates", r"PostFilter", r"ENA(?: Express)?", r"SRD", r"XFS", r"ext4"]
 _TOOLS = [r"Kueue", r"Volcano", r"KAI(?: Scheduler)?", r"YuniKorn", r"Armada", r"Run:ai", r"JobSets?", r"LeaderWorkerSet",
           r"Kubeflow Trainer", r"TrainJobs?", r"Karpenter", r"Cluster Autoscaler", r"HPA", r"KEDA", r"Knative",
           r"descheduler", r"kube-proxy", r"kube-scheduler", r"kubelet", r"CoreDNS", r"NodeLocal DNSCache", r"Calico",

@@ -62,7 +62,7 @@ profiles:
 > - **It isn't a Kubernetes object.** It has `apiVersion` and `kind`, but you don't `kubectl apply` it (the API would reject it). It's a config file the kube-scheduler program reads at startup, passed with `--config`.
 > - **The defaults are built in.** With no file, the scheduler runs with built-in settings that match the snippet: NodeResourcesFit scoring with LeastAllocated, CPU and memory weighted 1 each, and the default plugin weights. The snippet just makes those hidden defaults visible.
 > - **Self-managed clusters** (for example kubeadm): you can point the scheduler's static pod at your own file, for example to switch to MostAllocated bin-packing or change plugin weights.
-> - **Managed clusters** (EKS, GKE, AKS): the provider runs the control plane, so you can't change the default scheduler's config. To customize, deploy a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete example follows: permissions, the config in a ConfigMap, the scheduler Deployment, and a workload that opts in.
+> - **Managed clusters** (EKS, GKE, AKS): the provider runs the control plane, so you can't change the default scheduler's config. To customize, deploy a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete example follows: permissions, the config in a ConfigMap, the scheduler Deployment, and a workload that opts in. For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see [Built-in plugins, and what a second scheduler changes](#d01-9).
 
 ```yaml
 # 1. Identity: a ServiceAccount that reuses the built-in scheduler permissions
@@ -486,3 +486,58 @@ spec:
 - **Don't mix them up:** the *scheduling* score is about choosing a node for a pod. The *QoS / OOM* score is about choosing which pod to kill (covered in [Memory: who gets killed](#d03-6)).
 - **The scheduler's choice:** at placement time the scheduler might see a node is 90% full and give it a low score, because it wants to spread the load. Once the pod is placed, that score is forgotten.
 - **The kubelet's reality:** under memory pressure nobody looks at the scheduler's grade. The kubelet first picks pods that use more memory than they *requested*, then ranks them by priority, then by how far over their request they are. If the kernel's OOM killer fires first, it uses `oom_score`, which is memory usage plus a QoS-based `oom_score_adj`. So an "important" pod that uses more than it requested can still be the one that's killed.
+
+### Built-in plugins, and what a second scheduler changes
+
+**Scenario.** After learning that the fit check is done by "a plugin", the team wants the full list: which plugins run by default, what each one does, which ones filter and which ones score, and with what weight. Then the architect asks the follow-up: if we add a second scheduler, do these plugins still apply, and what can go wrong when two schedulers share one cluster?
+
+![Built-in plugins, and what a second scheduler changes](diagrams/sections/d01-9.svg)
+
+**What the picture shows.** Every scheduling decision runs through the same stages, left to right, and each stage is made of plugins.
+
+- **Pending pod:** its `spec.schedulerName` decides which of the three lanes handles it. Exactly one scheduler handles each pod.
+- **The stages (column headers):**
+  - **Queue sort:** decides which pending pod is considered next.
+  - **Filter:** removes nodes that can't run the pod (Phase 1).
+  - **PostFilter:** runs only when *no* node passed; this is where preemption happens.
+  - **Score:** ranks the nodes that passed (Phase 2), each plugin's score multiplied by its weight.
+  - **Reserve / Permit:** holds the chosen node's volumes and devices while the decision is finalized.
+  - **Bind:** writes the chosen node into the pod (`spec.nodeName`).
+- **Blue lane, `default-scheduler`:** the built-in kube-scheduler. On EKS it runs on the AWS-managed control plane, and every plugin shown is built in and on by default. The Score box lists the default weights (×1, ×2, ×3).
+- **Amber lane, a second kube-scheduler with your own profile:** the same program and the same plugins, run as your own Deployment (the full example is in [Phase 1: filtering](#d01-1)). Only the highlighted Score box differs: InterPodAffinity weighted ×100, and NodeResourcesFit switched to MostAllocated (bin-packing).
+- **Teal lane, a replacement scheduler (Volcano, KAI, YuniKorn):** a different program with its own plugins (Volcano calls them "actions"): queues and PodGroups for gang scheduling, queue-based reclaim instead of plain preemption, GPU and network topology scoring, and binding a whole job together. It re-implements the basic fit checks, but the built-in plugins and weights above don't apply to its pods.
+- **Grey bar, shared by all three:** the same nodes and the same API server. The schedulers don't coordinate with each other.
+
+**The built-in plugins** (all on by default; "–" means the plugin doesn't take part in that stage):
+
+| Plugin | What it does | Filter | Score weight |
+|---|---|---|---|
+| PrioritySort | Orders the queue: higher-priority pods are scheduled first | – | – |
+| SchedulingGates | Holds back pods that still have `schedulingGates` set | – | – |
+| NodeUnschedulable | Skips cordoned nodes (`spec.unschedulable`) | ✓ | – |
+| NodeName | Honours a pod that already names its node | ✓ | – |
+| NodeResourcesFit | CPU, memory, GPU and other resources: does it fit? Then LeastAllocated scoring | ✓ | 1 |
+| NodeResourcesBalancedAllocation | Prefers nodes where CPU and memory use stay balanced | – | 1 |
+| ImageLocality | Prefers nodes that already have the pod's images | – | 1 |
+| NodeAffinity | `nodeSelector` and required node affinity (filter); preferred node affinity (score) | ✓ | 2 |
+| InterPodAffinity | Required pod affinity / anti-affinity (filter); preferred (score) | ✓ | 2 |
+| PodTopologySpread | `DoNotSchedule` spread constraints (filter); `ScheduleAnyway` (score) | ✓ | 2 |
+| TaintToleration | `NoSchedule` taints (filter); prefers fewer untolerated `PreferNoSchedule` taints (score) | ✓ | 3 |
+| NodePorts | Rejects nodes where the pod's `hostPort` is taken | ✓ | – |
+| VolumeRestrictions | Volume conflicts, such as a `ReadWriteOncePod` volume already in use | ✓ | – |
+| NodeVolumeLimits | The node's limit on attached volumes (for example EBS) | ✓ | – |
+| VolumeZone | The volume's zone must match the node's zone | ✓ | – |
+| VolumeBinding | PVCs can be bound or provisioned on this node; reserves them | ✓ | – |
+| DynamicResources | DRA device claims (GPUs and other devices) can be satisfied; reserves them | ✓ | – |
+| DefaultPreemption | PostFilter: evicts lower-priority pods when nothing fits | – | – |
+| DefaultBinder | Bind: writes `spec.nodeName` | – | – |
+
+**What a second scheduler changes:**
+
+- **One pod, one scheduler:** a pod is handled only by the scheduler named in its `schedulerName`. The other schedulers' plugins never see it.
+- **Same program, different profile (amber lane):** you can change weights, switch the scoring strategy, or disable plugins (for example turn off ImageLocality). One kube-scheduler process can even serve several profiles, each under its own `schedulerName`.
+- **Different program (teal lane):** you get features the built-in plugins don't have, such as gang scheduling, queues and GPU topology. In return, its pods follow its rules, not the table above.
+- **No coordination:** two schedulers can pick the same free space at the same moment, because each one only sees its own decisions in flight. The kubelet then rejects the pod that arrives second (`OutOfcpu` / `OutOfmemory`) and its controller creates a new one. The usual fix is to give each scheduler its own nodes, with taints and node labels, or to send all pods of one kind (for example all GPU pods) to a single scheduler.
+- **Preemption crosses the boundary:** the default scheduler's DefaultPreemption can evict pods placed by your scheduler if they have lower priority, and the other way round. Use PriorityClasses consistently across both.
+- **Autoscalers:** Cluster Autoscaler and Karpenter decide whether to add nodes by simulating the *default* scheduler's rules. Check whether yours acts on pods with a custom `schedulerName` at all, and remember that custom filters it doesn't know about can lead to nodes being added that your scheduler then won't use.
+

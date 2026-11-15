@@ -195,17 +195,17 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p class="legend">How to read the colours: <mark class="kw-act">actions</mark> the system takes, <mark class="kw">concepts and Kubernetes objects</mark>, and <mark class="kw-tool">tools and projects</mark>. In config snippets, the <span style="background:rgba(250,204,21,.25);box-shadow:inset 3px 0 #facc15;padding:0 6px">highlighted lines</span> are the ones that matter for that point.</p></div>
       <ul class="stats">
         <li>14 deep dives</li>
-        <li>83 scenario sections</li>
+        <li>84 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
     
 <section class="entry tab" id="d-scheduler" aria-labelledby="d-scheduler-h">
   <header class="entry-head">
-    <span class="tag">Deep dive 01 · 8 sections</span>
+    <span class="tag">Deep dive 01 · 9 sections</span>
     <h2 id="d-scheduler-h">How kube-scheduler picks a node</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d01-1">Phase 1: filtering</a></li><li><a href="#d01-2">Filtering outcomes at a glance</a></li><li><a href="#d01-3">Phase 2: scoring plugins</a></li><li><a href="#d01-4">Score × weight</a></li><li><a href="#d01-5">When affinity loses to ImageLocality</a></li><li><a href="#d01-6">A worked example</a></li><li><a href="#d01-7">The weight field in your YAML</a></li><li><a href="#d01-8">Scheduler score vs. OOM score</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d01-1">Phase 1: filtering</a></li><li><a href="#d01-2">Filtering outcomes at a glance</a></li><li><a href="#d01-3">Phase 2: scoring plugins</a></li><li><a href="#d01-4">Score × weight</a></li><li><a href="#d01-5">When affinity loses to ImageLocality</a></li><li><a href="#d01-6">A worked example</a></li><li><a href="#d01-7">The weight field in your YAML</a></li><li><a href="#d01-8">Scheduler score vs. OOM score</a></li><li><a href="#d01-9">Built-in plugins, and what a second scheduler changes</a></li></ol></nav>
   <div class="prose"><p>Every pod goes through the same decision. The scheduler first <strong>chooses</strong> a node in two phases: it <em><mark class="kw-act">filters</mark></em> out the nodes that can't run the pod, then <em><mark class="kw-act">scores</mark></em> the ones that can. Then it <strong>binds</strong> the pod to the winner, which is a separate final step that just records the choice. This deep dive follows that decision step by step.</p>
 <h3 id="d01-1">Phase 1: filtering</h3>
 <p><strong>Scenario.</strong> A developer deploys a new service, but the pod never starts. It sits in <code>Pending</code>, and <code>kubectl describe pod</code> shows <code>0/12 nodes are available</code>. The developer is confused: the monitoring dashboard shows every node at around 35% CPU, so there seems to be plenty of room. Why won't Kubernetes place the pod, and how do you find out which rule is blocking it?</p>
@@ -233,7 +233,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>It isn't a Kubernetes object.</strong> It has <code>apiVersion</code> and <code>kind</code>, but you don't <code>kubectl apply</code> it (the API would reject it). It's a config file the kube-scheduler program reads at startup, passed with <code>--config</code>.</li>
 <li><strong>The defaults are built in.</strong> With no file, the scheduler runs with built-in settings that match the snippet: <mark class="kw">NodeResourcesFit</mark> scoring with LeastAllocated, CPU and memory weighted 1 each, and the default plugin weights. The snippet just makes those hidden defaults visible.</li>
 <li><strong>Self-managed clusters</strong> (for example kubeadm): you can point the scheduler's static pod at your own file, for example to switch to MostAllocated bin-packing or change plugin weights.</li>
-<li><strong>Managed clusters</strong> (EKS, GKE, AKS): the provider runs the control plane, so you can't change the default scheduler's config. To customize, deploy a second scheduler as a normal Deployment with its own <code>KubeSchedulerConfiguration</code> from a ConfigMap, and point specific pods at it with <code>schedulerName</code>. <mark class="kw-tool">Volcano</mark> and <mark class="kw-tool">KAI</mark> work the same way, as replacement schedulers. A complete example follows: permissions, the config in a ConfigMap, the scheduler Deployment, and a workload that opts in.</li>
+<li><strong>Managed clusters</strong> (EKS, GKE, AKS): the provider runs the control plane, so you can't change the default scheduler's config. To customize, deploy a second scheduler as a normal Deployment with its own <code>KubeSchedulerConfiguration</code> from a ConfigMap, and point specific pods at it with <code>schedulerName</code>. <mark class="kw-tool">Volcano</mark> and <mark class="kw-tool">KAI</mark> work the same way, as replacement schedulers. A complete example follows: permissions, the config in a ConfigMap, the scheduler Deployment, and a workload that opts in. For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see <a href="#d01-9">Built-in plugins, and what a second scheduler changes</a>.</li>
 </ul>
 </blockquote>
 <pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tc"># 1. Identity: a ServiceAccount that reuses the built-in scheduler permissions</span></span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: ServiceAccount</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: my-scheduler</span><span class="ln">  <span class="tk">namespace</span>: kube-system</span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: rbac.authorization.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: ClusterRoleBinding</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: my-scheduler-as-kube-scheduler</span><span class="ln"><span class="tk">subjects</span>:</span><span class="ln">- <span class="tk">kind</span>: ServiceAccount</span><span class="ln">  <span class="tk">name</span>: my-scheduler</span><span class="ln">  <span class="tk">namespace</span>: kube-system</span><span class="ln"><span class="tk">roleRef</span>:</span><span class="ln">  <span class="tk">apiGroup</span>: rbac.authorization.k8s.io</span><span class="ln">  <span class="tk">kind</span>: ClusterRole</span><span class="ln kl">  <span class="tk">name</span>: system:kube-scheduler        <span class="tc"># read pods/nodes, bind pods</span></span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: rbac.authorization.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: ClusterRoleBinding</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: my-scheduler-as-volume-scheduler</span><span class="ln"><span class="tk">subjects</span>:</span><span class="ln">- <span class="tk">kind</span>: ServiceAccount</span><span class="ln">  <span class="tk">name</span>: my-scheduler</span><span class="ln">  <span class="tk">namespace</span>: kube-system</span><span class="ln"><span class="tk">roleRef</span>:</span><span class="ln">  <span class="tk">apiGroup</span>: rbac.authorization.k8s.io</span><span class="ln">  <span class="tk">kind</span>: ClusterRole</span><span class="ln kl">  <span class="tk">name</span>: system:volume-scheduler      <span class="tc"># needed for pods with PVCs</span></span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: rbac.authorization.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: RoleBinding</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: my-scheduler-auth-reader</span><span class="ln">  <span class="tk">namespace</span>: kube-system</span><span class="ln"><span class="tk">subjects</span>:</span><span class="ln">- <span class="tk">kind</span>: ServiceAccount</span><span class="ln">  <span class="tk">name</span>: my-scheduler</span><span class="ln">  <span class="tk">namespace</span>: kube-system</span><span class="ln"><span class="tk">roleRef</span>:</span><span class="ln">  <span class="tk">apiGroup</span>: rbac.authorization.k8s.io</span><span class="ln">  <span class="tk">kind</span>: Role</span><span class="ln">  <span class="tk">name</span>: extension-apiserver-authentication-reader</span><span class="ln">---</span><span class="ln"><span class="tc"># 2. The scheduler's own config, stored in a ConfigMap</span></span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: ConfigMap</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln kl">  <span class="tk">name</span>: my-scheduler-config</span><span class="ln">  <span class="tk">namespace</span>: kube-system</span><span class="ln"><span class="tk">data</span>:</span><span class="ln">  <span class="tk">config.yaml</span>: |</span><span class="ln">    <span class="tk">apiVersion</span>: kubescheduler.config.k8s.io/v1</span><span class="ln">    <span class="tk">kind</span>: KubeSchedulerConfiguration</span><span class="ln">    <span class="tk">leaderElection</span>:</span><span class="ln kl">      <span class="tk">leaderElect</span>: true                <span class="tc"># 2 replicas, only one active</span></span><span class="ln">      <span class="tk">resourceNamespace</span>: kube-system</span><span class="ln">      <span class="tk">resourceName</span>: affinity-first-scheduler</span><span class="ln">    <span class="tk">profiles</span>:</span><span class="ln kl">    - <span class="tk">schedulerName</span>: affinity-first-scheduler</span><span class="ln">      <span class="tk">plugins</span>:</span><span class="ln">        <span class="tk">score</span>:</span><span class="ln">          <span class="tk">enabled</span>:</span><span class="ln">          - <span class="tk">name</span>: InterPodAffinity</span><span class="ln">            <span class="tk">weight</span>: 100</span><span class="ln">          - <span class="tk">name</span>: ImageLocality</span><span class="ln">            <span class="tk">weight</span>: 1</span><span class="ln">      <span class="tk">pluginConfig</span>:</span><span class="ln">      - <span class="tk">name</span>: NodeResourcesFit</span><span class="ln">        <span class="tk">args</span>:</span><span class="ln">          <span class="tk">scoringStrategy</span>:</span><span class="ln kl">            <span class="tk">type</span>: MostAllocated        <span class="tc"># bin-pack instead of spread</span></span><span class="ln">            <span class="tk">resources</span>:</span><span class="ln">            - <span class="tk">name</span>: cpu</span><span class="ln">              <span class="tk">weight</span>: 1</span><span class="ln">            - <span class="tk">name</span>: memory</span><span class="ln">              <span class="tk">weight</span>: 1</span><span class="ln">---</span><span class="ln"><span class="tc"># 3. Run it as an ordinary Deployment</span></span><span class="ln"><span class="tk">apiVersion</span>: apps/v1</span><span class="ln"><span class="tk">kind</span>: Deployment</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: my-scheduler</span><span class="ln">  <span class="tk">namespace</span>: kube-system</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln kl">  <span class="tk">replicas</span>: 2</span><span class="ln">  <span class="tk">selector</span>:</span><span class="ln">    <span class="tk">matchLabels</span>: {component: my-scheduler}</span><span class="ln">  <span class="tk">template</span>:</span><span class="ln">    <span class="tk">metadata</span>:</span><span class="ln">      <span class="tk">labels</span>: {component: my-scheduler}</span><span class="ln">    <span class="tk">spec</span>:</span><span class="ln">      <span class="tk">serviceAccountName</span>: my-scheduler</span><span class="ln">      <span class="tk">priorityClassName</span>: system-cluster-critical</span><span class="ln">      <span class="tk">containers</span>:</span><span class="ln">      - <span class="tk">name</span>: kube-scheduler</span><span class="ln">        <span class="tk">image</span>: registry.k8s.io/kube-scheduler:v1.35.0   <span class="tc"># match your cluster's version</span></span><span class="ln">        <span class="tk">command</span>:</span><span class="ln">        - kube-scheduler</span><span class="ln kl">        - --config=/etc/kubernetes/my-scheduler/config.yaml</span><span class="ln">        <span class="tk">livenessProbe</span>:</span><span class="ln">          <span class="tk">httpGet</span>: {path: /healthz, port: 10259, scheme: HTTPS}</span><span class="ln">          <span class="tk">initialDelaySeconds</span>: 15</span><span class="ln">        <span class="tk">readinessProbe</span>:</span><span class="ln">          <span class="tk">httpGet</span>: {path: /healthz, port: 10259, scheme: HTTPS}</span><span class="ln">        <span class="tk">resources</span>:</span><span class="ln">          <span class="tk">requests</span>: {cpu: 100m, memory: 128Mi}</span><span class="ln">        <span class="tk">volumeMounts</span>:</span><span class="ln">        - <span class="tk">name</span>: config</span><span class="ln">          <span class="tk">mountPath</span>: /etc/kubernetes/my-scheduler</span><span class="ln">          <span class="tk">readOnly</span>: true</span><span class="ln">      <span class="tk">volumes</span>:</span><span class="ln">      - <span class="tk">name</span>: config</span><span class="ln">        <span class="tk">configMap</span>:</span><span class="ln kl">          <span class="tk">name</span>: my-scheduler-config</span><span class="ln">---</span><span class="ln"><span class="tc"># 4. Opt in per workload; every other pod keeps the default scheduler</span></span><span class="ln"><span class="tk">apiVersion</span>: apps/v1</span><span class="ln"><span class="tk">kind</span>: Deployment</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: api</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">replicas</span>: 3</span><span class="ln">  <span class="tk">selector</span>:</span><span class="ln">    <span class="tk">matchLabels</span>: {app: api}</span><span class="ln">  <span class="tk">template</span>:</span><span class="ln">    <span class="tk">metadata</span>:</span><span class="ln">      <span class="tk">labels</span>: {app: api}</span><span class="ln">    <span class="tk">spec</span>:</span><span class="ln kl">      <span class="tk">schedulerName</span>: affinity-first-scheduler</span><span class="ln">      <span class="tk">containers</span>:</span><span class="ln">      - <span class="tk">name</span>: api</span><span class="ln">        <span class="tk">image</span>: my-company/api:1.4</span></code></pre>
@@ -332,8 +332,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><mark class="kw">NodeResourcesFit</mark> (LeastAllocated): <strong>1</strong></li>
 <li>BalancedAllocation: <strong>1</strong></li>
 <li>ImageLocality: <strong>1</strong></li>
-<li><mark class="kw">InterPodAffinity</mark> / NodeAffinity / TopologySpread: <strong>2</strong></li>
-<li>TaintToleration: <strong>3</strong></li>
+<li><mark class="kw">InterPodAffinity</mark> / <mark class="kw">NodeAffinity</mark> / TopologySpread: <strong>2</strong></li>
+<li><mark class="kw">TaintToleration</mark>: <strong>3</strong></li>
 </ul>
 </li>
 <li><strong>What this means:</strong> a simple pod still gets a reasoned placement, driven mostly by <mark class="kw-act">spreading</mark>, balance and image caching.</li>
@@ -348,7 +348,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: report-builder</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">affinity</span>:</span><span class="ln">    <span class="tk">nodeAffinity</span>:</span><span class="ln kl">      <span class="tk">requiredDuringSchedulingIgnoredDuringExecution</span>:   <span class="tc"># no weight: pass or fail</span></span><span class="ln">        <span class="tk">nodeSelectorTerms</span>:</span><span class="ln">        - <span class="tk">matchExpressions</span>:</span><span class="ln">          - <span class="tk">key</span>: node.kubernetes.io/instance-type</span><span class="ln">            <span class="tk">operator</span>: In</span><span class="ln">            <span class="tk">values</span>: [&quot;m5.2xlarge&quot;]</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: builder</span><span class="ln">    <span class="tk">image</span>: my-company/report-builder:3.1</span></code></pre>
 <ul>
 <li><strong>Weight tunes scoring from the outside:</strong> whenever you see a <code>weight</code> in Kubernetes YAML, you are adjusting the <mark class="kw-act">scoring</mark> phase (never the filtering phase). You're telling the scheduler how much your rule matters compared to its built-in rules.</li>
-<li><strong>How it's applied:</strong> for each node, the scheduler adds up the weights (1 to 100) of the preferred terms that node matches. Those sums are then normalized to 0–100 across the candidate nodes and multiplied by the plugin's own weight (2 for NodeAffinity and <mark class="kw">InterPodAffinity</mark>).</li>
+<li><strong>How it's applied:</strong> for each node, the scheduler adds up the weights (1 to 100) of the preferred terms that node matches. Those sums are then normalized to 0–100 across the candidate nodes and multiplied by the plugin's own weight (2 for <mark class="kw">NodeAffinity</mark> and <mark class="kw">InterPodAffinity</mark>).</li>
 <li><strong>Preferred + high weight (a strong suggestion):</strong> weight 100 says "this term matters much more than my other preferred terms". Because of the normalization, a matched preference is worth at most about 200 points in total, so it usually wins but can still be outvoted by several other plugins together. If it must always win, make it <code>required</code>.</li>
 <li><strong>Preferred + low weight (a nice-to-have):</strong> weight 1 says "this would be nice, but it matters little compared with my other preferences". The weights only rank your preferred terms against each other.</li>
 </ul>
@@ -361,6 +361,162 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Don't mix them up:</strong> the <em>scheduling</em> <mark class="kw-act">score</mark> is about choosing a node for a pod. The <em><mark class="kw">QoS</mark> / OOM</em> score is about choosing which pod to kill (covered in <a href="#d03-6">Memory: who gets killed</a>).</li>
 <li><strong>The scheduler's choice:</strong> at placement time the scheduler might see a node is 90% full and give it a low score, because it wants to <mark class="kw-act">spread</mark> the load. Once the pod is placed, that score is forgotten.</li>
 <li><strong>The kubelet's reality:</strong> under memory pressure nobody looks at the scheduler's grade. The <mark class="kw-tool">kubelet</mark> first picks pods that use more memory than they <em>requested</em>, then ranks them by priority, then by how far over their request they are. If the kernel's <mark class="kw">OOM killer</mark> fires first, it uses <code>oom_score</code>, which is memory usage plus a QoS-based <code>oom_score_adj</code>. So an "important" pod that uses more than it requested can still be the one that's killed.</li>
+</ul>
+<h3 id="d01-9">Built-in plugins, and what a second scheduler changes</h3>
+<p><strong>Scenario.</strong> After learning that the fit check is done by "a plugin", the team wants the full list: which plugins run by default, what each one does, which ones <mark class="kw-act">filter</mark> and which ones <mark class="kw-act">score</mark>, and with what weight. Then the architect asks the follow-up: if we add a second scheduler, do these plugins still apply, and what can go wrong when two schedulers share one cluster?</p>
+<figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-9.svg" data-title="Built-in plugins, and what a second scheduler changes" aria-label="Open diagram full screen: Built-in plugins, and what a second scheduler changes"><img src="diagrams/sections/d01-9.svg" alt="Diagram: Built-in plugins, and what a second scheduler changes" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Every scheduling decision runs through the same stages, left to right, and each stage is made of plugins.</p>
+<ul>
+<li><strong>Pending pod:</strong> its <code>spec.schedulerName</code> decides which of the three lanes handles it. Exactly one scheduler handles each pod.</li>
+<li><strong>The stages (column headers):</strong><ul>
+<li><strong>Queue sort:</strong> decides which pending pod is considered next.</li>
+<li><strong>Filter:</strong> removes nodes that can't run the pod (Phase 1).</li>
+<li><strong>PostFilter:</strong> runs only when <em>no</em> node passed; this is where <mark class="kw-act">preemption</mark> happens.</li>
+<li><strong>Score:</strong> ranks the nodes that passed (Phase 2), each plugin's <mark class="kw-act">score</mark> multiplied by its weight.</li>
+<li><strong>Reserve / Permit:</strong> holds the chosen node's volumes and devices while the decision is finalized.</li>
+<li><strong>Bind:</strong> writes the chosen node into the pod (<code>spec.nodeName</code>).</li>
+</ul>
+</li>
+<li><strong>Blue lane, <code>default-scheduler</code>:</strong> the built-in <mark class="kw-tool">kube-scheduler</mark>. On EKS it runs on the AWS-managed control plane, and every plugin shown is built in and on by default. The Score box lists the default weights (×1, ×2, ×3).</li>
+<li><strong>Amber lane, a second kube-scheduler with your own profile:</strong> the same program and the same plugins, run as your own Deployment (the full example is in <a href="#d01-1">Phase 1: filtering</a>). Only the highlighted Score box differs: <mark class="kw">InterPodAffinity</mark> weighted ×100, and <mark class="kw">NodeResourcesFit</mark> switched to <mark class="kw">MostAllocated</mark> (<mark class="kw-act">bin-packing</mark>).</li>
+<li><strong>Teal lane, a replacement scheduler (Volcano, KAI, YuniKorn):</strong> a different program with its own plugins (<mark class="kw-tool">Volcano</mark> calls them "actions"): queues and <mark class="kw">PodGroups</mark> for <mark class="kw">gang scheduling</mark>, queue-based <mark class="kw-act">reclaim</mark> instead of plain preemption, GPU and network topology <mark class="kw-act">scoring</mark>, and <mark class="kw-act">binding</mark> a whole job together. It re-implements the basic fit checks, but the built-in plugins and weights above don't apply to its pods.</li>
+<li><strong>Grey bar, shared by all three:</strong> the same nodes and the same API server. The schedulers don't coordinate with each other.</li>
+</ul>
+<p><strong>The built-in plugins</strong> (all on by default; "–" means the plugin doesn't take part in that stage):</p>
+<table>
+<thead>
+<tr>
+<th>Plugin</th>
+<th>What it does</th>
+<th>Filter</th>
+<th>Score weight</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PrioritySort</td>
+<td>Orders the queue: higher-priority pods are scheduled first</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>SchedulingGates</td>
+<td>Holds back pods that still have <code>schedulingGates</code> set</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>NodeUnschedulable</td>
+<td>Skips cordoned nodes (<code>spec.unschedulable</code>)</td>
+<td>✓</td>
+<td>–</td>
+</tr>
+<tr>
+<td>NodeName</td>
+<td>Honours a pod that already names its node</td>
+<td>✓</td>
+<td>–</td>
+</tr>
+<tr>
+<td>NodeResourcesFit</td>
+<td>CPU, memory, GPU and other resources: does it fit? Then LeastAllocated scoring</td>
+<td>✓</td>
+<td>1</td>
+</tr>
+<tr>
+<td>NodeResourcesBalancedAllocation</td>
+<td>Prefers nodes where CPU and memory use stay balanced</td>
+<td>–</td>
+<td>1</td>
+</tr>
+<tr>
+<td>ImageLocality</td>
+<td>Prefers nodes that already have the pod's images</td>
+<td>–</td>
+<td>1</td>
+</tr>
+<tr>
+<td>NodeAffinity</td>
+<td><code>nodeSelector</code> and required node affinity (filter); preferred node affinity (score)</td>
+<td>✓</td>
+<td>2</td>
+</tr>
+<tr>
+<td>InterPodAffinity</td>
+<td>Required pod affinity / anti-affinity (filter); preferred (score)</td>
+<td>✓</td>
+<td>2</td>
+</tr>
+<tr>
+<td>PodTopologySpread</td>
+<td><code>DoNotSchedule</code> spread constraints (filter); <code>ScheduleAnyway</code> (score)</td>
+<td>✓</td>
+<td>2</td>
+</tr>
+<tr>
+<td>TaintToleration</td>
+<td><code>NoSchedule</code> taints (filter); prefers fewer untolerated <code>PreferNoSchedule</code> taints (score)</td>
+<td>✓</td>
+<td>3</td>
+</tr>
+<tr>
+<td>NodePorts</td>
+<td>Rejects nodes where the pod's <code>hostPort</code> is taken</td>
+<td>✓</td>
+<td>–</td>
+</tr>
+<tr>
+<td>VolumeRestrictions</td>
+<td>Volume conflicts, such as a <code>ReadWriteOncePod</code> volume already in use</td>
+<td>✓</td>
+<td>–</td>
+</tr>
+<tr>
+<td>NodeVolumeLimits</td>
+<td>The node's limit on attached volumes (for example EBS)</td>
+<td>✓</td>
+<td>–</td>
+</tr>
+<tr>
+<td>VolumeZone</td>
+<td>The volume's zone must match the node's zone</td>
+<td>✓</td>
+<td>–</td>
+</tr>
+<tr>
+<td>VolumeBinding</td>
+<td>PVCs can be bound or provisioned on this node; reserves them</td>
+<td>✓</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DynamicResources</td>
+<td>DRA device claims (GPUs and other devices) can be satisfied; reserves them</td>
+<td>✓</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DefaultPreemption</td>
+<td>PostFilter: evicts lower-priority pods when nothing fits</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DefaultBinder</td>
+<td>Bind: writes <code>spec.nodeName</code></td>
+<td>–</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What a second scheduler changes:</strong></p>
+<ul>
+<li><strong>One pod, one scheduler:</strong> a pod is handled only by the scheduler named in its <code>schedulerName</code>. The other schedulers' plugins never see it.</li>
+<li><strong>Same program, different profile (amber lane):</strong> you can change weights, switch the scoring strategy, or disable plugins (for example turn off <mark class="kw">ImageLocality</mark>). One kube-scheduler process can even serve several profiles, each under its own <code>schedulerName</code>.</li>
+<li><strong>Different program (teal lane):</strong> you get features the built-in plugins don't have, such as gang scheduling, queues and GPU topology. In return, its pods follow its rules, not the table above.</li>
+<li><strong>No coordination:</strong> two schedulers can pick the same free space at the same moment, because each one only sees its own decisions in flight. The <mark class="kw-tool">kubelet</mark> then rejects the pod that arrives second (<code>OutOfcpu</code> / <code>OutOfmemory</code>) and its controller creates a new one. The usual fix is to give each scheduler its own nodes, with <mark class="kw">taints</mark> and node labels, or to send all pods of one kind (for example all GPU pods) to a single scheduler.</li>
+<li><strong>Preemption crosses the boundary:</strong> the default scheduler's <mark class="kw">DefaultPreemption</mark> can <mark class="kw-act">evict</mark> pods placed by your scheduler if they have lower priority, and the other way round. Use <mark class="kw">PriorityClasses</mark> consistently across both.</li>
+<li><strong>Autoscalers:</strong> <mark class="kw-tool">Cluster Autoscaler</mark> and <mark class="kw-tool">Karpenter</mark> decide whether to add nodes by simulating the <em>default</em> scheduler's rules. Check whether yours acts on pods with a custom <code>schedulerName</code> at all, and remember that custom <mark class="kw-act">filters</mark> it doesn't know about can lead to nodes being added that your scheduler then won't use.</li>
 </ul></div>
 </section>
 
