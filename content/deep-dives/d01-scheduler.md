@@ -288,6 +288,49 @@ spec:
 >
 > - **If you need "move the pod when things change", use a different tool.** Affinity can't do it, but two other features can:
 >   - **Taints with `effect: NoExecute`:** taints are a separate feature, set on the *node*. Their `effect` decides how strict they are: `NoSchedule` (hard rule for new pods), `PreferNoSchedule` (soft, scoring only) and `NoExecute`, which also evicts pods that are *already running* there without a matching toleration (`tolerationSeconds` lets a pod stay for a set time first). So the taint's `NoExecute` effect behaves like the "during execution" half that affinity never got.
+>
+>         ```yaml
+>         # The NODE carries the taints (here one of each effect, to compare them)
+>         apiVersion: v1
+>         kind: Node
+>         metadata:
+>           name: gpu-node-1
+>         spec:
+>           taints:
+>           - key: dedicated
+>             value: gpu
+>             effect: NoSchedule           # new pods without a toleration: not scheduled here  #!
+>           - key: spot
+>             value: "true"
+>             effect: PreferNoSchedule     # new pods: avoided if possible (scoring only)  #!
+>           - key: maintenance
+>             value: "true"
+>             effect: NoExecute            # running pods without a toleration: evicted NOW  #!
+>         ---
+>         # The POD tolerates all three; for NoExecute it may stay 10 minutes, then is evicted
+>         apiVersion: v1
+>         kind: Pod
+>         metadata:
+>           name: inference
+>         spec:
+>           tolerations:
+>           - key: dedicated
+>             operator: Equal
+>             value: gpu
+>             effect: NoSchedule
+>           - key: spot
+>             operator: Exists
+>             effect: PreferNoSchedule
+>           - key: maintenance
+>             operator: Exists
+>             effect: NoExecute
+>             tolerationSeconds: 600       # stay up to 10 min after the taint appears, then leave  #!
+>           containers:
+>           - name: server
+>             image: vllm/vllm-openai:latest
+>         ```
+>
+>         Add the `NoExecute` taint to a running node with `kubectl taint nodes gpu-node-1 maintenance=true:NoExecute`: pods *without* that toleration are evicted at once, and this pod is evicted after 600 seconds. Without `tolerationSeconds`, a pod with the toleration would stay forever.
 >   - **The descheduler:** an add-on that periodically evicts running pods that no longer satisfy their node affinity or pod anti-affinity (its `RemovePodsViolatingNodeAffinity` and `RemovePodsViolatingInterPodAntiAffinity` plugins), so the scheduler can place them again.
 > - **The full "dedicated GPU nodes" example is in the YAML right below this note.**
 
