@@ -49,6 +49,13 @@ profiles:
           weight: 1
 ```
 
+> **Note: is `KubeSchedulerConfiguration` something you add?** Normally, no; it's there by default.
+>
+> - **It isn't a Kubernetes object.** It has `apiVersion` and `kind`, but you don't `kubectl apply` it (the API would reject it). It's a config file the kube-scheduler program reads at startup, passed with `--config`.
+> - **The defaults are built in.** With no file, the scheduler runs with built-in settings that match the snippet: NodeResourcesFit scoring with LeastAllocated, CPU and memory weighted 1 each, and the default plugin weights. The snippet just makes those hidden defaults visible.
+> - **Self-managed clusters** (for example kubeadm): you can point the scheduler's static pod at your own file, for example to switch to MostAllocated bin-packing or change plugin weights.
+> - **Managed clusters** (EKS, GKE, AKS): the provider runs the control plane, so you can't change the default scheduler's config. To customize, deploy a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers.
+
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.
 
 ```yaml
