@@ -5,18 +5,17 @@ short: "EKS and GPU"
 ---
 ### The NVIDIA device plugin
 
-**Scenario.** A new GPU node group joins the cluster, but pods that request `nvidia.com/gpu: 1` stay `Pending`.
+**Scenario.** A team adds GPU nodes to their EKS cluster and deploys a pod that requests `nvidia.com/gpu: 1`. The pod stays `Pending` with "Insufficient nvidia.com/gpu", even though the nodes clearly have GPUs installed. Kubernetes can't see them yet.
 
 ![The NVIDIA device plugin](diagrams/sections/d06-1.svg)
 
-**What the picture shows.**
+**What the picture shows.** How the NVIDIA device plugin makes GPUs visible to Kubernetes, in numbered steps.
 
-1. The device plugin runs as a DaemonSet.
-2. It registers with the kubelet, which advertises GPU capacity.
-3. The scheduler can now count GPUs and place the pod.
-4. The kubelet asks the plugin to attach specific devices to the container.
-
-In our setup, the plugin is installed by the EKS Terraform module.
+- **Installing the plugin:** we add a module to the EKS setup that installs the NVIDIA device plugin for Kubernetes.
+- **Step 1:** the plugin runs on every GPU worker node as a **DaemonSet**.
+- **Step 2:** on each node, the plugin registers itself with the **kubelet**, which reports the node's GPUs to the **API server** as `nvidia.com/gpu`. From then on GPUs are a countable resource the scheduler can use. This is the missing piece in the scenario.
+- **Steps 3 and 4:** when the scheduler places a pod that requests a GPU, the pod is bound to that worker node.
+- **Step 5:** the kubelet on that node tells the plugin how many GPUs the pod needs, and the plugin assigns specific GPU devices to the container.
 
 **Going deeper.**
 

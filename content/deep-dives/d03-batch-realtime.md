@@ -7,11 +7,20 @@ One cluster runs a latency-critical web API next to cost-driven batch jobs. This
 
 ### Workloads and node tiers
 
-**Scenario.** Every evening the batch wave arrives and the API's p99 latency jumps above 100 ms.
+**Scenario.** A company wants to run its customer-facing web API and its nightly batch jobs on the same EKS cluster to save money. The web team is worried that a big batch run will slow the API down; the finance team wants batch to run as cheaply as possible. How do you design node pools so both groups are happy?
 
 ![Workloads and node tiers](diagrams/sections/d03-1.svg)
 
-**What the picture shows.** Web services are latency-sensitive and need stability, while batch is retry-capable and opportunistic. Each gets its own tier: on-demand, tainted nodes for web (with placeholder pods for headroom), diversified Spot capacity for batch, and a shared, untainted tier for utilization.
+**What the picture shows.** A mind map of the mixed-workload strategy: first understand each workload, then give each one the right kind of node.
+
+- **Workload characteristic analysis:**
+  - **Real-time web services (the "VIPs"):** latency-sensitive SLA (p99 under 100 ms, 99.9%+ uptime), predictable daily traffic patterns, CPU- and network-bound, must scale fast and tolerate almost no failure.
+  - **Batch processing jobs (the "opportunists"):** latency-insensitive (minutes or hours are fine), bursty and CPU/memory heavy, fed from a queue, can retry and tolerate failure.
+- **Multi-tiered node architecture:**
+  - **Tier 1, web services (stability):** On-Demand nodes (c6i family), tainted `NoSchedule` so batch jobs stay off.
+  - **Tier 2, batch processing (cost):** diversified Spot instances, tainted for batch only and managed by Karpenter for fast, flexible scaling.
+  - **Tier 3, shared / burstable (utilization):** a mixed lifecycle pool, overprovisioned with placeholder pods so sudden spikes get capacity instantly.
+- **A note on CPU fairness:** Kubernetes doesn't hand out CPU cycles itself; it delegates that to the Linux kernel, whose Completely Fair Scheduler (CFS) tries to give every process a fair slice (see [CPU: shares and throttling](#d03-4)).
 
 **Going deeper.** For LLMs, the latency-critical tier is the **model server**: vLLM, TGI, SGLang or NVIDIA NIM, each exposing an OpenAI-compatible API behind a Service. Large models need whole, dedicated GPUs and minutes to load, so I run them as plain Deployments (KServe's *Standard* mode) on tainted GPU nodes with warm capacity, rather than relying on scale-to-zero.
 
@@ -22,15 +31,22 @@ AI applications follow the same split:
 
 ### Priority, preemption and QoS
 
-**Scenario.** The cluster is full when a traffic spike hits. Who gets evicted, and who decides?
+**Scenario.** During a traffic spike the web API needs more pods, but every node is full of batch jobs and a new node takes minutes to start. Later, a node runs out of memory and some pods are killed. The team wants web traffic to win in both cases, without starving batch work the rest of the time.
 
 ![Priority, preemption and QoS](diagrams/sections/d03-2.svg)
 
-**What the picture shows.**
+**What the picture shows.** Two separate tools that decide who wins when resources run short.
 
-- Two different mechanisms.
-- **PriorityClasses** are the scheduler's tool, applied cluster-wide (`web-critical` preempts, `batch-low` never does).
-- **QoS** (Guaranteed > Burstable > BestEffort) is the kubelet's tool, applied on one node under resource pressure.
+- **Priority classes (for the scheduler), tool used: preemption, scope: cluster-wide.**
+  - **`web-critical` (10000):** the highest priority; it can preempt everything else.
+  - **`batch-low` (100):** the lowest priority, with `preemptionPolicy: Never`, so batch never pushes anyone out.
+  - **The effect:** when a node is full, high-priority web pods evict lower-priority batch pods, so web traffic never waits for a new node.
+- **QoS controls (for the kubelet at runtime), tool used: eviction, scope: per node.** The QoS class comes from the requests and limits in the manifest.
+  - **Guaranteed (web):** requests equal limits. Gets a dedicated CPU quota and is the last to be OOM-killed.
+  - **Burstable (batch):** requests lower than limits. Can scavenge spare capacity, but is evicted before Guaranteed pods.
+  - **BestEffort:** no resources set. The first to be terminated under pressure.
+  - **The effect:** when a node runs out of RAM, the kubelet kills pods in the order BestEffort → Burstable → Guaranteed.
+- **Shared tier:** a mixed-lifecycle pool with no taints, where these two mechanisms do the arbitration.
 
 **Going deeper.**
 
@@ -40,15 +56,26 @@ AI applications follow the same split:
 
 ### Placement, autoscaling and cost
 
-**Scenario.** Batch costs are climbing even though most nodes look half empty.
+**Scenario.** The mixed cluster is running, but the team still has open questions: where exactly should each pod land, how fast should each tier scale, how should requests and limits be set, what happens when AWS takes back a Spot node, and which numbers should page someone at night?
 
 ![Placement, autoscaling and cost](diagrams/sections/d03-3.svg)
 
-**What the picture shows.**
+**What the picture shows.** The tuning checklist, grouped into four areas.
 
-- Affinity for web, anti-affinity for batch, and requests and limits per workload type.
-- Autoscaling uses HPA for web (fast up, slow down) and Karpenter for batch (diversified Spot, consolidation).
-- Spot interruptions are handled by checkpointing, and the key alerts are pending pods, queue depth and p99.
+- **Placement logic:**
+  - **Node affinity:** preferentially lands web services on their dedicated hardware.
+  - **Pod anti-affinity:** spreads batch processors across hostnames so one node failure doesn't take them all down.
+- **Resource management:**
+  - **CPU:** web services get high requests; batch jobs get low requests with high limits so they can soak up idle CPU.
+  - **Memory:** memory can't be compressed and running out causes OOM crashes, so web services must be strict (requests equal limits), and batch jobs are sized to each job's needs.
+- **Autoscaling and Spot handling:**
+  - **HPA (web):** aggressive scale-up (about 15 s) on CPU or request rate, conservative scale-down (about 5 min).
+  - **Karpenter (batch):** intent-based scale-up; it removes empty nodes within about 30 s to cut waste. If one instance type isn't available at provisioning time, Karpenter picks whatever is available to get the job started. At runtime, as jobs finish and nodes are left half-used, it consolidates them.
+  - **Spot interruption:** the AWS Node Termination Handler catches the 2-minute warning so batch jobs can checkpoint and drain gracefully.
+- **Cost and monitoring:**
+  - **Optimization tactics:** Spot diversification across several families (m5, m5a, m6i) in 3+ AZs for availability, and bin-packing pods tightly to reduce node count.
+  - **Metrics:** p99 latency for web (typically under 100 ms), queue depth for batch, and the pending-pod count for capacity.
+  - **Alerting:** immediate for web SLO breaches, threshold-based for batch failures.
 
 **Going deeper.**
 
@@ -66,56 +93,99 @@ AI applications follow the same split:
 
 ### CPU: shares and throttling
 
-**Scenario.** The API's average latency looks fine, but p99 spikes every few seconds.
+**Scenario.** Users report that the web API is sometimes slow, with p99 latency spiking, but the CPU graphs for its pods look fine and the node is mostly idle. A batch job shares the node. Is the batch job stealing CPU, or is something else slowing the API down?
 
 ![CPU: shares and throttling](diagrams/sections/d03-4.svg)
 
-**What the picture shows.**
+**What the picture shows.** Layer 1, CPU, a *compressible* resource: when CPU is short, pods slow down rather than die. Two kernel mechanisms are at work.
 
-- Requests become CPU shares, which split the CPU under contention.
-- Limits become a quota per 100 ms window.
-- A multi-threaded pod can use up its quota early in the window and then freeze until the next one, which is where the p99 jitter comes from.
+- **CPU shares, who wins under contention:** in a noisy-neighbour situation, Kubernetes relies on CPU shares, which come from your requests.
+  - **Requests become priority:** a `cpu: 1000m` request becomes 1024 shares, and a 500m request becomes 512 shares.
+  - **The CFS logic:** the kernel's Completely Fair Scheduler tracks how much CPU time each process has had and favours the ones that have had less.
+  - **When the CPU is 100% busy:** the web service (1024 shares) is guaranteed 2/3 of the time and the batch job (512 shares) 1/3.
+  - **When the web service is idle:** the batch job can use the spare CPU, but the moment the web service wakes up, batch is squeezed back to its 1/3.
+- **Throttling, the 100 ms quota window:** a CPU *limit* is a speed limit the kernel enforces per 100 ms period.
+  - **Example:** a limit of 0.5 CPU (500m) gives 50 ms of run time every 100 ms.
+  - **The sprint:** a multi-threaded app can use all 50 ms in the first 10 ms of the window, and is then frozen for the remaining 90 ms.
+  - **The wait:** even if the node's CPU is 90% idle, the app can't run until the next window starts.
+  - **Normal vs. throttled:** a request that normally takes 10 ms takes about 100 ms when it's frozen mid-calculation (10 ms of work plus about 90 ms of waiting).
+- **The impact, latency jitter:** throttling stops and starts the app in tiny bursts, so average latency looks fine while p99 spikes wildly. This is the answer to the scenario: the API is hitting its own CPU limit, not losing CPU to the batch job.
 
 ### Kernel vs. Kubernetes
 
-**Scenario.** "Why do requests matter if the kernel shares CPU fairly anyway?"
+**Scenario.** A developer asks a fair question: "I set `cpu: 250m`, but my pod uses a whole core when the node is quiet, and slows down when it's busy. So what does the request actually do, and who enforces it?"
 
 ![Kernel vs. Kubernetes](diagrams/sections/d03-5.svg)
 
-**What the picture shows.**
+**What the picture shows.** How a Kubernetes CPU request turns into kernel behaviour. The Linux kernel is the enforcer; Kubernetes is the policy maker that tells it who matters.
 
-- Kubernetes sets the policy, the kubelet translates it into cgroups, and the kernel enforces it.
-- The one thing the kernel can't do is stop a node from being overpacked.
-- Only the scheduler's request accounting does that.
+- **The kernel doesn't know Kubernetes:** it has no idea what a pod or "100m CPU" is. It only understands control groups (cgroups) and CPU shares.
+- **The handshake, in three steps:**
+  - **Kubernetes (the policy maker):** you write `cpu: 250m` in your YAML.
+  - **The kubelet (the translator):** it converts that number into something the kernel understands.
+  - **The Linux kernel (the enforcer):** it writes the value into `cpu.shares`; by default 1000m (one core) equals 1024 shares.
+- **When the node is idle:** a pod that requests 100m but is the only thing running may use 100% of the CPU. The request isn't a cage.
+- **When the node is under contention:** if five pods all want 100%, the kernel divides time by shares. A pod with 1000m (1024 shares) gets 10 times more time than one with 100m (102 shares).
+- **Admission control, Kubernetes' real job:** the one thing the kernel can't do is stop a node from getting too crowded. The scheduler treats requests as reservations: on a 4-core node that already has 3.8 cores requested, it refuses to add more pods.
+- **The consequence of skipping requests:** the scheduler might pack 100 pods onto one node, and even with perfect fairness each pod would get about 1% of a CPU, so the whole application crawls.
+- **Bridge to memory:** CPU can be stretched by slowing things down, but memory is all-or-nothing.
 
 ### Memory: who gets killed
 
-**Scenario.** A node runs out of memory. Which pod dies first, and why that one?
+**Scenario.** A node runs low on memory and Kubernetes kills a pod that was using only 150 MiB, while a much bigger pod using 510 MiB survives. The owner of the small pod is angry: "Why did you kill the small one?"
 
 ![Memory: who gets killed](diagrams/sections/d03-6.svg)
 
-**What the picture shows.**
+**What the picture shows.** Layer 2, memory, a *non-compressible* resource: you can't slow memory down, so when it runs out someone has to die.
 
-- Memory can't be compressed: the OOM killer runs at container or node level.
-- QoS sets `oom_score_adj` (BestEffort 1000, Guaranteed -997, Burstable in between, depending on its memory request).
-- Among Burstable pods, the kubelet evicts the one furthest over its request first.
+- **Two levels of OOM:**
+  - **Container level:** if a container goes over its own memory limit, the kernel kills processes inside that container.
+  - **Node level:** if the whole server runs out of memory, even when no pod hit its limit, the kernel's OOM killer looks at every process on the node and picks a victim.
+- **QoS classes set the eviction risk:** Kubernetes gives every pod a QoS class from its requests and limits: BestEffort (highest risk), Burstable (medium), Guaranteed (lowest).
+- **The scoreboard, `oom_score_adj`:** the kubelet tags every process with an OOM score adjustment so the kernel knows who matters. A higher score means more likely to be killed.
+  - **BestEffort:** 1000, "kill me first".
+  - **Burstable:** 1000 − 1000 × (memory request ÷ node memory), so a bigger request makes the pod safer.
+  - **Guaranteed:** −997, "don't kill me".
+- **The worked example (two Burstable pods):** pod A requested 100 Mi and uses 150 Mi (50 Mi over). Pod B requested 500 Mi and uses 510 Mi (10 Mi over). Within the same class, kubelet eviction picks the pod furthest over its *request*, so **pod A dies first**, even though it uses far less memory than pod B. That's the scenario's answer.
+- **Not the scheduling score:** this score is about killing a pod, not about choosing a node (see [Scheduler score vs. OOM score](#d01-8)).
 
 ### Network: the unmanaged resource
 
-**Scenario.** A backup pod starts a 10 Gbps transfer and the API on the same node starts dropping connections, yet CPU and memory look perfect.
+**Scenario.** An API pod's latency suddenly spikes and it starts dropping connections, yet its CPU and memory graphs look perfectly normal. Hours later someone notices that a backup pod in a different namespace, on the same node, started a large transfer at exactly that time.
 
 ![Network: the unmanaged resource](diagrams/sections/d03-7.svg)
 
-**What the picture shows.** Kubernetes has no network requests or limits. The fixes are Linux `tc` shaping, CNI bandwidth annotations, and instance types with separate bandwidth for EBS.
+**What the picture shows.** Layer 3, network, an *unmanaged* resource: unlike CPU and memory, standard Kubernetes doesn't control it at all.
+
+- **The Wild West, unmanaged bandwidth:** Kubernetes treats the network as an all-you-can-eat buffet. There is no `network-requests` or `network-limits` field in the pod spec.
+  - **The problem:** a busy API pod and a backup-sync pod share a node, and the backup pod starts a 10 Gbps transfer.
+  - **The result:** the node's physical NIC is saturated. The API's latency spikes or it drops connections, while its CPU and memory look normal.
+- **The noisy-neighbour effect:**
+  - **Shared fate:** every pod on the node shares the same pipe to the outside world.
+  - **Silent failures:** most monitoring is per pod, so you see your app failing without realizing an unrelated pod in another namespace is hogging the bandwidth.
+- **Solutions, taming the traffic:**
+  - **A. Linux `tc` (traffic control):** shape traffic on the node at the kernel level.
+  - **B. CNI bandwidth plugins:** most modern CNIs (Calico, Cilium, or the standard bandwidth plugin) let you set ingress and egress limits with annotations in the pod YAML.
+- **Architecture tip, the EKS benefit:** some instance types (such as the `m5n` and `c5n` variants) have separate network paths for EBS and normal traffic, so database disk I/O doesn't compete with user traffic for bandwidth.
 
 ### Storage I/O: the other unmanaged resource
 
-**Scenario.** A log archiver saturates a volume, and the database pod sharing it goes from 1 ms to 200 ms latency.
+**Scenario.** The production database's disk latency jumps from 1 ms to 200 ms, its liveness probe starts failing, and Kubernetes restarts it, which makes things worse. The database itself is doing nothing unusual; a log-archiver pod sharing the same volume has just started a huge read.
 
 ![Storage I/O: the other unmanaged resource](diagrams/sections/d03-8.svg)
 
-**What the picture shows.**
+**What the picture shows.** Layer 4, storage I/O, also *unmanaged* at the container level. AWS limits the speed of the whole EBS volume, but Kubernetes has no way to say "pod A gets 80% of the disk and pod B gets 20%".
 
-- EBS throttles per volume, not per pod, and Kubernetes doesn't expose the `blkio` controller.
-- The symptoms are I/O wait, processes stuck in the D state, and failing liveness probes.
-- The fixes are dedicated volumes per critical pod, EBS-optimized instances, and node-level guardrails.
+- **Per-volume vs. per-container mismatch:**
+  - **AWS's view:** you pay for performance per volume (for example 3,000 IOPS on gp3). AWS only sees the volume; when it hits 3,000 IOPS, the whole disk is throttled, no matter which pod caused it.
+  - **Kubernetes' view:** several pods may share that volume (ReadWriteMany or local disks) or share the node's throughput to EBS.
+  - **The example:** a background log archiver uses all 3,000 IOPS, and the production database on the same disk goes from 1 ms to 200 ms latency.
+- **The missing controller, `blkio`:** the Linux kernel has a block I/O cgroup controller that can set weights or byte-per-second limits per process. Kubernetes exposes CPU and memory in the pod spec but not `blkio`; there is no `resources.limits.iops` field.
+- **The consequences of unmanaged I/O:** a saturated disk causes a blocking ripple effect.
+  - **I/O wait:** the CPU sits idle waiting for the disk, so CPU graphs look low while the app feels very slow.
+  - **Stuck processes:** a process writing to a saturated disk enters uninterruptible sleep (the `D` state in `top`) and can't be killed until the I/O finishes.
+  - **Liveness probe failures:** if the health check writes a small file and the disk is too slow, the probe fails and Kubernetes restarts the pod, making things worse. That's the scenario.
+- **How to fix it (the hard way):**
+  - **Dedicated volumes:** give every critical pod its own EBS volume through its own PVC, so pod A's disk use physically can't affect pod B.
+  - **Static guardrails:** configure the `blkio` cgroup on worker nodes through a DaemonSet or the kubelet configuration (reserved system resources). It works, but it's hard to maintain.
+  - **Instance selection:** EBS-optimized instances keep disk and network traffic off the same physical pipe on the EC2 host.

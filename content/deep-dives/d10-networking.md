@@ -7,44 +7,58 @@ This deep dive covers what happens on a worker node when a pod starts, and the p
 
 ### What runs on a worker node
 
-**Scenario.** A new engineer asks what actually happens between "pod scheduled" and "pod has an IP".
+**Scenario.** A pod is stuck in `ContainerCreating` with a "failed to set up sandbox network" error. To debug it, the on-call engineer needs a clear picture of which components on the worker node run, in which order, when a pod starts and gets its network.
 
 ![What runs on a worker node](diagrams/sections/d10-1.svg)
 
-**What the picture shows.**
+**What the picture shows.** The components on a worker node and the numbered steps that start a pod and connect it to the network.
 
-1. The kubelet calls the runtime through CRI (containerd or CRI-O).
-2. The runtime calls the CNI plugin (VPC CNI, Calico or Cilium).
-3. The CNI plugin gets an IP from IPAM and programs iptables.
-4. kube-proxy keeps the Service rules in iptables.
+- **Step 1, kubelet → container runtime:** the kubelet talks to the runtime through the **CRI** (Container Runtime Interface), a standard API that hides which runtime is underneath (containerd or CRI-O). It uses it to start, stop and monitor containers.
+- **Step 2, CRI → container runtime:** the runtime creates the containers.
+- **Step 3, kubelet → CNI:** the **CNI** (Container Network Interface) is an open API that lets Kubernetes use any compatible plug-in, such as Cilium, Calico or the Amazon VPC CNI. The kubelet asks the plug-in to create the pod's network namespace. A failure here is exactly the scenario's error.
+- **Step 4, CNI → IPAM:** the plug-in asks IP address management (IPAM) for the pod's IP.
+- **Step 5, CNI → kernel:** the plug-in programs the Linux kernel, through iptables or eBPF, for packet filtering and traffic handling.
+- **Step 6, kube-proxy → kernel:** kube-proxy also uses iptables to manage Service traffic on the node.
 
 ### Network policy limits
 
-**Scenario.** Pods must be allowed to call `api.anthropic.com` and nothing else on the internet.
+**Scenario.** An AI team's pods call external APIs such as OpenAI and Anthropic. Security wants to allow only those specific domains and to apply one egress policy across every namespace, but standard Kubernetes NetworkPolicies can only match IPs, ports and pod or namespace labels.
 
 ![Network policy limits](diagrams/sections/d10-2.svg)
 
-**What the picture shows.** Native NetworkPolicies only match IPs, ports, protocols, pods and namespaces. DNS-based rules and cluster-wide policies need Cilium or Calico.
+**What the picture shows.** Pod-to-pod traffic can be controlled with NetworkPolicy, but only up to a point.
+
+- **What standard NetworkPolicies support:** a limited set of rules: IP blocks, ports, protocols, `podSelector` and `namespaceSelector`.
+- **What they can't do:** DNS-based rules (allow `api.openai.com`, for example) or one global policy that applies across all namespaces. Both matter when pods call external LLM APIs, since those APIs' IPs change.
+- **The fix:** Cilium and Calico add DNS-aware policies and cluster-wide (global) policies on top of the standard model.
 
 ### Network optimization levers
 
-**Scenario.** DNS timeouts and Service latency grow with the size of the cluster.
+**Scenario.** A high-traffic cluster shows rising network latency and DNS timeouts as it grows. The team lists the network optimizations available on EKS: hardware NIC sharing, eBPF, a different kube-proxy mode, CoreDNS scaling and EC2 placement.
 
 ![Network optimization levers](diagrams/sections/d10-3.svg)
 
-**What the picture shows.** SR-IOV (one NIC split into virtual functions), eBPF for observability and policy, IPVS instead of iptables at scale, and CoreDNS with a proportional autoscaler plus a node-local DNS cache.
+**What the picture shows.** A mind map of network optimizations, branch by branch.
+
+- **SR-IOV (Single Root I/O Virtualization):** splits one **physical NIC** (the physical function) into several **virtual functions**. Each VM or container gets a dedicated, isolated path straight to the hardware, and packet processing is offloaded to the NIC, cutting CPU overhead.
+- **eBPF (extended Berkeley Packet Filter):** runs programs in the kernel for network observability, fine-grained security, load balancing and monitoring.
+- **kube-proxy:** keeps the network rules that send Service traffic to the right backend pod.
+  - **Default:** uses iptables to intercept and redirect traffic, which becomes a bottleneck in large clusters.
+  - **IPVS mode:** an in-memory hash table for Service-to-pod routing that scales much better.
+- **CoreDNS scaling:** DNS is central to service discovery, so autoscale CoreDNS (for example with the cluster proportional autoscaler) and run a DNS caching agent on every node (NodeLocal DNSCache) to reduce load and latency.
+- **Network latency, EC2 placement groups:** place nodes physically close to reduce latency between them.
 
 ### Standard vs. SR-IOV vs. RDMA
 
-**Scenario.** GPUs sit idle waiting on the network during gradient synchronization.
+**Scenario.** A distributed training job spends more time waiting for gradients to arrive from other GPUs than computing. Even with fast instance networking, every packet still passes through software layers and the CPU. The team wants to understand which layers are in the way.
 
 ![Standard vs. SR-IOV vs. RDMA](diagrams/sections/d10-4.svg)
 
-**What the picture shows.**
+**What the picture shows.** Three generations of the data path between two GPU servers, from slowest to fastest.
 
-- Standard virtualization goes through the hypervisor and a software switch.
-- SR-IOV gives a direct hardware path, but the TCP/IP stack still costs CPU.
-- RDMA copies memory to memory between nodes with near-zero CPU.
+- **Standard path:** data goes through several software layers, the host **hypervisor** and a software **virtual switch**. It's CPU-intensive and adds latency at every hop.
+- **SR-IOV path:** bypasses the slow hypervisor and software switch, giving data a direct hardware path. But the standard TCP/IP stack is still there, so the CPU still has to process every packet.
+- **RDMA transfer:** GPU memory on one physical server is copied directly to GPU memory on the other, without involving the operating system or CPU on either side. This is the path distributed training needs (see the next section for how EFA provides it on AWS).
 
 **Going deeper.**
 
@@ -59,11 +73,16 @@ This deep dive covers what happens on a worker node when a pod starts, and the p
 
 ### Latency and EFA
 
-**Scenario.** Scaling a training job from 2 to 16 nodes makes each step slower.
+**Scenario.** A team moves its multi-node training to EC2 instances with EFA, but NCCL still runs over plain TCP and nothing gets faster. The hardware supports RDMA; Kubernetes just doesn't know about it yet.
 
 ![Latency and EFA](diagrams/sections/d10-5.svg)
 
-**What the picture shows.** Cluster placement groups for latency, and EFA (RDMA with NCCL support) for throughput. On EKS, the `aws-efa-k8s-device-plugin` advertises EFA interfaces as a schedulable resource, so pods can request them like GPUs.
+**What the picture shows.** Two levers for faster GPU-to-GPU networking on AWS.
+
+- **Network latency, EC2 placement groups:** keep the training nodes physically close together.
+- **Throughput enhancement, EFA (Elastic Fabric Adapter):** uses RDMA to move data directly between the memory of two nodes, across the network, without the OS or CPU. CPU use for the copy is close to zero (zero-copy), and EFA works with NCCL for GPU communication.
+- **Making Kubernetes see EFA, step 1:** install `aws-efa-k8s-device-plugin`, so nodes advertise EFA devices as a resource.
+- **Step 2:** in the EKS Terraform module, advertise the EFA resource so training pods can request it. Without these two steps, NCCL silently falls back to TCP, which is the scenario.
 
 **Going deeper.**
 

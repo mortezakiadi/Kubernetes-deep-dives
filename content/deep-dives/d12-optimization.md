@@ -7,11 +7,22 @@ Finance asks why the EKS bill grows faster than traffic. This deep dive is my ch
 
 ### Compute
 
-**Scenario.** Half the nodes average 20% CPU, and the GPU bill keeps growing.
+**Scenario.** The CFO asks why the EKS bill grew 40% this quarter while traffic grew only 10%. The platform team suspects oversized pod requests, too much On-Demand capacity and expensive GPUs that sit idle, and needs a structured plan to bring compute costs down.
 
 ![Compute](diagrams/sections/d12-1.svg)
 
-**What the picture shows.** Right-size with Kubecost, Goldilocks, StormForge or KRR. Choose purchase options deliberately: on-demand, Reserved Instances, Savings Plans, Spot (2-minute notice, good for checkpointed training with Ray, Kubeflow or Horovod, with Karpenter falling back to on-demand), Graviton, Fargate, and Capacity Blocks to reserve GPUs for a planned window.
+**What the picture shows.** Compute cost optimization, as a mind map.
+
+- **Right-sizing resources with tools:** Kubecost, Goldilocks, StormForge and KRR compare what pods request with what they actually use, and recommend smaller requests.
+- **Compute capacity options:**
+  - **EC2 On-Demand:** full price, no commitment.
+  - **EC2 Reserved Instances:** **standard RIs** for the biggest discount on a fixed instance type, **convertible RIs** if you might change families.
+  - **Savings Plans:** an alternative to RIs that is flexible across instance sizes and types.
+  - **EC2 Spot instances:** large discounts with a 2-minute interruption notice. Good candidates are batch processing, stateless web servers and CI/CD pipelines. Karpenter can fall back to On-Demand when Spot isn't available, and Ray, Kubeflow and Horovod can use Spot for distributed training by relying on checkpointing and interruption handling.
+  - **AWS Graviton instances:** ARM-based, cheaper for the same work.
+  - **AWS Fargate:** serverless compute, paying per pod.
+  - **EC2 Capacity Blocks for ML:** reserve accelerated (GPU) capacity for a fixed window, delivered in UltraClusters.
+- **EndpointSlices:** route traffic between services to the nearest pod in the same AZ, which also cuts cross-AZ charges (see the next section).
 
 **Going deeper.** For GPU nodes, the biggest waste is idle GPUs, not instance pricing:
 
@@ -23,11 +34,22 @@ Weigh every consolidation against the checkpoint-and-restart it forces on traini
 
 ### Networking
 
-**Scenario.** The data-transfer line on the bill is surprisingly large.
+**Scenario.** The cost report shows that data transfer is now the third-largest line item. Services talk across Availability Zones all day, nodes pull large images over the internet, and traffic to S3 goes through a NAT gateway. None of it was designed with cost in mind.
 
 ![Networking](diagrams/sections/d12-2.svg)
 
-**What the picture shows.** Cross-AZ pod traffic costs money, so use topology-aware routing (EndpointSlice hints) and same-AZ provisioning with Karpenter. Use ALB IP mode, VPC endpoints instead of NAT for AWS services, and an ECR endpoint plus pre-cached images in a custom AMI.
+**What the picture shows.** Network cost optimization, by branch.
+
+- **Pod-to-pod communication:** traffic across AZs costs money.
+  - **Topology-aware routing:** kube-proxy directs traffic based on the zone it came from, keeping it in the same AZ when possible.
+  - **Karpenter:** can provision nodes in the same AZ as the workloads that talk to each other.
+- **Load balancer configuration, IP mode:** pods are registered directly as ELB targets, skipping the extra hop (and possible cross-AZ hop) through a node.
+- **Data transfer:**
+  - **VPC endpoints:** reach AWS services (S3, ECR, DynamoDB and others) directly, without the public internet or a NAT gateway.
+  - **VPC peering and Transit Gateway:** connect VPCs more cheaply than routing through the internet.
+- **Image pull:**
+  - **ECR endpoint:** pull images over a VPC endpoint.
+  - **Pre-cache images in a custom AMI:** large images are already on the node at boot, saving transfer cost and start-up time.
 
 **Going deeper.**
 
@@ -45,11 +67,22 @@ Together these cut a replica's time-to-ready from minutes to tens of seconds.
 
 ### Storage
 
-**Scenario.** Old volumes and logs keep growing after the workloads that wrote them are gone.
+**Scenario.** Storage costs keep creeping up: old EBS volumes from deleted PVCs are still around, logs are kept forever, every volume is gp2, and container images are several gigabytes each. The team wants a checklist of storage savings that won't hurt performance.
 
 ![Storage](diagrams/sections/d12-3.svg)
 
-**What the picture shows.** Ephemeral storage for scratch data, Mountpoint for S3 (a file system view of S3, not a block device), gp3 over gp2 (about 20% cheaper), reclaim policies, IOPS tiers (io2 for the hottest data, st1/sc1 for cold), smaller images through multi-stage builds, and log retention policies.
+**What the picture shows.** Storage cost optimization, by branch.
+
+- **Pod ephemeral storage:** doesn't outlive the pod, which makes it a cheap, efficient scratch space.
+- **Mountpoint for S3 CSI driver:** exposes S3 as a file system (not block storage), supporting S3 Standard and S3 Express One Zone. Cheap for large read-mostly data.
+- **EBS volumes through CSI** (see [StorageClass, PV and PVC](#d14-1)):
+  - **gp3 over gp2:** gp3 is about 20% cheaper.
+  - **Reclaim policy:** `Delete` or `Retain`. `Delete` is cheaper because volumes don't pile up; use `Retain` in production. Orphaned volumes from `Retain` are the scenario's hidden cost.
+- **IOPS considerations:**
+  - **High performance, io2 Block Express:** expensive, but up to 256,000 IOPS.
+  - **Infrequent access (logs, backups):** Throughput Optimized HDD (st1) or Cold HDD (sc1).
+- **Container image size:** multi-stage builds keep images small.
+- **Data retention policy:** set retention for CloudWatch Logs and Elasticsearch so old data expires.
 
 **Going deeper.**
 

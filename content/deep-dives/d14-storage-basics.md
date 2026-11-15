@@ -5,18 +5,18 @@ short: "StorageClass, PV and PVC"
 ---
 ### The furniture-shop analogy
 
-**Scenario.** A new engineer asks why a pod needs a PVC, a PV *and* a StorageClass just to get a disk.
+**Scenario.** A new team member keeps mixing up StorageClass, PV and PVC, and asks why a pod needs both a `volumes` and a `volumeMounts` section. A library analogy makes the whole chain easy to remember.
 
 ![StorageClass, PV and PVC](diagrams/sections/d14-1.svg)
 
-**What the picture shows.**
+**What the picture shows.** Dynamic provisioning explained with a library desk analogy.
 
-- **StorageClass:** the catalogue of blueprints (gp3, io2, and so on).
-- **PVC:** the order slip ("I need a wooden desk").
-- **PV:** the desk that actually gets built, which is the real EBS volume, bound to the order.
-- **Volume and volumeMount:** where the pod sets the desk up.
-
-The YAML examples show dynamic provisioning end to end. Mountpoint for S3 gives you a file-system view of a bucket; it is still object storage.
+- **StorageClass, the catalogue of desk designs:** what the library offers, such as a wooden desk or a glass desk. In Kubernetes these are storage tiers like gp3 or io2.
+- **PVC, the order slip:** you fill in a reservation for the kind of desk you want; it binds to the desk that gets built and reserves it for you.
+- **PV, the actual desk built for you:** the real EBS volume.
+- **Dynamic provisioning:** the library builds the desk (the PV) automatically from the chosen design (the StorageClass) when an order slip (the PVC) comes in.
+- **Pod, with `volumes` and `volumeMounts`:** now that the desk is reserved, you want to use it. The student shows the reservation slip to the librarian (`volumes` names the PVC), is directed to the desk, and sets up there (`volumeMounts` says where in the container the disk appears).
+- **Mountpoint for S3 CSI driver:** a different kind of "desk": it mounts S3 as a file system, not a block device.
 
 **Going deeper.**
 

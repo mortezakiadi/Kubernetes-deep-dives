@@ -68,7 +68,7 @@ _CONCEPTS = [r"gang scheduling", r"fair[- ]sharing", r"quotas?", r"cohorts?", r"
              r"taints?", r"tolerations?", r"(?:node |pod )?affinity", r"PDBs?", r"StatefulSets?", r"PVCs?", r"EBS", r"EFS",
              r"FSx(?: for Lustre)?", r"NVMe", r"requests and limits", r"device plugin", r"GPU Operator", r"guardrails?",
              r"disaggregated serving", r"TokenReview", r"SubjectAccessReview", r"token exchange"]
-_KW = re.compile(r"\b(?:(?P<a>" + "|".join(_ACTIONS) + r")|(?P<c>" + "|".join(_CONCEPTS) + r"))\b", re.I)
+_KW = re.compile(r"(?<![\w-])(?:(?P<a>" + "|".join(_ACTIONS) + r")|(?P<c>" + "|".join(_CONCEPTS) + r"))(?![\w-])", re.I)
 _SKIP = {"code", "pre", "a", "h1", "h2", "h3", "h4", "strong", "figcaption", "button", "figure", "mark", "th", "script", "style"}
 
 
