@@ -16,10 +16,67 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 - **Kubernetes scheduler ("EKS Scheduler" box):** the "brain" that decides where every new pod lives.
 - **Phase 1: Filtering (the "predicate" phase):** the goal is simple, keep only the nodes that can run the pod.
 - **Insufficient resources (the bin-packing rule):** the scheduler takes the node's total capacity and subtracts the *requests* of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper.
+
+```yaml
+spec:
+  containers:
+  - name: api
+    resources:
+      requests:          # the scheduler only adds these up
+        cpu: "500m"
+        memory: "1Gi"
+```
+
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.
+
+```yaml
+spec:
+  nodeSelector:
+    disktype: ssd        # only nodes labelled disktype=ssd pass the filter
+```
+
 - **Taints and tolerations (the "keep out" sign):** a taint lets a node repel pods; only pods with a matching toleration may stay in the list.
+
+```yaml
+# on the node:  kubectl taint nodes gpu-node-1 dedicated=gpu:NoSchedule
+spec:
+  tolerations:
+  - key: dedicated
+    operator: Equal
+    value: gpu
+    effect: NoSchedule
+```
+
 - **Affinity and anti-affinity violations:** a required node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
+
+```yaml
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["us-east-1a"]
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app: api
+        topologyKey: kubernetes.io/hostname   # never two api pods on one node
+```
+
 - **Port conflicts:** if the pod asks for a `hostPort` (say port 80 on the EC2 instance) and another pod on that node already uses it, the node is out. Two tenants can't share one mailbox.
+
+```yaml
+spec:
+  containers:
+  - name: web
+    ports:
+    - containerPort: 8080
+      hostPort: 80       # only one pod per node can claim this
+```
 
 The `0/12 nodes are available` event lists how many nodes each of these rules removed, which tells you where to look.
 
@@ -94,7 +151,32 @@ The `0/12 nodes are available` event lists how many nodes each of these rules re
 - **Default weights:** most plugins have weight 1, affinity and topology spread have 2, and taint toleration has 3.
 - **The conflict:** ImageLocality (weight 1) gives Node 1 a score of 90, which is **90 points**. InterPodAffinity (weight 2) gives Node 2 a weak 40, which is **80 points**. Node 1 wins, even though you asked for affinity.
 - **Choice A, the hard rule (filtering):** change `preferredDuringSchedulingIgnoredDuringExecution` to `requiredDuringSchedulingIgnoredDuringExecution`. The rule moves from the scoring phase to the filtering phase, so Node 1 is never even considered.
+
+```yaml
+affinity:
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:   # a filter now, not a score
+    - labelSelector:
+        matchLabels:
+          app: cache
+      topologyKey: kubernetes.io/hostname
+```
+
 - **Choice B, scheduler configuration (advanced):** write a `KubeSchedulerConfiguration` that changes the weights for the whole cluster, for example InterPodAffinity 100 and ImageLocality 1. Then even a weak affinity match always beats an image cache.
+
+```yaml
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+- schedulerName: default-scheduler
+  plugins:
+    score:
+      enabled:
+      - name: InterPodAffinity
+        weight: 100
+      - name: ImageLocality
+        weight: 1
+```
 
 ### A worked example
 
@@ -123,10 +205,40 @@ The `0/12 nodes are available` event lists how many nodes each of these rules re
 **What the picture shows.** How the `weight` field in your YAML plugs into the scheduler.
 
 - **Required (hard rule):** there is no `weight` field for `requiredDuringSchedulingIgnoredDuringExecution`, because "required" is a filter, not a score. A node either passes or is removed.
+
+```yaml
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:   # no weight: pass or fail
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values: ["m5.2xlarge"]
+```
+
 - **Weight tunes scoring from the outside:** whenever you see a `weight` in Kubernetes YAML, you are adjusting the scoring phase (never the filtering phase). You're telling the scheduler how much your rule matters compared to its built-in rules.
 - **How it's applied:** the scheduler adds your weight (1 to 100) to the score of every node that satisfies the condition.
 - **Preferred + high weight (a very strong suggestion):** weight 100 says "I really want this; it should override almost every default, like ImageLocality or LeastAllocated."
 - **Preferred + low weight (a nice-to-have):** weight 1 says "this would be nice, but if the node is busy or doesn't have the image, don't worry about it."
+
+```yaml
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100        # "I really want this"
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: ["us-east-1a"]
+    - weight: 1          # "nice to have"
+      preference:
+        matchExpressions:
+        - key: disktype
+          operator: In
+          values: ["ssd"]
+```
 
 ### Scheduler score vs. OOM score
 

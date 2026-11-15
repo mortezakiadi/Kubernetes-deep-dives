@@ -18,6 +18,16 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 - **Fix 2, prefix delegation (the "efficiency" fix):** run `kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true`. Pro: pod density jumps immediately (for example 17 → 110 pods on a `t3.medium`). Con: it can fragment a subnet that's already messy.
 - **Fix 3, custom networking (the "separation" fix):** attach a secondary CIDR to the VPC (for example `100.64.0.0/16`) and point the CNI at it with an `ENIConfig` resource, so pods get IPs from a separate, much larger range.
 
+```yaml
+apiVersion: crd.k8s.amazonaws.com/v1alpha1
+kind: ENIConfig
+metadata:
+  name: us-east-1a             # one per AZ
+spec:
+  subnet: subnet-0abc1234def567890     # subnet from the 100.64.0.0/16 range
+  securityGroups: ["sg-0123456789abcdef0"]
+```
+
 ### Service connectivity drops
 
 **Scenario.** A pod can't reach a Service: requests hang or are refused, while other pods work fine. The network team insists the VPC is healthy. The on-call engineer needs a step-by-step way to find where the "pipe" between the two pods is broken.
@@ -54,6 +64,14 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
   - **Method A, the fully qualified trick:** write `google.com.` with a trailing dot.
   - **Method B, change the pod spec:** lower `ndots` in `dnsConfig` for deployments that talk to the outside world a lot.
 
+```yaml
+spec:
+  dnsConfig:
+    options:
+    - name: ndots
+      value: "2"
+```
+
 ### Latency by distance
 
 **Scenario.** A team splits a chatty microservice across three Availability Zones for resilience, and its p99 latency doubles. They want to know how much latency each kind of network hop actually adds.
@@ -78,5 +96,10 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 - **Burstable vs. guaranteed:** "up to" means burstable; sustained transfers fall back to a much lower baseline. That explains the slow `t3.medium` in the scenario.
 - **MTU, how data is chopped up:**
   - **VPC default, 9001 bytes (jumbo frames):** works only inside AWS (VPC to VPC, or over Direct Connect). Set for pods with `AWS_VPC_ENI_MTU` in the VPC CNI.
+
+```bash
+kubectl set env daemonset aws-node -n kube-system AWS_VPC_ENI_MTU=9001
+```
+
   - **Container default, 1500 bytes:** the standard Ethernet size for the public internet, which most pods use.
   - **The mismatch:** for high-performance ML, some teams set the CNI MTU to 8951 or 9001 for pod-to-pod traffic. But if those pods talk to the internet without translation, oversized packets get dropped and connections hang, which is the second part of the scenario.

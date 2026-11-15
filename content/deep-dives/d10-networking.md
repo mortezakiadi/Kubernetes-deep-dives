@@ -32,6 +32,28 @@ This deep dive covers what happens on a worker node when a pod starts, and the p
 - **What they can't do:** DNS-based rules (allow `api.openai.com`, for example) or one global policy that applies across all namespaces. Both matter when pods call external LLM APIs, since those APIs' IPs change.
 - **The fix:** Cilium and Calico add DNS-aware policies and cluster-wide (global) policies on top of the standard model.
 
+```yaml
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-llm-apis
+spec:
+  endpointSelector:
+    matchLabels: {app: ai-gateway}
+  egress:
+  - toEndpoints:              # let DNS through so names can be seen
+    - matchLabels: {k8s:io.kubernetes.pod.namespace: kube-system, k8s-app: kube-dns}
+    toPorts:
+    - ports: [{port: "53", protocol: ANY}]
+      rules:
+        dns: [{matchPattern: "*"}]
+  - toFQDNs:
+    - matchName: api.openai.com
+    - matchName: api.anthropic.com
+    toPorts:
+    - ports: [{port: "443", protocol: TCP}]
+```
+
 ### Network optimization levers
 
 **Scenario.** A high-traffic cluster shows rising network latency and DNS timeouts as it grows. The team lists the network optimizations available to them: hardware NIC sharing, eBPF, a different kube-proxy mode, CoreDNS scaling and EC2 placement.
@@ -83,6 +105,13 @@ This deep dive covers what happens on a worker node when a pod starts, and the p
 - **Throughput enhancement, EFA (Elastic Fabric Adapter):** uses RDMA to move data directly between the memory of two nodes, across the network, without the OS or CPU. CPU use for the copy is close to zero (zero-copy), and EFA works with NCCL for GPU communication.
 - **Making Kubernetes see EFA, step 1:** install `aws-efa-k8s-device-plugin`, so nodes advertise EFA devices as a resource.
 - **Step 2:** in the EKS Terraform module, advertise the EFA resource so training pods can request it. Without these two steps, NCCL silently falls back to TCP, which is the scenario.
+
+```yaml
+resources:
+  limits:
+    nvidia.com/gpu: 8
+    vpc.amazonaws.com/efa: 4     # advertised by the EFA device plugin
+```
 
 **Going deeper.**
 

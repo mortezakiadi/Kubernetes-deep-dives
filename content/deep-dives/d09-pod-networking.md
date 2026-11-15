@@ -34,8 +34,19 @@ This deep dive follows a packet from the moment a pod gets its IP, through Servi
   - **`WARM_ENI_TARGET`, extra ENIs kept ready (aggressive):** always keeps a number of completely empty ENIs attached, with all their IPs already allocated. Best for big, sudden bursts: when one ENI fills up, the next pod jumps onto the warm one instantly.
   - **`WARM_IP_TARGET`, extra IPs kept ready (balanced):** keeps a set number of free individual IPs instead of whole ENIs. With 5 pods and a target of 5, the node holds 10 IPs; when a 6th pod starts, the CNI requests 1 more to keep the buffer at 5.
   - **`MINIMUM_IP_TARGET`, a baseline (conservative):** a floor on the total number of IPs, however many pods are running. Set to 10 with 0 pods, the node still has 10 IPs; at 12 pods this setting stops mattering and `WARM_IP_TARGET` takes over.
+
+```bash
+kubectl set env daemonset aws-node -n kube-system \
+  WARM_IP_TARGET=5 MINIMUM_IP_TARGET=10
+```
+
 - **IP allocation strategies:**
   - **Prefix delegation (advanced):** assigns `/28` blocks (16 IPs) instead of single secondary IPs. If you hit the per-instance limit often, you don't need a bigger, pricier instance; an `m5.large` goes from 29 to 110 pods.
+
+```bash
+kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true
+```
+
   - **Custom networking (`ENIConfig`):** puts pod IPs in a dedicated secondary subnet, which solves IP exhaustion in specific AZs.
 - **Wiring inside the node:** pod A's `eth0` → veth pair → host network namespace.
 
@@ -95,6 +106,13 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
 - **Why the table fills:** an established TCP connection's default timeout is 5 days, so a busy node with many long-lived or abandoned connections can fill the table. That's the scenario.
 - **Solution:** lower `nf_conntrack_tcp_timeout_established` (and size `nf_conntrack_max` for the node) so stale entries are cleared sooner.
 
+```bash
+# check usage vs. the limit
+cat /proc/sys/net/netfilter/nf_conntrack_count /proc/sys/net/netfilter/nf_conntrack_max
+# shorten idle established connections from 5 days to 1 day
+sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=86400
+```
+
 ### Security groups for pods and network policies
 
 **Scenario.** A payment service must, for PCI compliance, be protected by an AWS security group of its own, not only by Kubernetes rules. But all pods on a node normally share the node's security group. Separately, the team wrote NetworkPolicies and discovered they weren't being enforced at all.
@@ -110,6 +128,21 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
   - **The branch ENI (`aws-k8s-branch-eni`):** one per pod that needs its own security group, a physical-to-virtual mapping designed for isolation.
   - **The connection:** each branch ENI is plugged into the trunk ENI.
   - **The security:** the security group is applied to the branch ENI. Since that ENI belongs to one pod, the pod gets its own firewall.
+
+```yaml
+apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: payments-sg
+  namespace: payments
+spec:
+  podSelector:
+    matchLabels:
+      app: payment-service
+  securityGroups:
+    groupIds: ["sg-0123456789abcdef0"]
+```
+
   - **Density cost:** the trunk ENI uses one of the instance's ENI slots, so fewer regular pods fit on the node.
 - **When to avoid trunking:** stay with normal networking unless a compliance rule (like PCI-DSS) requires AWS-level firewalls. For most AI and web workloads, NetworkPolicies with Calico or Cilium are faster and don't reduce pod density.
 - **Network policies:** a NetworkPolicy is a specification without an implementation. The original VPC CNI only handled routing (giving pods IPs and moving packets) and didn't read your rules, which is why the scenario's policies did nothing.
@@ -144,6 +177,21 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
 **What the picture shows.** From a NetworkPolicy object to a dropped packet, in three roles.
 
 - **1. The law, the NetworkPolicy object:** the high-level intent you write in YAML ("pod A may talk to pod B"). On its own it does nothing; it's just a record in the Kubernetes database.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-from-frontend
+spec:
+  podSelector:
+    matchLabels: {role: backend}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels: {role: frontend}
+```
+
 - **2. The translator, Calico:** Calico is the controller on every node, watching the Kubernetes API. When it sees a new NetworkPolicy, it works out what this node must allow or block, and translates the YAML into something the kernel understands.
 - **3. The enforcement, iptables (the rulebook):** in Calico's default mode that language is iptables. Calico creates its own chains of rules and attaches them to the **FORWARD** hook of the Netfilter gates.
 - **At packet time:** when a packet reaches the FORWARD hook, the kernel checks Calico's rules and either **accepts** or **drops** it according to your policy. If it's accepted, it continues to the **POSTROUTING** gate.
@@ -169,3 +217,13 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
   - **Disabled (`false`):** Cilium acts as a traditional CNI, giving pods IPs and enforcing policies, while kube-proxy keeps handling Services with iptables or IPVS. You still pay the "iptables tax" on Service traffic.
   - **Partial / hybrid (`partial`):** Cilium might handle ClusterIP (internal pod-to-pod) traffic with eBPF but leave NodePort or LoadBalancer traffic to kube-proxy.
   - **Full / strict (`true` / `strict`):** Cilium takes over every Service type (ClusterIP, NodePort, LoadBalancer, ExternalIPs) with eBPF hash tables, and you can delete the kube-proxy DaemonSet. It also enables **Direct Server Return (DSR)**: replies go straight from the pod to the client instead of back through the load-balancing node, saving a hop and keeping the client's IP.
+
+```yaml
+# Cilium Helm values
+kubeProxyReplacement: true
+k8sServiceHost: <API server endpoint>
+k8sServicePort: 443
+loadBalancer:
+  mode: dsr
+```
+

@@ -17,6 +17,16 @@ short: "Kubernetes and GPU"
 - **Steps 3 and 4:** when the scheduler places a pod that requests a GPU, the pod is bound to that worker node.
 - **Step 5:** the kubelet on that node tells the plugin how many GPUs the pod needs, and the plugin assigns specific GPU devices to the container.
 
+```yaml
+spec:
+  containers:
+  - name: inference
+    image: vllm/vllm-openai:latest
+    resources:
+      limits:
+        nvidia.com/gpu: 1    # visible only after the device plugin registers
+```
+
 **Going deeper.**
 
 - Two discovery layers come first.

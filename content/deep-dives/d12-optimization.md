@@ -42,8 +42,28 @@ Weigh every consolidation against the checkpoint-and-restart it forces on traini
 
 - **Pod-to-pod communication:** traffic across AZs costs money.
   - **Topology-aware routing:** kube-proxy directs traffic based on the zone it came from, keeping it in the same AZ when possible.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector: {app: backend}
+  ports: [{port: 80, targetPort: 8080}]
+  trafficDistribution: PreferClose     # stay in the caller's zone when possible
+```
+
   - **Karpenter:** can provision nodes in the same AZ as the workloads that talk to each other.
 - **Load balancer configuration, IP mode:** pods are registered directly as ELB targets, skipping the extra hop (and possible cross-AZ hop) through a node.
+
+```yaml
+metadata:
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+```
+
 - **Data transfer:**
   - **VPC endpoints:** reach AWS services (S3, ECR, DynamoDB and others) directly, without the public internet or a NAT gateway.
   - **VPC peering and Transit Gateway:** connect VPCs more cheaply than routing through the internet.

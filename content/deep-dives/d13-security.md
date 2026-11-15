@@ -57,6 +57,17 @@ Security asks for one picture of how a model-serving platform is protected befor
 - **Least privilege:** give each container only what it needs for normal operation.
 - **Restrict root and privileged access:** set this in the container's `securityContext`.
 - **Drop all unnecessary Linux capabilities.**
+
+```yaml
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  privileged: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+```
+
 - **Follow the Pod Security Standards:** enforce them with Pod Security Admission, and isolate workloads in namespaces with different levels (privileged, baseline, restricted).
 - **Monitor the runtime:** the goal is to detect and prevent malicious activity inside containers and on worker nodes. Tools include Falco (deployed as a DaemonSet to watch containers) and Prisma Cloud container security.
 
@@ -101,6 +112,17 @@ Security asks for one picture of how a model-serving platform is protected befor
 **What the picture shows.** Data privacy and compliance: pod identity for AWS access, and securing the model endpoint.
 
 - **IRSA (IAM Roles for Service Accounts):** associates a fine-grained IAM role with a Kubernetes service account. Pods assume the role through their service account identity and access AWS services with that role's permissions, with no stored keys.
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: model-loader
+  namespace: serving
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/model-s3-read
+```
+
 - **EKS Pod Identity:** the evolution of IRSA that makes setting up IAM permissions for pods simpler. It requires the `eks-pod-identity-agent` DaemonSet.
 - **Secure model endpoints:**
   - **Enforce TLS everywhere:** encrypt all traffic in transit and authenticate both clients and services.

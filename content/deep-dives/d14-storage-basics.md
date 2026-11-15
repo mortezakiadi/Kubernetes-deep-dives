@@ -16,6 +16,21 @@ short: "StorageClass, PV and PVC"
 - **PV, the actual desk built for you:** the real EBS volume.
 - **Dynamic provisioning:** the library builds the desk (the PV) automatically from the chosen design (the StorageClass) when an order slip (the PVC) comes in.
 - **Pod, with `volumes` and `volumeMounts`:** now that the desk is reserved, you want to use it. The student shows the reservation slip to the librarian (`volumes` names the PVC), is directed to the desk, and sets up there (`volumeMounts` says where in the container the disk appears).
+
+```yaml
+spec:
+  containers:
+  - name: app
+    image: my-app:1.0
+    volumeMounts:
+    - name: data
+      mountPath: /var/lib/data    # where the "desk" appears in the container
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: data             # the "order slip"
+```
+
 - **Mountpoint for S3 CSI driver:** a different kind of "desk": it mounts S3 as a file system, not a block device.
 
 **Going deeper.**

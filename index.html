@@ -107,6 +107,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose > p, .prose > ul, .prose > ol, .prose > blockquote { max-width: 72ch; }
 .prose blockquote { margin: 14px 0; padding: 10px 14px; border-left: 4px solid var(--mark); background: var(--mark-soft); border-radius: 0 6px 6px 0; }
 .prose blockquote p { margin: 0; }
+.prose pre { max-width: 88ch; margin: 8px 0 14px 22px; padding: 12px 14px; background: #0f1720; color: #e6edf3; border-radius: 8px; overflow-x: auto; font: 13px/1.55 var(--font-mono); }
+.prose pre code { background: none; padding: 0; font: inherit; color: inherit; }
 .prose mark.kw { background: none; color: var(--accent); font-weight: 600; }
 .prose mark.kw-act { background: var(--mark-soft); color: var(--mark); font-weight: 600; padding: 0 3px; border-radius: 3px; }
 .prose p > strong:first-child { font: 600 12px/1 var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin-right: 4px; }
@@ -196,11 +198,62 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Kubernetes scheduler ("EKS Scheduler" box):</strong> the "brain" that decides where every new pod lives.</li>
 <li><strong>Phase 1: Filtering (the "predicate" phase):</strong> the goal is simple, keep only the nodes that can run the pod.</li>
 <li><strong>Insufficient resources (the bin-packing rule):</strong> the scheduler takes the node's total capacity and subtracts the <em>requests</em> of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper.</li>
+</ul>
+<pre><code class="language-yaml">spec:
+  containers:
+  - name: api
+    resources:
+      requests:          # the scheduler only adds these up
+        cpu: &quot;500m&quot;
+        memory: &quot;1Gi&quot;
+</code></pre>
+<ul>
 <li><strong>Node selector mismatch:</strong> if the pod has a <code>nodeSelector</code> (for example <code>disktype: ssd</code>), any node without that exact label is dropped.</li>
+</ul>
+<pre><code class="language-yaml">spec:
+  nodeSelector:
+    disktype: ssd        # only nodes labelled disktype=ssd pass the filter
+</code></pre>
+<ul>
 <li><strong>Taints and tolerations (the "keep out" sign):</strong> a <mark class="kw">taint</mark> lets a node repel pods; only pods with a matching <mark class="kw">toleration</mark> may stay in the list.</li>
+</ul>
+<pre><code class="language-yaml"># on the node:  kubectl taint nodes gpu-node-1 dedicated=gpu:NoSchedule
+spec:
+  tolerations:
+  - key: dedicated
+    operator: Equal
+    value: gpu
+    effect: NoSchedule
+</code></pre>
+<ul>
 <li><strong>Affinity and anti-affinity violations:</strong> a required <mark class="kw">node affinity</mark> ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.</li>
+</ul>
+<pre><code class="language-yaml">spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: [&quot;us-east-1a&quot;]
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app: api
+        topologyKey: kubernetes.io/hostname   # never two api pods on one node
+</code></pre>
+<ul>
 <li><strong>Port conflicts:</strong> if the pod asks for a <code>hostPort</code> (say port 80 on the EC2 instance) and another pod on that node already uses it, the node is out. Two tenants can't share one mailbox.</li>
 </ul>
+<pre><code class="language-yaml">spec:
+  containers:
+  - name: web
+    ports:
+    - containerPort: 8080
+      hostPort: 80       # only one pod per node can claim this
+</code></pre>
 <p>The <code>0/12 nodes are available</code> event lists how many nodes each of these rules removed, which tells you where to look.</p>
 <p><strong>Going deeper.</strong></p>
 <ul>
@@ -261,8 +314,30 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Default weights:</strong> most plugins have weight 1, affinity and topology spread have 2, and <mark class="kw">taint</mark> <mark class="kw">toleration</mark> has 3.</li>
 <li><strong>The conflict:</strong> ImageLocality (weight 1) gives Node 1 a <mark class="kw-act">score</mark> of 90, which is <strong>90 points</strong>. InterPodAffinity (weight 2) gives Node 2 a weak 40, which is <strong>80 points</strong>. Node 1 wins, even though you asked for affinity.</li>
 <li><strong>Choice A, the hard rule (filtering):</strong> change <code>preferredDuringSchedulingIgnoredDuringExecution</code> to <code>requiredDuringSchedulingIgnoredDuringExecution</code>. The rule moves from the scoring phase to the <mark class="kw-act">filtering</mark> phase, so Node 1 is never even considered.</li>
+</ul>
+<pre><code class="language-yaml">affinity:
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:   # a filter now, not a score
+    - labelSelector:
+        matchLabels:
+          app: cache
+      topologyKey: kubernetes.io/hostname
+</code></pre>
+<ul>
 <li><strong>Choice B, scheduler configuration (advanced):</strong> write a <code>KubeSchedulerConfiguration</code> that changes the weights for the whole cluster, for example InterPodAffinity 100 and ImageLocality 1. Then even a weak affinity match always beats an image cache.</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+- schedulerName: default-scheduler
+  plugins:
+    score:
+      enabled:
+      - name: InterPodAffinity
+        weight: 100
+      - name: ImageLocality
+        weight: 1
+</code></pre>
 <h3 id="d01-6">A worked example</h3>
 <p><strong>Scenario.</strong> A developer writes a plain Deployment with no <mark class="kw">affinity</mark> rules at all and asks: "If I didn't set any weights, how does the scheduler decide anything?" They also tried adding a preferred rule without a weight, and <code>kubectl apply</code> rejected the YAML.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-6.svg" data-title="A worked example" aria-label="Open diagram full screen: A worked example"><img src="diagrams/sections/d01-6.svg" alt="Diagram: A worked example" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -284,11 +359,38 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>What the picture shows.</strong> How the <code>weight</code> field in your YAML plugs into the scheduler.</p>
 <ul>
 <li><strong>Required (hard rule):</strong> there is no <code>weight</code> field for <code>requiredDuringSchedulingIgnoredDuringExecution</code>, because "required" is a <mark class="kw-act">filter</mark>, not a <mark class="kw-act">score</mark>. A node either passes or is removed.</li>
+</ul>
+<pre><code class="language-yaml">affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:   # no weight: pass or fail
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values: [&quot;m5.2xlarge&quot;]
+</code></pre>
+<ul>
 <li><strong>Weight tunes scoring from the outside:</strong> whenever you see a <code>weight</code> in Kubernetes YAML, you are adjusting the <mark class="kw-act">scoring</mark> phase (never the <mark class="kw-act">filtering</mark> phase). You're telling the scheduler how much your rule matters compared to its built-in rules.</li>
 <li><strong>How it's applied:</strong> the scheduler adds your weight (1 to 100) to the score of every node that satisfies the condition.</li>
 <li><strong>Preferred + high weight (a very strong suggestion):</strong> weight 100 says "I really want this; it should override almost every default, like ImageLocality or LeastAllocated."</li>
 <li><strong>Preferred + low weight (a nice-to-have):</strong> weight 1 says "this would be nice, but if the node is busy or doesn't have the image, don't worry about it."</li>
 </ul>
+<pre><code class="language-yaml">affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100        # &quot;I really want this&quot;
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: [&quot;us-east-1a&quot;]
+    - weight: 1          # &quot;nice to have&quot;
+      preference:
+        matchExpressions:
+        - key: disktype
+          operator: In
+          values: [&quot;ssd&quot;]
+</code></pre>
 <h3 id="d01-8">Scheduler score vs. OOM score</h3>
 <p><strong>Scenario.</strong> A node runs out of memory and Kubernetes kills the team's most important pod. The team is surprised: "The scheduler gave that node a great <mark class="kw-act">score</mark> when it placed the pod, so why was our pod the one that died?" They are mixing up two different <mark class="kw-act">scores</mark>.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-8.svg" data-title="Scheduler score vs. OOM score" aria-label="Open diagram full screen: Scheduler score vs. OOM score"><img src="diagrams/sections/d01-8.svg" alt="Diagram: Scheduler score vs. OOM score" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -313,7 +415,23 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>What the picture shows.</strong> How a pod is routed to the right scheduler, using Fargate as the example.</p>
 <ul>
 <li><strong>Workflow, step 1 (user submission and Fargate profile):</strong> you create a Fargate profile in AWS that says "any pod in the <code>staging</code> namespace with the label <code>type: serverless</code> runs on Fargate". Then you submit an ordinary pod YAML to the API server.</li>
+</ul>
+<pre><code class="language-yaml"># eksctl ClusterConfig
+fargateProfiles:
+- name: staging-serverless
+  selectors:
+  - namespace: staging
+    labels:
+      type: serverless
+</code></pre>
+<ul>
 <li><strong>Step 2 (EKS control plane, mutating webhook):</strong> the EKS mutating webhook sees the pod, checks it against your profiles, and on a match injects <code>schedulerName: fargate-scheduler</code> into the pod spec, before scheduling starts. Pods that don't match keep the standard spec.</li>
+</ul>
+<pre><code class="language-yaml"># what the webhook adds to a matching pod
+spec:
+  schedulerName: fargate-scheduler
+</code></pre>
+<ul>
 <li><strong>Step 3 (scheduling phase, the result):</strong> the modified pod is picked up by the AWS Fargate scheduler.</li>
 <li><strong>How pods reach the right scheduler:</strong> the API server doesn't route pods; it only stores them. Every scheduler watches for unscheduled pods (no <code>nodeName</code> yet) and takes only the ones whose <code>schedulerName</code> matches its own name, like separate buckets.</li>
 <li><strong>Bucket A (<code>default-scheduler</code>):</strong> the standard kube-scheduler on the control plane places these on EC2 nodes.</li>
@@ -355,6 +473,16 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Topology-aware bin-packing:</strong> goes further and looks at how the GPUs are wired. On an NVIDIA HGX system, it places pods that talk to each other on GPUs linked by NVLink (fast) rather than only PCIe (slow).</li>
 <li><strong>Can the standard scheduler do it?</strong> Partly.</li>
 <li><strong>The workaround:</strong> a required <code>podAffinity</code> with <code>matchLabels: job: my-training-run</code> and <code>topologyKey: kubernetes.io/hostname</code>, which forces pod 2 onto the node where pod 1 landed.</li>
+</ul>
+<pre><code class="language-yaml">affinity:
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchLabels:
+          job: my-training-run
+      topologyKey: kubernetes.io/hostname
+</code></pre>
+<ul>
 <li><strong>The failure point:</strong> it only works if pod 1 finds a home first, and writing these rules for 100 pods is a management nightmare. A custom scheduler does it automatically for the whole batch.</li>
 <li><strong>Best at this:</strong> the <mark class="kw">KAI Scheduler</mark>, which uses NVIDIA's <mark class="kw">GPU Operator</mark> to see the exact NVLink fabric.</li>
 </ul>
@@ -376,6 +504,17 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Fair sharing:</strong> when the cluster is idle one team can use all of it, but as soon as another team submits work, the first team's over-quota pods are <mark class="kw-act">preempted</mark> to give the second team its fair share.</li>
 <li><strong>Can the standard scheduler do it?</strong> Only with static quotas.</li>
 <li><strong>The workaround:</strong> a <code>ResourceQuota</code> per namespace, for example 10 GPUs for the marketing team.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gpu-quota
+  namespace: marketing
+spec:
+  hard:
+    requests.nvidia.com/gpu: &quot;10&quot;   # static: idle GPUs can't be borrowed
+</code></pre>
+<ul>
 <li><strong>The failure point:</strong> these quotas are static. If marketing isn't using its 10 GPUs, no one else can <mark class="kw-act">borrow</mark> them. And a team that hits its limit gets an immediate error; the pod doesn't queue and start later when space opens up.</li>
 <li><strong>Best at this:</strong> Apache YuniKorn and Run:ai (via <mark class="kw">KAI</mark>).</li>
 </ul>
@@ -396,6 +535,17 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Low-precision support:</strong> sending a workload only to GPUs that support the number formats it needs, such as FP8 (Hopper and newer) or FP4 (Blackwell).</li>
 <li><strong>Can the standard scheduler do it?</strong> Yes, to a point.</li>
 <li><strong>The workaround:</strong> label nodes by hand (<code>gpu-gen=blackwell</code>, <code>network=infiniband</code>) and add matching <code>nodeSelector</code>s to the AI pods, together with <mark class="kw">taints</mark> and <mark class="kw">tolerations</mark>.</li>
+</ul>
+<pre><code class="language-yaml">spec:
+  nodeSelector:
+    gpu-gen: blackwell
+    network: infiniband
+  tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+</code></pre>
+<ul>
 <li><strong>The failure point:</strong> this actually works well, and it's how most teams start. A custom scheduler only becomes necessary with thousands of nodes, when hand-managing labels for every hardware variation (FP8, HBM3, <mark class="kw">NVLink</mark> v4 and so on) becomes impractical.</li>
 <li><strong>Leading example:</strong> NVIDIA's <mark class="kw">KAI Scheduler</mark>, which is being extended to manage rack-scale Vera Rubin NVL72 systems, where the whole rack behaves like one giant GPU.</li>
 </ul>
@@ -411,11 +561,51 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>What the picture shows.</strong> A side-by-side of the two most common choices, with a scenario for each.</p>
 <ul>
 <li><strong>Volcano, the batch specialist:</strong> a full standalone batch scheduling system on Kubernetes, donated by Huawei and now a CNCF incubating project. Best for long training jobs, big data (Spark, Flink) and HPC. Its key feature is <strong>gang scheduling</strong>: it treats a group of pods as one job and starts none until there's room for all. You submit a <code>VolcanoJob</code> custom resource instead of individual pods.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: pytorch-train
+spec:
+  schedulerName: volcano
+  minAvailable: 9            # gang: start nothing until all 9 fit
+  tasks:
+  - name: master
+    replicas: 1
+    template: {}             # pod template omitted
+  - name: worker
+    replicas: 8
+    template: {}
+</code></pre>
+<ul>
 <li><strong>Kueue, the resource quota manager:</strong> a newer, cloud-native job queueing controller. Instead of replacing the scheduler, it is a gatekeeper in front of the default one. Best for shared clusters with many teams, multi-cloud and cloud bursting. It manages a global pool (say 100 A100s), holds jobs in a waitlist (a <code>ClusterQueue</code>), and <strong>admits</strong> a job when its <mark class="kw">quota</mark> allows; the standard scheduler then places the pods.</li>
 <li><strong>The shared scenario:</strong> teams A and B each need 4 GPUs and the cluster has 4. The default scheduler might give each team 2, and both jobs wait forever. Volcano or Kueue gives all 4 to team A, which finishes, and then team B gets the cluster. Utilization goes up.</li>
 <li><strong>Volcano's strength, task dependencies:</strong> in a PyTorch job with one master and many workers, if the master fails <mark class="kw-act">filtering</mark> (for example a port conflict), the workers would sit idle forever. Volcano can say "start the 100 workers only if the master is placed." Kueue relies on the default scheduler, which doesn't understand relationships between pod types in a job.</li>
 <li><strong>Kueue's strength, fair sharing and borrowing:</strong> marketing has a 10-GPU quota, data science has 50. On Friday night marketing is idle and data science needs 60. Kueue sees that marketing's <mark class="kw">cohort</mark> is empty and lends its 10 GPUs. If someone in marketing submits a job on Saturday morning, Kueue <mark class="kw-act">preempts</mark> the borrowed work and returns the guaranteed GPUs. Volcano focuses on the performance of each job, not on sharing a budget between departments.</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: data-science
+spec:
+  cohort: gpu-pool           # queues in a cohort can lend to each other
+  namespaceSelector: {}
+  resourceGroups:
+  - coveredResources: [&quot;nvidia.com/gpu&quot;]
+    flavors:
+    - name: a100
+      resources:
+      - name: nvidia.com/gpu
+        nominalQuota: 50
+        borrowingLimit: 10
+  preemption:
+    reclaimWithinCohort: Any # lender can take its GPUs back
+---
+# a job joins the queue with one label
+metadata:
+  labels:
+    kueue.x-k8s.io/queue-name: data-science
+</code></pre>
 <p><strong>Going deeper.</strong></p>
 <ul>
 <li>The production answer is usually "both layers": Kueue for admission and quota on top of a gang-aware or <mark class="kw">topology-aware</mark> scheduler (kube-scheduler with plugins, <mark class="kw">KAI</mark> or Volcano), with a workload API that groups the pods (PyTorchJob/TrainJob, <mark class="kw">JobSet</mark>, LeaderWorkerSet).</li>
@@ -487,7 +677,62 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Multi-tiered node architecture:</strong></li>
 <li><strong>Tier 1, web services (stability):</strong> On-Demand nodes (c6i family), tainted <code>NoSchedule</code> so batch jobs stay off.</li>
 <li><strong>Tier 2, batch processing (cost):</strong> diversified Spot instances, tainted for batch only and managed by <mark class="kw">Karpenter</mark> for fast, flexible scaling.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: batch-spot
+spec:
+  template:
+    spec:
+      requirements:
+      - key: karpenter.sh/capacity-type
+        operator: In
+        values: [&quot;spot&quot;]
+      - key: karpenter.k8s.aws/instance-family
+        operator: In
+        values: [&quot;m5&quot;, &quot;m5a&quot;, &quot;m6i&quot;]
+      taints:
+      - key: workload
+        value: batch
+        effect: NoSchedule
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+</code></pre>
+<ul>
 <li><strong>Tier 3, shared / burstable (utilization):</strong> a mixed lifecycle pool, overprovisioned with placeholder pods so sudden spikes get capacity instantly.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: placeholder
+value: -10                   # any real pod can evict these
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capacity-placeholder
+spec:
+  replicas: 5
+  selector:
+    matchLabels: {app: placeholder}
+  template:
+    metadata:
+      labels: {app: placeholder}
+    spec:
+      priorityClassName: placeholder
+      containers:
+      - name: pause
+        image: registry.k8s.io/pause:3.9
+        resources:
+          requests: {cpu: &quot;1&quot;, memory: 2Gi}
+</code></pre>
+<ul>
 <li><strong>A note on CPU fairness:</strong> Kubernetes doesn't hand out CPU cycles itself; it delegates that to the Linux kernel, whose Completely Fair Scheduler (<mark class="kw">CFS</mark>) tries to give every process a fair slice (see <a href="#d03-4">CPU: shares and throttling</a>).</li>
 </ul>
 <p><strong>Going deeper.</strong> For LLMs, the latency-critical tier is the <strong>model server</strong>: <mark class="kw">vLLM</mark>, TGI, SGLang or NVIDIA NIM, each exposing an OpenAI-compatible API behind a Service. Large models need whole, dedicated GPUs and minutes to load, so I run them as plain Deployments (<mark class="kw">KServe</mark>'s <em>Standard</em> mode) on tainted GPU nodes with warm capacity, rather than relying on scale-to-zero.</p>
@@ -504,11 +749,42 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Priority classes (for the scheduler), tool used: preemption, scope: cluster-wide.</strong></li>
 <li><strong><code>web-critical</code> (10000):</strong> the highest priority; it can <mark class="kw-act">preempt</mark> everything else.</li>
 <li><strong><code>batch-low</code> (100):</strong> the lowest priority, with <code>preemptionPolicy: Never</code>, so batch never pushes anyone out.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: web-critical
+value: 10000
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: batch-low
+value: 100
+preemptionPolicy: Never
+---
+# in the pod spec
+spec:
+  priorityClassName: web-critical
+</code></pre>
+<ul>
 <li><strong>The effect:</strong> when a node is full, high-priority web pods <mark class="kw-act">evict</mark> lower-priority batch pods, so web traffic never waits for a new node.</li>
 <li><strong>QoS controls (for the kubelet at runtime), tool used: eviction, scope: per node.</strong> The <mark class="kw">QoS</mark> class comes from the <mark class="kw">requests and limits</mark> in the manifest.</li>
 <li><strong>Guaranteed (web):</strong> requests equal limits. Gets a dedicated CPU <mark class="kw">quota</mark> and is the last to be OOM-killed.</li>
 <li><strong>Burstable (batch):</strong> requests lower than limits. Can scavenge spare capacity, but is <mark class="kw-act">evicted</mark> before Guaranteed pods.</li>
 <li><strong>BestEffort:</strong> no resources set. The first to be terminated under pressure.</li>
+</ul>
+<pre><code class="language-yaml"># Guaranteed: requests == limits for every container
+resources:
+  requests: {cpu: &quot;1&quot;, memory: 2Gi}
+  limits:   {cpu: &quot;1&quot;, memory: 2Gi}
+---
+# Burstable: requests &lt; limits
+resources:
+  requests: {cpu: 250m, memory: 512Mi}
+  limits:   {cpu: &quot;2&quot;,  memory: 2Gi}
+</code></pre>
+<ul>
 <li><strong>The effect:</strong> when a node runs out of RAM, the kubelet kills pods in the order BestEffort → Burstable → Guaranteed.</li>
 <li><strong>Shared tier:</strong> a mixed-lifecycle pool with no <mark class="kw">taints</mark>, where these two mechanisms do the arbitration.</li>
 </ul>
@@ -531,6 +807,28 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Memory:</strong> memory can't be compressed and running out causes OOM crashes, so web services must be strict (requests equal limits), and batch jobs are sized to each job's needs.</li>
 <li><strong>Autoscaling and Spot handling:</strong></li>
 <li><strong>HPA (web):</strong> aggressive scale-up (about 15 s) on CPU or request rate, conservative scale-down (about 5 min).</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: web}
+  minReplicas: 4
+  maxReplicas: 100
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target: {type: Utilization, averageUtilization: 60}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies: [{type: Percent, value: 100, periodSeconds: 15}]
+    scaleDown:
+      stabilizationWindowSeconds: 300
+</code></pre>
+<ul>
 <li><strong>Karpenter (batch):</strong> intent-based scale-up; it removes empty nodes within about 30 s to cut waste. If one instance type isn't available at provisioning time, <mark class="kw">Karpenter</mark> picks whatever is available to get the job started. At runtime, as jobs finish and nodes are left half-used, it consolidates them.</li>
 <li><strong>Spot interruption:</strong> the AWS Node Termination Handler catches the 2-minute warning so batch jobs can <mark class="kw-act">checkpoint</mark> and <mark class="kw-act">drain</mark> gracefully.</li>
 <li><strong>Cost and monitoring:</strong></li>
@@ -562,11 +860,27 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <ul>
 <li><strong>CPU shares, who wins under contention:</strong> in a noisy-neighbour situation, Kubernetes relies on CPU shares, which come from your requests.</li>
 <li><strong>Requests become priority:</strong> a <code>cpu: 1000m</code> request becomes 1024 shares, and a 500m request becomes 512 shares.</li>
+</ul>
+<pre><code class="language-yaml"># web: 1000m request -&gt; 1024 shares
+resources:
+  requests: {cpu: 1000m}
+---
+# batch: 500m request -&gt; 512 shares
+resources:
+  requests: {cpu: 500m}
+</code></pre>
+<ul>
 <li><strong>The CFS logic:</strong> the kernel's Completely Fair Scheduler tracks how much CPU time each process has had and favours the ones that have had less.</li>
 <li><strong>When the CPU is 100% busy:</strong> the web service (1024 shares) is guaranteed 2/3 of the time and the batch job (512 shares) 1/3.</li>
 <li><strong>When the web service is idle:</strong> the batch job can use the spare CPU, but the moment the web service wakes up, batch is squeezed back to its 1/3.</li>
 <li><strong>Throttling, the 100 ms quota window:</strong> a CPU <em>limit</em> is a speed limit the kernel enforces per 100 ms period.</li>
 <li><strong>Example:</strong> a limit of 0.5 CPU (500m) gives 50 ms of run time every 100 ms.</li>
+</ul>
+<pre><code class="language-yaml">resources:
+  limits:
+    cpu: 500m    # 50 ms of CPU time per 100 ms window
+</code></pre>
+<ul>
 <li><strong>The sprint:</strong> a multi-threaded app can use all 50 ms in the first 10 ms of the window, and is then frozen for the remaining 90 ms.</li>
 <li><strong>The wait:</strong> even if the node's CPU is 90% idle, the app can't run until the next window starts.</li>
 <li><strong>Normal vs. throttled:</strong> a request that normally takes 10 ms takes about 100 ms when it's frozen mid-calculation (10 ms of work plus about 90 ms of waiting).</li>
@@ -618,6 +932,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Solutions, taming the traffic:</strong></li>
 <li><strong>A. Linux <code>tc</code> (traffic control):</strong> shape traffic on the node at the kernel level.</li>
 <li><strong>B. CNI bandwidth plugins:</strong> most modern CNIs (Calico, Cilium, or the standard bandwidth plugin) let you set ingress and egress limits with annotations in the pod YAML.</li>
+</ul>
+<pre><code class="language-yaml">metadata:
+  annotations:
+    kubernetes.io/ingress-bandwidth: 1G
+    kubernetes.io/egress-bandwidth: 1G
+</code></pre>
+<ul>
 <li><strong>Architecture tip, the EKS benefit:</strong> some instance types (such as the <code>m5n</code> and <code>c5n</code> variants) have separate network paths for <mark class="kw">EBS</mark> and normal traffic, so database disk I/O doesn't compete with user traffic for bandwidth.</li>
 </ul>
 <h3 id="d03-8">Storage I/O: the other unmanaged resource</h3>
@@ -656,6 +977,18 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>1. Kubernetes (the policy maker):</strong> two pod specs.</li>
 <li><strong>Web service pod (high priority):</strong> requests <code>cpu: 1000m</code>, limit <code>cpu: 2000m</code>.</li>
 <li><strong>Batch job pod (low priority):</strong> requests <code>cpu: 250m</code>, limit <code>cpu: 500m</code>.</li>
+</ul>
+<pre><code class="language-yaml"># web service pod
+resources:
+  requests: {cpu: 1000m}
+  limits:   {cpu: 2000m}
+---
+# batch job pod
+resources:
+  requests: {cpu: 250m}
+  limits:   {cpu: 500m}
+</code></pre>
+<ul>
 <li><strong>Kubelet (the translator):</strong> reads these specs and writes them into <mark class="kw">cgroups</mark>.</li>
 <li><strong>2. Linux cgroups (the translator's output):</strong> one cgroup per pod, each with two files.</li>
 <li><strong>Web service cgroup:</strong> <code>cpu.shares = 1024</code> and <code>cpu.cfs_quota_us = 200000</code> per 100 ms period.</li>
@@ -698,6 +1031,15 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>The symptom:</strong> with 30 database pods each needing its own volume, pods 29 and 30 stay <code>Pending</code> with <code>Volume node affinity conflict</code> or <code>MaxVolumeCountExceeded</code>.</li>
 <li><strong>The fix:</strong> use pod anti-affinity or topology spread constraints to spread the database pods across more nodes, even though each node has spare CPU and RAM.</li>
 </ul>
+<pre><code class="language-yaml">spec:
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app: postgres
+</code></pre>
 <h3 id="d05-2">The stuck volume</h3>
 <p><strong>Scenario.</strong> A worker node running a database crashes suddenly. Kubernetes reschedules the database pod onto a healthy node, but the pod keeps crashing because it can't mount its data. The <mark class="kw">EBS</mark> console still shows the volume as attached to a node that no longer exists.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-2.svg" data-title="The stuck volume" aria-label="Open diagram full screen: The stuck volume"><img src="diagrams/sections/d05-2.svg" alt="Diagram: The stuck volume" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -718,6 +1060,15 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>The problem:</strong> a snapshot restored into <code>us-east-1a</code> can never be used by database nodes in <code>us-east-1b</code>. Kubernetes can't stretch a cable between data centres.</li>
 <li><strong>The fix:</strong> when restoring a snapshot for a <mark class="kw">PVC</mark>, make sure the new volume is in the same AZ as the nodes. Setting <code>volumeBindingMode: WaitForFirstConsumer</code> in the StorageClass helps automate this the first time a volume is provisioned.</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3-wffc
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  type: gp3
+</code></pre>
 <h3 id="d05-4">Force delete and filesystem corruption</h3>
 <p><strong>Scenario.</strong> A database pod is stuck in <code>Terminating</code>, and an impatient engineer runs <code>kubectl delete pod --force --grace-period=0</code>. The pod comes back on another node, but the database won't start: its filesystem is corrupted.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-4.svg" data-title="Force delete and filesystem corruption" aria-label="Open diagram full screen: Force delete and filesystem corruption"><img src="diagrams/sections/d05-4.svg" alt="Diagram: Force delete and filesystem corruption" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -736,6 +1087,16 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>The cascade:</strong> disk latency goes from 1 ms to 100 ms or more, so database connections pile up, the connection pool fills, and the whole application crashes.</li>
 <li><strong>The fix:</strong> watch <code>BurstBalance</code> (for gp2) or the volume throughput and IOPS metrics in CloudWatch. For heavy databases don't rely on the baseline; provision exactly the IOPS you need (for example <code>iops: 10000</code> in the StorageClass).</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3-db
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  iops: &quot;10000&quot;
+  throughput: &quot;500&quot;     # MiB/s
+</code></pre>
 <h3 id="d05-6">Cross-AZ transfer costs</h3>
 <p><strong>Scenario.</strong> The finance team asks why the AWS networking bill for the data platform is now higher than the compute bill. The platform runs a 3-node Kafka cluster spread across three Availability Zones for resilience.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-6.svg" data-title="Cross-AZ transfer costs" aria-label="Open diagram full screen: Cross-AZ transfer costs"><img src="diagrams/sections/d05-6.svg" alt="Diagram: Cross-AZ transfer costs" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -758,6 +1119,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Why does the kernel kill the pod if cache can be dropped?</strong> A memory limit creates a <mark class="kw">cgroup</mark> "box". When the memory charged to the box reaches the limit, the kernel must <mark class="kw-act">reclaim</mark> memory inside it before granting more. If active cache plus the process's own memory can't be reclaimed fast enough, the kernel gives up and OOM-kills.</li>
 <li><strong>The solutions:</strong></li>
 <li><strong>Don't set a memory limit:</strong> with only a request, the pod can use the node's free cache and is killed only if the node itself runs out.</li>
+</ul>
+<pre><code class="language-yaml">resources:
+  requests:
+    memory: 8Gi        # no limit: only node-level pressure can kill it
+</code></pre>
+<ul>
 <li><strong>Widen the gap:</strong> set the limit well above the request to pay the "page cache tax".</li>
 <li><strong>Monitor the right metric:</strong> <code>container_memory_working_set_bytes</code> shows what Kubernetes sees.</li>
 <li><strong>App-level tuning:</strong> in Python or C++, call <code>posix_fadvise(POSIX_FADV_DONTNEED)</code> after processing a range of a file. It's a hint that tells the kernel "I'm done with this part, you can <mark class="kw-act">evict</mark> it", which puts you, not the kernel, in charge of what stays cached even on a 1 TB dataset.</li>
@@ -765,6 +1132,10 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Don't skip the limit:</strong> it's better for one batch job to die than for it to make the node evict everyone else.</li>
 <li><strong>Request = limit:</strong> give batch jobs Guaranteed <mark class="kw">QoS</mark> so the kubelet can't over-schedule the node.</li>
 </ul>
+<pre><code class="language-yaml">resources:
+  requests: {cpu: &quot;4&quot;, memory: 16Gi}
+  limits:   {cpu: &quot;4&quot;, memory: 16Gi}   # Guaranteed QoS
+</code></pre>
 <h3 id="d05-8">Thundering herd</h3>
 <p><strong>Scenario.</strong> A data team launches 100 identical batch jobs in parallel. They all finish within the same second and all write their results to the database at once. The database connection pool is exhausted, and the customer-facing web service starts failing its queries.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-8.svg" data-title="Thundering herd" aria-label="Open diagram full screen: Thundering herd"><img src="diagrams/sections/d05-8.svg" alt="Diagram: Thundering herd" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -791,6 +1162,26 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Why <code>restartPolicy</code> isn't the fix:</strong> Jobs use <code>Never</code> or <code>OnFailure</code>, but either way the Job controller immediately creates a replacement when a pod is preempted, so <code>restartPolicy</code> alone doesn't stop the loop.</li>
 <li><strong>The solution, queue instead of retry:</strong> <mark class="kw-act">admit</mark> Jobs through <mark class="kw">Kueue</mark> only when capacity actually exists, set <code>preemptionPolicy: Never</code> on batch, and add a <code>podFailurePolicy</code> so preemption doesn't trigger endless replacements.</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nightly-batch
+  labels:
+    kueue.x-k8s.io/queue-name: batch     # wait for capacity instead of thrashing
+spec:
+  parallelism: 50
+  backoffLimit: 6
+  podFailurePolicy:
+    rules:
+    - action: Ignore                    # preemption doesn't count as a failure
+      onPodConditions:
+      - type: DisruptionTarget
+  template:
+    spec:
+      priorityClassName: batch-low      # preemptionPolicy: Never
+      restartPolicy: Never
+      containers: []                    # omitted
+</code></pre>
 <p><strong>Going deeper.</strong> The same kind of loop appears when a descheduler's strategy disagrees with the scheduler's <mark class="kw-act">scoring</mark>: pods get evicted, land back on the same node, and get evicted again. A steadily rising eviction count with no consolidation is the signal.</p>
 <h3 id="d05-10">CPU limit vs. request gap</h3>
 <p><strong>Scenario.</strong> The web service's p99 latency spikes, yet the node's average CPU use is only 60%. The web pods aren't busy and nothing looks saturated. The only clue is a batch job on the same node with a 1-core request and an 8-core limit.</p>
@@ -803,7 +1194,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>What the request actually does:</strong> it only sets CPU shares. Under contention <mark class="kw">CFS</mark> splits CPU by shares, but the batch burst still grabs cores, caches and memory bandwidth in spikes.</li>
 <li><strong>The result:</strong> if the web pods have tight CPU limits, those spikes <mark class="kw-act">throttle</mark> them, giving p99 jitter at a 60% average.</li>
 <li><strong>The solution:</strong> for CPU-heavy batch jobs, set requests close to limits. That tells Kubernetes "this pod is heavy, don't pack too much else here", and the batch job gets a steady share instead of violent bursts. For I/O-bound batch work (mostly waiting on network or disk), low requests are fine.</li>
-</ul></div>
+</ul>
+<pre><code class="language-yaml">resources:
+  requests: {cpu: &quot;6&quot;}
+  limits:   {cpu: &quot;8&quot;}   # small gap: steady share, no 7-core surprise
+</code></pre></div>
 </section>
 
 <section class="entry tab" id="d-gpu" aria-labelledby="d-gpu-h">
@@ -823,6 +1218,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Steps 3 and 4:</strong> when the scheduler places a pod that requests a GPU, the pod is bound to that worker node.</li>
 <li><strong>Step 5:</strong> the kubelet on that node tells the plugin how many GPUs the pod needs, and the plugin assigns specific GPU devices to the container.</li>
 </ul>
+<pre><code class="language-yaml">spec:
+  containers:
+  - name: inference
+    image: vllm/vllm-openai:latest
+    resources:
+      limits:
+        nvidia.com/gpu: 1    # visible only after the device plugin registers
+</code></pre>
 <p><strong>Going deeper.</strong></p>
 <ul>
 <li>Two discovery layers come first.</li>
@@ -862,7 +1265,27 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Soft isolation (namespace):</strong></li>
 <li><strong>ResourceQuotas and LimitRanges:</strong> stop one tenant from exhausting cluster resources.</li>
 <li><strong>NetworkPolicies (default deny):</strong> block traffic between tenants unless explicitly allowed.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: tenant-a
+spec:
+  podSelector: {}          # every pod in the namespace
+  policyTypes: [&quot;Ingress&quot;, &quot;Egress&quot;]
+</code></pre>
+<ul>
 <li><strong>Pod Security Standards, enforced by Pod Security Admission (PSA):</strong> three levels, Privileged (no restrictions, the danger zone), Baseline (reasonable defaults) and Restricted (maximum, production-grade hardening). The example labels the <code>prod</code> namespace with <code>pod-security.kubernetes.io/enforce: restricted</code>.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+</code></pre>
+<ul>
 <li><strong>RBAC-scoped service accounts:</strong> the identity each pod runs as, scoped to its namespace rather than the cluster.</li>
 <li><strong>Hard isolation (node / cluster):</strong></li>
 <li><strong>Dedicated node groups:</strong> different instance families per workload type.</li>
@@ -920,6 +1343,30 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>How you switch it on, step 1, a <code>RuntimeClass</code>:</strong> named <code>gvisor</code>, with <code>handler: runsc</code>, which tells the container engine to use gVisor.</li>
 <li><strong>Step 2, the Deployment:</strong> a premium tenant's Deployment adds one line, <code>runtimeClassName: gvisor</code>. Kubernetes then runs those containers on a node that has gVisor, using the same standard image, with no rebuild.</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: premium-tenant-app
+  namespace: tenant-a-premium
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: my-app}
+  template:
+    metadata:
+      labels: {app: my-app}
+    spec:
+      runtimeClassName: gvisor     # the one extra line
+      containers:
+      - name: my-container
+        image: my-company/standard-app:1.0
+</code></pre>
 <p><strong>Going deeper.</strong></p>
 <ul>
 <li>AI agents that run generated code or untrusted tools need the same isolation.</li>
@@ -935,6 +1382,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>AppArmor / SELinux policies:</strong> mandatory access control in the kernel, on top of normal file permissions (like <code>chmod 777</code>). For example, a policy can say "the Nginx process may only read <code>/var/www/html</code> and only write to <code>/var/log/nginx</code>".</li>
 <li><strong>User namespace remapping:</strong> the kernel maps UID 0 (root) inside the container to a high, unprivileged UID on the host. If an attacker breaks out, they find themselves as a powerless user on the host, unable to do damage.</li>
 </ul>
+<pre><code class="language-yaml">spec:
+  hostUsers: false               # user namespaces: root in the pod is nobody on the host
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    appArmorProfile:
+      type: RuntimeDefault
+</code></pre>
 <h3 id="d07-5">Control plane security</h3>
 <p><strong>Scenario.</strong> An internal pentest finds that the production cluster's Kubernetes API endpoint is reachable from the internet, any team can deploy images from any registry, and nobody can tell which tenant made a given API call. The control plane is managed by AWS, but access to it still needs hardening.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-5.svg" data-title="Control plane security" aria-label="Open diagram full screen: Control plane security"><img src="diagrams/sections/d07-5.svg" alt="Diagram: Control plane security" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -981,6 +1436,18 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Shared services:</strong> mixed Spot and On-Demand for logging, ingress and similar.</li>
 <li><strong>Isolation and scheduling:</strong></li>
 <li><strong>Taints and tolerations:</strong> the stateful nodes carry <code>stateful=true:NoSchedule</code> to repel stateless pods.</li>
+</ul>
+<pre><code class="language-yaml"># node: stateful=true:NoSchedule
+spec:
+  tolerations:
+  - key: stateful
+    operator: Equal
+    value: &quot;true&quot;
+    effect: NoSchedule
+  nodeSelector:
+    workload: stateful
+</code></pre>
+<ul>
 <li><strong>Affinity:</strong> steers stateful pods onto the stateful group.</li>
 <li><strong>Stateful focus, what a StatefulSet gives you:</strong></li>
 <li><strong>Ordered operations:</strong> pods are created one at a time (0 to N), which databases need for bootstrap and quorum.</li>
@@ -989,6 +1456,16 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Update strategy:</strong> rolling updates with partitions, or <code>OnDelete</code> for manual control.</li>
 <li><strong>PodDisruptionBudget:</strong> stops AWS maintenance or node <mark class="kw-act">drains</mark> from taking down enough pods to lose quorum.</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cassandra-pdb
+spec:
+  minAvailable: 2          # keep quorum of a 3-node ring
+  selector:
+    matchLabels:
+      app: cassandra
+</code></pre>
 <p><strong>Going deeper.</strong> An AI application maps cleanly onto the same split:</p>
 <ul>
 <li><strong>Stateless Deployments:</strong> the orchestrator (the app logic around the model), the embedding service, rerankers and model servers.</li>
@@ -1010,6 +1487,20 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Anti-pattern:</strong> not for databases, because latency is too high.</li>
 <li><strong>Provisioned throughput mode:</strong> for predictable performance.</li>
 <li><strong>Reclaim policy:</strong> <code>Retain</code> in production so deleting a PVC doesn't delete the data, <code>Delete</code> in development.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: db-gp3
+provisioner: ebs.csi.aws.com
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: gp3
+  csi.storage.k8s.io/fstype: xfs
+</code></pre>
+<ul>
 <li><strong>Affinity:</strong> <mark class="kw">node affinity</mark> for hardware placement and pod anti-affinity to spread replicas across nodes.</li>
 <li><strong>Filesystem, XFS vs. ext4:</strong> XFS gives better parallel I/O for databases thanks to its allocation groups.</li>
 <li><strong><code>O_DIRECT</code>:</strong> lets the database bypass the kernel page cache (see <a href="#d08-10">Direct I/O</a>).</li>
@@ -1052,6 +1543,16 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Across AZs:</strong> <code>maxSkew: 1</code> as a <strong>hard</strong> requirement, so the replica count per zone never differs by more than one.</li>
 <li><strong>Across nodes:</strong> <code>maxSkew: 2</code> as a <strong>soft</strong> preference, so replicas spread across nodes when possible but can still be scheduled if not.</li>
 </ul>
+<pre><code class="language-yaml">topologySpreadConstraints:
+- maxSkew: 1
+  topologyKey: topology.kubernetes.io/zone
+  whenUnsatisfiable: DoNotSchedule      # hard
+  labelSelector: {matchLabels: {app: cassandra}}
+- maxSkew: 2
+  topologyKey: kubernetes.io/hostname
+  whenUnsatisfiable: ScheduleAnyway     # soft
+  labelSelector: {matchLabels: {app: cassandra}}
+</code></pre>
 <h3 id="d08-5">NUMA and CPU pinning</h3>
 <p><strong>Scenario.</strong> A database on a large <code>r6i.8xlarge</code> instance has inconsistent query latency. The CPU isn't saturated and the disk is fine, but some queries are mysteriously slower than others. Profiling shows many accesses to memory that is "far away" from the CPU running the query.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-5.svg" data-title="NUMA and CPU pinning" aria-label="Open diagram full screen: NUMA and CPU pinning"><img src="diagrams/sections/d08-5.svg" alt="Diagram: NUMA and CPU pinning" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -1064,6 +1565,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Context switching and cache thrashing:</strong> the kernel also moves the database process between cores to balance load, and each move throws away warm CPU caches.</li>
 <li><strong>The solution, kubelet configuration:</strong> enable the static CPU manager and topology manager policies, so Guaranteed pods get exclusive cores and their CPU and memory come from the same NUMA node.</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cpuManagerPolicy: static
+topologyManagerPolicy: single-numa-node
+memoryManagerPolicy: Static
+reservedSystemCPUs: &quot;0,1&quot;
+</code></pre>
 <p><strong>Going deeper.</strong></p>
 <ul>
 <li>The kubelet's <strong>Topology Manager</strong> matters just as much for GPU pods.</li>
@@ -1087,6 +1595,25 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <ul>
 <li><strong>Strategy 1, a StatefulSet per AZ (horizontal replication):</strong></li>
 <li><strong>Architecture:</strong> a separate <mark class="kw">StatefulSet</mark> for each zone (for example <code>db-az-a</code>, <code>db-az-b</code>), each pinned with a <code>nodeSelector</code>.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-az-a
+spec:
+  serviceName: db
+  replicas: 1
+  selector:
+    matchLabels: {app: db, zone: a}
+  template:
+    metadata:
+      labels: {app: db, zone: a}
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/zone: us-east-1a
+      containers: []        # omitted
+</code></pre>
+<ul>
 <li><strong>Mechanism:</strong> the database replicates across zones itself (Postgres streaming, Cassandra multi-DC, Kafka replication), and each zone's volumes stay in that zone.</li>
 <li><strong>Strategy 2, topology-aware provisioning (AZ alignment):</strong></li>
 <li><strong>Mechanism:</strong> <code>volumeBindingMode: WaitForFirstConsumer</code> in the StorageClass.</li>
@@ -1127,6 +1654,19 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Large blocks (16 or 64 KB):</strong> less paperwork for the CPU. 64 KB is faster for large sequential workloads like a data warehouse, but if the database writes 4 KB pages (like standard PostgreSQL), a 16 KB block size causes <strong>write amplification</strong> (WAF, write amplification factor): the disk does more work than needed.</li>
 <li><strong>Mount options:</strong></li>
 <li><strong><code>noatime</code>:</strong> Linux normally records an access time on every read; for a database reading thousands of blocks per second that's thousands of useless writes. <code>noatime</code> turns it off.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: db-xfs
+provisioner: ebs.csi.aws.com
+mountOptions:
+- noatime
+parameters:
+  type: gp3
+  csi.storage.k8s.io/fstype: xfs
+</code></pre>
+<ul>
 <li><strong><code>data=writeback</code> (ext4 journaling):</strong> only metadata is journaled, so data may reach the disk after the metadata pointing to it. It's faster, but after a crash a file can contain stale or garbage blocks. Most production databases keep the default <code>data=ordered</code> and rely on their own write-ahead log plus <code>fsync</code>.</li>
 </ul>
 <h3 id="d08-10">The EBS CSI driver</h3>
@@ -1160,6 +1700,19 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>The persistent-volume subsystem:</strong> the abstraction layer that lets developers ask for storage without knowing anything about AWS hardware. It acts as a broker between your application and the CSI driver.</li>
 <li><strong>The core components:</strong></li>
 <li><strong>PersistentVolumeClaim (PVC), the "rental application":</strong> a developer writes "I need 50 GB of fast storage", without caring whether it's <mark class="kw">EBS</mark>, <mark class="kw">EFS</mark> or a local disk.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data
+spec:
+  accessModes: [&quot;ReadWriteOnce&quot;]
+  storageClassName: gp3      # the &quot;brochure&quot; tier
+  resources:
+    requests:
+      storage: 50Gi
+</code></pre>
+<ul>
 <li><strong>StorageClass (SC), the "brochure":</strong> lists the available tiers (for example "Gold" for io2, "Silver" for gp3) and tells Kubernetes which CSI driver and parameters (like IOPS) to use.</li>
 <li><strong>PersistentVolume (PV), the "physical apartment":</strong> a cluster-wide object representing the real EBS disk, with its capacity, volume ID and filesystem type.</li>
 </ul></div>
@@ -1195,8 +1748,17 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong><code>WARM_ENI_TARGET</code>, extra ENIs kept ready (aggressive):</strong> always keeps a number of completely empty <mark class="kw">ENIs</mark> attached, with all their IPs already allocated. Best for big, sudden bursts: when one ENI fills up, the next pod jumps onto the warm one instantly.</li>
 <li><strong><code>WARM_IP_TARGET</code>, extra IPs kept ready (balanced):</strong> keeps a set number of free individual IPs instead of whole ENIs. With 5 pods and a target of 5, the node holds 10 IPs; when a 6th pod starts, the CNI requests 1 more to keep the buffer at 5.</li>
 <li><strong><code>MINIMUM_IP_TARGET</code>, a baseline (conservative):</strong> a floor on the total number of IPs, however many pods are running. Set to 10 with 0 pods, the node still has 10 IPs; at 12 pods this setting stops mattering and <code>WARM_IP_TARGET</code> takes over.</li>
+</ul>
+<pre><code class="language-bash">kubectl set env daemonset aws-node -n kube-system \
+  WARM_IP_TARGET=5 MINIMUM_IP_TARGET=10
+</code></pre>
+<ul>
 <li><strong>IP allocation strategies:</strong></li>
 <li><strong>Prefix delegation (advanced):</strong> assigns <code>/28</code> blocks (16 IPs) instead of single secondary IPs. If you hit the per-instance limit often, you don't need a bigger, pricier instance; an <code>m5.large</code> goes from 29 to 110 pods.</li>
+</ul>
+<pre><code class="language-bash">kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true
+</code></pre>
+<ul>
 <li><strong>Custom networking (<code>ENIConfig</code>):</strong> puts pod IPs in a dedicated secondary subnet, which solves IP exhaustion in specific AZs.</li>
 <li><strong>Wiring inside the node:</strong> pod A's <code>eth0</code> → veth pair → host network namespace.</li>
 </ul>
@@ -1246,6 +1808,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Why the table fills:</strong> an established TCP connection's default timeout is 5 days, so a busy node with many long-lived or abandoned connections can fill the table. That's the scenario.</li>
 <li><strong>Solution:</strong> lower <code>nf_conntrack_tcp_timeout_established</code> (and size <code>nf_conntrack_max</code> for the node) so stale entries are cleared sooner.</li>
 </ul>
+<pre><code class="language-bash"># check usage vs. the limit
+cat /proc/sys/net/netfilter/nf_conntrack_count /proc/sys/net/netfilter/nf_conntrack_max
+# shorten idle established connections from 5 days to 1 day
+sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=86400
+</code></pre>
 <h3 id="d09-5">Security groups for pods and network policies</h3>
 <p><strong>Scenario.</strong> A payment service must, for PCI compliance, be protected by an AWS security group of its own, not only by Kubernetes rules. But all pods on a node normally share the node's security group. Separately, the team wrote <mark class="kw">NetworkPolicies</mark> and discovered they weren't being enforced at all.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-5.svg" data-title="Security groups for pods and network policies" aria-label="Open diagram full screen: Security groups for pods and network policies"><img src="diagrams/sections/d09-5.svg" alt="Diagram: Security groups for pods and network policies" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -1258,6 +1825,20 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>The branch ENI (<code>aws-k8s-branch-eni</code>):</strong> one per pod that needs its own security group, a physical-to-virtual mapping designed for isolation.</li>
 <li><strong>The connection:</strong> each branch ENI is plugged into the trunk ENI.</li>
 <li><strong>The security:</strong> the security group is applied to the branch ENI. Since that ENI belongs to one pod, the pod gets its own firewall.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: payments-sg
+  namespace: payments
+spec:
+  podSelector:
+    matchLabels:
+      app: payment-service
+  securityGroups:
+    groupIds: [&quot;sg-0123456789abcdef0&quot;]
+</code></pre>
+<ul>
 <li><strong>Density cost:</strong> the trunk ENI uses one of the instance's ENI slots, so fewer regular pods fit on the node.</li>
 <li><strong>When to avoid trunking:</strong> stay with normal networking unless a compliance rule (like PCI-DSS) requires AWS-level firewalls. For most AI and web workloads, NetworkPolicies with Calico or Cilium are faster and don't reduce pod density.</li>
 <li><strong>Network policies:</strong> a NetworkPolicy is a specification without an implementation. The original <mark class="kw">VPC CNI</mark> only handled routing (giving pods IPs and moving packets) and didn't read your rules, which is why the scenario's policies did nothing.</li>
@@ -1286,6 +1867,20 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>What the picture shows.</strong> From a NetworkPolicy object to a dropped packet, in three roles.</p>
 <ul>
 <li><strong>1. The law, the NetworkPolicy object:</strong> the high-level intent you write in YAML ("pod A may talk to pod B"). On its own it does nothing; it's just a record in the Kubernetes database.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-from-frontend
+spec:
+  podSelector:
+    matchLabels: {role: backend}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels: {role: frontend}
+</code></pre>
+<ul>
 <li><strong>2. The translator, Calico:</strong> Calico is the controller on every node, watching the Kubernetes API. When it sees a new NetworkPolicy, it works out what this node must allow or block, and translates the YAML into something the kernel understands.</li>
 <li><strong>3. The enforcement, iptables (the rulebook):</strong> in Calico's default mode that language is iptables. Calico creates its own chains of rules and attaches them to the <strong>FORWARD</strong> hook of the Netfilter gates.</li>
 <li><strong>At packet time:</strong> when a packet reaches the FORWARD hook, the kernel checks Calico's rules and either <strong>accepts</strong> or <strong>drops</strong> it according to your policy. If it's accepted, it continues to the <strong>POSTROUTING</strong> gate.</li>
@@ -1308,7 +1903,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Disabled (<code>false</code>):</strong> Cilium acts as a traditional CNI, giving pods IPs and enforcing policies, while kube-proxy keeps handling Services with iptables or IPVS. You still pay the "iptables tax" on Service traffic.</li>
 <li><strong>Partial / hybrid (<code>partial</code>):</strong> Cilium might handle ClusterIP (internal pod-to-pod) traffic with eBPF but leave NodePort or LoadBalancer traffic to kube-proxy.</li>
 <li><strong>Full / strict (<code>true</code> / <code>strict</code>):</strong> Cilium takes over every Service type (ClusterIP, NodePort, LoadBalancer, ExternalIPs) with eBPF hash tables, and you can delete the kube-proxy DaemonSet. It also enables <strong>Direct Server Return (DSR)</strong>: replies go straight from the pod to the client instead of back through the load-balancing node, saving a hop and keeping the client's IP.</li>
-</ul></div>
+</ul>
+<pre><code class="language-yaml"># Cilium Helm values
+kubeProxyReplacement: true
+k8sServiceHost: &lt;API server endpoint&gt;
+k8sServicePort: 443
+loadBalancer:
+  mode: dsr
+</code></pre></div>
 </section>
 
 <section class="entry tab" id="d-networking" aria-labelledby="d-networking-h">
@@ -1339,6 +1941,26 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>What they can't do:</strong> DNS-based rules (allow <code>api.openai.com</code>, for example) or one global policy that applies across all namespaces. Both matter when pods call external LLM APIs, since those APIs' IPs change.</li>
 <li><strong>The fix:</strong> Cilium and Calico add DNS-aware policies and cluster-wide (global) policies on top of the standard model.</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-llm-apis
+spec:
+  endpointSelector:
+    matchLabels: {app: ai-gateway}
+  egress:
+  - toEndpoints:              # let DNS through so names can be seen
+    - matchLabels: {k8s:io.kubernetes.pod.namespace: kube-system, k8s-app: kube-dns}
+    toPorts:
+    - ports: [{port: &quot;53&quot;, protocol: ANY}]
+      rules:
+        dns: [{matchPattern: &quot;*&quot;}]
+  - toFQDNs:
+    - matchName: api.openai.com
+    - matchName: api.anthropic.com
+    toPorts:
+    - ports: [{port: &quot;443&quot;, protocol: TCP}]
+</code></pre>
 <h3 id="d10-3">Network optimization levers</h3>
 <p><strong>Scenario.</strong> A high-traffic cluster shows rising network latency and DNS timeouts as it grows. The team lists the network optimizations available to them: hardware NIC sharing, eBPF, a different kube-proxy mode, <mark class="kw">CoreDNS</mark> scaling and EC2 placement.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d10-3.svg" data-title="Network optimization levers" aria-label="Open diagram full screen: Network optimization levers"><img src="diagrams/sections/d10-3.svg" alt="Diagram: Network optimization levers" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -1385,6 +2007,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Making Kubernetes see EFA, step 1:</strong> install <code>aws-efa-k8s-device-plugin</code>, so nodes advertise EFA devices as a resource.</li>
 <li><strong>Step 2:</strong> in the EKS Terraform module, advertise the EFA resource so training pods can request it. Without these two steps, NCCL silently falls back to TCP, which is the scenario.</li>
 </ul>
+<pre><code class="language-yaml">resources:
+  limits:
+    nvidia.com/gpu: 8
+    vpc.amazonaws.com/efa: 4     # advertised by the EFA device plugin
+</code></pre>
 <p><strong>Going deeper.</strong></p>
 <ul>
 <li>Disaggregated LLM serving pushes this further.</li>
@@ -1410,6 +2037,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Fix 2, prefix delegation (the "efficiency" fix):</strong> run <code>kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true</code>. Pro: pod density jumps immediately (for example 17 → 110 pods on a <code>t3.medium</code>). Con: it can fragment a subnet that's already messy.</li>
 <li><strong>Fix 3, custom networking (the "separation" fix):</strong> attach a secondary CIDR to the VPC (for example <code>100.64.0.0/16</code>) and point the CNI at it with an <code>ENIConfig</code> resource, so pods get IPs from a separate, much larger range.</li>
 </ul>
+<pre><code class="language-yaml">apiVersion: crd.k8s.amazonaws.com/v1alpha1
+kind: ENIConfig
+metadata:
+  name: us-east-1a             # one per AZ
+spec:
+  subnet: subnet-0abc1234def567890     # subnet from the 100.64.0.0/16 range
+  securityGroups: [&quot;sg-0123456789abcdef0&quot;]
+</code></pre>
 <h3 id="d11-2">Service connectivity drops</h3>
 <p><strong>Scenario.</strong> A pod can't reach a Service: requests hang or are refused, while other pods work fine. The network team insists the VPC is healthy. The on-call engineer needs a step-by-step way to find where the "pipe" between the two pods is broken.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d11-2.svg" data-title="Service connectivity drops" aria-label="Open diagram full screen: Service connectivity drops"><img src="diagrams/sections/d11-2.svg" alt="Diagram: Service connectivity drops" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -1440,6 +2075,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Method A, the fully qualified trick:</strong> write <code>google.com.</code> with a trailing dot.</li>
 <li><strong>Method B, change the pod spec:</strong> lower <code>ndots</code> in <code>dnsConfig</code> for deployments that talk to the outside world a lot.</li>
 </ul>
+<pre><code class="language-yaml">spec:
+  dnsConfig:
+    options:
+    - name: ndots
+      value: &quot;2&quot;
+</code></pre>
 <h3 id="d11-4">Latency by distance</h3>
 <p><strong>Scenario.</strong> A team splits a chatty microservice across three Availability Zones for resilience, and its p99 latency doubles. They want to know how much latency each kind of network hop actually adds.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d11-4.svg" data-title="Latency by distance" aria-label="Open diagram full screen: Latency by distance"><img src="diagrams/sections/d11-4.svg" alt="Diagram: Latency by distance" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -1458,6 +2099,10 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Burstable vs. guaranteed:</strong> "up to" means burstable; sustained transfers fall back to a much lower baseline. That explains the slow <code>t3.medium</code> in the scenario.</li>
 <li><strong>MTU, how data is chopped up:</strong></li>
 <li><strong>VPC default, 9001 bytes (jumbo frames):</strong> works only inside AWS (VPC to VPC, or over Direct Connect). Set for pods with <code>AWS_VPC_ENI_MTU</code> in the <mark class="kw">VPC CNI</mark>.</li>
+</ul>
+<pre><code class="language-bash">kubectl set env daemonset aws-node -n kube-system AWS_VPC_ENI_MTU=9001
+</code></pre>
+<ul>
 <li><strong>Container default, 1500 bytes:</strong> the standard Ethernet size for the public internet, which most pods use.</li>
 <li><strong>The mismatch:</strong> for high-performance ML, some teams set the CNI MTU to 8951 or 9001 for pod-to-pod traffic. But if those pods talk to the internet without translation, oversized packets get dropped and connections hang, which is the second part of the scenario.</li>
 </ul></div>
@@ -1500,8 +2145,26 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <ul>
 <li><strong>Pod-to-pod communication:</strong> traffic across AZs costs money.</li>
 <li><strong>Topology-aware routing:</strong> kube-proxy directs traffic based on the zone it came from, keeping it in the same AZ when possible.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector: {app: backend}
+  ports: [{port: 80, targetPort: 8080}]
+  trafficDistribution: PreferClose     # stay in the caller's zone when possible
+</code></pre>
+<ul>
 <li><strong>Karpenter:</strong> can provision nodes in the same AZ as the workloads that talk to each other.</li>
 <li><strong>Load balancer configuration, IP mode:</strong> pods are registered directly as ELB targets, skipping the extra hop (and possible cross-AZ hop) through a node.</li>
+</ul>
+<pre><code class="language-yaml">metadata:
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+</code></pre>
+<ul>
 <li><strong>Data transfer:</strong></li>
 <li><strong>VPC endpoints:</strong> reach AWS services (S3, ECR, DynamoDB and others) directly, without the public internet or a NAT gateway.</li>
 <li><strong>VPC peering and Transit Gateway:</strong> connect VPCs more cheaply than routing through the internet.</li>
@@ -1597,6 +2260,16 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Least privilege:</strong> give each container only what it needs for normal operation.</li>
 <li><strong>Restrict root and privileged access:</strong> set this in the container's <code>securityContext</code>.</li>
 <li><strong>Drop all unnecessary Linux capabilities.</strong></li>
+</ul>
+<pre><code class="language-yaml">securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  privileged: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [&quot;ALL&quot;]
+</code></pre>
+<ul>
 <li><strong>Follow the Pod Security Standards:</strong> enforce them with Pod Security Admission, and isolate workloads in namespaces with different levels (privileged, baseline, restricted).</li>
 <li><strong>Monitor the runtime:</strong> the goal is to detect and prevent malicious activity inside containers and on worker nodes. Tools include Falco (deployed as a DaemonSet to watch containers) and Prisma Cloud container security.</li>
 </ul>
@@ -1632,6 +2305,16 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>What the picture shows.</strong> Data privacy and compliance: <mark class="kw">pod identity</mark> for AWS access, and securing the model endpoint.</p>
 <ul>
 <li><strong>IRSA (IAM Roles for Service Accounts):</strong> associates a fine-grained IAM role with a Kubernetes service account. Pods assume the role through their service account identity and access AWS services with that role's permissions, with no stored keys.</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: model-loader
+  namespace: serving
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/model-s3-read
+</code></pre>
+<ul>
 <li><strong>EKS Pod Identity:</strong> the evolution of <mark class="kw">IRSA</mark> that makes setting up IAM permissions for pods simpler. It requires the <code>eks-pod-identity-agent</code> DaemonSet.</li>
 <li><strong>Secure model endpoints:</strong></li>
 <li><strong>Enforce TLS everywhere:</strong> encrypt all traffic in transit and authenticate both clients and services.</li>
@@ -1673,6 +2356,20 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>PV, the actual desk built for you:</strong> the real <mark class="kw">EBS</mark> volume.</li>
 <li><strong>Dynamic provisioning:</strong> the library builds the desk (the PV) automatically from the chosen design (the StorageClass) when an order slip (the PVC) comes in.</li>
 <li><strong>Pod, with <code>volumes</code> and <code>volumeMounts</code>:</strong> now that the desk is reserved, you want to use it. The student shows the reservation slip to the librarian (<code>volumes</code> names the PVC), is directed to the desk, and sets up there (<code>volumeMounts</code> says where in the container the disk appears).</li>
+</ul>
+<pre><code class="language-yaml">spec:
+  containers:
+  - name: app
+    image: my-app:1.0
+    volumeMounts:
+    - name: data
+      mountPath: /var/lib/data    # where the &quot;desk&quot; appears in the container
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: data             # the &quot;order slip&quot;
+</code></pre>
+<ul>
 <li><strong>Mountpoint for S3 CSI driver:</strong> a different kind of "desk": it mounts S3 as a file system, not a block device.</li>
 </ul>
 <p><strong>Going deeper.</strong></p>

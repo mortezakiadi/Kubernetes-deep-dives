@@ -22,6 +22,19 @@ A team moves PostgreSQL, Kafka and Cassandra onto Kubernetes next to stateless s
   - **Shared services:** mixed Spot and On-Demand for logging, ingress and similar.
 - **Isolation and scheduling:**
   - **Taints and tolerations:** the stateful nodes carry `stateful=true:NoSchedule` to repel stateless pods.
+
+```yaml
+# node: stateful=true:NoSchedule
+spec:
+  tolerations:
+  - key: stateful
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+  nodeSelector:
+    workload: stateful
+```
+
   - **Affinity:** steers stateful pods onto the stateful group.
 - **Stateful focus, what a StatefulSet gives you:**
   - **Ordered operations:** pods are created one at a time (0 to N), which databases need for bootstrap and quorum.
@@ -29,6 +42,18 @@ A team moves PostgreSQL, Kafka and Cassandra onto Kubernetes next to stateless s
   - **Stable identity, storage:** predictable PVC names (for example `data-db-0`) that survive pod restarts.
   - **Update strategy:** rolling updates with partitions, or `OnDelete` for manual control.
   - **PodDisruptionBudget:** stops AWS maintenance or node drains from taking down enough pods to lose quorum.
+
+```yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cassandra-pdb
+spec:
+  minAvailable: 2          # keep quorum of a 3-node ring
+  selector:
+    matchLabels:
+      app: cassandra
+```
 
 **Going deeper.** An AI application maps cleanly onto the same split:
 
@@ -55,6 +80,21 @@ Separate lifecycles let you update prompts, models and data independently.
   - **Anti-pattern:** not for databases, because latency is too high.
   - **Provisioned throughput mode:** for predictable performance.
 - **Reclaim policy:** `Retain` in production so deleting a PVC doesn't delete the data, `Delete` in development.
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: db-gp3
+provisioner: ebs.csi.aws.com
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: gp3
+  csi.storage.k8s.io/fstype: xfs
+```
+
 - **Affinity:** node affinity for hardware placement and pod anti-affinity to spread replicas across nodes.
 - **Filesystem, XFS vs. ext4:** XFS gives better parallel I/O for databases thanks to its allocation groups.
 - **`O_DIRECT`:** lets the database bypass the kernel page cache (see [Direct I/O](#d08-10)).
@@ -104,6 +144,18 @@ Separate lifecycles let you update prompts, models and data independently.
   - **Across AZs:** `maxSkew: 1` as a **hard** requirement, so the replica count per zone never differs by more than one.
   - **Across nodes:** `maxSkew: 2` as a **soft** preference, so replicas spread across nodes when possible but can still be scheduled if not.
 
+```yaml
+topologySpreadConstraints:
+- maxSkew: 1
+  topologyKey: topology.kubernetes.io/zone
+  whenUnsatisfiable: DoNotSchedule      # hard
+  labelSelector: {matchLabels: {app: cassandra}}
+- maxSkew: 2
+  topologyKey: kubernetes.io/hostname
+  whenUnsatisfiable: ScheduleAnyway     # soft
+  labelSelector: {matchLabels: {app: cassandra}}
+```
+
 ### NUMA and CPU pinning
 
 **Scenario.** A database on a large `r6i.8xlarge` instance has inconsistent query latency. The CPU isn't saturated and the disk is fine, but some queries are mysteriously slower than others. Profiling shows many accesses to memory that is "far away" from the CPU running the query.
@@ -118,6 +170,15 @@ Separate lifecycles let you update prompts, models and data independently.
 - **Without awareness:** Kubernetes treats all CPUs and RAM as one pool. If a database's vCPUs are on socket 0 but its data is in socket 1's RAM, every query pays a remote-memory tax.
 - **Context switching and cache thrashing:** the kernel also moves the database process between cores to balance load, and each move throws away warm CPU caches.
 - **The solution, kubelet configuration:** enable the static CPU manager and topology manager policies, so Guaranteed pods get exclusive cores and their CPU and memory come from the same NUMA node.
+
+```yaml
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cpuManagerPolicy: static
+topologyManagerPolicy: single-numa-node
+memoryManagerPolicy: Static
+reservedSystemCPUs: "0,1"
+```
 
 **Going deeper.**
 
@@ -148,6 +209,26 @@ Separate lifecycles let you update prompts, models and data independently.
 
 - **Strategy 1, a StatefulSet per AZ (horizontal replication):**
   - **Architecture:** a separate StatefulSet for each zone (for example `db-az-a`, `db-az-b`), each pinned with a `nodeSelector`.
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-az-a
+spec:
+  serviceName: db
+  replicas: 1
+  selector:
+    matchLabels: {app: db, zone: a}
+  template:
+    metadata:
+      labels: {app: db, zone: a}
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/zone: us-east-1a
+      containers: []        # omitted
+```
+
   - **Mechanism:** the database replicates across zones itself (Postgres streaming, Cassandra multi-DC, Kafka replication), and each zone's volumes stay in that zone.
 - **Strategy 2, topology-aware provisioning (AZ alignment):**
   - **Mechanism:** `volumeBindingMode: WaitForFirstConsumer` in the StorageClass.
@@ -194,6 +275,20 @@ Separate lifecycles let you update prompts, models and data independently.
   - **Large blocks (16 or 64 KB):** less paperwork for the CPU. 64 KB is faster for large sequential workloads like a data warehouse, but if the database writes 4 KB pages (like standard PostgreSQL), a 16 KB block size causes **write amplification** (WAF, write amplification factor): the disk does more work than needed.
 - **Mount options:**
   - **`noatime`:** Linux normally records an access time on every read; for a database reading thousands of blocks per second that's thousands of useless writes. `noatime` turns it off.
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: db-xfs
+provisioner: ebs.csi.aws.com
+mountOptions:
+- noatime
+parameters:
+  type: gp3
+  csi.storage.k8s.io/fstype: xfs
+```
+
   - **`data=writeback` (ext4 journaling):** only metadata is journaled, so data may reach the disk after the metadata pointing to it. It's faster, but after a crash a file can contain stale or garbage blocks. Most production databases keep the default `data=ordered` and rely on their own write-ahead log plus `fsync`.
 
 ### The EBS CSI driver
@@ -233,5 +328,19 @@ Separate lifecycles let you update prompts, models and data independently.
 - **The persistent-volume subsystem:** the abstraction layer that lets developers ask for storage without knowing anything about AWS hardware. It acts as a broker between your application and the CSI driver.
 - **The core components:**
   - **PersistentVolumeClaim (PVC), the "rental application":** a developer writes "I need 50 GB of fast storage", without caring whether it's EBS, EFS or a local disk.
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: gp3      # the "brochure" tier
+  resources:
+    requests:
+      storage: 50Gi
+```
+
   - **StorageClass (SC), the "brochure":** lists the available tiers (for example "Gold" for io2, "Silver" for gp3) and tells Kubernetes which CSI driver and parameters (like IOPS) to use.
   - **PersistentVolume (PV), the "physical apartment":** a cluster-wide object representing the real EBS disk, with its capacity, volume ID and filesystem type.

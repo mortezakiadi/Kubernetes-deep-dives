@@ -19,7 +19,64 @@ One cluster runs a latency-critical web API next to cost-driven batch jobs. This
 - **Multi-tiered node architecture:**
   - **Tier 1, web services (stability):** On-Demand nodes (c6i family), tainted `NoSchedule` so batch jobs stay off.
   - **Tier 2, batch processing (cost):** diversified Spot instances, tainted for batch only and managed by Karpenter for fast, flexible scaling.
+
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: batch-spot
+spec:
+  template:
+    spec:
+      requirements:
+      - key: karpenter.sh/capacity-type
+        operator: In
+        values: ["spot"]
+      - key: karpenter.k8s.aws/instance-family
+        operator: In
+        values: ["m5", "m5a", "m6i"]
+      taints:
+      - key: workload
+        value: batch
+        effect: NoSchedule
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+```
+
   - **Tier 3, shared / burstable (utilization):** a mixed lifecycle pool, overprovisioned with placeholder pods so sudden spikes get capacity instantly.
+
+```yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: placeholder
+value: -10                   # any real pod can evict these
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capacity-placeholder
+spec:
+  replicas: 5
+  selector:
+    matchLabels: {app: placeholder}
+  template:
+    metadata:
+      labels: {app: placeholder}
+    spec:
+      priorityClassName: placeholder
+      containers:
+      - name: pause
+        image: registry.k8s.io/pause:3.9
+        resources:
+          requests: {cpu: "1", memory: 2Gi}
+```
+
 - **A note on CPU fairness:** Kubernetes doesn't hand out CPU cycles itself; it delegates that to the Linux kernel, whose Completely Fair Scheduler (CFS) tries to give every process a fair slice (see [CPU: shares and throttling](#d03-4)).
 
 **Going deeper.** For LLMs, the latency-critical tier is the **model server**: vLLM, TGI, SGLang or NVIDIA NIM, each exposing an OpenAI-compatible API behind a Service. Large models need whole, dedicated GPUs and minutes to load, so I run them as plain Deployments (KServe's *Standard* mode) on tainted GPU nodes with warm capacity, rather than relying on scale-to-zero.
@@ -40,11 +97,44 @@ AI applications follow the same split:
 - **Priority classes (for the scheduler), tool used: preemption, scope: cluster-wide.**
   - **`web-critical` (10000):** the highest priority; it can preempt everything else.
   - **`batch-low` (100):** the lowest priority, with `preemptionPolicy: Never`, so batch never pushes anyone out.
+
+```yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: web-critical
+value: 10000
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: batch-low
+value: 100
+preemptionPolicy: Never
+---
+# in the pod spec
+spec:
+  priorityClassName: web-critical
+```
+
   - **The effect:** when a node is full, high-priority web pods evict lower-priority batch pods, so web traffic never waits for a new node.
 - **QoS controls (for the kubelet at runtime), tool used: eviction, scope: per node.** The QoS class comes from the requests and limits in the manifest.
   - **Guaranteed (web):** requests equal limits. Gets a dedicated CPU quota and is the last to be OOM-killed.
   - **Burstable (batch):** requests lower than limits. Can scavenge spare capacity, but is evicted before Guaranteed pods.
   - **BestEffort:** no resources set. The first to be terminated under pressure.
+
+```yaml
+# Guaranteed: requests == limits for every container
+resources:
+  requests: {cpu: "1", memory: 2Gi}
+  limits:   {cpu: "1", memory: 2Gi}
+---
+# Burstable: requests < limits
+resources:
+  requests: {cpu: 250m, memory: 512Mi}
+  limits:   {cpu: "2",  memory: 2Gi}
+```
+
   - **The effect:** when a node runs out of RAM, the kubelet kills pods in the order BestEffort → Burstable → Guaranteed.
 - **Shared tier:** a mixed-lifecycle pool with no taints, where these two mechanisms do the arbitration.
 
@@ -70,6 +160,29 @@ AI applications follow the same split:
   - **Memory:** memory can't be compressed and running out causes OOM crashes, so web services must be strict (requests equal limits), and batch jobs are sized to each job's needs.
 - **Autoscaling and Spot handling:**
   - **HPA (web):** aggressive scale-up (about 15 s) on CPU or request rate, conservative scale-down (about 5 min).
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: web}
+  minReplicas: 4
+  maxReplicas: 100
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target: {type: Utilization, averageUtilization: 60}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies: [{type: Percent, value: 100, periodSeconds: 15}]
+    scaleDown:
+      stabilizationWindowSeconds: 300
+```
+
   - **Karpenter (batch):** intent-based scale-up; it removes empty nodes within about 30 s to cut waste. If one instance type isn't available at provisioning time, Karpenter picks whatever is available to get the job started. At runtime, as jobs finish and nodes are left half-used, it consolidates them.
   - **Spot interruption:** the AWS Node Termination Handler catches the 2-minute warning so batch jobs can checkpoint and drain gracefully.
 - **Cost and monitoring:**
@@ -101,11 +214,29 @@ AI applications follow the same split:
 
 - **CPU shares, who wins under contention:** in a noisy-neighbour situation, Kubernetes relies on CPU shares, which come from your requests.
   - **Requests become priority:** a `cpu: 1000m` request becomes 1024 shares, and a 500m request becomes 512 shares.
+
+```yaml
+# web: 1000m request -> 1024 shares
+resources:
+  requests: {cpu: 1000m}
+---
+# batch: 500m request -> 512 shares
+resources:
+  requests: {cpu: 500m}
+```
+
   - **The CFS logic:** the kernel's Completely Fair Scheduler tracks how much CPU time each process has had and favours the ones that have had less.
   - **When the CPU is 100% busy:** the web service (1024 shares) is guaranteed 2/3 of the time and the batch job (512 shares) 1/3.
   - **When the web service is idle:** the batch job can use the spare CPU, but the moment the web service wakes up, batch is squeezed back to its 1/3.
 - **Throttling, the 100 ms quota window:** a CPU *limit* is a speed limit the kernel enforces per 100 ms period.
   - **Example:** a limit of 0.5 CPU (500m) gives 50 ms of run time every 100 ms.
+
+```yaml
+resources:
+  limits:
+    cpu: 500m    # 50 ms of CPU time per 100 ms window
+```
+
   - **The sprint:** a multi-threaded app can use all 50 ms in the first 10 ms of the window, and is then frozen for the remaining 90 ms.
   - **The wait:** even if the node's CPU is 90% idle, the app can't run until the next window starts.
   - **Normal vs. throttled:** a request that normally takes 10 ms takes about 100 ms when it's frozen mid-calculation (10 ms of work plus about 90 ms of waiting).
@@ -166,6 +297,14 @@ AI applications follow the same split:
 - **Solutions, taming the traffic:**
   - **A. Linux `tc` (traffic control):** shape traffic on the node at the kernel level.
   - **B. CNI bandwidth plugins:** most modern CNIs (Calico, Cilium, or the standard bandwidth plugin) let you set ingress and egress limits with annotations in the pod YAML.
+
+```yaml
+metadata:
+  annotations:
+    kubernetes.io/ingress-bandwidth: 1G
+    kubernetes.io/egress-bandwidth: 1G
+```
+
 - **Architecture tip, the EKS benefit:** some instance types (such as the `m5n` and `c5n` variants) have separate network paths for EBS and normal traffic, so database disk I/O doesn't compete with user traffic for bandwidth.
 
 ### Storage I/O: the other unmanaged resource

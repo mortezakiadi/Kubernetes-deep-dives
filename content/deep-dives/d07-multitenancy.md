@@ -17,7 +17,29 @@ A SaaS platform hosts standard, premium and regulated tenants on a shared Kubern
 - **Soft isolation (namespace):**
   - **ResourceQuotas and LimitRanges:** stop one tenant from exhausting cluster resources.
   - **NetworkPolicies (default deny):** block traffic between tenants unless explicitly allowed.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: tenant-a
+spec:
+  podSelector: {}          # every pod in the namespace
+  policyTypes: ["Ingress", "Egress"]
+```
+
   - **Pod Security Standards, enforced by Pod Security Admission (PSA):** three levels, Privileged (no restrictions, the danger zone), Baseline (reasonable defaults) and Restricted (maximum, production-grade hardening). The example labels the `prod` namespace with `pod-security.kubernetes.io/enforce: restricted`.
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+```
+
   - **RBAC-scoped service accounts:** the identity each pod runs as, scoped to its namespace rather than the cluster.
 - **Hard isolation (node / cluster):**
   - **Dedicated node groups:** different instance families per workload type.
@@ -81,6 +103,32 @@ A SaaS platform hosts standard, premium and regulated tenants on a shared Kubern
 - **How you switch it on, step 1, a `RuntimeClass`:** named `gvisor`, with `handler: runsc`, which tells the container engine to use gVisor.
 - **Step 2, the Deployment:** a premium tenant's Deployment adds one line, `runtimeClassName: gvisor`. Kubernetes then runs those containers on a node that has gVisor, using the same standard image, with no rebuild.
 
+```yaml
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: premium-tenant-app
+  namespace: tenant-a-premium
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: my-app}
+  template:
+    metadata:
+      labels: {app: my-app}
+    spec:
+      runtimeClassName: gvisor     # the one extra line
+      containers:
+      - name: my-container
+        image: my-company/standard-app:1.0
+```
+
 **Going deeper.**
 
 - AI agents that run generated code or untrusted tools need the same isolation.
@@ -98,6 +146,16 @@ A SaaS platform hosts standard, premium and regulated tenants on a shared Kubern
 - **seccomp:** a properly configured seccomp profile is an allowlist that blocks every system call the application doesn't strictly need.
 - **AppArmor / SELinux policies:** mandatory access control in the kernel, on top of normal file permissions (like `chmod 777`). For example, a policy can say "the Nginx process may only read `/var/www/html` and only write to `/var/log/nginx`".
 - **User namespace remapping:** the kernel maps UID 0 (root) inside the container to a high, unprivileged UID on the host. If an attacker breaks out, they find themselves as a powerless user on the host, unable to do damage.
+
+```yaml
+spec:
+  hostUsers: false               # user namespaces: root in the pod is nobody on the host
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    appArmorProfile:
+      type: RuntimeDefault
+```
 
 ### Control plane security
 

@@ -18,6 +18,17 @@ These are real incidents written as *problem → why → fix*, one per section.
 - **The symptom:** with 30 database pods each needing its own volume, pods 29 and 30 stay `Pending` with `Volume node affinity conflict` or `MaxVolumeCountExceeded`.
 - **The fix:** use pod anti-affinity or topology spread constraints to spread the database pods across more nodes, even though each node has spare CPU and RAM.
 
+```yaml
+spec:
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app: postgres
+```
+
 ### The stuck volume
 
 **Scenario.** A worker node running a database crashes suddenly. Kubernetes reschedules the database pod onto a healthy node, but the pod keeps crashing because it can't mount its data. The EBS console still shows the volume as attached to a node that no longer exists.
@@ -44,6 +55,17 @@ These are real incidents written as *problem → why → fix*, one per section.
 - **The problem:** a snapshot restored into `us-east-1a` can never be used by database nodes in `us-east-1b`. Kubernetes can't stretch a cable between data centres.
 - **The fix:** when restoring a snapshot for a PVC, make sure the new volume is in the same AZ as the nodes. Setting `volumeBindingMode: WaitForFirstConsumer` in the StorageClass helps automate this the first time a volume is provisioned.
 
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3-wffc
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  type: gp3
+```
+
 ### Force delete and filesystem corruption
 
 **Scenario.** A database pod is stuck in `Terminating`, and an impatient engineer runs `kubectl delete pod --force --grace-period=0`. The pod comes back on another node, but the database won't start: its filesystem is corrupted.
@@ -67,6 +89,18 @@ These are real incidents written as *problem → why → fix*, one per section.
 - **The problem:** gp3 volumes include 3,000 IOPS for free. If the database suddenly needs 10,000 IOPS, AWS throttles the disk.
 - **The cascade:** disk latency goes from 1 ms to 100 ms or more, so database connections pile up, the connection pool fills, and the whole application crashes.
 - **The fix:** watch `BurstBalance` (for gp2) or the volume throughput and IOPS metrics in CloudWatch. For heavy databases don't rely on the baseline; provision exactly the IOPS you need (for example `iops: 10000` in the StorageClass).
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3-db
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  iops: "10000"
+  throughput: "500"     # MiB/s
+```
 
 ### Cross-AZ transfer costs
 
@@ -96,12 +130,25 @@ These are real incidents written as *problem → why → fix*, one per section.
 - **Why does the kernel kill the pod if cache can be dropped?** A memory limit creates a cgroup "box". When the memory charged to the box reaches the limit, the kernel must reclaim memory inside it before granting more. If active cache plus the process's own memory can't be reclaimed fast enough, the kernel gives up and OOM-kills.
 - **The solutions:**
   - **Don't set a memory limit:** with only a request, the pod can use the node's free cache and is killed only if the node itself runs out.
+
+```yaml
+resources:
+  requests:
+    memory: 8Gi        # no limit: only node-level pressure can kill it
+```
+
   - **Widen the gap:** set the limit well above the request to pay the "page cache tax".
   - **Monitor the right metric:** `container_memory_working_set_bytes` shows what Kubernetes sees.
   - **App-level tuning:** in Python or C++, call `posix_fadvise(POSIX_FADV_DONTNEED)` after processing a range of a file. It's a hint that tells the kernel "I'm done with this part, you can evict it", which puts you, not the kernel, in charge of what stays cached even on a 1 TB dataset.
 - **The opposite advice, for shared nodes:**
   - **Don't skip the limit:** it's better for one batch job to die than for it to make the node evict everyone else.
   - **Request = limit:** give batch jobs Guaranteed QoS so the kubelet can't over-schedule the node.
+
+```yaml
+resources:
+  requests: {cpu: "4", memory: 16Gi}
+  limits:   {cpu: "4", memory: 16Gi}   # Guaranteed QoS
+```
 
 ### Thundering herd
 
@@ -136,6 +183,28 @@ These are real incidents written as *problem → why → fix*, one per section.
 - **Why `restartPolicy` isn't the fix:** Jobs use `Never` or `OnFailure`, but either way the Job controller immediately creates a replacement when a pod is preempted, so `restartPolicy` alone doesn't stop the loop.
 - **The solution, queue instead of retry:** admit Jobs through Kueue only when capacity actually exists, set `preemptionPolicy: Never` on batch, and add a `podFailurePolicy` so preemption doesn't trigger endless replacements.
 
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nightly-batch
+  labels:
+    kueue.x-k8s.io/queue-name: batch     # wait for capacity instead of thrashing
+spec:
+  parallelism: 50
+  backoffLimit: 6
+  podFailurePolicy:
+    rules:
+    - action: Ignore                    # preemption doesn't count as a failure
+      onPodConditions:
+      - type: DisruptionTarget
+  template:
+    spec:
+      priorityClassName: batch-low      # preemptionPolicy: Never
+      restartPolicy: Never
+      containers: []                    # omitted
+```
+
 **Going deeper.** The same kind of loop appears when a descheduler's strategy disagrees with the scheduler's scoring: pods get evicted, land back on the same node, and get evicted again. A steadily rising eviction count with no consolidation is the signal.
 
 ### CPU limit vs. request gap
@@ -152,3 +221,10 @@ These are real incidents written as *problem → why → fix*, one per section.
 - **What the request actually does:** it only sets CPU shares. Under contention CFS splits CPU by shares, but the batch burst still grabs cores, caches and memory bandwidth in spikes.
 - **The result:** if the web pods have tight CPU limits, those spikes throttle them, giving p99 jitter at a 60% average.
 - **The solution:** for CPU-heavy batch jobs, set requests close to limits. That tells Kubernetes "this pod is heavy, don't pack too much else here", and the batch job gets a steady share instead of violent bursts. For I/O-bound batch work (mostly waiting on network or disk), low requests are fine.
+
+```yaml
+resources:
+  requests: {cpu: "6"}
+  limits:   {cpu: "8"}   # small gap: steady share, no 7-core surprise
+```
+

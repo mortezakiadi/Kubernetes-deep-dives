@@ -16,6 +16,19 @@ This deep dive follows how `resources.requests` and `resources.limits` turn into
 - **1. Kubernetes (the policy maker):** two pod specs.
   - **Web service pod (high priority):** requests `cpu: 1000m`, limit `cpu: 2000m`.
   - **Batch job pod (low priority):** requests `cpu: 250m`, limit `cpu: 500m`.
+
+```yaml
+# web service pod
+resources:
+  requests: {cpu: 1000m}
+  limits:   {cpu: 2000m}
+---
+# batch job pod
+resources:
+  requests: {cpu: 250m}
+  limits:   {cpu: 500m}
+```
+
   - **Kubelet (the translator):** reads these specs and writes them into cgroups.
 - **2. Linux cgroups (the translator's output):** one cgroup per pod, each with two files.
   - **Web service cgroup:** `cpu.shares = 1024` and `cpu.cfs_quota_us = 200000` per 100 ms period.
