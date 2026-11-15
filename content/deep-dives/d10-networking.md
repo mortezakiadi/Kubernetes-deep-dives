@@ -3,7 +3,7 @@ id: d-networking
 title: "Node networking and the high-performance path"
 short: "EKS Networking"
 ---
-This tab covers what happens on a worker node when a pod starts, and the path that large training jobs need: SR-IOV, RDMA and EFA.
+This deep dive covers what happens on a worker node when a pod starts, and the path that large training jobs need: SR-IOV, RDMA and EFA.
 
 ### What runs on a worker node
 

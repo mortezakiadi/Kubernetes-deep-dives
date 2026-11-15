@@ -51,7 +51,7 @@ def toc(body_html):
     if len(items) < 2:
         return ""
     lis = "".join(f'<li><a href="#{i}">{re.sub("<[^>]+>", "", t)}</a></li>' for i, t in items)
-    return f'<nav class="toc" aria-label="Sections in this tab"><ol>{lis}</ol></nav>'
+    return f'<nav class="toc" aria-label="Sections in this deep dive"><ol>{lis}</ol></nav>'
 
 
 def main():
@@ -70,7 +70,7 @@ def main():
         if kind == "tab":
             tabno += 1
             label = f"{tabno:02d}"
-            tag = f"Tab {label} · {n} section" + ("s" if n != 1 else "")
+            tag = f"Deep dive {label} · {n} section" + ("s" if n != 1 else "")
             nav.append(f'<li><a href="#{sid}"><b>{label}</b> {html.escape(meta["short"])}</a></li>')
         else:
             tag = "Further research"

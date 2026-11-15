@@ -3,7 +3,7 @@ id: d-cgroups
 title: "From a YAML limit to a kernel quota"
 short: "cgroups"
 ---
-This tab follows how `resources.requests` and `resources.limits` turn into cgroup settings that the Linux CFS scheduler enforces.
+This deep dive follows how `resources.requests` and `resources.limits` turn into cgroup settings that the Linux CFS scheduler enforces.
 
 ### Policy maker, translator, enforcer
 

@@ -3,7 +3,7 @@ id: d-stateful
 title: "Stateful workloads: databases on EKS"
 short: "EKS Stateful workloads"
 ---
-A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services. This tab is everything I'd check before trusting that setup in production.
+A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services. This deep dive is everything I'd check before trusting that setup in production.
 
 ### Workloads, node groups and scheduling
 

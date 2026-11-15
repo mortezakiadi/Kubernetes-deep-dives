@@ -3,7 +3,7 @@ id: d-challenges-2
 title: "Troubleshooting networking"
 short: "Challenges 2"
 ---
-Three tickets arrive in one morning: "pods stuck Pending", "service unreachable" and "everything is slow when calling external APIs". This tab is the runbook for all three.
+Three tickets arrive in one morning: "pods stuck Pending", "service unreachable" and "everything is slow when calling external APIs". This deep dive is the runbook for all three.
 
 ### IP exhaustion
 

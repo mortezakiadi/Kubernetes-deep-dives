@@ -3,7 +3,7 @@ id: d-batch-realtime
 title: "Batch and real-time on one cluster"
 short: "EKS Batch and Realtime"
 ---
-One cluster runs a latency-critical web API next to cost-driven batch jobs. This tab follows the isolation stack from node tiers down to CPU, memory, network and disk.
+One cluster runs a latency-critical web API next to cost-driven batch jobs. This deep dive follows the isolation stack from node tiers down to CPU, memory, network and disk.
 
 ### Workloads and node tiers
 

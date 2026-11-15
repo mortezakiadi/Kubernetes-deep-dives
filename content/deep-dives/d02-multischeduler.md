@@ -3,7 +3,7 @@ id: d-multischeduler
 title: "When one scheduler isn't enough"
 short: "EKS Multi-Scheduler"
 ---
-The default scheduler places pods one at a time and knows nothing about jobs, teams or GPU topology. This tab covers the problems that pushed the ecosystem toward Kueue, Volcano, KAI and YuniKorn, and how to choose between them.
+The default scheduler places pods one at a time and knows nothing about jobs, teams or GPU topology. This deep dive covers the problems that pushed the ecosystem toward Kueue, Volcano, KAI and YuniKorn, and how to choose between them.
 
 ### How a Pod finds its scheduler
 

@@ -169,7 +169,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <div class="prose"><p>I drew these diagrams while working through how Kubernetes and Amazon EKS really behave in production. Every section here starts with a <strong>scenario</strong>, a concrete problem or question, followed by the part of my diagram that explains it and a short note on what to take away.</p>
 <p>Click any diagram to open it full screen, then scroll or pinch to zoom and drag to move around.</p></div>
       <ul class="stats">
-        <li>14 tabs</li>
+        <li>14 deep dives</li>
         <li>83 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
@@ -177,11 +177,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     
 <section class="entry tab" id="d-scheduler" aria-labelledby="d-scheduler-h">
   <header class="entry-head">
-    <span class="tag">Tab 01 · 8 sections</span>
+    <span class="tag">Deep dive 01 · 8 sections</span>
     <h2 id="d-scheduler-h">How kube-scheduler picks a node</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d01-1">Phase 1: filtering</a></li><li><a href="#d01-2">Filtering outcomes at a glance</a></li><li><a href="#d01-3">Phase 2: scoring plugins</a></li><li><a href="#d01-4">Score × weight</a></li><li><a href="#d01-5">When affinity loses to ImageLocality</a></li><li><a href="#d01-6">A worked example</a></li><li><a href="#d01-7">The weight field in your YAML</a></li><li><a href="#d01-8">Scheduler score vs. OOM score</a></li></ol></nav>
-  <div class="prose"><p>Every pod goes through the same decision: filter out the nodes that can't run it, score the ones that can, and bind it to the best one. This tab follows that decision step by step.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d01-1">Phase 1: filtering</a></li><li><a href="#d01-2">Filtering outcomes at a glance</a></li><li><a href="#d01-3">Phase 2: scoring plugins</a></li><li><a href="#d01-4">Score × weight</a></li><li><a href="#d01-5">When affinity loses to ImageLocality</a></li><li><a href="#d01-6">A worked example</a></li><li><a href="#d01-7">The weight field in your YAML</a></li><li><a href="#d01-8">Scheduler score vs. OOM score</a></li></ol></nav>
+  <div class="prose"><p>Every pod goes through the same decision: filter out the nodes that can't run it, score the ones that can, and bind it to the best one. This deep dive follows that decision step by step.</p>
 <h3 id="d01-1">Phase 1: filtering</h3>
 <p><strong>Scenario.</strong> A pod stays <code>Pending</code> with <code>0/12 nodes are available</code>. The developer says there's "plenty of room".</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-1.svg" data-title="Phase 1: filtering" aria-label="Open diagram full screen: Phase 1: filtering"><img src="diagrams/sections/d01-1.svg" alt="Diagram: Phase 1: filtering" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -220,11 +220,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-multischeduler" aria-labelledby="d-multischeduler-h">
   <header class="entry-head">
-    <span class="tag">Tab 02 · 8 sections</span>
+    <span class="tag">Deep dive 02 · 8 sections</span>
     <h2 id="d-multischeduler-h">When one scheduler isn&#x27;t enough</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d02-1">How a Pod finds its scheduler</a></li><li><a href="#d02-2">Gang scheduling</a></li><li><a href="#d02-3">Topology bin-packing</a></li><li><a href="#d02-4">Queueing and fair sharing</a></li><li><a href="#d02-5">Hardware-aware scheduling</a></li><li><a href="#d02-6">Volcano vs. Kueue</a></li><li><a href="#d02-7">The landscape</a></li><li><a href="#d02-8">What every scheduler relies on</a></li></ol></nav>
-  <div class="prose"><p>The default scheduler places pods one at a time and knows nothing about jobs, teams or GPU topology. This tab covers the problems that pushed the ecosystem toward Kueue, Volcano, KAI and YuniKorn, and how to choose between them.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d02-1">How a Pod finds its scheduler</a></li><li><a href="#d02-2">Gang scheduling</a></li><li><a href="#d02-3">Topology bin-packing</a></li><li><a href="#d02-4">Queueing and fair sharing</a></li><li><a href="#d02-5">Hardware-aware scheduling</a></li><li><a href="#d02-6">Volcano vs. Kueue</a></li><li><a href="#d02-7">The landscape</a></li><li><a href="#d02-8">What every scheduler relies on</a></li></ol></nav>
+  <div class="prose"><p>The default scheduler places pods one at a time and knows nothing about jobs, teams or GPU topology. This deep dive covers the problems that pushed the ecosystem toward Kueue, Volcano, KAI and YuniKorn, and how to choose between them.</p>
 <h3 id="d02-1">How a Pod finds its scheduler</h3>
 <p><strong>Scenario.</strong> On EKS, some pods run on Fargate and others on EC2 nodes, and nobody set <code>schedulerName</code> by hand.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-1.svg" data-title="How a Pod finds its scheduler" aria-label="Open diagram full screen: How a Pod finds its scheduler"><img src="diagrams/sections/d02-1.svg" alt="Diagram: How a Pod finds its scheduler" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -296,11 +296,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-batch-realtime" aria-labelledby="d-batch-realtime-h">
   <header class="entry-head">
-    <span class="tag">Tab 03 · 8 sections</span>
+    <span class="tag">Deep dive 03 · 8 sections</span>
     <h2 id="d-batch-realtime-h">Batch and real-time on one cluster</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d03-1">Workloads and node tiers</a></li><li><a href="#d03-2">Priority, preemption and QoS</a></li><li><a href="#d03-3">Placement, autoscaling and cost</a></li><li><a href="#d03-4">CPU: shares and throttling</a></li><li><a href="#d03-5">Kernel vs. Kubernetes</a></li><li><a href="#d03-6">Memory: who gets killed</a></li><li><a href="#d03-7">Network: the unmanaged resource</a></li><li><a href="#d03-8">Storage I/O: the other unmanaged resource</a></li></ol></nav>
-  <div class="prose"><p>One cluster runs a latency-critical web API next to cost-driven batch jobs. This tab follows the isolation stack from node tiers down to CPU, memory, network and disk.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d03-1">Workloads and node tiers</a></li><li><a href="#d03-2">Priority, preemption and QoS</a></li><li><a href="#d03-3">Placement, autoscaling and cost</a></li><li><a href="#d03-4">CPU: shares and throttling</a></li><li><a href="#d03-5">Kernel vs. Kubernetes</a></li><li><a href="#d03-6">Memory: who gets killed</a></li><li><a href="#d03-7">Network: the unmanaged resource</a></li><li><a href="#d03-8">Storage I/O: the other unmanaged resource</a></li></ol></nav>
+  <div class="prose"><p>One cluster runs a latency-critical web API next to cost-driven batch jobs. This deep dive follows the isolation stack from node tiers down to CPU, memory, network and disk.</p>
 <h3 id="d03-1">Workloads and node tiers</h3>
 <p><strong>Scenario.</strong> Every evening the batch wave arrives and the API's p99 latency jumps above 100 ms.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-1.svg" data-title="Workloads and node tiers" aria-label="Open diagram full screen: Workloads and node tiers"><img src="diagrams/sections/d03-1.svg" alt="Diagram: Workloads and node tiers" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -346,11 +346,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-cgroups" aria-labelledby="d-cgroups-h">
   <header class="entry-head">
-    <span class="tag">Tab 04 · 2 sections</span>
+    <span class="tag">Deep dive 04 · 2 sections</span>
     <h2 id="d-cgroups-h">From a YAML limit to a kernel quota</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d04-1">Policy maker, translator, enforcer</a></li><li><a href="#d04-2">From a limit to a quota</a></li></ol></nav>
-  <div class="prose"><p>This tab follows how <code>resources.requests</code> and <code>resources.limits</code> turn into cgroup settings that the Linux CFS scheduler enforces.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d04-1">Policy maker, translator, enforcer</a></li><li><a href="#d04-2">From a limit to a quota</a></li></ol></nav>
+  <div class="prose"><p>This deep dive follows how <code>resources.requests</code> and <code>resources.limits</code> turn into cgroup settings that the Linux CFS scheduler enforces.</p>
 <h3 id="d04-1">Policy maker, translator, enforcer</h3>
 <p><strong>Scenario.</strong> A web pod (request 1 core, limit 2) and a batch pod (request 250m, limit 500m) share a busy node. How much CPU does each get?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d04-1.svg" data-title="Policy maker, translator, enforcer" aria-label="Open diagram full screen: Policy maker, translator, enforcer"><img src="diagrams/sections/d04-1.svg" alt="Diagram: Policy maker, translator, enforcer" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -363,10 +363,10 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-challenges-1" aria-labelledby="d-challenges-1-h">
   <header class="entry-head">
-    <span class="tag">Tab 05 · 10 sections</span>
+    <span class="tag">Deep dive 05 · 10 sections</span>
     <h2 id="d-challenges-1-h">Failure modes: storage, memory and controller loops</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d05-1">Volume attachment limit</a></li><li><a href="#d05-2">The stuck volume</a></li><li><a href="#d05-3">Snapshot restored in the wrong AZ</a></li><li><a href="#d05-4">Force delete and filesystem corruption</a></li><li><a href="#d05-5">IOPS throttling cascade</a></li><li><a href="#d05-6">Cross-AZ transfer costs</a></li><li><a href="#d05-7">The page-cache memory trap</a></li><li><a href="#d05-8">Thundering herd</a></li><li><a href="#d05-9">Scheduler thrashing</a></li><li><a href="#d05-10">CPU limit vs. request gap</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d05-1">Volume attachment limit</a></li><li><a href="#d05-2">The stuck volume</a></li><li><a href="#d05-3">Snapshot restored in the wrong AZ</a></li><li><a href="#d05-4">Force delete and filesystem corruption</a></li><li><a href="#d05-5">IOPS throttling cascade</a></li><li><a href="#d05-6">Cross-AZ transfer costs</a></li><li><a href="#d05-7">The page-cache memory trap</a></li><li><a href="#d05-8">Thundering herd</a></li><li><a href="#d05-9">Scheduler thrashing</a></li><li><a href="#d05-10">CPU limit vs. request gap</a></li></ol></nav>
   <div class="prose"><p>These are real incidents written as <em>problem → why → fix</em>, one per section.</p>
 <h3 id="d05-1">Volume attachment limit</h3>
 <p><strong>Scenario.</strong> Database pods 29 and 30 stay <code>Pending</code> on a big node that has plenty of free CPU.</p>
@@ -414,7 +414,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-gpu" aria-labelledby="d-gpu-h">
   <header class="entry-head">
-    <span class="tag">Tab 06 · 1 section</span>
+    <span class="tag">Deep dive 06 · 1 section</span>
     <h2 id="d-gpu-h">How GPUs become schedulable</h2>
   </header>
   
@@ -441,11 +441,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-multitenancy" aria-labelledby="d-multitenancy-h">
   <header class="entry-head">
-    <span class="tag">Tab 07 · 6 sections</span>
+    <span class="tag">Deep dive 07 · 6 sections</span>
     <h2 id="d-multitenancy-h">Multi-tenancy on EKS: soft vs. hard isolation</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d07-1">Tenant classes, soft and hard isolation</a></li><li><a href="#d07-2">Identity, data, network and observability</a></li><li><a href="#d07-3">Sandboxed runtimes: gVisor and Kata</a></li><li><a href="#d07-4">Hardening runC: seccomp, AppArmor, user namespaces</a></li><li><a href="#d07-5">Control plane security</a></li><li><a href="#d07-6">Network isolation and egress</a></li></ol></nav>
-  <div class="prose"><p>A SaaS platform hosts standard, premium and regulated tenants on shared EKS. The question running through this tab: <em>if one tenant is compromised, what can it reach?</em></p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d07-1">Tenant classes, soft and hard isolation</a></li><li><a href="#d07-2">Identity, data, network and observability</a></li><li><a href="#d07-3">Sandboxed runtimes: gVisor and Kata</a></li><li><a href="#d07-4">Hardening runC: seccomp, AppArmor, user namespaces</a></li><li><a href="#d07-5">Control plane security</a></li><li><a href="#d07-6">Network isolation and egress</a></li></ol></nav>
+  <div class="prose"><p>A SaaS platform hosts standard, premium and regulated tenants on shared EKS. The question running through this deep dive: <em>if one tenant is compromised, what can it reach?</em></p>
 <h3 id="d07-1">Tenant classes, soft and hard isolation</h3>
 <p><strong>Scenario.</strong> Sales has just signed a healthcare customer with HIPAA requirements. Can they live next to free-tier tenants?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-1.svg" data-title="Tenant classes, soft and hard isolation" aria-label="Open diagram full screen: Tenant classes, soft and hard isolation"><img src="diagrams/sections/d07-1.svg" alt="Diagram: Tenant classes, soft and hard isolation" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -488,11 +488,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-stateful" aria-labelledby="d-stateful-h">
   <header class="entry-head">
-    <span class="tag">Tab 08 · 11 sections</span>
+    <span class="tag">Deep dive 08 · 11 sections</span>
     <h2 id="d-stateful-h">Stateful workloads: databases on EKS</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d08-1">Workloads, node groups and scheduling</a></li><li><a href="#d08-2">Storage and StatefulSet mechanics</a></li><li><a href="#d08-3">Performance, networking and backup</a></li><li><a href="#d08-4">Spreading across AZs and nodes</a></li><li><a href="#d08-5">NUMA and CPU pinning</a></li><li><a href="#d08-6">I/O scheduler tuning</a></li><li><a href="#d08-7">EBS is AZ-locked: three strategies</a></li><li><a href="#d08-8">How EBS really behaves</a></li><li><a href="#d08-9">File system, mount options and O_DIRECT</a></li><li><a href="#d08-10">The EBS CSI driver</a></li><li><a href="#d08-11">The PV subsystem end to end</a></li></ol></nav>
-  <div class="prose"><p>A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services. This tab is everything I'd check before trusting that setup in production.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d08-1">Workloads, node groups and scheduling</a></li><li><a href="#d08-2">Storage and StatefulSet mechanics</a></li><li><a href="#d08-3">Performance, networking and backup</a></li><li><a href="#d08-4">Spreading across AZs and nodes</a></li><li><a href="#d08-5">NUMA and CPU pinning</a></li><li><a href="#d08-6">I/O scheduler tuning</a></li><li><a href="#d08-7">EBS is AZ-locked: three strategies</a></li><li><a href="#d08-8">How EBS really behaves</a></li><li><a href="#d08-9">File system, mount options and O_DIRECT</a></li><li><a href="#d08-10">The EBS CSI driver</a></li><li><a href="#d08-11">The PV subsystem end to end</a></li></ol></nav>
+  <div class="prose"><p>A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services. This deep dive is everything I'd check before trusting that setup in production.</p>
 <h3 id="d08-1">Workloads, node groups and scheduling</h3>
 <p><strong>Scenario.</strong> Spot interruptions keep restarting a database replica that ended up on a Spot node.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-1.svg" data-title="Workloads, node groups and scheduling" aria-label="Open diagram full screen: Workloads, node groups and scheduling"><img src="diagrams/sections/d08-1.svg" alt="Diagram: Workloads, node groups and scheduling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -567,11 +567,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-pod-networking" aria-labelledby="d-pod-networking-h">
   <header class="entry-head">
-    <span class="tag">Tab 09 · 9 sections</span>
+    <span class="tag">Deep dive 09 · 9 sections</span>
     <h2 id="d-pod-networking-h">EKS pod networking: VPC CNI to Cilium</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d09-1">VPC CNI architecture and ENI limits</a></li><li><a href="#d09-2">Warm pools and prefix delegation</a></li><li><a href="#d09-3">Packet paths</a></li><li><a href="#d09-4">kube-proxy: iptables vs. IPVS</a></li><li><a href="#d09-4b">conntrack: the connection ledger</a></li><li><a href="#d09-5">Security groups for pods and network policies</a></li><li><a href="#d09-6">The packet's journey through netfilter</a></li><li><a href="#d09-7">From NetworkPolicy YAML to kernel rules</a></li><li><a href="#d09-8">Calico vs. Cilium</a></li></ol></nav>
-  <div class="prose"><p>This tab follows a packet from the moment a pod gets its IP, through Services and network policies, down into the kernel's netfilter hooks.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d09-1">VPC CNI architecture and ENI limits</a></li><li><a href="#d09-2">Warm pools and prefix delegation</a></li><li><a href="#d09-3">Packet paths</a></li><li><a href="#d09-4">kube-proxy: iptables vs. IPVS</a></li><li><a href="#d09-4b">conntrack: the connection ledger</a></li><li><a href="#d09-5">Security groups for pods and network policies</a></li><li><a href="#d09-6">The packet's journey through netfilter</a></li><li><a href="#d09-7">From NetworkPolicy YAML to kernel rules</a></li><li><a href="#d09-8">Calico vs. Cilium</a></li></ol></nav>
+  <div class="prose"><p>This deep dive follows a packet from the moment a pod gets its IP, through Services and network policies, down into the kernel's netfilter hooks.</p>
 <h3 id="d09-1">VPC CNI architecture and ENI limits</h3>
 <p><strong>Scenario.</strong> A t3.medium refuses to run an 18th pod, even though it has free CPU.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-1.svg" data-title="VPC CNI architecture and ENI limits" aria-label="Open diagram full screen: VPC CNI architecture and ENI limits"><img src="diagrams/sections/d09-1.svg" alt="Diagram: VPC CNI architecture and ENI limits" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -619,11 +619,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-networking" aria-labelledby="d-networking-h">
   <header class="entry-head">
-    <span class="tag">Tab 10 · 5 sections</span>
+    <span class="tag">Deep dive 10 · 5 sections</span>
     <h2 id="d-networking-h">Node networking and the high-performance path</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d10-1">What runs on a worker node</a></li><li><a href="#d10-2">Network policy limits</a></li><li><a href="#d10-3">Network optimization levers</a></li><li><a href="#d10-4">Standard vs. SR-IOV vs. RDMA</a></li><li><a href="#d10-5">Latency and EFA</a></li></ol></nav>
-  <div class="prose"><p>This tab covers what happens on a worker node when a pod starts, and the path that large training jobs need: SR-IOV, RDMA and EFA.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d10-1">What runs on a worker node</a></li><li><a href="#d10-2">Network policy limits</a></li><li><a href="#d10-3">Network optimization levers</a></li><li><a href="#d10-4">Standard vs. SR-IOV vs. RDMA</a></li><li><a href="#d10-5">Latency and EFA</a></li></ol></nav>
+  <div class="prose"><p>This deep dive covers what happens on a worker node when a pod starts, and the path that large training jobs need: SR-IOV, RDMA and EFA.</p>
 <h3 id="d10-1">What runs on a worker node</h3>
 <p><strong>Scenario.</strong> A new engineer asks what actually happens between "pod scheduled" and "pod has an IP".</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d10-1.svg" data-title="What runs on a worker node" aria-label="Open diagram full screen: What runs on a worker node"><img src="diagrams/sections/d10-1.svg" alt="Diagram: What runs on a worker node" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -657,11 +657,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-challenges-2" aria-labelledby="d-challenges-2-h">
   <header class="entry-head">
-    <span class="tag">Tab 11 · 5 sections</span>
+    <span class="tag">Deep dive 11 · 5 sections</span>
     <h2 id="d-challenges-2-h">Troubleshooting networking</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d11-1">IP exhaustion</a></li><li><a href="#d11-2">Service connectivity drops</a></li><li><a href="#d11-3">DNS issues</a></li><li><a href="#d11-4">Latency by distance</a></li><li><a href="#d11-5">Bandwidth and MTU</a></li></ol></nav>
-  <div class="prose"><p>Three tickets arrive in one morning: "pods stuck Pending", "service unreachable" and "everything is slow when calling external APIs". This tab is the runbook for all three.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d11-1">IP exhaustion</a></li><li><a href="#d11-2">Service connectivity drops</a></li><li><a href="#d11-3">DNS issues</a></li><li><a href="#d11-4">Latency by distance</a></li><li><a href="#d11-5">Bandwidth and MTU</a></li></ol></nav>
+  <div class="prose"><p>Three tickets arrive in one morning: "pods stuck Pending", "service unreachable" and "everything is slow when calling external APIs". This deep dive is the runbook for all three.</p>
 <h3 id="d11-1">IP exhaustion</h3>
 <p><strong>Scenario.</strong> New pods stay <code>Pending</code> or <code>ContainerCreating</code> with "failed to assign an IP address".</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d11-1.svg" data-title="IP exhaustion" aria-label="Open diagram full screen: IP exhaustion"><img src="diagrams/sections/d11-1.svg" alt="Diagram: IP exhaustion" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -686,11 +686,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-optimization" aria-labelledby="d-optimization-h">
   <header class="entry-head">
-    <span class="tag">Tab 12 · 3 sections</span>
+    <span class="tag">Deep dive 12 · 3 sections</span>
     <h2 id="d-optimization-h">Cost optimization on EKS</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d12-1">Compute</a></li><li><a href="#d12-2">Networking</a></li><li><a href="#d12-3">Storage</a></li></ol></nav>
-  <div class="prose"><p>Finance asks why the EKS bill grows faster than traffic. This tab is my checklist, split into compute, network and storage.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d12-1">Compute</a></li><li><a href="#d12-2">Networking</a></li><li><a href="#d12-3">Storage</a></li></ol></nav>
+  <div class="prose"><p>Finance asks why the EKS bill grows faster than traffic. This deep dive is my checklist, split into compute, network and storage.</p>
 <h3 id="d12-1">Compute</h3>
 <p><strong>Scenario.</strong> Half the nodes average 20% CPU, and the GPU bill keeps growing.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d12-1.svg" data-title="Compute" aria-label="Open diagram full screen: Compute"><img src="diagrams/sections/d12-1.svg" alt="Diagram: Compute" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -723,11 +723,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-security" aria-labelledby="d-security-h">
   <header class="entry-head">
-    <span class="tag">Tab 13 · 6 sections</span>
+    <span class="tag">Deep dive 13 · 6 sections</span>
     <h2 id="d-security-h">EKS security from build to runtime</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#d13-1">What we protect</a></li><li><a href="#d13-2">The build pipeline</a></li><li><a href="#d13-3">Runtime security</a></li><li><a href="#d13-4">Network security</a></li><li><a href="#d13-5">Secret management</a></li><li><a href="#d13-6">Identity and model endpoints</a></li></ol></nav>
-  <div class="prose"><p>Security asks for one picture of how a model-serving platform is protected before launch. This tab answers it layer by layer.</p>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d13-1">What we protect</a></li><li><a href="#d13-2">The build pipeline</a></li><li><a href="#d13-3">Runtime security</a></li><li><a href="#d13-4">Network security</a></li><li><a href="#d13-5">Secret management</a></li><li><a href="#d13-6">Identity and model endpoints</a></li></ol></nav>
+  <div class="prose"><p>Security asks for one picture of how a model-serving platform is protected before launch. This deep dive answers it layer by layer.</p>
 <h3 id="d13-1">What we protect</h3>
 <p><strong>Scenario.</strong> Kickoff with the security team: what is in scope?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d13-1.svg" data-title="What we protect" aria-label="Open diagram full screen: What we protect"><img src="diagrams/sections/d13-1.svg" alt="Diagram: What we protect" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -766,7 +766,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <section class="entry tab" id="d-storage-basics" aria-labelledby="d-storage-basics-h">
   <header class="entry-head">
-    <span class="tag">Tab 14 · 1 section</span>
+    <span class="tag">Deep dive 14 · 1 section</span>
     <h2 id="d-storage-basics-h">StorageClass, PV and PVC in one analogy</h2>
   </header>
   
@@ -789,7 +789,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Further research</span>
     <h2 id="post-serving-h">Serving LLMs on Kubernetes</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-serving-from-a-python-script-to-a-model-server">From a Python script to a model server</a></li><li><a href="#post-serving-the-serving-runtimes-worth-knowing">The serving runtimes worth knowing</a></li><li><a href="#post-serving-deploying-by-hand">Deploying by hand</a></li><li><a href="#post-serving-kserve-separate-the-runtime-from-the-model">KServe: separate the runtime from the model</a></li><li><a href="#post-serving-ray-serve-and-kuberay">Ray Serve and KubeRay</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#post-serving-from-a-python-script-to-a-model-server">From a Python script to a model server</a></li><li><a href="#post-serving-the-serving-runtimes-worth-knowing">The serving runtimes worth knowing</a></li><li><a href="#post-serving-deploying-by-hand">Deploying by hand</a></li><li><a href="#post-serving-kserve-separate-the-runtime-from-the-model">KServe: separate the runtime from the model</a></li><li><a href="#post-serving-ray-serve-and-kuberay">Ray Serve and KubeRay</a></li></ol></nav>
   <div class="prose"><p>Before the deep dives, here's the workload most of them end up hosting: a large language model behind an API. This post covers what it takes to go from a model on a laptop to a production endpoint on Kubernetes.</p>
 <h3 id="post-serving-from-a-python-script-to-a-model-server">From a Python script to a model server</h3>
 <p>Loading a model with the Transformers library and calling it works for a demo, but it is one process, one hard-coded prompt and no API. Wrapping it in FastAPI is the next step, and at that point you are rebuilding a <strong>model server</strong>: a runtime that loads the model, exposes it over REST or gRPC, and is tuned for throughput and latency. Memory is the first constraint: as a rule of thumb, a 7B model needs a GPU with about 15 GB, and a 70B model needs about 140 GB.</p>
@@ -824,7 +824,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Further research</span>
     <h2 id="post-model-data-h">Getting model weights into pods</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-model-data-what-s-in-a-model-file">What's in a model file</a></li><li><a href="#post-model-data-model-registries">Model registries</a></li><li><a href="#post-model-data-four-ways-to-get-weights-into-a-pod">Four ways to get weights into a pod</a></li><li><a href="#post-model-data-why-oci-images-fit-models-well">Why OCI images fit models well</a></li><li><a href="#post-model-data-my-rule-of-thumb">My rule of thumb</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#post-model-data-what-s-in-a-model-file">What's in a model file</a></li><li><a href="#post-model-data-model-registries">Model registries</a></li><li><a href="#post-model-data-four-ways-to-get-weights-into-a-pod">Four ways to get weights into a pod</a></li><li><a href="#post-model-data-why-oci-images-fit-models-well">Why OCI images fit models well</a></li><li><a href="#post-model-data-my-rule-of-thumb">My rule of thumb</a></li></ol></nav>
   <div class="prose"><p>LLM weights range from a few GB (Mistral 7B is about 14 GB) to nearly a terabyte (Llama 3.1 405B is about 750 GB). Moving that much data into pods quickly and cheaply is a storage, network and startup-time problem. This post covers the formats, the registries, and four ways to get weights to a model server.</p>
 <h3 id="post-model-data-what-s-in-a-model-file">What's in a model file</h3>
 <ul>
@@ -888,7 +888,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Further research</span>
     <h2 id="post-production-h">Running LLMs in production</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-production-1-choose-the-model-with-numbers-not-vibes">1. Choose the model with numbers, not vibes</a></li><li><a href="#post-production-2-compress-then-evaluate-again">2. Compress, then evaluate again</a></li><li><a href="#post-production-3-do-the-memory-math">3. Do the memory math</a></li><li><a href="#post-production-4-tune-the-runtime-for-the-workload">4. Tune the runtime for the workload</a></li><li><a href="#post-production-5-benchmark-like-production">5. Benchmark like production</a></li><li><a href="#post-production-6-scale-start-fast-route-smartly">6. Scale, start fast, route smartly</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#post-production-1-choose-the-model-with-numbers-not-vibes">1. Choose the model with numbers, not vibes</a></li><li><a href="#post-production-2-compress-then-evaluate-again">2. Compress, then evaluate again</a></li><li><a href="#post-production-3-do-the-memory-math">3. Do the memory math</a></li><li><a href="#post-production-4-tune-the-runtime-for-the-workload">4. Tune the runtime for the workload</a></li><li><a href="#post-production-5-benchmark-like-production">5. Benchmark like production</a></li><li><a href="#post-production-6-scale-start-fast-route-smartly">6. Scale, start fast, route smartly</a></li></ol></nav>
   <div class="prose"><p>Getting a model to answer once is easy. Keeping it fast, affordable and correct under real traffic is the hard part. These are the steps I'd go through before calling an LLM deployment production-ready.</p>
 <h3 id="post-production-1-choose-the-model-with-numbers-not-vibes">1. Choose the model with numbers, not vibes</h3>
 <p>Two models of the same size can behave very differently on your task. Use public leaderboards (MMLU for knowledge, HellaSwag for commonsense, TruthfulQA for truthfulness) only to build a shortlist, because published scores can't be verified. Then re-run the evaluations yourself with tools like EleutherAI's <strong>lm-evaluation-harness</strong>. Benchmarks take minutes to hours, so run them as asynchronous jobs in a pipeline. TrustyAI wraps the harness as an <code>LMEvalJob</code> custom resource. Add task-specific checks too: <strong>Ragas</strong> for RAG quality and <strong>garak</strong> for security probing.</p>
@@ -931,7 +931,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Further research</span>
     <h2 id="post-observability-h">Observing LLMs</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-observability-1-the-usual-stack-still-applies">1. The usual stack still applies</a></li><li><a href="#post-observability-2-measure-tokens-not-requests">2. Measure tokens, not requests</a></li><li><a href="#post-observability-3-fast-isn-t-enough-watch-quality">3. Fast isn't enough: watch quality</a></li><li><a href="#post-observability-4-responsible-ai">4. Responsible AI</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#post-observability-1-the-usual-stack-still-applies">1. The usual stack still applies</a></li><li><a href="#post-observability-2-measure-tokens-not-requests">2. Measure tokens, not requests</a></li><li><a href="#post-observability-3-fast-isn-t-enough-watch-quality">3. Fast isn't enough: watch quality</a></li><li><a href="#post-observability-4-responsible-ai">4. Responsible AI</a></li></ol></nav>
   <div class="prose"><p>Kubernetes heals crashed pods, but it can't tell you that answers got slow, or wrong. LLM observability starts with the usual logs, metrics and traces, then switches to tokens instead of requests, and finally adds a layer most services never need: checking that the answers are any good.</p>
 <h3 id="post-observability-1-the-usual-stack-still-applies">1. The usual stack still applies</h3>
 <ul>
@@ -961,7 +961,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Further research</span>
     <h2 id="post-customizing-h">Customizing models: prompts, RAG, LoRA and training jobs</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-customizing-1-try-the-cheap-options-first">1. Try the cheap options first</a></li><li><a href="#post-customizing-2-full-fine-tuning-vs-lora">2. Full fine-tuning vs. LoRA</a></li><li><a href="#post-customizing-3-running-tuning-jobs-on-kubernetes">3. Running tuning jobs on Kubernetes</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#post-customizing-1-try-the-cheap-options-first">1. Try the cheap options first</a></li><li><a href="#post-customizing-2-full-fine-tuning-vs-lora">2. Full fine-tuning vs. LoRA</a></li><li><a href="#post-customizing-3-running-tuning-jobs-on-kubernetes">3. Running tuning jobs on Kubernetes</a></li></ol></nav>
   <div class="prose"><p>Almost nobody trains an LLM from scratch. Pre-training takes thousands of GPUs for weeks, and alignment then teaches the base model to follow instructions safely. What platform teams actually run is <strong>post-training</strong>: adapting an already aligned model to their domain. The first question is whether you need to train at all.</p>
 <h3 id="post-customizing-1-try-the-cheap-options-first">1. Try the cheap options first</h3>
 <ul>
@@ -992,7 +992,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Further research</span>
     <h2 id="post-ai-apps-h">RAG and agents on Kubernetes</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-ai-apps-1-two-application-shapes">1. Two application shapes</a></li><li><a href="#post-ai-apps-2-rag-end-to-end">2. RAG, end to end</a></li><li><a href="#post-ai-apps-3-agents">3. Agents</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#post-ai-apps-1-two-application-shapes">1. Two application shapes</a></li><li><a href="#post-ai-apps-2-rag-end-to-end">2. RAG, end to end</a></li><li><a href="#post-ai-apps-3-agents">3. Agents</a></li></ol></nav>
   <div class="prose"><p>In a real product, the model is one service among many. The application owns the logic: it fetches context, calls tools, keeps state, and uses the LLM for generation and reasoning. This post maps those pieces onto Kubernetes.</p>
 <h3 id="post-ai-apps-1-two-application-shapes">1. Two application shapes</h3>
 <ul>
@@ -1058,7 +1058,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Further research</span>
     <h2 id="post-agents-prod-h">Running agents in production</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-agents-prod-1-mcp-one-protocol-for-tools">1. MCP: one protocol for tools</a></li><li><a href="#post-agents-prod-2-whose-identity-reaches-the-backend">2. Whose identity reaches the backend?</a></li><li><a href="#post-agents-prod-3-a2a-agents-talking-to-agents">3. A2A: agents talking to agents</a></li><li><a href="#post-agents-prod-4-memory-and-long-running-work">4. Memory and long-running work</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#post-agents-prod-1-mcp-one-protocol-for-tools">1. MCP: one protocol for tools</a></li><li><a href="#post-agents-prod-2-whose-identity-reaches-the-backend">2. Whose identity reaches the backend?</a></li><li><a href="#post-agents-prod-3-a2a-agents-talking-to-agents">3. A2A: agents talking to agents</a></li><li><a href="#post-agents-prod-4-memory-and-long-running-work">4. Memory and long-running work</a></li></ol></nav>
   <div class="prose"><p>Agents bring three problems that plain microservices don't: <strong>who they act as</strong>, <strong>how they talk to each other</strong>, and <strong>what they remember</strong>. The protocols are still young, but the operational patterns below hold regardless of framework.</p>
 <h3 id="post-agents-prod-1-mcp-one-protocol-for-tools">1. MCP: one protocol for tools</h3>
 <p>The <strong>Model Context Protocol</strong> replaces one-off integrations between every agent and every tool (M×N) with a single protocol (M+N). Tools describe themselves with a name, a description and a JSON schema, and calls use JSON-RPC. On Kubernetes:</p>

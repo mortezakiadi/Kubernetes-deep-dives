@@ -3,7 +3,7 @@ id: d-optimization
 title: "Cost optimization on EKS"
 short: "EKS Optimization"
 ---
-Finance asks why the EKS bill grows faster than traffic. This tab is my checklist, split into compute, network and storage.
+Finance asks why the EKS bill grows faster than traffic. This deep dive is my checklist, split into compute, network and storage.
 
 ### Compute
 

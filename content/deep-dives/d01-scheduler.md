@@ -3,7 +3,7 @@ id: d-scheduler
 title: "How kube-scheduler picks a node"
 short: "EKS Scheduler"
 ---
-Every pod goes through the same decision: filter out the nodes that can't run it, score the ones that can, and bind it to the best one. This tab follows that decision step by step.
+Every pod goes through the same decision: filter out the nodes that can't run it, score the ones that can, and bind it to the best one. This deep dive follows that decision step by step.
 
 ### Phase 1: filtering
 

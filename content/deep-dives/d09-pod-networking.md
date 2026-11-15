@@ -3,7 +3,7 @@ id: d-pod-networking
 title: "EKS pod networking: VPC CNI to Cilium"
 short: "EKS Pod Networking"
 ---
-This tab follows a packet from the moment a pod gets its IP, through Services and network policies, down into the kernel's netfilter hooks.
+This deep dive follows a packet from the moment a pod gets its IP, through Services and network policies, down into the kernel's netfilter hooks.
 
 ### VPC CNI architecture and ENI limits
 

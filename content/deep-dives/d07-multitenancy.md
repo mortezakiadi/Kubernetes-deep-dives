@@ -3,7 +3,7 @@ id: d-multitenancy
 title: "Multi-tenancy on EKS: soft vs. hard isolation"
 short: "EKS Multi-tenancy"
 ---
-A SaaS platform hosts standard, premium and regulated tenants on shared EKS. The question running through this tab: *if one tenant is compromised, what can it reach?*
+A SaaS platform hosts standard, premium and regulated tenants on shared EKS. The question running through this deep dive: *if one tenant is compromised, what can it reach?*
 
 ### Tenant classes, soft and hard isolation
 
