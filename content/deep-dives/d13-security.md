@@ -21,7 +21,12 @@ Security asks for one picture of how a model-serving platform is protected befor
 
 **What the picture shows.** Build (minimal or distroless base images, multi-stage builds, immutable tags) → test (Snyk in CI) → store (signing with Cosign or AWS Signer, OPA Gatekeeper) → encrypt (KMS, Vault, Secrets Store CSI) → scan (Inspector, Trivy) → deploy (private subnets, no SSH, IMDS blocked, hardened AMI) → monitor.
 
-**Going deeper.** Model files belong in the supply chain too. Classic PyTorch `.pt` files use Python pickle, which can execute arbitrary code when loaded. **Safetensors** stores only tensors and can't, which makes it the safer default for weights from outside the organization. Signing and scanning model images works the same way as for application images.
+**Going deeper.**
+
+- Model files belong in the supply chain too.
+- Classic PyTorch `.pt` files use Python pickle, which can execute arbitrary code when loaded.
+- **Safetensors** stores only tensors and can't, which makes it the safer default for weights from outside the organization.
+- Signing and scanning model images works the same way as for application images.
 
 ### Runtime security
 
@@ -55,7 +60,13 @@ Security asks for one picture of how a model-serving platform is protected befor
 
 **What the picture shows.** IRSA vs. EKS Pod Identity (simpler setup through an agent DaemonSet), TLS everywhere with ACM certificates on the ALB or NLB, and WAF on the ingress.
 
-**Going deeper.** Model endpoints also need **guardrails**: checks on the prompt before the model and on the answer after it. They catch prompt injection ("ignore all previous instructions"), jailbreaks, toxic output and leaked personal data. Small classifier models such as Llama Guard or Granite Guardian run as their own vLLM deployments. Frameworks like NeMo Guardrails, the FMS Guardrails Orchestrator, Guardrails AI or a moderation API wire them in. Every check adds latency and GPU cost, so keep the in-line checks small and sample the rest asynchronously.
+**Going deeper.**
+
+- Model endpoints also need **guardrails**: checks on the prompt before the model and on the answer after it.
+- They catch prompt injection ("ignore all previous instructions"), jailbreaks, toxic output and leaked personal data.
+- Small classifier models such as Llama Guard or Granite Guardian run as their own vLLM deployments.
+- Frameworks like NeMo Guardrails, the FMS Guardrails Orchestrator, Guardrails AI or a moderation API wire them in.
+- Every check adds latency and GPU cost, so keep the in-line checks small and sample the rest asynchronously.
 
 Agents add an identity question: when an agent calls a tool (an MCP server) on a user's behalf, whose identity does the backend see? There are four common answers:
 

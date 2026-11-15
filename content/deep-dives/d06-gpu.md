@@ -18,11 +18,17 @@ short: "EKS and GPU"
 
 In our setup, the plugin is installed by the EKS Terraform module.
 
-**Going deeper.** Two discovery layers come first. **Node Feature Discovery** labels basic hardware facts (PCI vendor and class), and **GPU Feature Discovery** adds GPU details (model, memory, family, CUDA version). The device plugin then does four jobs:
+**Going deeper.**
+
+- Two discovery layers come first.
+- **Node Feature Discovery** labels basic hardware facts (PCI vendor and class), and **GPU Feature Discovery** adds GPU details (model, memory, family, CUDA version).
+- The device plugin then does four jobs:
 
 - it discovers devices;
 - it allocates them exclusively to containers;
 - it monitors their health;
 - it advertises them as `nvidia.com/gpu` for scheduling.
 
-A minimal vLLM Deployment on such a node still needs a GPU limit, a toleration for the GPU taint, and a PVC as a model cache, so restarts don't re-download the weights. Plugins expose counts, not topology. That gap is why topology labels, Dynamic Resource Allocation and topology-aware schedulers exist.
+- A minimal vLLM Deployment on such a node still needs a GPU limit, a toleration for the GPU taint, and a PVC as a model cache, so restarts don't re-download the weights.
+- Plugins expose counts, not topology.
+- That gap is why topology labels, Dynamic Resource Allocation and topology-aware schedulers exist.

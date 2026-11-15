@@ -26,9 +26,17 @@ AI applications follow the same split:
 
 ![Priority, preemption and QoS](diagrams/sections/d03-2.svg)
 
-**What the picture shows.** Two different mechanisms. **PriorityClasses** are the scheduler's tool, applied cluster-wide (`web-critical` preempts, `batch-low` never does). **QoS** (Guaranteed > Burstable > BestEffort) is the kubelet's tool, applied on one node under resource pressure.
+**What the picture shows.**
 
-**Going deeper.** Kueue adds a job-level layer on top of these two. WorkloadPriorityClasses decide admission order, and preemption can reclaim quota that another team borrowed. Which hardware a job gets and who goes first are separate decisions.
+- Two different mechanisms.
+- **PriorityClasses** are the scheduler's tool, applied cluster-wide (`web-critical` preempts, `batch-low` never does).
+- **QoS** (Guaranteed > Burstable > BestEffort) is the kubelet's tool, applied on one node under resource pressure.
+
+**Going deeper.**
+
+- Kueue adds a job-level layer on top of these two.
+- WorkloadPriorityClasses decide admission order, and preemption can reclaim quota that another team borrowed.
+- Which hardware a job gets and who goes first are separate decisions.
 
 ### Placement, autoscaling and cost
 
@@ -36,11 +44,25 @@ AI applications follow the same split:
 
 ![Placement, autoscaling and cost](diagrams/sections/d03-3.svg)
 
-**What the picture shows.** Affinity for web, anti-affinity for batch, and requests and limits per workload type. Autoscaling uses HPA for web (fast up, slow down) and Karpenter for batch (diversified Spot, consolidation). Spot interruptions are handled by checkpointing, and the key alerts are pending pods, queue depth and p99.
+**What the picture shows.**
 
-**Going deeper.** Packing pairs with the **descheduler**, which periodically evicts pods so they can be placed again on a tighter set of nodes. Its strategy must match the scheduler's: `HighNodeUtilization` goes with MostAllocated, and `LowNodeUtilization` goes with LeastAllocated. Mix them and you get an eviction loop. For training, every eviction costs a checkpoint and restart, so PodDisruptionBudgets, maintenance windows and excluded namespaces matter. Model-parallel inference scales in *whole groups* (a 4-GPU replica can't become 3), so autoscale on requests per second or latency with HPA or KEDA, and keep replicas warm because model loading is slow.
+- Affinity for web, anti-affinity for batch, and requests and limits per workload type.
+- Autoscaling uses HPA for web (fast up, slow down) and Karpenter for batch (diversified Spot, consolidation).
+- Spot interruptions are handled by checkpointing, and the key alerts are pending pods, queue depth and p99.
 
-LLM servers break the usual autoscaling signals. The default HPA watches CPU and memory, but the work happens on the GPU. Request-based scaling (Knative's KPA) treats a 10-token answer and a 10,000-token answer as the same. What works is **KEDA** on the model server's own metrics, such as `vllm:num_requests_waiting` or `vllm:num_requests_running`, or latency targets (TTFT, time per output token). Scale-to-zero rarely fits: a new replica can take minutes to pull and load the model, so keep a warm minimum and alert on token latency and queue depth rather than CPU.
+**Going deeper.**
+
+- Packing pairs with the **descheduler**, which periodically evicts pods so they can be placed again on a tighter set of nodes.
+- Its strategy must match the scheduler's: `HighNodeUtilization` goes with MostAllocated, and `LowNodeUtilization` goes with LeastAllocated.
+- Mix them and you get an eviction loop.
+- For training, every eviction costs a checkpoint and restart, so PodDisruptionBudgets, maintenance windows and excluded namespaces matter.
+- Model-parallel inference scales in *whole groups* (a 4-GPU replica can't become 3), so autoscale on requests per second or latency with HPA or KEDA, and keep replicas warm because model loading is slow.
+
+- LLM servers break the usual autoscaling signals.
+- The default HPA watches CPU and memory, but the work happens on the GPU.
+- Request-based scaling (Knative's KPA) treats a 10-token answer and a 10,000-token answer as the same.
+- What works is **KEDA** on the model server's own metrics, such as `vllm:num_requests_waiting` or `vllm:num_requests_running`, or latency targets (TTFT, time per output token).
+- Scale-to-zero rarely fits: a new replica can take minutes to pull and load the model, so keep a warm minimum and alert on token latency and queue depth rather than CPU.
 
 ### CPU: shares and throttling
 
@@ -48,7 +70,11 @@ LLM servers break the usual autoscaling signals. The default HPA watches CPU and
 
 ![CPU: shares and throttling](diagrams/sections/d03-4.svg)
 
-**What the picture shows.** Requests become CPU shares, which split the CPU under contention. Limits become a quota per 100 ms window. A multi-threaded pod can use up its quota early in the window and then freeze until the next one, which is where the p99 jitter comes from.
+**What the picture shows.**
+
+- Requests become CPU shares, which split the CPU under contention.
+- Limits become a quota per 100 ms window.
+- A multi-threaded pod can use up its quota early in the window and then freeze until the next one, which is where the p99 jitter comes from.
 
 ### Kernel vs. Kubernetes
 
@@ -56,7 +82,11 @@ LLM servers break the usual autoscaling signals. The default HPA watches CPU and
 
 ![Kernel vs. Kubernetes](diagrams/sections/d03-5.svg)
 
-**What the picture shows.** Kubernetes sets the policy, the kubelet translates it into cgroups, and the kernel enforces it. The one thing the kernel can't do is stop a node from being overpacked. Only the scheduler's request accounting does that.
+**What the picture shows.**
+
+- Kubernetes sets the policy, the kubelet translates it into cgroups, and the kernel enforces it.
+- The one thing the kernel can't do is stop a node from being overpacked.
+- Only the scheduler's request accounting does that.
 
 ### Memory: who gets killed
 
@@ -64,7 +94,11 @@ LLM servers break the usual autoscaling signals. The default HPA watches CPU and
 
 ![Memory: who gets killed](diagrams/sections/d03-6.svg)
 
-**What the picture shows.** Memory can't be compressed: the OOM killer runs at container or node level. QoS sets `oom_score_adj` (BestEffort 1000, Guaranteed -997, Burstable in between, depending on its memory request). Among Burstable pods, the kubelet evicts the one furthest over its request first.
+**What the picture shows.**
+
+- Memory can't be compressed: the OOM killer runs at container or node level.
+- QoS sets `oom_score_adj` (BestEffort 1000, Guaranteed -997, Burstable in between, depending on its memory request).
+- Among Burstable pods, the kubelet evicts the one furthest over its request first.
 
 ### Network: the unmanaged resource
 
@@ -80,4 +114,8 @@ LLM servers break the usual autoscaling signals. The default HPA watches CPU and
 
 ![Storage I/O: the other unmanaged resource](diagrams/sections/d03-8.svg)
 
-**What the picture shows.** EBS throttles per volume, not per pod, and Kubernetes doesn't expose the `blkio` controller. The symptoms are I/O wait, processes stuck in the D state, and failing liveness probes. The fixes are dedicated volumes per critical pod, EBS-optimized instances, and node-level guardrails.
+**What the picture shows.**
+
+- EBS throttles per volume, not per pod, and Kubernetes doesn't expose the `blkio` controller.
+- The symptoms are I/O wait, processes stuck in the D state, and failing liveness probes.
+- The fixes are dedicated volumes per critical pod, EBS-optimized instances, and node-level guardrails.

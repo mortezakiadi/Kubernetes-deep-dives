@@ -35,7 +35,11 @@ This deep dive follows a packet from the moment a pod gets its IP, through Servi
 
 ![kube-proxy: iptables vs. IPVS](diagrams/sections/d09-4.svg)
 
-**What the picture shows.** iptables mode walks a linear list of rules and picks backends with probabilistic NAT. IPVS uses hash lookups and real load-balancing algorithms (round robin, least connections). Both still rely on conntrack.
+**What the picture shows.**
+
+- iptables mode walks a linear list of rules and picks backends with probabilistic NAT.
+- IPVS uses hash lookups and real load-balancing algorithms (round robin, least connections).
+- Both still rely on conntrack.
 
 **Going deeper.** For LLM backends, round-robin is the wrong algorithm, whichever kube-proxy mode delivers it:
 
@@ -51,7 +55,12 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
 
 ![conntrack: the connection ledger](diagrams/sections/d09-4b.svg)
 
-**What the picture shows.** conntrack remembers every flow so reply packets find their way back. Entries expire on timeouts. An established TCP connection's default timeout is 5 days, so a busy node can fill the table. A shorter `nf_conntrack_tcp_timeout_established` is one fix.
+**What the picture shows.**
+
+- conntrack remembers every flow so reply packets find their way back.
+- Entries expire on timeouts.
+- An established TCP connection's default timeout is 5 days, so a busy node can fill the table.
+- A shorter `nf_conntrack_tcp_timeout_established` is one fix.
 
 ### Security groups for pods and network policies
 
@@ -59,7 +68,11 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
 
 ![Security groups for pods and network policies](diagrams/sections/d09-5.svg)
 
-**What the picture shows.** A trunk ENI and per-pod branch ENIs, each with its own security group. The cost is pod density, so use them only where AWS-level firewalls are required. Kubernetes NetworkPolicies need an engine: the VPC CNI's native one, Calico, or Cilium.
+**What the picture shows.**
+
+- A trunk ENI and per-pod branch ENIs, each with its own security group.
+- The cost is pod density, so use them only where AWS-level firewalls are required.
+- Kubernetes NetworkPolicies need an engine: the VPC CNI's native one, Calico, or Cilium.
 
 ### The packet's journey through netfilter
 
@@ -75,7 +88,11 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
 
 ![From NetworkPolicy YAML to kernel rules](diagrams/sections/d09-7.svg)
 
-**What the picture shows.** The YAML is only intent. Calico (the translator) turns it into iptables chains at the FORWARD hook (the enforcement). If no engine is running, nothing enforces the policy.
+**What the picture shows.**
+
+- The YAML is only intent.
+- Calico (the translator) turns it into iptables chains at the FORWARD hook (the enforcement).
+- If no engine is running, nothing enforces the policy.
 
 ### Calico vs. Cilium
 
@@ -83,4 +100,8 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
 
 ![Calico vs. Cilium](diagrams/sections/d09-8.svg)
 
-**What the picture shows.** Calico's policy-only mode writes iptables rules per IP pair. Cilium uses eBPF and identity-aware policies at tc/XDP, so a packet is checked before the kernel builds its buffer. The `kubeProxyReplacement` modes run from off to full, with DSR for return traffic.
+**What the picture shows.**
+
+- Calico's policy-only mode writes iptables rules per IP pair.
+- Cilium uses eBPF and identity-aware policies at tc/XDP, so a packet is checked before the kernel builds its buffer.
+- The `kubeProxyReplacement` modes run from off to full, with DSR for return traffic.

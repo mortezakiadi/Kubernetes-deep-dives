@@ -11,9 +11,17 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 
 ![How a Pod finds its scheduler](diagrams/sections/d02-1.svg)
 
-**What the picture shows.** Every scheduler watches for unscheduled pods whose `schedulerName` matches its own. For Fargate, a mutating webhook sets `fargate-scheduler` on pods that match a Fargate profile. The table compares the default scheduler with an ML-oriented one.
+**What the picture shows.**
 
-**Going deeper.** Ray (through KubeRay) is another two-scheduler setup. Kubernetes places and restarts the Ray head and worker pods, and Ray's own scheduler places tasks and actors inside them. That suits Python teams well, but capacity accounting and debugging now span two layers.
+- Every scheduler watches for unscheduled pods whose `schedulerName` matches its own.
+- For Fargate, a mutating webhook sets `fargate-scheduler` on pods that match a Fargate profile.
+- The table compares the default scheduler with an ML-oriented one.
+
+**Going deeper.**
+
+- Ray (through KubeRay) is another two-scheduler setup.
+- Kubernetes places and restarts the Ray head and worker pods, and Ray's own scheduler places tasks and actors inside them.
+- That suits Python teams well, but capacity accounting and debugging now span two layers.
 
 ### Gang scheduling
 
@@ -71,7 +79,11 @@ WorkloadPriorityClasses decide admission order, and fair sharing favors teams th
 
 **What the picture shows.** A scheduler that matches workloads to hardware features (RDMA/InfiniBand switch, newer GPU generation) instead of only counting GPUs. Labels and selectors work to start with, and become painful across many hardware generations.
 
-**Going deeper.** NVIDIA's GPU Feature Discovery labels every node with the GPU product (e.g. `A100-SXM4-40GB`), memory, architecture family, driver and CUDA versions, MIG capability, and the number of shared replicas. Kueue turns these labels into **ResourceFlavors**: the premium flavor (NVLink + InfiniBand) is listed first, with a fallback flavor and `TryNextFlavor`. Which hardware a job gets (flavor) and who goes first (priority) stay separate decisions.
+**Going deeper.**
+
+- NVIDIA's GPU Feature Discovery labels every node with the GPU product (e.g. `A100-SXM4-40GB`), memory, architecture family, driver and CUDA versions, MIG capability, and the number of shared replicas.
+- Kueue turns these labels into **ResourceFlavors**: the premium flavor (NVLink + InfiniBand) is listed first, with a fallback flavor and `TryNextFlavor`.
+- Which hardware a job gets (flavor) and who goes first (priority) stay separate decisions.
 
 ### Volcano vs. Kueue
 
@@ -81,9 +93,15 @@ WorkloadPriorityClasses decide admission order, and fair sharing favors teams th
 
 **What the picture shows.** Volcano replaces the scheduler and understands dependencies between task types (start workers only once the master is placed). Kueue sits in front of the default scheduler and manages quota, borrowing and fairness between teams.
 
-**Going deeper.** The production answer is usually "both layers": Kueue for admission and quota on top of a gang-aware or topology-aware scheduler (kube-scheduler with plugins, KAI or Volcano), with a workload API that groups the pods (PyTorchJob/TrainJob, JobSet, LeaderWorkerSet). Kueue stays vendor-neutral and keeps policy separate from mechanism. A replacement scheduler is worth it when GPU-specific features (fractional GPUs, deep topology awareness) pay for the extra moving part.
+**Going deeper.**
 
-For fine-tuning, **Kubeflow Trainer** shows the same layering. The platform team publishes a `TrainingRuntime` (framework, image, defaults), and data scientists submit a `TrainJob`, often straight from a Python SDK. The controller turns the pair into a **JobSet**, a group of Jobs that Kueue can then admit as one gang.
+- The production answer is usually "both layers": Kueue for admission and quota on top of a gang-aware or topology-aware scheduler (kube-scheduler with plugins, KAI or Volcano), with a workload API that groups the pods (PyTorchJob/TrainJob, JobSet, LeaderWorkerSet).
+- Kueue stays vendor-neutral and keeps policy separate from mechanism.
+- A replacement scheduler is worth it when GPU-specific features (fractional GPUs, deep topology awareness) pay for the extra moving part.
+
+- For fine-tuning, **Kubeflow Trainer** shows the same layering.
+- The platform team publishes a `TrainingRuntime` (framework, image, defaults), and data scientists submit a `TrainJob`, often straight from a Python SDK.
+- The controller turns the pair into a **JobSet**, a group of Jobs that Kueue can then admit as one gang.
 
 ### The landscape
 

@@ -40,11 +40,22 @@ This deep dive covers what happens on a worker node when a pod starts, and the p
 
 ![Standard vs. SR-IOV vs. RDMA](diagrams/sections/d10-4.svg)
 
-**What the picture shows.** Standard virtualization goes through the hypervisor and a software switch. SR-IOV gives a direct hardware path, but the TCP/IP stack still costs CPU. RDMA copies memory to memory between nodes with near-zero CPU.
+**What the picture shows.**
 
-**Going deeper.** For GPU collectives, NCCL is the library doing the all-reduce and all-gather. Across nodes it should run over RDMA (InfiniBand or RoCE, with GPUDirect RDMA moving data straight between GPU memories). On Kubernetes that often means setting `NCCL_SOCKET_IFNAME` and making sure pods can find each other by name. In a synchronized job the slowest node sets everyone's pace, so one congested link shows up as a fleet-wide slowdown.
+- Standard virtualization goes through the hypervisor and a software switch.
+- SR-IOV gives a direct hardware path, but the TCP/IP stack still costs CPU.
+- RDMA copies memory to memory between nodes with near-zero CPU.
 
-Training stresses this path even more than inference. With sharded data parallelism (PyTorch FSDP2), every layer's forward and backward pass gathers weight shards from all GPUs, which adds up to many GB per second of steady traffic. A fine-tuning job that fits in a few GPUs can still end up network-bound if those GPUs sit on different nodes.
+**Going deeper.**
+
+- For GPU collectives, NCCL is the library doing the all-reduce and all-gather.
+- Across nodes it should run over RDMA (InfiniBand or RoCE, with GPUDirect RDMA moving data straight between GPU memories).
+- On Kubernetes that often means setting `NCCL_SOCKET_IFNAME` and making sure pods can find each other by name.
+- In a synchronized job the slowest node sets everyone's pace, so one congested link shows up as a fleet-wide slowdown.
+
+- Training stresses this path even more than inference.
+- With sharded data parallelism (PyTorch FSDP2), every layer's forward and backward pass gathers weight shards from all GPUs, which adds up to many GB per second of steady traffic.
+- A fine-tuning job that fits in a few GPUs can still end up network-bound if those GPUs sit on different nodes.
 
 ### Latency and EFA
 
@@ -54,4 +65,8 @@ Training stresses this path even more than inference. With sharded data parallel
 
 **What the picture shows.** Cluster placement groups for latency, and EFA (RDMA with NCCL support) for throughput. On EKS, the `aws-efa-k8s-device-plugin` advertises EFA interfaces as a schedulable resource, so pods can request them like GPUs.
 
-**Going deeper.** Disaggregated LLM serving pushes this further. When prefill and decode run on separate pods and pass the KV cache between them, the pods need on the order of hundreds of Gbps between them, far beyond a normal 10–20 Gbps pod network. That's why setups like llm-d or NVIDIA Dynamo assume RDMA, RoCE or NVLink fabrics, and behave more like an appliance than a typical Deployment.
+**Going deeper.**
+
+- Disaggregated LLM serving pushes this further.
+- When prefill and decode run on separate pods and pass the KV cache between them, the pods need on the order of hundreds of Gbps between them, far beyond a normal 10–20 Gbps pod network.
+- That's why setups like llm-d or NVIDIA Dynamo assume RDMA, RoCE or NVLink fabrics, and behave more like an appliance than a typical Deployment.

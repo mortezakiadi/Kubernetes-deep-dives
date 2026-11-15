@@ -191,8 +191,20 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d01-1">Phase 1: filtering</h3>
 <p><strong>Scenario.</strong> A pod stays <code>Pending</code> with <code>0/12 nodes are available</code>. The developer says there's "plenty of room".</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-1.svg" data-title="Phase 1: filtering" aria-label="Open diagram full screen: Phase 1: filtering"><img src="diagrams/sections/d01-1.svg" alt="Diagram: Phase 1: filtering" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> <mark class="kw-act">Filtering</mark> drops any node that fails a hard rule: requested CPU or memory doesn't fit, nodeSelector doesn't match, an untolerated <mark class="kw">taint</mark>, required <mark class="kw">affinity</mark> or anti-affinity, or a hostPort that's already taken. "Plenty of room" usually means <em>free usage</em>, but the scheduler only counts <em>requests</em>. The event message lists which rule removed how many nodes.</p>
-<p><strong>Going deeper.</strong> For GPUs, these same filters do the steering. <code>nvidia.com/gpu: 1</code> is purely resource-based, so every GPU counts the same: a 16 GB T4 and an 80 GB A100 are both "1". A <code>nodeSelector</code> on GPU labels pins an exact model, <mark class="kw">node affinity</mark> can say "at least 40 GB, prefer Hopper", and a taint on GPU nodes keeps everything else off them. Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time. Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the <a href="#d02-2">gang problem</a>.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li><mark class="kw-act">Filtering</mark> drops any node that fails a hard rule: requested CPU or memory doesn't fit, nodeSelector doesn't match, an untolerated <mark class="kw">taint</mark>, required <mark class="kw">affinity</mark> or anti-affinity, or a hostPort that's already taken.</li>
+<li>"Plenty of room" usually means <em>free usage</em>, but the scheduler only counts <em>requests</em>.</li>
+<li>The event message lists which rule removed how many nodes.</li>
+</ul>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>For GPUs, these same filters do the steering.</li>
+<li><code>nvidia.com/gpu: 1</code> is purely resource-based, so every GPU counts the same: a 16 GB T4 and an 80 GB A100 are both "1".</li>
+<li>A <code>nodeSelector</code> on GPU labels pins an exact model, <mark class="kw">node affinity</mark> can say "at least 40 GB, prefer Hopper", and a taint on GPU nodes keeps everything else off them.</li>
+<li>Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.</li>
+<li>Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the <a href="#d02-2">gang problem</a>.</li>
+</ul>
 <h3 id="d01-2">Filtering outcomes at a glance</h3>
 <p><strong>Scenario.</strong> On-call needs a quick way to map an event message to a cause.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-2.svg" data-title="Filtering outcomes" aria-label="Open diagram full screen: Filtering outcomes"><img src="diagrams/sections/d01-2.svg" alt="Diagram: Filtering outcomes" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -200,12 +212,28 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d01-3">Phase 2: scoring plugins</h3>
 <p><strong>Scenario.</strong> Three nodes pass <mark class="kw-act">filtering</mark>. Why does the pod always land on the same one?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-3.svg" data-title="Phase 2: scoring plugins" aria-label="Open diagram full screen: Phase 2: scoring plugins"><img src="diagrams/sections/d01-3.svg" alt="Diagram: Phase 2: scoring plugins" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Each plugin gives every node a 0–100 <mark class="kw-act">score</mark>: LeastAllocated (the spreader), BalancedAllocation (keeps CPU and memory even), ImageLocality (image already cached) and preferred <mark class="kw">affinity</mark>. The node with the highest weighted total wins. Preferred affinity is the only one you set directly in the pod spec.</p>
-<p><strong>Going deeper.</strong> For GPU training I switch NodeResourcesFit to <strong>MostAllocated</strong> (<mark class="kw-act">bin-packing</mark>) and give <code>nvidia.com/gpu</code> a higher weight than CPU and memory. Packing leaves whole nodes empty, so the <mark class="kw-act">autoscaler</mark> can remove them. That matters when a GPU node costs tens of dollars an hour. The catch is a bigger blast radius per node, so I offer it as a separate scheduler profile and let critical services keep spreading.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Each plugin gives every node a 0–100 <mark class="kw-act">score</mark>: LeastAllocated (the spreader), BalancedAllocation (keeps CPU and memory even), ImageLocality (image already cached) and preferred <mark class="kw">affinity</mark>.</li>
+<li>The node with the highest weighted total wins.</li>
+<li>Preferred affinity is the only one you set directly in the pod spec.</li>
+</ul>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>For GPU training I switch NodeResourcesFit to <strong>MostAllocated</strong> (<mark class="kw-act">bin-packing</mark>) and give <code>nvidia.com/gpu</code> a higher weight than CPU and memory.</li>
+<li>Packing leaves whole nodes empty, so the <mark class="kw-act">autoscaler</mark> can remove them.</li>
+<li>That matters when a GPU node costs tens of dollars an hour.</li>
+<li>The catch is a bigger blast radius per node, so I offer it as a separate scheduler profile and let critical services keep spreading.</li>
+</ul>
 <h3 id="d01-4">Score × weight</h3>
 <p><strong>Scenario.</strong> You need to explain on a whiteboard how "points" become a decision.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-4.svg" data-title="Score × weight" aria-label="Open diagram full screen: Score × weight"><img src="diagrams/sections/d01-4.svg" alt="Diagram: Score × weight" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> <code>final score = Σ (plugin score × plugin weight)</code>. The <mark class="kw-act">score</mark> measures <em>quality</em> ("how empty is this node?") and the weight measures <em>importance</em>. Worked examples: LeastAllocated gives 80 for a node that's 80% free, and ImageLocality rises with how much of the image is cached.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li><code>final score = Σ (plugin score × plugin weight)</code>.</li>
+<li>The <mark class="kw-act">score</mark> measures <em>quality</em> ("how empty is this node?") and the weight measures <em>importance</em>.</li>
+<li>Worked examples: LeastAllocated gives 80 for a node that's 80% free, and ImageLocality rises with how much of the image is cached.</li>
+</ul>
 <h3 id="d01-5">When affinity loses to ImageLocality</h3>
 <p><strong>Scenario.</strong> A pod has a soft <mark class="kw">affinity</mark> to run near its cache service, but keeps landing on a node far away that happens to have its big image.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-5.svg" data-title="When affinity loses to ImageLocality" aria-label="Open diagram full screen: When affinity loses to ImageLocality"><img src="diagrams/sections/d01-5.svg" alt="Diagram: When affinity loses to ImageLocality" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -213,15 +241,30 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d01-6">A worked example</h3>
 <p><strong>Scenario.</strong> Two candidate nodes and three plugins. Which one wins?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-6.svg" data-title="A worked example" aria-label="Open diagram full screen: A worked example"><img src="diagrams/sections/d01-6.svg" alt="Diagram: A worked example" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Node 2 wins on the total even though Node 1 wins one plugin. The picture uses equal weights to keep the arithmetic simple. In the real default profile, <mark class="kw">affinity</mark> has weight 2, which only makes Node 2's lead bigger.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Node 2 wins on the total even though Node 1 wins one plugin.</li>
+<li>The picture uses equal weights to keep the arithmetic simple.</li>
+<li>In the real default profile, <mark class="kw">affinity</mark> has weight 2, which only makes Node 2's lead bigger.</li>
+</ul>
 <h3 id="d01-7">The weight field in your YAML</h3>
 <p><strong>Scenario.</strong> A teammate asks what <code>weight: 80</code> in a pod spec actually does.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-7.svg" data-title="The weight field in your YAML" aria-label="Open diagram full screen: The weight field in your YAML"><img src="diagrams/sections/d01-7.svg" alt="Diagram: The weight field in your YAML" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> <code>weight</code> (1–100) only exists on <em>preferred</em> rules and tunes <mark class="kw-act">scoring</mark>. <em>Required</em> rules have no weight because they're <mark class="kw-act">filters</mark>. A high weight means "a strong suggestion", and a low one means "nice to have".</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li><code>weight</code> (1–100) only exists on <em>preferred</em> rules and tunes <mark class="kw-act">scoring</mark>.</li>
+<li><em>Required</em> rules have no weight because they're <mark class="kw-act">filters</mark>.</li>
+<li>A high weight means "a strong suggestion", and a low one means "nice to have".</li>
+</ul>
 <h3 id="d01-8">Scheduler score vs. OOM score</h3>
 <p><strong>Scenario.</strong> "The scheduler gave this node a low <mark class="kw-act">score</mark>, so why did my important pod get killed there?"</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-8.svg" data-title="Scheduler score vs. OOM score" aria-label="Open diagram full screen: Scheduler score vs. OOM score"><img src="diagrams/sections/d01-8.svg" alt="Diagram: Scheduler score vs. OOM score" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> The scheduler's score only matters at placement time. Under memory pressure, the kubelet <mark class="kw-act">evicts</mark> pods by how far they're over their memory request (then by priority), and the kernel's <mark class="kw">OOM killer</mark> uses <code>oom_score</code>. These are separate systems that use separate numbers (see <a href="#d03-6">Memory: who gets killed</a>).</p></div>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>The scheduler's score only matters at placement time.</li>
+<li>Under memory pressure, the kubelet <mark class="kw-act">evicts</mark> pods by how far they're over their memory request (then by priority), and the kernel's <mark class="kw">OOM killer</mark> uses <code>oom_score</code>.</li>
+<li>These are separate systems that use separate numbers (see <a href="#d03-6">Memory: who gets killed</a>).</li>
+</ul></div>
 </section>
 
 <section class="entry tab" id="d-multischeduler" aria-labelledby="d-multischeduler-h">
@@ -234,8 +277,18 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d02-1">How a Pod finds its scheduler</h3>
 <p><strong>Scenario.</strong> On EKS, some pods run on Fargate and others on EC2 nodes, and nobody set <code>schedulerName</code> by hand.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-1.svg" data-title="How a Pod finds its scheduler" aria-label="Open diagram full screen: How a Pod finds its scheduler"><img src="diagrams/sections/d02-1.svg" alt="Diagram: How a Pod finds its scheduler" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Every scheduler watches for unscheduled pods whose <code>schedulerName</code> matches its own. For Fargate, a mutating webhook sets <code>fargate-scheduler</code> on pods that match a Fargate profile. The table compares the default scheduler with an ML-oriented one.</p>
-<p><strong>Going deeper.</strong> Ray (through KubeRay) is another two-scheduler setup. Kubernetes places and restarts the Ray head and worker pods, and Ray's own scheduler places tasks and actors inside them. That suits Python teams well, but capacity accounting and debugging now span two layers.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Every scheduler watches for unscheduled pods whose <code>schedulerName</code> matches its own.</li>
+<li>For Fargate, a mutating webhook sets <code>fargate-scheduler</code> on pods that match a Fargate profile.</li>
+<li>The table compares the default scheduler with an ML-oriented one.</li>
+</ul>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>Ray (through KubeRay) is another two-scheduler setup.</li>
+<li>Kubernetes places and restarts the Ray head and worker pods, and Ray's own scheduler places tasks and actors inside them.</li>
+<li>That suits Python teams well, but capacity accounting and debugging now span two layers.</li>
+</ul>
 <h3 id="d02-2">Gang scheduling</h3>
 <p><strong>Scenario.</strong> An 8-worker PyTorch job only fits 6 workers. Six GPUs sit allocated, and nothing trains.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-2.svg" data-title="Gang scheduling" aria-label="Open diagram full screen: Gang scheduling"><img src="diagrams/sections/d02-2.svg" alt="Diagram: Gang scheduling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -273,13 +326,29 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> An FP8 training job lands on older GPUs and runs at a fraction of the expected speed.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-5.svg" data-title="Hardware-aware scheduling" aria-label="Open diagram full screen: Hardware-aware scheduling"><img src="diagrams/sections/d02-5.svg" alt="Diagram: Hardware-aware scheduling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> A scheduler that matches workloads to hardware features (<mark class="kw">RDMA</mark>/InfiniBand switch, newer GPU generation) instead of only counting GPUs. Labels and selectors work to start with, and become painful across many hardware generations.</p>
-<p><strong>Going deeper.</strong> NVIDIA's GPU Feature Discovery labels every node with the GPU product (e.g. <code>A100-SXM4-40GB</code>), memory, architecture family, driver and CUDA versions, <mark class="kw">MIG</mark> capability, and the number of shared replicas. <mark class="kw">Kueue</mark> turns these labels into <strong>ResourceFlavors</strong>: the premium flavor (<mark class="kw">NVLink</mark> + InfiniBand) is listed first, with a fallback flavor and <code>TryNextFlavor</code>. Which hardware a job gets (flavor) and who goes first (priority) stay separate decisions.</p>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>NVIDIA's GPU Feature Discovery labels every node with the GPU product (e.g. <code>A100-SXM4-40GB</code>), memory, architecture family, driver and CUDA versions, <mark class="kw">MIG</mark> capability, and the number of shared replicas.</li>
+<li><mark class="kw">Kueue</mark> turns these labels into <strong>ResourceFlavors</strong>: the premium flavor (<mark class="kw">NVLink</mark> + InfiniBand) is listed first, with a fallback flavor and <code>TryNextFlavor</code>.</li>
+<li>Which hardware a job gets (flavor) and who goes first (priority) stay separate decisions.</li>
+</ul>
 <h3 id="d02-6">Volcano vs. Kueue</h3>
 <p><strong>Scenario.</strong> The team has to pick one, and the debate keeps going in circles.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-6.svg" data-title="Volcano vs. Kueue" aria-label="Open diagram full screen: Volcano vs. Kueue"><img src="diagrams/sections/d02-6.svg" alt="Diagram: Volcano vs. Kueue" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> <mark class="kw">Volcano</mark> replaces the scheduler and understands dependencies between task types (start workers only once the master is placed). <mark class="kw">Kueue</mark> sits in front of the default scheduler and manages <mark class="kw">quota</mark>, <mark class="kw-act">borrowing</mark> and fairness between teams.</p>
-<p><strong>Going deeper.</strong> The production answer is usually "both layers": Kueue for admission and quota on top of a gang-aware or <mark class="kw">topology-aware</mark> scheduler (kube-scheduler with plugins, <mark class="kw">KAI</mark> or Volcano), with a workload API that groups the pods (PyTorchJob/TrainJob, <mark class="kw">JobSet</mark>, LeaderWorkerSet). Kueue stays vendor-neutral and keeps policy separate from mechanism. A replacement scheduler is worth it when GPU-specific features (fractional GPUs, deep topology awareness) pay for the extra moving part.</p>
-<p>For fine-tuning, <strong>Kubeflow Trainer</strong> shows the same layering. The platform team publishes a <code>TrainingRuntime</code> (framework, image, defaults), and data scientists submit a <code>TrainJob</code>, often straight from a Python SDK. The controller turns the pair into a <strong>JobSet</strong>, a group of Jobs that Kueue can then <mark class="kw-act">admit</mark> as one gang.</p>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>The production answer is usually "both layers": Kueue for admission and quota on top of a gang-aware or <mark class="kw">topology-aware</mark> scheduler (kube-scheduler with plugins, <mark class="kw">KAI</mark> or Volcano), with a workload API that groups the pods (PyTorchJob/TrainJob, <mark class="kw">JobSet</mark>, LeaderWorkerSet).</li>
+<li>Kueue stays vendor-neutral and keeps policy separate from mechanism.</li>
+<li>
+<p>A replacement scheduler is worth it when GPU-specific features (fractional GPUs, deep topology awareness) pay for the extra moving part.</p>
+</li>
+<li>
+<p>For fine-tuning, <strong>Kubeflow Trainer</strong> shows the same layering.</p>
+</li>
+<li>The platform team publishes a <code>TrainingRuntime</code> (framework, image, defaults), and data scientists submit a <code>TrainJob</code>, often straight from a Python SDK.</li>
+<li>The controller turns the pair into a <strong>JobSet</strong>, a group of Jobs that Kueue can then <mark class="kw-act">admit</mark> as one gang.</li>
+</ul>
 <h3 id="d02-7">The landscape</h3>
 <p><strong>Scenario.</strong> Leadership asks for one page that compares the options.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-7.svg" data-title="The landscape" aria-label="Open diagram full screen: The landscape"><img src="diagrams/sections/d02-7.svg" alt="Diagram: The landscape" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -320,26 +389,71 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d03-2">Priority, preemption and QoS</h3>
 <p><strong>Scenario.</strong> The cluster is full when a traffic spike hits. Who gets <mark class="kw-act">evicted</mark>, and who decides?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-2.svg" data-title="Priority, preemption and QoS" aria-label="Open diagram full screen: Priority, preemption and QoS"><img src="diagrams/sections/d03-2.svg" alt="Diagram: Priority, preemption and QoS" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Two different mechanisms. <strong>PriorityClasses</strong> are the scheduler's tool, applied cluster-wide (<code>web-critical</code> <mark class="kw-act">preempts</mark>, <code>batch-low</code> never does). <strong>QoS</strong> (Guaranteed &gt; Burstable &gt; BestEffort) is the kubelet's tool, applied on one node under resource pressure.</p>
-<p><strong>Going deeper.</strong> <mark class="kw">Kueue</mark> adds a job-level layer on top of these two. WorkloadPriorityClasses decide admission order, and preemption can <mark class="kw-act">reclaim</mark> <mark class="kw">quota</mark> that another team <mark class="kw-act">borrowed</mark>. Which hardware a job gets and who goes first are separate decisions.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Two different mechanisms.</li>
+<li><strong>PriorityClasses</strong> are the scheduler's tool, applied cluster-wide (<code>web-critical</code> <mark class="kw-act">preempts</mark>, <code>batch-low</code> never does).</li>
+<li><strong>QoS</strong> (Guaranteed &gt; Burstable &gt; BestEffort) is the kubelet's tool, applied on one node under resource pressure.</li>
+</ul>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li><mark class="kw">Kueue</mark> adds a job-level layer on top of these two.</li>
+<li>WorkloadPriorityClasses decide admission order, and preemption can <mark class="kw-act">reclaim</mark> <mark class="kw">quota</mark> that another team <mark class="kw-act">borrowed</mark>.</li>
+<li>Which hardware a job gets and who goes first are separate decisions.</li>
+</ul>
 <h3 id="d03-3">Placement, autoscaling and cost</h3>
 <p><strong>Scenario.</strong> Batch costs are climbing even though most nodes look half empty.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-3.svg" data-title="Placement, autoscaling and cost" aria-label="Open diagram full screen: Placement, autoscaling and cost"><img src="diagrams/sections/d03-3.svg" alt="Diagram: Placement, autoscaling and cost" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> <mark class="kw">Affinity</mark> for web, anti-affinity for batch, and <mark class="kw">requests and limits</mark> per workload type. <mark class="kw-act">Autoscaling</mark> uses <mark class="kw">HPA</mark> for web (fast up, slow down) and <mark class="kw">Karpenter</mark> for batch (diversified Spot, consolidation). Spot interruptions are handled by <mark class="kw-act">checkpointing</mark>, and the key alerts are pending pods, queue depth and p99.</p>
-<p><strong>Going deeper.</strong> Packing pairs with the <strong>descheduler</strong>, which periodically <mark class="kw-act">evicts</mark> pods so they can be placed again on a tighter set of nodes. Its strategy must match the scheduler's: <code>HighNodeUtilization</code> goes with MostAllocated, and <code>LowNodeUtilization</code> goes with LeastAllocated. Mix them and you get an eviction loop. For training, every eviction costs a checkpoint and restart, so PodDisruptionBudgets, maintenance windows and excluded namespaces matter. Model-parallel inference scales in <em>whole groups</em> (a 4-GPU replica can't become 3), so autoscale on requests per second or latency with HPA or <mark class="kw">KEDA</mark>, and keep replicas warm because model loading is slow.</p>
-<p>LLM servers break the usual autoscaling signals. The default HPA watches CPU and memory, but the work happens on the GPU. Request-based scaling (Knative's KPA) treats a 10-token answer and a 10,000-token answer as the same. What works is <strong>KEDA</strong> on the model server's own metrics, such as <code>vllm:num_requests_waiting</code> or <code>vllm:num_requests_running</code>, or latency targets (<mark class="kw">TTFT</mark>, time per output token). Scale-to-zero rarely fits: a new replica can take minutes to pull and load the model, so keep a warm minimum and alert on token latency and queue depth rather than CPU.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li><mark class="kw">Affinity</mark> for web, anti-affinity for batch, and <mark class="kw">requests and limits</mark> per workload type.</li>
+<li><mark class="kw-act">Autoscaling</mark> uses <mark class="kw">HPA</mark> for web (fast up, slow down) and <mark class="kw">Karpenter</mark> for batch (diversified Spot, consolidation).</li>
+<li>Spot interruptions are handled by <mark class="kw-act">checkpointing</mark>, and the key alerts are pending pods, queue depth and p99.</li>
+</ul>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>Packing pairs with the <strong>descheduler</strong>, which periodically <mark class="kw-act">evicts</mark> pods so they can be placed again on a tighter set of nodes.</li>
+<li>Its strategy must match the scheduler's: <code>HighNodeUtilization</code> goes with MostAllocated, and <code>LowNodeUtilization</code> goes with LeastAllocated.</li>
+<li>Mix them and you get an eviction loop.</li>
+<li>For training, every eviction costs a checkpoint and restart, so PodDisruptionBudgets, maintenance windows and excluded namespaces matter.</li>
+<li>
+<p>Model-parallel inference scales in <em>whole groups</em> (a 4-GPU replica can't become 3), so autoscale on requests per second or latency with HPA or <mark class="kw">KEDA</mark>, and keep replicas warm because model loading is slow.</p>
+</li>
+<li>
+<p>LLM servers break the usual autoscaling signals.</p>
+</li>
+<li>The default HPA watches CPU and memory, but the work happens on the GPU.</li>
+<li>Request-based scaling (Knative's KPA) treats a 10-token answer and a 10,000-token answer as the same.</li>
+<li>What works is <strong>KEDA</strong> on the model server's own metrics, such as <code>vllm:num_requests_waiting</code> or <code>vllm:num_requests_running</code>, or latency targets (<mark class="kw">TTFT</mark>, time per output token).</li>
+<li>Scale-to-zero rarely fits: a new replica can take minutes to pull and load the model, so keep a warm minimum and alert on token latency and queue depth rather than CPU.</li>
+</ul>
 <h3 id="d03-4">CPU: shares and throttling</h3>
 <p><strong>Scenario.</strong> The API's average latency looks fine, but p99 spikes every few seconds.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-4.svg" data-title="CPU: shares and throttling" aria-label="Open diagram full screen: CPU: shares and throttling"><img src="diagrams/sections/d03-4.svg" alt="Diagram: CPU: shares and throttling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Requests become CPU shares, which split the CPU under contention. Limits become a <mark class="kw">quota</mark> per 100 ms window. A multi-threaded pod can use up its quota early in the window and then freeze until the next one, which is where the p99 jitter comes from.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Requests become CPU shares, which split the CPU under contention.</li>
+<li>Limits become a <mark class="kw">quota</mark> per 100 ms window.</li>
+<li>A multi-threaded pod can use up its quota early in the window and then freeze until the next one, which is where the p99 jitter comes from.</li>
+</ul>
 <h3 id="d03-5">Kernel vs. Kubernetes</h3>
 <p><strong>Scenario.</strong> "Why do requests matter if the kernel shares CPU fairly anyway?"</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-5.svg" data-title="Kernel vs. Kubernetes" aria-label="Open diagram full screen: Kernel vs. Kubernetes"><img src="diagrams/sections/d03-5.svg" alt="Diagram: Kernel vs. Kubernetes" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Kubernetes sets the policy, the kubelet translates it into <mark class="kw">cgroups</mark>, and the kernel enforces it. The one thing the kernel can't do is stop a node from being overpacked. Only the scheduler's request accounting does that.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Kubernetes sets the policy, the kubelet translates it into <mark class="kw">cgroups</mark>, and the kernel enforces it.</li>
+<li>The one thing the kernel can't do is stop a node from being overpacked.</li>
+<li>Only the scheduler's request accounting does that.</li>
+</ul>
 <h3 id="d03-6">Memory: who gets killed</h3>
 <p><strong>Scenario.</strong> A node runs out of memory. Which pod dies first, and why that one?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-6.svg" data-title="Memory: who gets killed" aria-label="Open diagram full screen: Memory: who gets killed"><img src="diagrams/sections/d03-6.svg" alt="Diagram: Memory: who gets killed" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Memory can't be compressed: the <mark class="kw">OOM killer</mark> runs at container or node level. <mark class="kw">QoS</mark> sets <code>oom_score_adj</code> (BestEffort 1000, Guaranteed -997, Burstable in between, depending on its memory request). Among Burstable pods, the kubelet <mark class="kw-act">evicts</mark> the one furthest over its request first.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Memory can't be compressed: the <mark class="kw">OOM killer</mark> runs at container or node level.</li>
+<li><mark class="kw">QoS</mark> sets <code>oom_score_adj</code> (BestEffort 1000, Guaranteed -997, Burstable in between, depending on its memory request).</li>
+<li>Among Burstable pods, the kubelet <mark class="kw-act">evicts</mark> the one furthest over its request first.</li>
+</ul>
 <h3 id="d03-7">Network: the unmanaged resource</h3>
 <p><strong>Scenario.</strong> A backup pod starts a 10 Gbps transfer and the API on the same node starts dropping connections, yet CPU and memory look perfect.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-7.svg" data-title="Network: the unmanaged resource" aria-label="Open diagram full screen: Network: the unmanaged resource"><img src="diagrams/sections/d03-7.svg" alt="Diagram: Network: the unmanaged resource" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -347,7 +461,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d03-8">Storage I/O: the other unmanaged resource</h3>
 <p><strong>Scenario.</strong> A log archiver saturates a volume, and the database pod sharing it goes from 1 ms to 200 ms latency.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-8.svg" data-title="Storage I/O: the other unmanaged resource" aria-label="Open diagram full screen: Storage I/O: the other unmanaged resource"><img src="diagrams/sections/d03-8.svg" alt="Diagram: Storage I/O: the other unmanaged resource" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> <mark class="kw">EBS</mark> <mark class="kw-act">throttles</mark> per volume, not per pod, and Kubernetes doesn't expose the <code>blkio</code> controller. The symptoms are I/O wait, processes stuck in the D state, and failing liveness probes. The fixes are dedicated volumes per critical pod, EBS-optimized instances, and node-level <mark class="kw">guardrails</mark>.</p></div>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li><mark class="kw">EBS</mark> <mark class="kw-act">throttles</mark> per volume, not per pod, and Kubernetes doesn't expose the <code>blkio</code> controller.</li>
+<li>The symptoms are I/O wait, processes stuck in the D state, and failing liveness probes.</li>
+<li>The fixes are dedicated volumes per critical pod, EBS-optimized instances, and node-level <mark class="kw">guardrails</mark>.</li>
+</ul></div>
 </section>
 
 <section class="entry tab" id="d-cgroups" aria-labelledby="d-cgroups-h">
@@ -360,11 +479,21 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d04-1">Policy maker, translator, enforcer</h3>
 <p><strong>Scenario.</strong> A web pod (request 1 core, limit 2) and a batch pod (request 250m, limit 500m) share a busy node. How much CPU does each get?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d04-1.svg" data-title="Policy maker, translator, enforcer" aria-label="Open diagram full screen: Policy maker, translator, enforcer"><img src="diagrams/sections/d04-1.svg" alt="Diagram: Policy maker, translator, enforcer" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> The kubelet writes shares (1024 vs. 256) and <mark class="kw">quotas</mark> into each pod's <mark class="kw">cgroup</mark>. Under contention, <mark class="kw">CFS</mark> splits the CPU 80/20 by shares. When the batch pod hits its quota, it is <mark class="kw-act">throttled</mark> even if the CPU is otherwise idle.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>The kubelet writes shares (1024 vs. 256) and <mark class="kw">quotas</mark> into each pod's <mark class="kw">cgroup</mark>.</li>
+<li>Under contention, <mark class="kw">CFS</mark> splits the CPU 80/20 by shares.</li>
+<li>When the batch pod hits its quota, it is <mark class="kw-act">throttled</mark> even if the CPU is otherwise idle.</li>
+</ul>
 <h3 id="d04-2">From a limit to a quota</h3>
 <p><strong>Scenario.</strong> "How can a pod use 200 ms of CPU inside a 100 ms window?"</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d04-2.svg" data-title="From a limit to a quota" aria-label="Open diagram full screen: From a limit to a quota"><img src="diagrams/sections/d04-2.svg" alt="Diagram: From a limit to a quota" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> <code>quota = limit in cores × 100,000 µs</code>. A 2-core limit gives 200 ms per window because <mark class="kw">quota</mark> is counted across all cores, so two threads can run flat out for the whole window. On <mark class="kw">cgroup</mark> v2 (recent EKS AMIs) the files are <code>cpu.weight</code> and <code>cpu.max</code>, but the model is the same.</p></div>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li><code>quota = limit in cores × 100,000 µs</code>.</li>
+<li>A 2-core limit gives 200 ms per window because <mark class="kw">quota</mark> is counted across all cores, so two threads can run flat out for the whole window.</li>
+<li>On <mark class="kw">cgroup</mark> v2 (recent EKS AMIs) the files are <code>cpu.weight</code> and <code>cpu.max</code>, but the model is the same.</li>
+</ul></div>
 </section>
 
 <section class="entry tab" id="d-challenges-1" aria-labelledby="d-challenges-1-h">
@@ -381,7 +510,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d05-2">The stuck volume</h3>
 <p><strong>Scenario.</strong> A node dies, and the database pod crash-loops on its replacement node.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-2.svg" data-title="The stuck volume" aria-label="Open diagram full screen: The stuck volume"><img src="diagrams/sections/d05-2.svg" alt="Diagram: The stuck volume" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> The <mark class="kw">EBS</mark> volume still appears attached to the dead node, so the new node can't attach it. The quick fix is to force-detach it. The lasting fix is to keep the EBS CSI driver up to date.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>The <mark class="kw">EBS</mark> volume still appears attached to the dead node, so the new node can't attach it.</li>
+<li>The quick fix is to force-detach it.</li>
+<li>The lasting fix is to keep the EBS CSI driver up to date.</li>
+</ul>
 <h3 id="d05-3">Snapshot restored in the wrong AZ</h3>
 <p><strong>Scenario.</strong> A restored database never starts.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-3.svg" data-title="Snapshot restored in the wrong AZ" aria-label="Open diagram full screen: Snapshot restored in the wrong AZ"><img src="diagrams/sections/d05-3.svg" alt="Diagram: Snapshot restored in the wrong AZ" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -410,12 +544,22 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d05-9">Scheduler thrashing</h3>
 <p><strong>Scenario.</strong> A traffic spike makes <mark class="kw">HPA</mark> add 50 web pods, which <mark class="kw-act">preempt</mark> 50 batch pods. The Job controller recreates them, and they get preempted again, over and over.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-9.svg" data-title="Scheduler thrashing" aria-label="Open diagram full screen: Scheduler thrashing"><img src="diagrams/sections/d05-9.svg" alt="Diagram: Scheduler thrashing" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> A feedback loop between controllers. Changing <code>restartPolicy</code> alone doesn't stop it. The fix is to queue instead of retry: <mark class="kw-act">admit</mark> batch jobs through <mark class="kw">Kueue</mark> only when capacity exists, give batch <code>preemptionPolicy: Never</code>, and set a Job <code>podFailurePolicy</code>.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>A feedback loop between controllers.</li>
+<li>Changing <code>restartPolicy</code> alone doesn't stop it.</li>
+<li>The fix is to queue instead of retry: <mark class="kw-act">admit</mark> batch jobs through <mark class="kw">Kueue</mark> only when capacity exists, give batch <code>preemptionPolicy: Never</code>, and set a Job <code>podFailurePolicy</code>.</li>
+</ul>
 <p><strong>Going deeper.</strong> The same kind of loop appears when a descheduler's strategy disagrees with the scheduler's <mark class="kw-act">scoring</mark>: pods get <mark class="kw-act">evicted</mark>, land back on the same node, and get evicted again. A steadily rising <mark class="kw-act">eviction</mark> count with no consolidation is the signal.</p>
 <h3 id="d05-10">CPU limit vs. request gap</h3>
 <p><strong>Scenario.</strong> Web latency spikes even though node CPU is only at 60%.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-10.svg" data-title="CPU limit vs. request gap" aria-label="Open diagram full screen: CPU limit vs. request gap"><img src="diagrams/sections/d05-10.svg" alt="Diagram: CPU limit vs. request gap" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> A batch pod with a 1-core request and an 8-core limit can burst to 8 cores, but the scheduler only reserved 1 core for it. Neighbours see sudden contention. For CPU-heavy batch, set requests close to limits.</p></div>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>A batch pod with a 1-core request and an 8-core limit can burst to 8 cores, but the scheduler only reserved 1 core for it.</li>
+<li>Neighbours see sudden contention.</li>
+<li>For CPU-heavy batch, set requests close to limits.</li>
+</ul></div>
 </section>
 
 <section class="entry tab" id="d-gpu" aria-labelledby="d-gpu-h">
@@ -435,14 +579,27 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li>The kubelet asks the plugin to attach specific devices to the container.</li>
 </ol>
 <p>In our setup, the plugin is installed by the EKS Terraform module.</p>
-<p><strong>Going deeper.</strong> Two discovery layers come first. <strong>Node Feature Discovery</strong> labels basic hardware facts (PCI vendor and class), and <strong>GPU Feature Discovery</strong> adds GPU details (model, memory, family, CUDA version). The device plugin then does four jobs:</p>
+<p><strong>Going deeper.</strong></p>
 <ul>
-<li>it discovers devices;</li>
+<li>Two discovery layers come first.</li>
+<li><strong>Node Feature Discovery</strong> labels basic hardware facts (PCI vendor and class), and <strong>GPU Feature Discovery</strong> adds GPU details (model, memory, family, CUDA version).</li>
+<li>
+<p>The device plugin then does four jobs:</p>
+</li>
+<li>
+<p>it discovers devices;</p>
+</li>
 <li>it allocates them exclusively to containers;</li>
 <li>it monitors their health;</li>
-<li>it advertises them as <code>nvidia.com/gpu</code> for scheduling.</li>
-</ul>
-<p>A minimal <mark class="kw">vLLM</mark> Deployment on such a node still needs a GPU limit, a <mark class="kw">toleration</mark> for the GPU <mark class="kw">taint</mark>, and a <mark class="kw">PVC</mark> as a model cache, so restarts don't re-download the weights. Plugins expose counts, not topology. That gap is why topology labels, Dynamic Resource Allocation and <mark class="kw">topology-aware</mark> schedulers exist.</p></div>
+<li>
+<p>it advertises them as <code>nvidia.com/gpu</code> for scheduling.</p>
+</li>
+<li>
+<p>A minimal <mark class="kw">vLLM</mark> Deployment on such a node still needs a GPU limit, a <mark class="kw">toleration</mark> for the GPU <mark class="kw">taint</mark>, and a <mark class="kw">PVC</mark> as a model cache, so restarts don't re-download the weights.</p>
+</li>
+<li>Plugins expose counts, not topology.</li>
+<li>That gap is why topology labels, Dynamic Resource Allocation and <mark class="kw">topology-aware</mark> schedulers exist.</li>
+</ul></div>
 </section>
 
 <section class="entry tab" id="d-multitenancy" aria-labelledby="d-multitenancy-h">
@@ -455,8 +612,20 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d07-1">Tenant classes, soft and hard isolation</h3>
 <p><strong>Scenario.</strong> Sales has just signed a healthcare customer with HIPAA requirements. Can they live next to free-tier tenants?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-1.svg" data-title="Tenant classes, soft and hard isolation" aria-label="Open diagram full screen: Tenant classes, soft and hard isolation"><img src="diagrams/sections/d07-1.svg" alt="Diagram: Tenant classes, soft and hard isolation" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Tenants are classified by data sovereignty, compliance, blast radius and SLA. <em>Soft</em> isolation is namespace-based: ResourceQuotas and LimitRanges, default-deny <mark class="kw">NetworkPolicies</mark>, Pod Security Admission <code>restricted</code>, and namespace-scoped service accounts. <em>Hard</em> isolation means dedicated node groups with <mark class="kw">taints</mark>, subnets per tier, or a dedicated cluster for highly regulated tenants.</p>
-<p><strong>Going deeper.</strong> GPUs need the same soft vs. hard choice. <strong>Time slicing</strong> advertises several virtual GPUs per physical GPU, with no memory or fault isolation: one pod can exhaust the memory or crash the GPU for everyone. <strong>MIG</strong> (Ampere and newer) carves a GPU into hardware-isolated slices with their own memory, for example up to 7 on an A100-40GB. That's the right choice for strict multi-tenancy. <mark class="kw">Quota</mark> <em>between</em> tenants (who gets how many GPUs) is a separate problem, handled by <mark class="kw">Kueue</mark>'s ClusterQueues and <mark class="kw">cohorts</mark>.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Tenants are classified by data sovereignty, compliance, blast radius and SLA.</li>
+<li><em>Soft</em> isolation is namespace-based: ResourceQuotas and LimitRanges, default-deny <mark class="kw">NetworkPolicies</mark>, Pod Security Admission <code>restricted</code>, and namespace-scoped service accounts.</li>
+<li><em>Hard</em> isolation means dedicated node groups with <mark class="kw">taints</mark>, subnets per tier, or a dedicated cluster for highly regulated tenants.</li>
+</ul>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>GPUs need the same soft vs. hard choice.</li>
+<li><strong>Time slicing</strong> advertises several virtual GPUs per physical GPU, with no memory or fault isolation: one pod can exhaust the memory or crash the GPU for everyone.</li>
+<li><strong>MIG</strong> (Ampere and newer) carves a GPU into hardware-isolated slices with their own memory, for example up to 7 on an A100-40GB.</li>
+<li>That's the right choice for strict multi-tenancy.</li>
+<li><mark class="kw">Quota</mark> <em>between</em> tenants (who gets how many GPUs) is a separate problem, handled by <mark class="kw">Kueue</mark>'s ClusterQueues and <mark class="kw">cohorts</mark>.</li>
+</ul>
 <h3 id="d07-2">Identity, data, network and observability</h3>
 <p><strong>Scenario.</strong> Tenant A's leaked credentials must not be able to read tenant B's data.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-2.svg" data-title="Identity, data, network and observability" aria-label="Open diagram full screen: Identity, data, network and observability"><img src="diagrams/sections/d07-2.svg" alt="Diagram: Identity, data, network and observability" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -467,12 +636,22 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Network:</strong> a shared ALB for the standard tier and a dedicated NLB plus PrivateLink for premium tenants.</li>
 </ul>
 <p>Logs, metrics and traces all carry tenant labels.</p>
-<p><strong>Going deeper.</strong> For shared LLM endpoints, the unit of fairness is the <strong>token</strong>, not the request: one call can cost 10 tokens or 10,000. AI gateways (Envoy AI Gateway, Kuadrant) enforce token-based rate limits per user or API key. Tracing follows the same tenant-aware approach: model servers like <mark class="kw">vLLM</mark> emit OpenTelemetry spans that can be sent to Jaeger with the tenant in context.</p>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>For shared LLM endpoints, the unit of fairness is the <strong>token</strong>, not the request: one call can cost 10 tokens or 10,000.</li>
+<li>AI gateways (Envoy AI Gateway, Kuadrant) enforce token-based rate limits per user or API key.</li>
+<li>Tracing follows the same tenant-aware approach: model servers like <mark class="kw">vLLM</mark> emit OpenTelemetry spans that can be sent to Jaeger with the tenant in context.</li>
+</ul>
 <h3 id="d07-3">Sandboxed runtimes: gVisor and Kata</h3>
 <p><strong>Scenario.</strong> A premium tenant asks whether a kernel exploit in another tenant's container could reach their workload.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-3.svg" data-title="Sandboxed runtimes: gVisor and Kata" aria-label="Open diagram full screen: Sandboxed runtimes: gVisor and Kata"><img src="diagrams/sections/d07-3.svg" alt="Diagram: Sandboxed runtimes: gVisor and Kata" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> With standard runC, all containers share the host kernel, so a kernel bug can lead to escape. gVisor puts a user-space kernel in between, and Kata runs each pod in a lightweight VM (similar in spirit to Fargate's Firecracker). You opt in per workload with a <code>RuntimeClass</code>.</p>
-<p><strong>Going deeper.</strong> AI agents that run generated code or untrusted tools need the same isolation. The Kubernetes community's <strong>agent sandbox</strong> project adds a pod-shaped, VM-isolated, single-instance runtime with a stable identity that can be paused and resumed. It's designed for interactive or untrusted agent workloads.</p>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>AI agents that run generated code or untrusted tools need the same isolation.</li>
+<li>The Kubernetes community's <strong>agent sandbox</strong> project adds a pod-shaped, VM-isolated, single-instance runtime with a stable identity that can be paused and resumed.</li>
+<li>It's designed for interactive or untrusted agent workloads.</li>
+</ul>
 <h3 id="d07-4">Hardening runC: seccomp, AppArmor, user namespaces</h3>
 <p><strong>Scenario.</strong> Most workloads stay on runC. How do we shrink the attack surface without changing runtimes?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-4.svg" data-title="Hardening runC" aria-label="Open diagram full screen: Hardening runC"><img src="diagrams/sections/d07-4.svg" alt="Diagram: Hardening runC" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -502,7 +681,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d08-1">Workloads, node groups and scheduling</h3>
 <p><strong>Scenario.</strong> Spot interruptions keep restarting a database replica that ended up on a Spot node.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-1.svg" data-title="Workloads, node groups and scheduling" aria-label="Open diagram full screen: Workloads, node groups and scheduling"><img src="diagrams/sections/d08-1.svg" alt="Diagram: Workloads, node groups and scheduling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Stateless "cattle" and stateful "pets" get separate node groups: Spot-heavy with <mark class="kw">Karpenter</mark> for stateless, on-demand only and <mark class="kw">EBS</mark>-optimized for stateful. A <code>stateful=true:NoSchedule</code> <mark class="kw">taint</mark> keeps them apart. <mark class="kw">StatefulSets</mark> give ordered startup, stable names and per-pod <mark class="kw">PVCs</mark>, and a PodDisruptionBudget protects quorum.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Stateless "cattle" and stateful "pets" get separate node groups: Spot-heavy with <mark class="kw">Karpenter</mark> for stateless, on-demand only and <mark class="kw">EBS</mark>-optimized for stateful.</li>
+<li>A <code>stateful=true:NoSchedule</code> <mark class="kw">taint</mark> keeps them apart.</li>
+<li><mark class="kw">StatefulSets</mark> give ordered startup, stable names and per-pod <mark class="kw">PVCs</mark>, and a PodDisruptionBudget protects quorum.</li>
+</ul>
 <p><strong>Going deeper.</strong> An AI application maps cleanly onto the same split:</p>
 <ul>
 <li><strong>Stateless Deployments:</strong> the orchestrator (the app logic around the model), the embedding service, rerankers and model servers.</li>
@@ -520,7 +704,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Reclaim policy:</strong> Retain in production, Delete in dev.</li>
 <li><strong>Updates:</strong> partitioned rolling updates, or <code>OnDelete</code> for manual control.</li>
 </ul>
-<p><strong>Going deeper.</strong> EFS-style shared file systems are a good fit for model weights: many replicas read the same files and never write them. Mount them <code>ReadOnlyMany</code> and <code>readOnly: true</code>. Keep <mark class="kw">EBS</mark> for anything that writes.</p>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>EFS-style shared file systems are a good fit for model weights: many replicas read the same files and never write them.</li>
+<li>Mount them <code>ReadOnlyMany</code> and <code>readOnly: true</code>.</li>
+<li>Keep <mark class="kw">EBS</mark> for anything that writes.</li>
+</ul>
 <h3 id="d08-3">Performance, networking and backup</h3>
 <p><strong>Scenario.</strong> Replication traffic between database nodes adds latency to every commit.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-3.svg" data-title="Performance, networking and backup" aria-label="Open diagram full screen: Performance, networking and backup"><img src="diagrams/sections/d08-3.svg" alt="Diagram: Performance, networking and backup" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -538,8 +727,19 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d08-5">NUMA and CPU pinning</h3>
 <p><strong>Scenario.</strong> A database on an r6i.8xlarge is 15–20% slower than on bare metal, with the same configuration.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-5.svg" data-title="NUMA and CPU pinning" aria-label="Open diagram full screen: NUMA and CPU pinning"><img src="diagrams/sections/d08-5.svg" alt="Diagram: NUMA and CPU pinning" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Memory access is local or remote depending on which socket holds the data. When the kernel moves a process between sockets, it loses its cache. Setting the kubelet's <code>cpuManagerPolicy: static</code> and <code>topologyManagerPolicy: single-numa-node</code> keeps a Guaranteed pod's CPUs and memory on one <mark class="kw">NUMA</mark> node.</p>
-<p><strong>Going deeper.</strong> The kubelet's <strong>Topology Manager</strong> matters just as much for GPU pods. Without it, the CPU manager and the device manager can give a pod CPUs from one NUMA node and GPUs from another. The policies run from <code>best-effort</code> through <code>restricted</code> to <code>single-numa-node</code>. The strictest gives the best locality but makes pods harder to place.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Memory access is local or remote depending on which socket holds the data.</li>
+<li>When the kernel moves a process between sockets, it loses its cache.</li>
+<li>Setting the kubelet's <code>cpuManagerPolicy: static</code> and <code>topologyManagerPolicy: single-numa-node</code> keeps a Guaranteed pod's CPUs and memory on one <mark class="kw">NUMA</mark> node.</li>
+</ul>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>The kubelet's <strong>Topology Manager</strong> matters just as much for GPU pods.</li>
+<li>Without it, the CPU manager and the device manager can give a pod CPUs from one NUMA node and GPUs from another.</li>
+<li>The policies run from <code>best-effort</code> through <code>restricted</code> to <code>single-numa-node</code>.</li>
+<li>The strictest gives the best locality but makes pods harder to place.</li>
+</ul>
 <h3 id="d08-6">I/O scheduler tuning</h3>
 <p><strong>Scenario.</strong> The database dashboard shows high I/O wait.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-6.svg" data-title="I/O scheduler tuning" aria-label="Open diagram full screen: I/O scheduler tuning"><img src="diagrams/sections/d08-6.svg" alt="Diagram: I/O scheduler tuning" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -556,7 +756,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d08-8">How EBS really behaves</h3>
 <p><strong>Scenario.</strong> Large sequential writes hit the IOPS limit much sooner than expected.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-8.svg" data-title="How EBS really behaves" aria-label="Open diagram full screen: How EBS really behaves"><img src="diagrams/sections/d08-8.svg" alt="Diagram: How EBS really behaves" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> <mark class="kw">EBS</mark> is network-attached, so latency is network round trip plus service time. SSD IOPS are counted in chunks of up to 256 KiB. gp3 has a flat baseline (3,000 IOPS) with no burst credits, while gp2 bursts on credits. Multi-Attach is only for io1/io2 and needs a clustered file system.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li><mark class="kw">EBS</mark> is network-attached, so latency is network round trip plus service time.</li>
+<li>SSD IOPS are counted in chunks of up to 256 KiB. gp3 has a flat baseline (3,000 IOPS) with no burst credits, while gp2 bursts on credits.</li>
+<li>Multi-Attach is only for io1/io2 and needs a clustered file system.</li>
+</ul>
 <h3 id="d08-9">File system, mount options and O_DIRECT</h3>
 <p><strong>Scenario.</strong> Tuning a Postgres volume beyond the defaults.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-9.svg" data-title="File system, mount options and O_DIRECT" aria-label="Open diagram full screen: File system, mount options and O_DIRECT"><img src="diagrams/sections/d08-9.svg" alt="Diagram: File system, mount options and O_DIRECT" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -564,7 +769,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d08-10">The EBS CSI driver</h3>
 <p><strong>Scenario.</strong> A <mark class="kw">PVC</mark> stays <code>Pending</code>. Which component should we look at?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-10.svg" data-title="The EBS CSI driver" aria-label="Open diagram full screen: The EBS CSI driver"><img src="diagrams/sections/d08-10.svg" alt="Diagram: The EBS CSI driver" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> The CSI controller (a Deployment on worker nodes) calls the AWS API to create, attach and snapshot volumes. The node plugin (a DaemonSet) formats and mounts them. The picture walks through PVC → create → attach → format → mount, and shows how <code>WaitForFirstConsumer</code> waits for the scheduler's decision.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>The CSI controller (a Deployment on worker nodes) calls the AWS API to create, attach and snapshot volumes.</li>
+<li>The node plugin (a DaemonSet) formats and mounts them.</li>
+<li>The picture walks through PVC → create → attach → format → mount, and shows how <code>WaitForFirstConsumer</code> waits for the scheduler's decision.</li>
+</ul>
 <h3 id="d08-11">The PV subsystem end to end</h3>
 <p><strong>Scenario.</strong> Explaining dynamic provisioning to a new teammate in one picture.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-11.svg" data-title="The PV subsystem end to end" aria-label="Open diagram full screen: The PV subsystem end to end"><img src="diagrams/sections/d08-11.svg" alt="Diagram: The PV subsystem end to end" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -593,7 +803,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d09-4">kube-proxy: iptables vs. IPVS</h3>
 <p><strong>Scenario.</strong> With 5,000 Services, every new connection gets slower.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-4.svg" data-title="kube-proxy: iptables vs. IPVS" aria-label="Open diagram full screen: kube-proxy: iptables vs. IPVS"><img src="diagrams/sections/d09-4.svg" alt="Diagram: kube-proxy: iptables vs. IPVS" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> iptables mode walks a linear list of rules and picks backends with probabilistic NAT. IPVS uses hash lookups and real load-balancing algorithms (round robin, least connections). Both still rely on <mark class="kw">conntrack</mark>.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>iptables mode walks a linear list of rules and picks backends with probabilistic NAT.</li>
+<li>IPVS uses hash lookups and real load-balancing algorithms (round robin, least connections).</li>
+<li>Both still rely on <mark class="kw">conntrack</mark>.</li>
+</ul>
 <p><strong>Going deeper.</strong> For LLM backends, round-robin is the wrong algorithm, whichever kube-proxy mode delivers it:</p>
 <ul>
 <li>requests vary hugely in cost;</li>
@@ -604,11 +819,22 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d09-4b">conntrack: the connection ledger</h3>
 <p><strong>Scenario.</strong> Under heavy load, a node starts dropping new connections even though CPU is fine.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-4b.svg" data-title="conntrack: the connection ledger" aria-label="Open diagram full screen: conntrack: the connection ledger"><img src="diagrams/sections/d09-4b.svg" alt="Diagram: conntrack: the connection ledger" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> <mark class="kw">conntrack</mark> remembers every flow so reply packets find their way back. Entries expire on timeouts. An established TCP connection's default timeout is 5 days, so a busy node can fill the table. A shorter <code>nf_conntrack_tcp_timeout_established</code> is one fix.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li><mark class="kw">conntrack</mark> remembers every flow so reply packets find their way back.</li>
+<li>Entries expire on timeouts.</li>
+<li>An established TCP connection's default timeout is 5 days, so a busy node can fill the table.</li>
+<li>A shorter <code>nf_conntrack_tcp_timeout_established</code> is one fix.</li>
+</ul>
 <h3 id="d09-5">Security groups for pods and network policies</h3>
 <p><strong>Scenario.</strong> Compliance requires AWS security groups on the payment pods specifically.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-5.svg" data-title="Security groups for pods and network policies" aria-label="Open diagram full screen: Security groups for pods and network policies"><img src="diagrams/sections/d09-5.svg" alt="Diagram: Security groups for pods and network policies" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> A trunk <mark class="kw">ENI</mark> and per-pod branch ENIs, each with its own security group. The cost is pod density, so use them only where AWS-level firewalls are required. Kubernetes <mark class="kw">NetworkPolicies</mark> need an engine: the <mark class="kw">VPC CNI</mark>'s native one, Calico, or Cilium.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>A trunk <mark class="kw">ENI</mark> and per-pod branch ENIs, each with its own security group.</li>
+<li>The cost is pod density, so use them only where AWS-level firewalls are required.</li>
+<li>Kubernetes <mark class="kw">NetworkPolicies</mark> need an engine: the <mark class="kw">VPC CNI</mark>'s native one, Calico, or Cilium.</li>
+</ul>
 <h3 id="d09-6">The packet's journey through netfilter</h3>
 <p><strong>Scenario.</strong> "Where exactly does a Service IP get rewritten?"</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-6.svg" data-title="The packet&#x27;s journey through netfilter" aria-label="Open diagram full screen: The packet&#x27;s journey through netfilter"><img src="diagrams/sections/d09-6.svg" alt="Diagram: The packet&#x27;s journey through netfilter" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -616,11 +842,21 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d09-7">From NetworkPolicy YAML to kernel rules</h3>
 <p><strong>Scenario.</strong> A <mark class="kw">NetworkPolicy</mark> is applied, but traffic still flows.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-7.svg" data-title="From NetworkPolicy YAML to kernel rules" aria-label="Open diagram full screen: From NetworkPolicy YAML to kernel rules"><img src="diagrams/sections/d09-7.svg" alt="Diagram: From NetworkPolicy YAML to kernel rules" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> The YAML is only intent. Calico (the translator) turns it into iptables chains at the FORWARD hook (the enforcement). If no engine is running, nothing enforces the policy.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>The YAML is only intent.</li>
+<li>Calico (the translator) turns it into iptables chains at the FORWARD hook (the enforcement).</li>
+<li>If no engine is running, nothing enforces the policy.</li>
+</ul>
 <h3 id="d09-8">Calico vs. Cilium</h3>
 <p><strong>Scenario.</strong> Choosing a policy engine for a cluster with thousands of pods and frequent label changes.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-8.svg" data-title="Calico vs. Cilium" aria-label="Open diagram full screen: Calico vs. Cilium"><img src="diagrams/sections/d09-8.svg" alt="Diagram: Calico vs. Cilium" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Calico's policy-only mode writes iptables rules per IP pair. Cilium uses eBPF and identity-aware policies at tc/XDP, so a packet is checked before the kernel builds its buffer. The <code>kubeProxyReplacement</code> modes run from off to full, with DSR for return traffic.</p></div>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Calico's policy-only mode writes iptables rules per IP pair.</li>
+<li>Cilium uses eBPF and identity-aware policies at tc/XDP, so a packet is checked before the kernel builds its buffer.</li>
+<li>The <code>kubeProxyReplacement</code> modes run from off to full, with DSR for return traffic.</li>
+</ul></div>
 </section>
 
 <section class="entry tab" id="d-networking" aria-labelledby="d-networking-h">
@@ -651,14 +887,36 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d10-4">Standard vs. SR-IOV vs. RDMA</h3>
 <p><strong>Scenario.</strong> GPUs sit idle waiting on the network during gradient synchronization.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d10-4.svg" data-title="Standard vs. SR-IOV vs. RDMA" aria-label="Open diagram full screen: Standard vs. SR-IOV vs. RDMA"><img src="diagrams/sections/d10-4.svg" alt="Diagram: Standard vs. SR-IOV vs. RDMA" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Standard virtualization goes through the hypervisor and a software switch. SR-IOV gives a direct hardware path, but the TCP/IP stack still costs CPU. <mark class="kw">RDMA</mark> copies memory to memory between nodes with near-zero CPU.</p>
-<p><strong>Going deeper.</strong> For GPU collectives, NCCL is the library doing the all-reduce and all-gather. Across nodes it should run over RDMA (InfiniBand or RoCE, with GPUDirect RDMA moving data straight between GPU memories). On Kubernetes that often means setting <code>NCCL_SOCKET_IFNAME</code> and making sure pods can find each other by name. In a synchronized job the slowest node sets everyone's pace, so one congested link shows up as a fleet-wide slowdown.</p>
-<p>Training stresses this path even more than inference. With sharded data parallelism (PyTorch FSDP2), every layer's forward and backward pass gathers weight shards from all GPUs, which adds up to many GB per second of steady traffic. A fine-tuning job that fits in a few GPUs can still end up network-bound if those GPUs sit on different nodes.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Standard virtualization goes through the hypervisor and a software switch.</li>
+<li>SR-IOV gives a direct hardware path, but the TCP/IP stack still costs CPU.</li>
+<li><mark class="kw">RDMA</mark> copies memory to memory between nodes with near-zero CPU.</li>
+</ul>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>For GPU collectives, NCCL is the library doing the all-reduce and all-gather.</li>
+<li>Across nodes it should run over RDMA (InfiniBand or RoCE, with GPUDirect RDMA moving data straight between GPU memories).</li>
+<li>On Kubernetes that often means setting <code>NCCL_SOCKET_IFNAME</code> and making sure pods can find each other by name.</li>
+<li>
+<p>In a synchronized job the slowest node sets everyone's pace, so one congested link shows up as a fleet-wide slowdown.</p>
+</li>
+<li>
+<p>Training stresses this path even more than inference.</p>
+</li>
+<li>With sharded data parallelism (PyTorch FSDP2), every layer's forward and backward pass gathers weight shards from all GPUs, which adds up to many GB per second of steady traffic.</li>
+<li>A fine-tuning job that fits in a few GPUs can still end up network-bound if those GPUs sit on different nodes.</li>
+</ul>
 <h3 id="d10-5">Latency and EFA</h3>
 <p><strong>Scenario.</strong> Scaling a training job from 2 to 16 nodes makes each step slower.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d10-5.svg" data-title="Latency and EFA" aria-label="Open diagram full screen: Latency and EFA"><img src="diagrams/sections/d10-5.svg" alt="Diagram: Latency and EFA" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Cluster placement groups for latency, and <mark class="kw">EFA</mark> (<mark class="kw">RDMA</mark> with NCCL support) for throughput. On EKS, the <code>aws-efa-k8s-device-plugin</code> advertises EFA interfaces as a schedulable resource, so pods can request them like GPUs.</p>
-<p><strong>Going deeper.</strong> Disaggregated LLM serving pushes this further. When prefill and decode run on separate pods and pass the <mark class="kw">KV cache</mark> between them, the pods need on the order of hundreds of Gbps between them, far beyond a normal 10–20 Gbps pod network. That's why setups like llm-d or NVIDIA Dynamo assume RDMA, RoCE or <mark class="kw">NVLink</mark> fabrics, and behave more like an appliance than a typical Deployment.</p></div>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>Disaggregated LLM serving pushes this further.</li>
+<li>When prefill and decode run on separate pods and pass the <mark class="kw">KV cache</mark> between them, the pods need on the order of hundreds of Gbps between them, far beyond a normal 10–20 Gbps pod network.</li>
+<li>That's why setups like llm-d or NVIDIA Dynamo assume RDMA, RoCE or <mark class="kw">NVLink</mark> fabrics, and behave more like an appliance than a typical Deployment.</li>
+</ul></div>
 </section>
 
 <section class="entry tab" id="d-challenges-2" aria-labelledby="d-challenges-2-h">
@@ -675,7 +933,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d11-2">Service connectivity drops</h3>
 <p><strong>Scenario.</strong> One service can't reach another by its Service IP.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d11-2.svg" data-title="Service connectivity drops" aria-label="Open diagram full screen: Service connectivity drops"><img src="diagrams/sections/d11-2.svg" alt="Diagram: Service connectivity drops" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Step A: does the Service have endpoints? An empty list usually means a selector typo. Step B: are the iptables or IPVS rules there? Also check readiness probes, <mark class="kw">NetworkPolicies</mark>, and whether kube-proxy is healthy.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Step A: does the Service have endpoints?</li>
+<li>An empty list usually means a selector typo.</li>
+<li>Step B: are the iptables or IPVS rules there?</li>
+<li>Also check readiness probes, <mark class="kw">NetworkPolicies</mark>, and whether kube-proxy is healthy.</li>
+</ul>
 <h3 id="d11-3">DNS issues</h3>
 <p><strong>Scenario.</strong> Calls to external APIs are slow, and <mark class="kw">CoreDNS</mark> CPU usage is high.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d11-3.svg" data-title="DNS issues" aria-label="Open diagram full screen: DNS issues"><img src="diagrams/sections/d11-3.svg" alt="Diagram: DNS issues" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -683,7 +947,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d11-4">Latency by distance</h3>
 <p><strong>Scenario.</strong> Why does the same call take 0.1 ms, 1 ms or 5 ms?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d11-4.svg" data-title="Latency by distance" aria-label="Open diagram full screen: Latency by distance"><img src="diagrams/sections/d11-4.svg" alt="Diagram: Latency by distance" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Same node: memory copy only. Same AZ: the top-of-rack switch (0.2–1 ms). Across AZs: the inter-AZ backbone (1–5 ms), plus a data transfer charge.</p>
+<p><strong>What the picture shows.</strong></p>
+<ul>
+<li>Same node: memory copy only.</li>
+<li>Same AZ: the top-of-rack switch (0.2–1 ms).</li>
+<li>Across AZs: the inter-AZ backbone (1–5 ms), plus a data transfer charge.</li>
+</ul>
 <h3 id="d11-5">Bandwidth and MTU</h3>
 <p><strong>Scenario.</strong> Three pods on one node want 12 Gbps together through a 10 Gbps <mark class="kw">ENI</mark>.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d11-5.svg" data-title="Bandwidth and MTU" aria-label="Open diagram full screen: Bandwidth and MTU"><img src="diagrams/sections/d11-5.svg" alt="Diagram: Bandwidth and MTU" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -712,7 +981,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> The data-transfer line on the bill is surprisingly large.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d12-2.svg" data-title="Networking" aria-label="Open diagram full screen: Networking"><img src="diagrams/sections/d12-2.svg" alt="Diagram: Networking" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Cross-AZ pod traffic costs money, so use <mark class="kw">topology-aware</mark> routing (EndpointSlice hints) and same-AZ provisioning with <mark class="kw">Karpenter</mark>. Use ALB IP mode, VPC endpoints instead of NAT for AWS services, and an ECR endpoint plus pre-cached images in a custom AMI.</p>
-<p><strong>Going deeper.</strong> Model images are a special case: tens or hundreds of GB. Layered OCI images let ten fine-tuned variants share one cached copy of the base model on a node. Pre-pulling or prefetching images is what keeps scale-up times predictable (see <a href="#post-model-data">Getting model weights into pods</a>).</p>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>Model images are a special case: tens or hundreds of GB.</li>
+<li>Layered OCI images let ten fine-tuned variants share one cached copy of the base model on a node.</li>
+<li>Pre-pulling or prefetching images is what keeps scale-up times predictable (see <a href="#post-model-data">Getting model weights into pods</a>).</li>
+</ul>
 <p>Startup time is a cost too: a slow-starting replica means paying for extra warm capacity. For model servers:</p>
 <ul>
 <li>Use <code>imagePullPolicy: IfNotPresent</code>, and pin images by version or digest instead of <code>latest</code>.</li>
@@ -724,7 +998,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> Old volumes and logs keep growing after the workloads that wrote them are gone.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d12-3.svg" data-title="Storage" aria-label="Open diagram full screen: Storage"><img src="diagrams/sections/d12-3.svg" alt="Diagram: Storage" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Ephemeral storage for scratch data, Mountpoint for S3 (a file system view of S3, not a block device), gp3 over gp2 (about 20% cheaper), <mark class="kw-act">reclaim</mark> policies, IOPS tiers (io2 for the hottest data, st1/sc1 for cold), smaller images through multi-stage builds, and log retention policies.</p>
-<p><strong>Going deeper.</strong> For model weights, the storage choice is a cost-vs-speed trade-off. A shared ReadOnlyMany PersistentVolume stores one copy for all replicas but pays network latency on every read. Copying into an <code>emptyDir</code> gives fast local reads but stores one copy per pod per node. OCI images sit in between (see <a href="#post-model-data">Getting model weights into pods</a>).</p></div>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>For model weights, the storage choice is a cost-vs-speed trade-off.</li>
+<li>A shared ReadOnlyMany PersistentVolume stores one copy for all replicas but pays network latency on every read.</li>
+<li>Copying into an <code>emptyDir</code> gives fast local reads but stores one copy per pod per node.</li>
+<li>OCI images sit in between (see <a href="#post-model-data">Getting model weights into pods</a>).</li>
+</ul></div>
 </section>
 
 <section class="entry tab" id="d-security" aria-labelledby="d-security-h">
@@ -742,7 +1022,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> A base image with a critical CVE almost reaches production.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d13-2.svg" data-title="The build pipeline" aria-label="Open diagram full screen: The build pipeline"><img src="diagrams/sections/d13-2.svg" alt="Diagram: The build pipeline" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Build (minimal or distroless base images, multi-stage builds, immutable tags) → test (Snyk in CI) → store (signing with Cosign or AWS Signer, OPA Gatekeeper) → encrypt (KMS, Vault, Secrets Store CSI) → scan (Inspector, Trivy) → deploy (private subnets, no SSH, IMDS blocked, hardened AMI) → monitor.</p>
-<p><strong>Going deeper.</strong> Model files belong in the supply chain too. Classic PyTorch <code>.pt</code> files use Python pickle, which can execute arbitrary code when loaded. <strong>Safetensors</strong> stores only tensors and can't, which makes it the safer default for weights from outside the organization. Signing and scanning model images works the same way as for application images.</p>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>Model files belong in the supply chain too.</li>
+<li>Classic PyTorch <code>.pt</code> files use Python pickle, which can execute arbitrary code when loaded.</li>
+<li><strong>Safetensors</strong> stores only tensors and can't, which makes it the safer default for weights from outside the organization.</li>
+<li>Signing and scanning model images works the same way as for application images.</li>
+</ul>
 <h3 id="d13-3">Runtime security</h3>
 <p><strong>Scenario.</strong> A container is found running as root with <code>CAP_SYS_ADMIN</code>.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d13-3.svg" data-title="Runtime security" aria-label="Open diagram full screen: Runtime security"><img src="diagrams/sections/d13-3.svg" alt="Diagram: Runtime security" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -759,7 +1045,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> The inference service needs S3 access and a public HTTPS endpoint.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d13-6.svg" data-title="Identity and model endpoints" aria-label="Open diagram full screen: Identity and model endpoints"><img src="diagrams/sections/d13-6.svg" alt="Diagram: Identity and model endpoints" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> <mark class="kw">IRSA</mark> vs. EKS <mark class="kw">Pod Identity</mark> (simpler setup through an agent DaemonSet), TLS everywhere with ACM certificates on the ALB or NLB, and WAF on the ingress.</p>
-<p><strong>Going deeper.</strong> Model endpoints also need <strong>guardrails</strong>: checks on the prompt before the model and on the answer after it. They catch prompt injection ("ignore all previous instructions"), jailbreaks, toxic output and leaked personal data. Small classifier models such as Llama Guard or Granite Guardian run as their own <mark class="kw">vLLM</mark> deployments. Frameworks like NeMo <mark class="kw">Guardrails</mark>, the FMS Guardrails Orchestrator, Guardrails AI or a moderation API wire them in. Every check adds latency and GPU cost, so keep the in-line checks small and sample the rest asynchronously.</p>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>Model endpoints also need <strong>guardrails</strong>: checks on the prompt before the model and on the answer after it.</li>
+<li>They catch prompt injection ("ignore all previous instructions"), jailbreaks, toxic output and leaked personal data.</li>
+<li>Small classifier models such as Llama Guard or Granite Guardian run as their own <mark class="kw">vLLM</mark> deployments.</li>
+<li>Frameworks like NeMo <mark class="kw">Guardrails</mark>, the FMS Guardrails Orchestrator, Guardrails AI or a moderation API wire them in.</li>
+<li>Every check adds latency and GPU cost, so keep the in-line checks small and sample the rest asynchronously.</li>
+</ul>
 <p>Agents add an identity question: when an agent calls a tool (an <mark class="kw">MCP</mark> server) on a user's behalf, whose identity does the backend see? There are four common answers:</p>
 <ul>
 <li><strong>Pass the user's token through:</strong> full per-user audit, but long-running tasks outlive the token and the token needs very broad scopes.</li>
@@ -787,7 +1080,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Volume and volumeMount:</strong> where the pod sets the desk up.</li>
 </ul>
 <p>The YAML examples show dynamic provisioning end to end. Mountpoint for S3 gives you a file-system view of a bucket; it is still object storage.</p>
-<p><strong>Going deeper.</strong> The same objects serve model weights. One PersistentVolume on NFS or <mark class="kw">EFS</mark> with <code>ReadOnlyMany</code> access, mounted <code>readOnly: true</code> by every replica, stores the model once and lets the OS cache it aggressively. It works well for tens of replicas. At hundreds, the shared backend becomes the bottleneck.</p></div>
+<p><strong>Going deeper.</strong></p>
+<ul>
+<li>The same objects serve model weights.</li>
+<li>One PersistentVolume on NFS or <mark class="kw">EFS</mark> with <code>ReadOnlyMany</code> access, mounted <code>readOnly: true</code> by every replica, stores the model once and lets the OS cache it aggressively.</li>
+<li>It works well for tens of replicas.</li>
+<li>At hundreds, the shared backend becomes the bottleneck.</li>
+</ul></div>
 </section>
 
 <section class="entry post" id="post-serving" aria-labelledby="post-serving-h">

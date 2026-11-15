@@ -19,7 +19,12 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 
 ![Service connectivity drops](diagrams/sections/d11-2.svg)
 
-**What the picture shows.** Step A: does the Service have endpoints? An empty list usually means a selector typo. Step B: are the iptables or IPVS rules there? Also check readiness probes, NetworkPolicies, and whether kube-proxy is healthy.
+**What the picture shows.**
+
+- Step A: does the Service have endpoints?
+- An empty list usually means a selector typo.
+- Step B: are the iptables or IPVS rules there?
+- Also check readiness probes, NetworkPolicies, and whether kube-proxy is healthy.
 
 ### DNS issues
 
@@ -35,7 +40,11 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 
 ![Latency by distance](diagrams/sections/d11-4.svg)
 
-**What the picture shows.** Same node: memory copy only. Same AZ: the top-of-rack switch (0.2–1 ms). Across AZs: the inter-AZ backbone (1–5 ms), plus a data transfer charge.
+**What the picture shows.**
+
+- Same node: memory copy only.
+- Same AZ: the top-of-rack switch (0.2–1 ms).
+- Across AZs: the inter-AZ backbone (1–5 ms), plus a data transfer charge.
 
 ### Bandwidth and MTU
 

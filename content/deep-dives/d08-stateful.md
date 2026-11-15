@@ -11,7 +11,11 @@ A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services
 
 ![Workloads, node groups and scheduling](diagrams/sections/d08-1.svg)
 
-**What the picture shows.** Stateless "cattle" and stateful "pets" get separate node groups: Spot-heavy with Karpenter for stateless, on-demand only and EBS-optimized for stateful. A `stateful=true:NoSchedule` taint keeps them apart. StatefulSets give ordered startup, stable names and per-pod PVCs, and a PodDisruptionBudget protects quorum.
+**What the picture shows.**
+
+- Stateless "cattle" and stateful "pets" get separate node groups: Spot-heavy with Karpenter for stateless, on-demand only and EBS-optimized for stateful.
+- A `stateful=true:NoSchedule` taint keeps them apart.
+- StatefulSets give ordered startup, stable names and per-pod PVCs, and a PodDisruptionBudget protects quorum.
 
 **Going deeper.** An AI application maps cleanly onto the same split:
 
@@ -34,7 +38,11 @@ Separate lifecycles let you update prompts, models and data independently.
 - **Reclaim policy:** Retain in production, Delete in dev.
 - **Updates:** partitioned rolling updates, or `OnDelete` for manual control.
 
-**Going deeper.** EFS-style shared file systems are a good fit for model weights: many replicas read the same files and never write them. Mount them `ReadOnlyMany` and `readOnly: true`. Keep EBS for anything that writes.
+**Going deeper.**
+
+- EFS-style shared file systems are a good fit for model weights: many replicas read the same files and never write them.
+- Mount them `ReadOnlyMany` and `readOnly: true`.
+- Keep EBS for anything that writes.
 
 ### Performance, networking and backup
 
@@ -64,9 +72,18 @@ Separate lifecycles let you update prompts, models and data independently.
 
 ![NUMA and CPU pinning](diagrams/sections/d08-5.svg)
 
-**What the picture shows.** Memory access is local or remote depending on which socket holds the data. When the kernel moves a process between sockets, it loses its cache. Setting the kubelet's `cpuManagerPolicy: static` and `topologyManagerPolicy: single-numa-node` keeps a Guaranteed pod's CPUs and memory on one NUMA node.
+**What the picture shows.**
 
-**Going deeper.** The kubelet's **Topology Manager** matters just as much for GPU pods. Without it, the CPU manager and the device manager can give a pod CPUs from one NUMA node and GPUs from another. The policies run from `best-effort` through `restricted` to `single-numa-node`. The strictest gives the best locality but makes pods harder to place.
+- Memory access is local or remote depending on which socket holds the data.
+- When the kernel moves a process between sockets, it loses its cache.
+- Setting the kubelet's `cpuManagerPolicy: static` and `topologyManagerPolicy: single-numa-node` keeps a Guaranteed pod's CPUs and memory on one NUMA node.
+
+**Going deeper.**
+
+- The kubelet's **Topology Manager** matters just as much for GPU pods.
+- Without it, the CPU manager and the device manager can give a pod CPUs from one NUMA node and GPUs from another.
+- The policies run from `best-effort` through `restricted` to `single-numa-node`.
+- The strictest gives the best locality but makes pods harder to place.
 
 ### I/O scheduler tuning
 
@@ -94,7 +111,11 @@ Separate lifecycles let you update prompts, models and data independently.
 
 ![How EBS really behaves](diagrams/sections/d08-8.svg)
 
-**What the picture shows.** EBS is network-attached, so latency is network round trip plus service time. SSD IOPS are counted in chunks of up to 256 KiB. gp3 has a flat baseline (3,000 IOPS) with no burst credits, while gp2 bursts on credits. Multi-Attach is only for io1/io2 and needs a clustered file system.
+**What the picture shows.**
+
+- EBS is network-attached, so latency is network round trip plus service time.
+- SSD IOPS are counted in chunks of up to 256 KiB. gp3 has a flat baseline (3,000 IOPS) with no burst credits, while gp2 bursts on credits.
+- Multi-Attach is only for io1/io2 and needs a clustered file system.
 
 ### File system, mount options and O_DIRECT
 
@@ -110,7 +131,11 @@ Separate lifecycles let you update prompts, models and data independently.
 
 ![The EBS CSI driver](diagrams/sections/d08-10.svg)
 
-**What the picture shows.** The CSI controller (a Deployment on worker nodes) calls the AWS API to create, attach and snapshot volumes. The node plugin (a DaemonSet) formats and mounts them. The picture walks through PVC → create → attach → format → mount, and shows how `WaitForFirstConsumer` waits for the scheduler's decision.
+**What the picture shows.**
+
+- The CSI controller (a Deployment on worker nodes) calls the AWS API to create, attach and snapshot volumes.
+- The node plugin (a DaemonSet) formats and mounts them.
+- The picture walks through PVC → create → attach → format → mount, and shows how `WaitForFirstConsumer` waits for the scheduler's decision.
 
 ### The PV subsystem end to end
 

@@ -19,7 +19,11 @@ These are real incidents written as *problem → why → fix*, one per section.
 
 ![The stuck volume](diagrams/sections/d05-2.svg)
 
-**What the picture shows.** The EBS volume still appears attached to the dead node, so the new node can't attach it. The quick fix is to force-detach it. The lasting fix is to keep the EBS CSI driver up to date.
+**What the picture shows.**
+
+- The EBS volume still appears attached to the dead node, so the new node can't attach it.
+- The quick fix is to force-detach it.
+- The lasting fix is to keep the EBS CSI driver up to date.
 
 ### Snapshot restored in the wrong AZ
 
@@ -77,7 +81,11 @@ These are real incidents written as *problem → why → fix*, one per section.
 
 ![Scheduler thrashing](diagrams/sections/d05-9.svg)
 
-**What the picture shows.** A feedback loop between controllers. Changing `restartPolicy` alone doesn't stop it. The fix is to queue instead of retry: admit batch jobs through Kueue only when capacity exists, give batch `preemptionPolicy: Never`, and set a Job `podFailurePolicy`.
+**What the picture shows.**
+
+- A feedback loop between controllers.
+- Changing `restartPolicy` alone doesn't stop it.
+- The fix is to queue instead of retry: admit batch jobs through Kueue only when capacity exists, give batch `preemptionPolicy: Never`, and set a Job `podFailurePolicy`.
 
 **Going deeper.** The same kind of loop appears when a descheduler's strategy disagrees with the scheduler's scoring: pods get evicted, land back on the same node, and get evicted again. A steadily rising eviction count with no consolidation is the signal.
 
@@ -87,4 +95,8 @@ These are real incidents written as *problem → why → fix*, one per section.
 
 ![CPU limit vs. request gap](diagrams/sections/d05-10.svg)
 
-**What the picture shows.** A batch pod with a 1-core request and an 8-core limit can burst to 8 cores, but the scheduler only reserved 1 core for it. Neighbours see sudden contention. For CPU-heavy batch, set requests close to limits.
+**What the picture shows.**
+
+- A batch pod with a 1-core request and an 8-core limit can burst to 8 cores, but the scheduler only reserved 1 core for it.
+- Neighbours see sudden contention.
+- For CPU-heavy batch, set requests close to limits.

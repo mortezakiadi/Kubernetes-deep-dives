@@ -18,4 +18,9 @@ short: "StorageClass, PV and PVC"
 
 The YAML examples show dynamic provisioning end to end. Mountpoint for S3 gives you a file-system view of a bucket; it is still object storage.
 
-**Going deeper.** The same objects serve model weights. One PersistentVolume on NFS or EFS with `ReadOnlyMany` access, mounted `readOnly: true` by every replica, stores the model once and lets the OS cache it aggressively. It works well for tens of replicas. At hundreds, the shared backend becomes the bottleneck.
+**Going deeper.**
+
+- The same objects serve model weights.
+- One PersistentVolume on NFS or EFS with `ReadOnlyMany` access, mounted `readOnly: true` by every replica, stores the model once and lets the OS cache it aggressively.
+- It works well for tens of replicas.
+- At hundreds, the shared backend becomes the bottleneck.
