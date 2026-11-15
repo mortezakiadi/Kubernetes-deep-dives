@@ -23,6 +23,21 @@ def _indent_lists(md):
         out.append(line)
     return "\n".join(out)
 
+
+def _bq_fences(md):
+    """Fenced code inside blockquotes ("> ```yaml"): Python-Markdown can't render these,
+    so swap each for a placeholder paragraph and return the rendered blocks."""
+    blocks = {}
+    def rep(m):
+        prefix, lang, body = m.group(1), m.group(2), m.group(3)
+        code = "\n".join(re.sub(r"^>\s?", "", l)[len(prefix) - 2:] if len(prefix) > 2 else re.sub(r"^>\s?", "", l)
+                         for l in body.split("\n"))
+        key = f"BQCODE{len(blocks)}X"
+        blocks[key] = f'<pre><code class="language-{lang}">{html.escape(code, quote=False)}\n</code></pre>'
+        return f"{prefix}{key}"
+    md = re.sub(r"^(> *)```(\w+)\n((?:>.*\n)*?)> *```$", rep, md, flags=re.M)
+    return md, blocks
+
 def read_md(path):
     text = path.read_text(encoding="utf-8")
     meta, body = {}, text
@@ -33,7 +48,10 @@ def read_md(path):
                 k, v = line.split(":", 1)
                 meta[k.strip()] = v.strip().strip('"')
         body = m.group(2)
+    body, bq = _bq_fences(body)
     out = markdown.markdown(_indent_lists(body), extensions=["extra", "sane_lists"])
+    for k, v in bq.items():
+        out = re.sub(r"<p>\s*" + k + r"\s*</p>", lambda _m, v=v: v, out).replace(k, v)
     # Turn standalone images into zoomable diagram figures.
     def fig(mm):
         alt, src = html.unescape(mm.group(1)), mm.group(2)

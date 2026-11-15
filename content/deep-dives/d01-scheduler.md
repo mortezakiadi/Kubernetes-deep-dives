@@ -122,7 +122,59 @@ spec:
 > - **They're separate fields:** `tolerations`, `nodeSelector`, `affinity.nodeAffinity`, `affinity.podAffinity`, `affinity.podAntiAffinity` and `topologySpreadConstraints` are all named fields of the pod spec, so you can write them in any order.
 > - **Every hard rule must pass:** the scheduler runs its filters in its own fixed order, and a node survives only if it passes *all* of them. That's a logical AND, which gives the same answer in any order.
 > - **Inside node affinity:** several `nodeSelectorTerms` are combined with **OR** (matching any one term is enough); several `matchExpressions` inside one term are combined with **AND** (the node must match all of them).
+>
+>     ```yaml
+>     apiVersion: v1
+>     kind: Pod
+>     metadata:
+>       name: report-builder
+>     spec:
+>       affinity:
+>         nodeAffinity:
+>           requiredDuringSchedulingIgnoredDuringExecution:
+>             nodeSelectorTerms:          # term 1 OR term 2
+>             - matchExpressions:         # term 1: zone a AND an SSD  #!
+>               - key: topology.kubernetes.io/zone
+>                 operator: In
+>                 values: ["us-east-1a"]
+>               - key: disktype
+>                 operator: In
+>                 values: ["ssd"]
+>             - matchExpressions:         # term 2: OR any m6i node  #!
+>               - key: node.kubernetes.io/instance-type
+>                 operator: In
+>                 values: ["m6i.2xlarge", "m6i.4xlarge"]
+>       containers:
+>       - name: builder
+>         image: my-company/report-builder:3.1
+>     ```
 > - **Preferred (soft) rules** are scored: their `weight` decides how much each counts, not their position in the list.
+>
+>     ```yaml
+>     apiVersion: v1
+>     kind: Pod
+>     metadata:
+>       name: report-builder
+>     spec:
+>       affinity:
+>         nodeAffinity:
+>           preferredDuringSchedulingIgnoredDuringExecution:
+>           - weight: 10                  # listed first, but counts little  #!
+>             preference:
+>               matchExpressions:
+>               - key: disktype
+>                 operator: In
+>                 values: ["ssd"]
+>           - weight: 90                  # listed second, but counts most  #!
+>             preference:
+>               matchExpressions:
+>               - key: topology.kubernetes.io/zone
+>                 operator: In
+>                 values: ["us-east-1a"]
+>       containers:
+>       - name: builder
+>         image: my-company/report-builder:3.1
+>     ```
 > - **Why you usually want them together:** a toleration only *allows* a pod onto a tainted node; it doesn't *send* it there, so the pod could still land on any untainted node. Dedicated nodes therefore use three pieces: a **taint** on the nodes (keeps other pods off), a **toleration** on the pod (lets it in), and **node affinity** or `nodeSelector` on the pod (sends it there). Pod anti-affinity is often added to spread replicas across those nodes.
 >
 > **The long affinity names, decoded.** Each name has two halves: *when scheduling* and *while running*.
