@@ -107,7 +107,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose > p, .prose > ul, .prose > ol, .prose > blockquote { max-width: 72ch; }
 .prose blockquote { margin: 14px 0; padding: 10px 14px; border-left: 4px solid var(--mark); background: var(--mark-soft); border-radius: 0 6px 6px 0; }
 .prose blockquote p { margin: 0; }
-.notes .tag { color: var(--mark); }
+.post .tag { color: var(--mark); }
 @media (max-width: 700px) { .toc ol { columns: 1; } }
 
 /* Full-screen viewer */
@@ -136,7 +136,9 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
   <aside class="rail">
     <p class="brand">{{title}}</p>
     <nav aria-label="Contents">
-      <h3>Tabs</h3>
+      <h3>Start here</h3>
+      <ul>{{nav_posts}}</ul>
+      <h3>Deep dives</h3>
       <ul>{{nav}}</ul>
     </nav>
   </aside>
@@ -154,7 +156,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     </header>
     {{body}}
     <footer>
-      <p>Book notes are my own summary of the "Job Scheduling Optimization" chapter of <em>Generative AI on Kubernetes</em>. Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing.</p>
+      <p>Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing.</p>
     </footer>
   </main>
 </div>

@@ -13,6 +13,13 @@ One cluster runs a latency-critical web API next to cost-driven batch jobs. This
 
 **What the picture shows.** Web services are latency-sensitive and need stability, while batch is retry-capable and opportunistic. Each gets its own tier: on-demand, tainted nodes for web (with placeholder pods for headroom), diversified Spot capacity for batch, and a shared, untainted tier for utilization.
 
+**Going deeper.** For LLMs, the latency-critical tier is the **model server**: vLLM, TGI, SGLang or NVIDIA NIM, each exposing an OpenAI-compatible API behind a Service. Large models need whole, dedicated GPUs and minutes to load, so I run them as plain Deployments (KServe's *Standard* mode) on tainted GPU nodes with warm capacity, rather than relying on scale-to-zero.
+
+AI applications follow the same split:
+
+- **Chat-style apps** are synchronous: the user waits, so the orchestrator and model server stay warm and close together.
+- **Event-driven AI backends** (for example, scoring every new order for fraud) run asynchronously off a message bus. They can scale from zero with KEDA or Knative, and can live in the cheaper tier.
+
 ### Priority, preemption and QoS
 
 **Scenario.** The cluster is full when a traffic spike hits. Who gets evicted, and who decides?
@@ -21,7 +28,7 @@ One cluster runs a latency-critical web API next to cost-driven batch jobs. This
 
 **What the picture shows.** Two different mechanisms. **PriorityClasses** are the scheduler's tool, applied cluster-wide (`web-critical` preempts, `batch-low` never does). **QoS** (Guaranteed > Burstable > BestEffort) is the kubelet's tool, applied on one node under resource pressure.
 
-> **From the chapter:** Kueue adds a job-level layer on top. WorkloadPriorityClasses decide admission order, and preemption can reclaim borrowed quota. Which hardware a job gets (flavor) and who goes first (priority) are separate decisions.
+**Going deeper.** Kueue adds a job-level layer on top of these two. WorkloadPriorityClasses decide admission order, and preemption can reclaim quota that another team borrowed. Which hardware a job gets and who goes first are separate decisions.
 
 ### Placement, autoscaling and cost
 
@@ -31,7 +38,9 @@ One cluster runs a latency-critical web API next to cost-driven batch jobs. This
 
 **What the picture shows.** Affinity for web, anti-affinity for batch, and requests and limits per workload type. Autoscaling uses HPA for web (fast up, slow down) and Karpenter for batch (diversified Spot, consolidation). Spot interruptions are handled by checkpointing, and the key alerts are pending pods, queue depth and p99.
 
-> **From the chapter:** bin-packing (MostAllocated) plus a matching descheduler policy (`HighNodeUtilization`) keeps nodes full, so empty ones can be removed. Never combine it with the opposite policy, or the two will fight each other.
+**Going deeper.** Packing pairs with the **descheduler**, which periodically evicts pods so they can be placed again on a tighter set of nodes. Its strategy must match the scheduler's: `HighNodeUtilization` goes with MostAllocated, and `LowNodeUtilization` goes with LeastAllocated. Mix them and you get an eviction loop. For training, every eviction costs a checkpoint and restart, so PodDisruptionBudgets, maintenance windows and excluded namespaces matter. Model-parallel inference scales in *whole groups* (a 4-GPU replica can't become 3), so autoscale on requests per second or latency with HPA or KEDA, and keep replicas warm because model loading is slow.
+
+LLM servers break the usual autoscaling signals. The default HPA watches CPU and memory, but the work happens on the GPU. Request-based scaling (Knative's KPA) treats a 10-token answer and a 10,000-token answer as the same. What works is **KEDA** on the model server's own metrics, such as `vllm:num_requests_waiting` or `vllm:num_requests_running`, or latency targets (TTFT, time per output token). Scale-to-zero rarely fits: a new replica can take minutes to pull and load the model, so keep a warm minimum and alert on token latency and queue depth rather than CPU.
 
 ### CPU: shares and throttling
 

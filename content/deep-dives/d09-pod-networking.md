@@ -37,6 +37,14 @@ This tab follows a packet from the moment a pod gets its IP, through Services an
 
 **What the picture shows.** iptables mode walks a linear list of rules and picks backends with probabilistic NAT. IPVS uses hash lookups and real load-balancing algorithms (round robin, least connections). Both still rely on conntrack.
 
+**Going deeper.** For LLM backends, round-robin is the wrong algorithm, whichever kube-proxy mode delivers it:
+
+- requests vary hugely in cost;
+- a replica that already holds a conversation's KV cache can skip most of the prefill work;
+- LoRA adapters mean one endpoint serves several models.
+
+The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint picker* that chooses a pod by queue length, KV-cache contents or loaded adapter, and can shed low-priority requests when the pool is saturated.
+
 ### conntrack: the connection ledger
 
 **Scenario.** Under heavy load, a node starts dropping new connections even though CPU is fine.

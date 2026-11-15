@@ -18,4 +18,11 @@ short: "EKS and GPU"
 
 In our setup, the plugin is installed by the EKS Terraform module.
 
-> **From the chapter:** device plugins expose *counts*, not *topology*. That's why topology-aware placement needs node labels (or GPU Feature Discovery), Kueue ResourceFlavors, or a scheduler like KAI that reads the GPU fabric. Inside a node, the kubelet's Topology Manager keeps CPUs and GPUs on the same NUMA node.
+**Going deeper.** Two discovery layers come first. **Node Feature Discovery** labels basic hardware facts (PCI vendor and class), and **GPU Feature Discovery** adds GPU details (model, memory, family, CUDA version). The device plugin then does four jobs:
+
+- it discovers devices;
+- it allocates them exclusively to containers;
+- it monitors their health;
+- it advertises them as `nvidia.com/gpu` for scheduling.
+
+A minimal vLLM Deployment on such a node still needs a GPU limit, a toleration for the GPU taint, and a PVC as a model cache, so restarts don't re-download the weights. Plugins expose counts, not topology. That gap is why topology labels, Dynamic Resource Allocation and topology-aware schedulers exist.

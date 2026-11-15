@@ -13,7 +13,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 **What the picture shows.** Filtering drops any node that fails a hard rule: requested CPU or memory doesn't fit, nodeSelector doesn't match, an untolerated taint, required affinity or anti-affinity, or a hostPort that's already taken. "Plenty of room" usually means *free usage*, but the scheduler only counts *requests*. The event message lists which rule removed how many nodes.
 
-> **From the chapter:** filter, score and bind decide placement one pod at a time. That's fine for web apps, but it's the root of the gang problem for training jobs (see [Gang scheduling](#d02-2)).
+**Going deeper.** For GPUs, these same filters do the steering. `nvidia.com/gpu: 1` is purely resource-based, so every GPU counts the same: a 16 GB T4 and an 80 GB A100 are both "1". A `nodeSelector` on GPU labels pins an exact model, node affinity can say "at least 40 GB, prefer Hopper", and a taint on GPU nodes keeps everything else off them. Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time. Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the [gang problem](#d02-2).
 
 ### Filtering outcomes at a glance
 
@@ -31,7 +31,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 **What the picture shows.** Each plugin gives every node a 0–100 score: LeastAllocated (the spreader), BalancedAllocation (keeps CPU and memory even), ImageLocality (image already cached) and preferred affinity. The node with the highest weighted total wins. Preferred affinity is the only one you set directly in the pod spec.
 
-> **From the chapter:** for GPU training, switch NodeResourcesFit to **MostAllocated** (bin-packing) and give `nvidia.com/gpu` a higher weight than CPU and memory. Packing frees whole nodes for the autoscaler to remove. Offer it as a separate scheduler profile so critical workloads can still spread.
+**Going deeper.** For GPU training I switch NodeResourcesFit to **MostAllocated** (bin-packing) and give `nvidia.com/gpu` a higher weight than CPU and memory. Packing leaves whole nodes empty, so the autoscaler can remove them. That matters when a GPU node costs tens of dollars an hour. The catch is a bigger blast radius per node, so I offer it as a separate scheduler profile and let critical services keep spreading.
 
 ### Score × weight
 

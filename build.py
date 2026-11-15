@@ -56,25 +56,29 @@ def toc(body_html):
 
 def main():
     intro_meta, intro_html = read_md(ROOT / "content" / "00-intro.md")
+    posts = sorted((ROOT / "content" / "notes").glob("*.md"))
     tabs = sorted((ROOT / "content" / "deep-dives").glob("*.md"))
-    nav, body = [], []
+    nav_posts, nav, body = [], [], []
     n_sections = 0
+    entries = [("post", p) for p in posts] + [("tab", p) for p in tabs]
     tabno = 0
-    for p in tabs:
+    for kind, p in entries:
         meta, h = read_md(p)
         sid = meta["id"]
         n = len(re.findall(r"<h3 ", h))
         n_sections += h.count('class="diagram"')
-        if sid != "reading-notes":
+        if kind == "tab":
             tabno += 1
-        label = "Notes" if sid == "reading-notes" else f"{tabno:02d}"
-        cls = ' class="notes"' if sid == "reading-notes" else ""
-        nav.append(f'<li{cls}><a href="#{sid}"><b>{label}</b> {html.escape(meta["short"])}</a></li>')
-        kind = "notes" if sid == "reading-notes" else "tab"
+            label = f"{tabno:02d}"
+            tag = f"Tab {label} · {n} section" + ("s" if n != 1 else "")
+            nav.append(f'<li><a href="#{sid}"><b>{label}</b> {html.escape(meta["short"])}</a></li>')
+        else:
+            tag = "Start here"
+            nav_posts.append(f'<li class="notes"><a href="#{sid}">{html.escape(meta["short"])}</a></li>')
         body.append(f"""
 <section class="entry {kind}" id="{sid}" aria-labelledby="{sid}-h">
   <header class="entry-head">
-    <span class="tag">{"Reading notes" if kind == "notes" else "Tab " + label + " · " + str(n) + (" sections" if n != 1 else " section")}</span>
+    <span class="tag">{tag}</span>
     <h2 id="{sid}-h">{html.escape(meta["title"])}</h2>
   </header>
   {toc(h)}
@@ -93,15 +97,16 @@ def main():
         byline=byline,
         intro=intro_html,
         nav="\n".join(nav),
+        nav_posts="\n".join(nav_posts),
         body="\n".join(body),
-        n_tabs=len(tabs) - 1,
+        n_tabs=len(tabs),
         n_sections=n_sections,
     )
     page = (ROOT / "template.html").read_text(encoding="utf-8")
     for k, v in values.items():
         page = page.replace("{{" + k + "}}", str(v))
     (ROOT / "index.html").write_text(page, encoding="utf-8")
-    print(f"index.html written: {len(tabs) - 1} tabs, {n_sections} diagram sections")
+    print(f"index.html written: {len(posts)} posts, {len(tabs)} tabs, {n_sections} diagram sections")
 
 
 if __name__ == "__main__":

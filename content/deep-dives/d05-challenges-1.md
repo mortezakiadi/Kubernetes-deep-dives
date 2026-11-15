@@ -69,6 +69,8 @@ These are real incidents written as *problem → why → fix*, one per section.
 
 **What the picture shows.** The batch jobs effectively DDoS your own database. Put a queue (SQS or Kafka) in between with controlled consumers, or add random jitter to the batch jobs as a quick fix.
 
+**Going deeper.** Event-driven AI services and agents hit the same problem when a burst of events arrives at once. Put a message queue in front so events wait while pods restart, make every handler **idempotent** so duplicate events are harmless, and use a compensating action (the Saga pattern) to undo half-finished multi-step work.
+
 ### Scheduler thrashing
 
 **Scenario.** A traffic spike makes HPA add 50 web pods, which preempt 50 batch pods. The Job controller recreates them, and they get preempted again, over and over.
@@ -77,7 +79,7 @@ These are real incidents written as *problem → why → fix*, one per section.
 
 **What the picture shows.** A feedback loop between controllers. Changing `restartPolicy` alone doesn't stop it. The fix is to queue instead of retry: admit batch jobs through Kueue only when capacity exists, give batch `preemptionPolicy: Never`, and set a Job `podFailurePolicy`.
 
-> **From the chapter:** the same kind of loop happens when a descheduler's strategy disagrees with the scheduler's scoring. A steadily rising eviction count with no consolidation is the signal.
+**Going deeper.** The same kind of loop appears when a descheduler's strategy disagrees with the scheduler's scoring: pods get evicted, land back on the same node, and get evicted again. A steadily rising eviction count with no consolidation is the signal.
 
 ### CPU limit vs. request gap
 

@@ -107,7 +107,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose > p, .prose > ul, .prose > ol, .prose > blockquote { max-width: 72ch; }
 .prose blockquote { margin: 14px 0; padding: 10px 14px; border-left: 4px solid var(--mark); background: var(--mark-soft); border-radius: 0 6px 6px 0; }
 .prose blockquote p { margin: 0; }
-.notes .tag { color: var(--mark); }
+.post .tag { color: var(--mark); }
 @media (max-width: 700px) { .toc ol { columns: 1; } }
 
 /* Full-screen viewer */
@@ -136,9 +136,16 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
   <aside class="rail">
     <p class="brand">Kubernetes deep dives</p>
     <nav aria-label="Contents">
-      <h3>Tabs</h3>
-      <ul><li class="notes"><a href="#reading-notes"><b>Notes</b> Reading notes: job scheduling</a></li>
-<li><a href="#d-scheduler"><b>01</b> EKS Scheduler</a></li>
+      <h3>Start here</h3>
+      <ul><li class="notes"><a href="#post-serving">Serving LLMs on Kubernetes</a></li>
+<li class="notes"><a href="#post-model-data">Getting model weights into pods</a></li>
+<li class="notes"><a href="#post-production">Running LLMs in production</a></li>
+<li class="notes"><a href="#post-observability">Observing LLMs</a></li>
+<li class="notes"><a href="#post-customizing">Customizing models</a></li>
+<li class="notes"><a href="#post-ai-apps">RAG and agents on Kubernetes</a></li>
+<li class="notes"><a href="#post-agents-prod">Running agents in production</a></li></ul>
+      <h3>Deep dives</h3>
+      <ul><li><a href="#d-scheduler"><b>01</b> EKS Scheduler</a></li>
 <li><a href="#d-multischeduler"><b>02</b> EKS Multi-Scheduler</a></li>
 <li><a href="#d-batch-realtime"><b>03</b> EKS Batch and Realtime</a></li>
 <li><a href="#d-cgroups"><b>04</b> cgroups</a></li>
@@ -168,48 +175,345 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       </ul>
     </header>
     
-<section class="entry notes" id="reading-notes" aria-labelledby="reading-notes-h">
+<section class="entry post" id="post-serving" aria-labelledby="post-serving-h">
   <header class="entry-head">
-    <span class="tag">Reading notes</span>
-    <h2 id="reading-notes-h">Reading notes: job scheduling for AI training on Kubernetes</h2>
+    <span class="tag">Start here</span>
+    <h2 id="post-serving-h">Serving LLMs on Kubernetes</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#reading-notes-1-the-default-scheduler-is-built-for-web-apps">1. The default scheduler is built for web apps</a></li><li><a href="#reading-notes-2-placement-decays-so-something-has-to-re-pack">2. Placement decays, so something has to re-pack</a></li><li><a href="#reading-notes-3-gang-scheduling-all-or-nothing">3. Gang scheduling: all or nothing</a></li><li><a href="#reading-notes-4-topology-the-right-gpus-not-just-enough-gpus">4. Topology: the right GPUs, not just enough GPUs</a></li><li><a href="#reading-notes-5-quota-as-a-service-not-a-wall">5. Quota as a service, not a wall</a></li><li><a href="#reading-notes-6-how-the-pieces-fit">6. How the pieces fit</a></li></ol></nav>
-  <div class="prose"><p>These are my notes on the "Job Scheduling Optimization" chapter of <em>Generative AI on Kubernetes</em>, in my own words, with links to the sections of my diagrams where each idea shows up. The chapter's starting point is that a distributed training job is not a normal Kubernetes app: it holds scarce GPUs for days, its pods only work as a group, it moves huge amounts of data between nodes, and many teams want the same hardware. Each of those facts needs its own scheduling answer.</p>
-<h3 id="reading-notes-1-the-default-scheduler-is-built-for-web-apps">1. The default scheduler is built for web apps</h3>
-<p>kube-scheduler decides one pod at a time: filter out nodes that can't run the pod, score the rest, bind to the winner, and hand off to the kubelet. Its default scoring <strong>spreads</strong> pods out for availability. For GPU training, the chapter argues for the opposite: <strong>bin-packing</strong> with the <code>MostAllocated</code> strategy of the NodeResourcesFit plugin, with GPUs weighted more heavily than CPU and memory. Packing leaves whole nodes empty, so the autoscaler can remove them. The trade-off is that one node failure hits more jobs, so a common setup offers two scheduler profiles: bin-packing for experiments and spreading for critical work.
-→ See <a href="#d01-1">Phase 1: filtering</a>, <a href="#d01-3">Phase 2: scoring</a> and <a href="#d01-4">Score × weight</a>.</p>
-<h3 id="reading-notes-2-placement-decays-so-something-has-to-re-pack">2. Placement decays, so something has to re-pack</h3>
-<p>Good initial placement doesn't last: jobs finish at different times and the cluster fragments. The <strong>descheduler</strong> periodically evicts pods so the scheduler can place them again. Its strategy must match the scheduler's: <code>HighNodeUtilization</code> goes with <code>MostAllocated</code>, and <code>LowNodeUtilization</code> goes with <code>LeastAllocated</code>. Mixing them up creates an eviction loop. For training, every eviction costs a checkpoint and restart, so PodDisruptionBudgets, quiet maintenance windows and namespace exclusions matter.
-→ See <a href="#d05-9">Scheduler thrashing</a>, which is the same kind of feedback loop between controllers.</p>
-<h3 id="reading-notes-3-gang-scheduling-all-or-nothing">3. Gang scheduling: all or nothing</h3>
-<p>PyTorch workers meet at a <strong>rendezvous barrier</strong> before training starts. If 7 of 8 workers are placed and the 8th can't be, the 7 sit on GPUs doing nothing, and that capacity is wasted. Gang scheduling (coscheduling) keeps the whole group pending until all of it fits. The options sit at different layers:</p>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-serving-from-a-python-script-to-a-model-server">From a Python script to a model server</a></li><li><a href="#post-serving-the-serving-runtimes-worth-knowing">The serving runtimes worth knowing</a></li><li><a href="#post-serving-deploying-by-hand">Deploying by hand</a></li><li><a href="#post-serving-kserve-separate-the-runtime-from-the-model">KServe: separate the runtime from the model</a></li><li><a href="#post-serving-ray-serve-and-kuberay">Ray Serve and KubeRay</a></li></ol></nav>
+  <div class="prose"><p>Before the deep dives, here's the workload most of them end up hosting: a large language model behind an API. This post covers what it takes to go from a model on a laptop to a production endpoint on Kubernetes.</p>
+<h3 id="post-serving-from-a-python-script-to-a-model-server">From a Python script to a model server</h3>
+<p>Loading a model with the Transformers library and calling it works for a demo, but it is one process, one hard-coded prompt and no API. Wrapping it in FastAPI is the next step, and at that point you are rebuilding a <strong>model server</strong>: a runtime that loads the model, exposes it over REST or gRPC, and is tuned for throughput and latency. Memory is the first constraint: as a rule of thumb, a 7B model needs a GPU with about 15 GB, and a 70B model needs about 140 GB.</p>
+<h3 id="post-serving-the-serving-runtimes-worth-knowing">The serving runtimes worth knowing</h3>
 <ul>
-<li>the <strong>coscheduling plugin</strong> (PodGroup with <code>minMember</code> and a timeout) inside kube-scheduler,</li>
-<li><strong>Kueue</strong>, which decides at the job level whether a job may start,</li>
-<li><strong>KAI Scheduler</strong> and <strong>Volcano</strong>, which replace the scheduler.</li>
+<li><strong>vLLM:</strong> the most widely used open-source server, with an OpenAI-compatible API, PagedAttention and continuous batching.</li>
+<li><strong>TGI (Hugging Face):</strong> similar, and can switch backends (CUDA, TensorRT-LLM, llama.cpp, AWS Neuron for Trainium/Inferentia).</li>
+<li><strong>llama.cpp:</strong> for laptops and edge devices; it is where the GGUF format comes from.</li>
+<li><strong>NVIDIA NIM:</strong> curated, pre-optimized images per model family, with a model cache on a PersistentVolume.</li>
+<li><strong>SGLang:</strong> strong at reusing the KV cache across requests that share a prompt prefix (agents, multi-turn chats).</li>
 </ul>
-<p>A native Workload API for gang scheduling is also being worked on upstream (KEP-4671).
-→ See <a href="#d02-2">Gang scheduling</a> and <a href="#d02-6">Volcano vs. Kueue</a>.</p>
-<h3 id="reading-notes-4-topology-the-right-gpus-not-just-enough-gpus">4. Topology: the right GPUs, not just enough GPUs</h3>
-<p>Where the GPUs sit matters as much as how many there are. NVLink inside a node is far faster than InfiniBand between nodes, which is far faster than plain Ethernet. Tensor parallelism and FSDP talk on every forward and backward pass, so they suffer most from a bad placement. The approaches differ:</p>
+<p>A platform team doesn't need to master every inference optimization (quantization, speculative decoding, FlashAttention). Pick an actively maintained server and watch the settings that change the <em>topology</em>: multi-GPU and multi-node serving make the deployment stateful and need extra coordination.</p>
+<h3 id="post-serving-deploying-by-hand">Deploying by hand</h3>
+<p>A plain Deployment for vLLM already needs a GPU limit, a toleration for tainted GPU nodes, a Secret for gated models, and a PVC as a model cache so a restart doesn't re-download 100 GB. Multiply that by every model and the case for a controller is obvious.
+→ See <a href="#d06-1">The NVIDIA device plugin</a>.</p>
+<h3 id="post-serving-kserve-separate-the-runtime-from-the-model">KServe: separate the runtime from the model</h3>
+<p>KServe splits <strong>ServingRuntime</strong> (the model server image and defaults, owned by the platform team) from <strong>InferenceService</strong> (one model, owned by data scientists), so runtime upgrades and model releases can move at their own pace.</p>
 <ul>
-<li><strong>Kueue</strong> models topology as ResourceFlavors (node labels such as interconnect and fabric) and lists the premium flavor first, with a fallback.</li>
-<li><strong>KAI</strong> reads GPU topology directly from the NVIDIA stack.</li>
-<li><strong>Volcano</strong> scores nodes using topology labels.</li>
+<li><strong>Standard mode</strong> creates plain Deployments, which is the usual choice for large LLMs.</li>
+<li><strong>Knative mode</strong> adds scale-to-zero.</li>
+<li><strong>ModelMesh</strong> packs many small models together.</li>
 </ul>
-<p>Inside a node, the kubelet's <strong>Topology Manager</strong> keeps a pod's CPUs and GPUs on the same NUMA node.
-→ See <a href="#d02-3">Topology bin-packing</a>, <a href="#d02-5">Hardware-aware scheduling</a> and <a href="#d08-5">NUMA and CPU pinning</a>.</p>
-<h3 id="reading-notes-5-quota-as-a-service-not-a-wall">5. Quota as a service, not a wall</h3>
-<p>Plain ResourceQuotas are hard walls per namespace: one team's idle GPUs can't help another team's queue. The chapter's "GPU as a Service" model uses Kueue in two tiers:</p>
+<p>The newer <strong>LLMInferenceService</strong> adds KV-cache-aware routing, disaggregated serving and tensor/data/expert parallelism for 7B–405B models.
+→ See <a href="#d03-1">Workloads and node tiers</a> and <a href="#d03-3">Placement, autoscaling and cost</a>.</p>
+<h3 id="post-serving-ray-serve-and-kuberay">Ray Serve and KubeRay</h3>
+<p>Ray defines its own cluster (a head node plus workers) and its own scheduling, and KubeRay's <strong>RayService</strong> maps it onto Kubernetes. Python teams get full control from code, at the cost of a second orchestration layer on top of Kubernetes.
+→ See <a href="#d02-1">How a Pod finds its scheduler</a>.</p></div>
+</section>
+
+<section class="entry post" id="post-model-data" aria-labelledby="post-model-data-h">
+  <header class="entry-head">
+    <span class="tag">Start here</span>
+    <h2 id="post-model-data-h">Getting model weights into pods</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-model-data-what-s-in-a-model-file">What's in a model file</a></li><li><a href="#post-model-data-model-registries">Model registries</a></li><li><a href="#post-model-data-four-ways-to-get-weights-into-a-pod">Four ways to get weights into a pod</a></li><li><a href="#post-model-data-why-oci-images-fit-models-well">Why OCI images fit models well</a></li><li><a href="#post-model-data-my-rule-of-thumb">My rule of thumb</a></li></ol></nav>
+  <div class="prose"><p>LLM weights range from a few GB (Mistral 7B is about 14 GB) to nearly a terabyte (Llama 3.1 405B is about 750 GB). Moving that much data into pods quickly and cheaply is a storage, network and startup-time problem. This post covers the formats, the registries, and four ways to get weights to a model server.</p>
+<h3 id="post-model-data-what-s-in-a-model-file">What's in a model file</h3>
 <ul>
-<li><strong>ClusterQueues</strong> hold nominal quota and borrowing limits.</li>
-<li><strong>LocalQueues</strong> are what teams submit to.</li>
-<li>A <strong>cohort</strong> lets teams borrow each other's idle quota, and the owner reclaims it by preemption when it needs it back.</li>
+<li><strong>Weight-only formats</strong> (PyTorch <code>.pt</code>/<code>.pth</code>, TensorFlow checkpoints, NumPy) need the original code to rebuild the network.</li>
+<li><strong>"Mostly self-contained" formats</strong> carry more:</li>
+<li><strong>Safetensors</strong> is safe to load (unlike pickle, it can't execute code), memory-maps tensors without copies, and shards large models into many files with an index.</li>
+<li><strong>GGUF</strong> packs quantized weights plus tokenizer data into one file for llama.cpp and vLLM.</li>
+<li><strong>ONNX</strong> carries the graph but not the tokenizer.</li>
 </ul>
-<p><strong>WorkloadPriorityClasses</strong> decide admission order, and fair sharing favors teams that have used less recently. Flavor order and fungibility (<code>TryNextFlavor</code>) decide <em>which hardware</em> a job gets. Priority decides <em>who goes first</em>. These are separate decisions.
-→ See <a href="#d02-4">Queueing and fair sharing</a> and <a href="#d03-2">Priority, preemption and QoS</a>.</p>
-<h3 id="reading-notes-6-how-the-pieces-fit">6. How the pieces fit</h3>
-<p>The recommended stack layers the tools by job: Kueue for admission and quota on top, a gang-aware or topology-aware scheduler underneath (kube-scheduler with plugins, KAI or Volcano), and a workload API such as PyTorchJob/TrainJob, JobSet or LeaderWorkerSet that groups the pods. That is also the stack I would start from on EKS.</p></div>
+<p>None is fully self-contained yet. <code>config.json</code> and <code>tokenizer.json</code> still travel alongside the weights.
+→ See <a href="#d13-2">The build pipeline</a>.</p>
+<h3 id="post-model-data-model-registries">Model registries</h3>
+<p>A registry tracks versions, metadata, lineage, stage (experiment → staging → production) and access, but usually stores only <em>pointers</em> to the weights in object storage. Common choices are the Hugging Face Hub (public), MLflow, the Kubeflow Model Registry, and plain OCI registries.</p>
+<h3 id="post-model-data-four-ways-to-get-weights-into-a-pod">Four ways to get weights into a pod</h3>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>How</th>
+<th>Good for</th>
+<th>Watch out for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Init-container copy</td>
+<td>Download (S3, HTTP, HF) into an <code>emptyDir</code> before the server starts</td>
+<td>Fastest reads, single replica</td>
+<td>Slow startup, one copy per pod per node</td>
+</tr>
+<tr>
+<td>Shared PersistentVolume</td>
+<td>One copy on NFS/EFS/Ceph, mounted <code>ReadOnlyMany</code> by every replica</td>
+<td>Many replicas, models managed outside the cluster</td>
+<td>Every read crosses the network; struggles at hundreds of replicas</td>
+</tr>
+<tr>
+<td>Modelcar</td>
+<td>Model in an OCI image, run as a sidecar; the server reads it through a <code>/proc</code> symlink</td>
+<td>Fine-tuned models sharing base layers</td>
+<td>Needs <code>shareProcessNamespace</code> (a security concern), startup races</td>
+</tr>
+<tr>
+<td>OCI image volume</td>
+<td>Mount the model image directly as a read-only volume (beta in Kubernetes 1.35)</td>
+<td>The clean, native future</td>
+<td>Feature gates and runtime versions still required</td>
+</tr>
+</tbody>
+</table>
+<p>→ See <a href="#d14-1">StorageClass, PV and PVC</a>, <a href="#d08-2">Storage and StatefulSet mechanics</a> and <a href="#d12-3">Storage (cost)</a>.</p>
+<h3 id="post-model-data-why-oci-images-fit-models-well">Why OCI images fit models well</h3>
+<p>Container images are layered, cached per node and content-addressed. Put a base model in one layer and LoRA adapters on top, and ten fine-tuned variants share one copy of the base on each node. The CNCF <strong>ModelPack</strong> spec is standardizing this. Pre-pulling or prefetching model images keeps scale-up predictable.
+→ See <a href="#d12-2">Networking (cost)</a>.</p>
+<h3 id="post-model-data-my-rule-of-thumb">My rule of thumb</h3>
+<p>Pick the access method per tier. Use PersistentVolumes in development for easy updates and OCI images in production for speed and repeatability. Always measure <em>time from pod scheduled to model ready</em>, because that is where large-model autoscaling breaks down.</p></div>
+</section>
+
+<section class="entry post" id="post-production" aria-labelledby="post-production-h">
+  <header class="entry-head">
+    <span class="tag">Start here</span>
+    <h2 id="post-production-h">Running LLMs in production</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-production-1-choose-the-model-with-numbers-not-vibes">1. Choose the model with numbers, not vibes</a></li><li><a href="#post-production-2-compress-then-evaluate-again">2. Compress, then evaluate again</a></li><li><a href="#post-production-3-do-the-memory-math">3. Do the memory math</a></li><li><a href="#post-production-4-tune-the-runtime-for-the-workload">4. Tune the runtime for the workload</a></li><li><a href="#post-production-5-benchmark-like-production">5. Benchmark like production</a></li><li><a href="#post-production-6-scale-start-fast-route-smartly">6. Scale, start fast, route smartly</a></li></ol></nav>
+  <div class="prose"><p>Getting a model to answer once is easy. Keeping it fast, affordable and correct under real traffic is the hard part. These are the steps I'd go through before calling an LLM deployment production-ready.</p>
+<h3 id="post-production-1-choose-the-model-with-numbers-not-vibes">1. Choose the model with numbers, not vibes</h3>
+<p>Two models of the same size can behave very differently on your task. Use public leaderboards (MMLU for knowledge, HellaSwag for commonsense, TruthfulQA for truthfulness) only to build a shortlist, because published scores can't be verified. Then re-run the evaluations yourself with tools like EleutherAI's <strong>lm-evaluation-harness</strong>. Benchmarks take minutes to hours, so run them as asynchronous jobs in a pipeline. TrustyAI wraps the harness as an <code>LMEvalJob</code> custom resource. Add task-specific checks too: <strong>Ragas</strong> for RAG quality and <strong>garak</strong> for security probing.</p>
+<h3 id="post-production-2-compress-then-evaluate-again">2. Compress, then evaluate again</h3>
+<p>An 8B model at 16 bits needs about 16 GB for its weights alone. <strong>Quantization</strong> to FP8 or INT8 roughly halves that and can double or triple throughput on the same GPU, often keeping 99% or more of the accuracy. Two conditions apply: the runtime must have native kernels for the quantized format (vLLM does), and the result must be re-evaluated, because a bad quantization can quietly ruin quality. Pre-quantized, validated models are the low-risk option.</p>
+<h3 id="post-production-3-do-the-memory-math">3. Do the memory math</h3>
+<p>A rough GPU memory budget for one replica:</p>
+<ul>
+<li>the weights (parameters × bytes per parameter);</li>
+<li>about 1 GB of runtime overhead;</li>
+<li>activations, which grow quickly with sequence length;</li>
+<li>the output tensor;</li>
+<li>everything left goes to the <strong>KV cache</strong>.</li>
+</ul>
+<p>Example: an 8B fp16 model with a 2k context and batch size 1 needs about 17 GB. At batch size 10 it needs about 28 GB. vLLM prints this breakdown at startup, and warns when it has to evict KV-cache blocks because it ran out of room.</p>
+<h3 id="post-production-4-tune-the-runtime-for-the-workload">4. Tune the runtime for the workload</h3>
+<p>vLLM's defaults are good. The settings that matter most are:</p>
+<ul>
+<li><code>gpu-memory-utilization</code>: how much of the GPU it may claim.</li>
+<li><code>max-model-len</code>: caps the context, which sizes the KV cache. Don't cut it below what RAG prompts need.</li>
+<li><code>max-num-seqs</code>: batch size, a trade between throughput and memory.</li>
+<li><code>tensor-parallel-size</code> / <code>pipeline-parallel-size</code>: more GPUs, and more KV-cache room.</li>
+<li><code>cpu-offload-gb</code>: lets bigger models fit, but is too slow for production.</li>
+</ul>
+<h3 id="post-production-5-benchmark-like-production">5. Benchmark like production</h3>
+<p>Use LLM-aware load generators that report TTFT and inter-token latency: <strong>GuideLLM</strong>, <strong>inference-perf</strong> (from Kubernetes WG-Serving), MLPerf Inference, or vLLM's benchmark scripts. Run them in CI on the same GPU type and count as production, store the results, and use them for capacity planning, rate limits and autoscaling targets.</p>
+<h3 id="post-production-6-scale-start-fast-route-smartly">6. Scale, start fast, route smartly</h3>
+<p>Autoscaling, startup time and routing each have their own section with the details:</p>
+<ul>
+<li><a href="#d03-3">Placement, autoscaling and cost</a>: scale on token metrics with KEDA.</li>
+<li><a href="#d12-2">Networking (cost)</a>: from minutes to seconds to ready.</li>
+<li><a href="#d09-4">kube-proxy: iptables vs. IPVS</a>: KV-cache- and LoRA-aware routing.</li>
+<li><a href="#d10-5">Latency and EFA</a>: disaggregated serving.</li>
+</ul>
+<p>At the largest scale, <strong>disaggregated serving</strong> (llm-d, NVIDIA Dynamo) splits prefill (compute-heavy, drives time to first token) from decode (memory-heavy, drives time per token). The two pools scale separately and share a distributed KV cache (LMCache, NIXL) over very fast networks.</p></div>
+</section>
+
+<section class="entry post" id="post-observability" aria-labelledby="post-observability-h">
+  <header class="entry-head">
+    <span class="tag">Start here</span>
+    <h2 id="post-observability-h">Observing LLMs</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-observability-1-the-usual-stack-still-applies">1. The usual stack still applies</a></li><li><a href="#post-observability-2-measure-tokens-not-requests">2. Measure tokens, not requests</a></li><li><a href="#post-observability-3-fast-isn-t-enough-watch-quality">3. Fast isn't enough: watch quality</a></li><li><a href="#post-observability-4-responsible-ai">4. Responsible AI</a></li></ol></nav>
+  <div class="prose"><p>Kubernetes heals crashed pods, but it can't tell you that answers got slow, or wrong. LLM observability starts with the usual logs, metrics and traces, then switches to tokens instead of requests, and finally adds a layer most services never need: checking that the answers are any good.</p>
+<h3 id="post-observability-1-the-usual-stack-still-applies">1. The usual stack still applies</h3>
+<ul>
+<li><strong>Logs</strong> go to stdout and need a log store such as Loki. A vLLM startup log already tells you a lot: version and arguments, the model config, how much GPU memory the weights took and how much is left for the KV cache, and the routes it serves.</li>
+<li><strong>Metrics</strong> are scraped in Prometheus/OpenMetrics format. KServe has annotations that turn scraping on for a model, plus an aggregator for multi-container pods.</li>
+<li><strong>Traces:</strong> vLLM emits OpenTelemetry spans (send them to Jaeger, for example), and OpenTelemetry is defining semantic conventions specifically for generative AI.</li>
+</ul>
+<h3 id="post-observability-2-measure-tokens-not-requests">2. Measure tokens, not requests</h3>
+<p>The GPU does the work, so CPU usage says little. The two phases also behave differently: prefill is compute-heavy and decode is memory-heavy. The core metrics:</p>
+<ul>
+<li><strong>Time to first token (TTFT):</strong> what a chat user feels as "waiting". It reflects the prefill phase.</li>
+<li><strong>Time per output token (TPOT), or inter-token latency:</strong> reading speed. About 4–5 tokens per second keeps up with a human reader.</li>
+<li><strong>Throughput:</strong> prompt and generated tokens per second.</li>
+<li><strong>End-to-end latency</strong> per request.</li>
+<li><strong>Queue:</strong> <code>num_requests_waiting</code> and <code>num_requests_running</code>, the earliest sign of overload.</li>
+</ul>
+<p>Turn them into SLIs and SLOs (for example "TPOT under 0.3 s for 99.9% of requests"), alert on them with PrometheusRules, and link a runbook. GPU health comes from vendor exporters (NVIDIA DCGM, AMD, Intel) alongside these.
+→ See <a href="#d02-8">What every scheduler relies on</a>.</p>
+<h3 id="post-observability-3-fast-isn-t-enough-watch-quality">3. Fast isn't enough: watch quality</h3>
+<p>A model rarely crashes on bad input. It answers confidently and wrongly, which is a <strong>hallucination</strong>. Benchmarks before deployment help, but in production I'd sample 1–10% of responses into an asynchronous <strong>LLM-as-a-judge</strong> pipeline. Its quality scores are exported as Prometheus metrics, so they can be trended and alerted on like latency. For narrow tasks a cheap metric can work instead, such as ROUGE overlap for summaries. Judges work best with specific questions ("Does this reply include personal data?") rather than "Is this answer good?"</p>
+<h3 id="post-observability-4-responsible-ai">4. Responsible AI</h3>
+<p>Explanations are expensive to compute, so capture requests and responses with an inference logger and explain only the disputed cases later. <strong>Bias</strong> can appear at runtime through data drift even if training was clean, so monitor fairness metrics on protected attributes continuously (KServe with TrustyAI can do this). Input and output <strong>guardrails</strong> are covered in <a href="#d13-6">Identity and model endpoints</a>.</p></div>
+</section>
+
+<section class="entry post" id="post-customizing" aria-labelledby="post-customizing-h">
+  <header class="entry-head">
+    <span class="tag">Start here</span>
+    <h2 id="post-customizing-h">Customizing models: prompts, RAG, LoRA and training jobs</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-customizing-1-try-the-cheap-options-first">1. Try the cheap options first</a></li><li><a href="#post-customizing-2-full-fine-tuning-vs-lora">2. Full fine-tuning vs. LoRA</a></li><li><a href="#post-customizing-3-running-tuning-jobs-on-kubernetes">3. Running tuning jobs on Kubernetes</a></li></ol></nav>
+  <div class="prose"><p>Almost nobody trains an LLM from scratch. Pre-training takes thousands of GPUs for weeks, and alignment then teaches the base model to follow instructions safely. What platform teams actually run is <strong>post-training</strong>: adapting an already aligned model to their domain. The first question is whether you need to train at all.</p>
+<h3 id="post-customizing-1-try-the-cheap-options-first">1. Try the cheap options first</h3>
+<ul>
+<li><strong>Prompt engineering:</strong> a system prompt that sets the scenario, the role and the boundaries. It is not a security control, because prompt injection can bypass it.</li>
+<li><strong>Context engineering and RAG:</strong> fetch relevant documents at request time and put them in the prompt. Update the knowledge base in minutes, with no training job.</li>
+</ul>
+<p>Training becomes worth it when large, slow-changing knowledge would otherwise ride along in every prompt. Long contexts cost GPU memory on every request, so a bank might bake lending and risk knowledge into a model and keep RAG for fresh facts. A small, specialized model (8–16B parameters), possibly <strong>distilled</strong> from a large one, can match a big general model at a fraction of the serving cost.</p>
+<h3 id="post-customizing-2-full-fine-tuning-vs-lora">2. Full fine-tuning vs. LoRA</h3>
+<ul>
+<li><strong>Full fine-tuning</strong> updates every weight. It needs hundreds of thousands of labelled examples and many GPUs, risks "catastrophic forgetting", and produces a separate model that needs its own GPUs to serve.</li>
+<li><strong>Parameter-efficient fine-tuning (PEFT)</strong>, mainly <strong>LoRA</strong>, freezes the base model and trains small adapter matrices, often under 1% of the parameters. It needs only 100–1,000 examples and finishes in hours. At serving time one base model can host many adapters (vLLM loads them side by side), which is why <a href="#d09-4">LoRA-aware routing</a> matters. QLoRA adds quantization to cut training memory further.</li>
+</ul>
+<p>Hugging Face TRL's <code>SFTTrainer</code> handles both, and newer methods (DPO, GRPO, reward modelling) show up as multi-step pipelines with several GPU components.</p>
+<h3 id="post-customizing-3-running-tuning-jobs-on-kubernetes">3. Running tuning jobs on Kubernetes</h3>
+<ul>
+<li>Even small fine-tunes usually span several GPUs and often several nodes. Sharded training (PyTorch FSDP2) moves weights between GPUs on every layer, so the <a href="#d10-4">network</a> becomes the bottleneck.</li>
+<li><strong>Kubeflow Trainer</strong> separates the roles:</li>
+<li>the platform team defines <code>TrainingRuntime</code>s (PyTorch, DeepSpeed, MLX, MPI);</li>
+<li>data scientists submit <code>TrainJob</code>s from Python, where their function is serialized into the job, so there is no image rebuild per experiment;</li>
+<li>the controller turns them into a <strong>JobSet</strong>.</li>
+<li>Alternatives: <strong>Ray/KubeRay</strong> (<code>RayJob</code> on a RayCluster; code ships in images or repos), <strong>DeepSpeed</strong> as a training library, and <strong>Unsloth</strong> for fast single-GPU fine-tuning.</li>
+<li>Checkpoints must go to persistent storage, and multi-node jobs need <a href="#d02-2">gang scheduling</a> and <a href="#d02-4">quota</a>.</li>
+</ul></div>
+</section>
+
+<section class="entry post" id="post-ai-apps" aria-labelledby="post-ai-apps-h">
+  <header class="entry-head">
+    <span class="tag">Start here</span>
+    <h2 id="post-ai-apps-h">RAG and agents on Kubernetes</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-ai-apps-1-two-application-shapes">1. Two application shapes</a></li><li><a href="#post-ai-apps-2-rag-end-to-end">2. RAG, end to end</a></li><li><a href="#post-ai-apps-3-agents">3. Agents</a></li></ol></nav>
+  <div class="prose"><p>In a real product, the model is one service among many. The application owns the logic: it fetches context, calls tools, keeps state, and uses the LLM for generation and reasoning. This post maps those pieces onto Kubernetes.</p>
+<h3 id="post-ai-apps-1-two-application-shapes">1. Two application shapes</h3>
+<ul>
+<li><strong>Chat apps:</strong> gateway → orchestrator → LLM → state store, all within one synchronous request. Latency rules, so everything stays warm, and browser-based sign-in (OAuth2) is easy.</li>
+<li><strong>Backend AI services:</strong> triggered by events (an order placed, a payment made) or by a schedule. They need idempotency, buffering and eventual consistency more than raw speed, and can scale to zero.</li>
+</ul>
+<p>Around these sit nightly CronJobs, always-on agent loops (single-replica Deployments that watch a feed, like a controller with an LLM inside), and multi-step automations that run as Jobs.
+→ See <a href="#d03-1">Workloads and node tiers</a> and <a href="#d05-8">Thundering herd</a>.</p>
+<h3 id="post-ai-apps-2-rag-end-to-end">2. RAG, end to end</h3>
+<p><strong>Ingestion</strong> (offline, as Jobs or CronJobs):</p>
+<ol>
+<li>parse documents (e.g. with Docling);</li>
+<li>split them into chunks by sentence, paragraph or heading;</li>
+<li>embed each chunk;</li>
+<li>upsert the vectors with metadata (source, section, version) into a vector database.</li>
+</ol>
+<p><strong>Query time:</strong> embed the question with the <em>same</em> embedding model, run a similarity search (optionally hybrid with keyword ranking), optionally rerank, build the prompt from a template, generate, then add citations and run guardrails before returning.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Kubernetes shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vector DB (Milvus, Weaviate, Qdrant, pgvector)</td>
+<td>StatefulSet + PVC, snapshots, NetworkPolicy</td>
+</tr>
+<tr>
+<td>Embedding model</td>
+<td>Deployment, sidecar, or in-process</td>
+</tr>
+<tr>
+<td>Orchestrator</td>
+<td>Deployment + Service/Ingress; prompts in ConfigMaps, keys in Secrets</td>
+</tr>
+<tr>
+<td>Reranker</td>
+<td>Optional Deployment for high-stakes queries</td>
+</tr>
+<tr>
+<td>Ingestion</td>
+<td>CronJob / Job with limits so it can't starve users</td>
+</tr>
+</tbody>
+</table>
+<p>If you change the embedding model, you must re-embed every document.
+→ See <a href="#d08-1">Workloads, node groups and scheduling</a>.</p>
+<h3 id="post-ai-apps-3-agents">3. Agents</h3>
+<p>An agent wraps the model in a loop: perceive → think → act (call a tool) → observe → reflect → remember. ReAct is the classic form.</p>
+<ul>
+<li><strong>Tools</strong> run either on the client (the model asks your code to run a function) or on the server, increasingly through <strong>MCP</strong> servers.</li>
+<li><strong>Frameworks:</strong> client-side libraries (LangChain, LangGraph, CrewAI) or server-side runtimes behind an API (the OpenAI-style Responses API, Llama Stack, vLLM's emerging support). Server-side runtimes handle state and human approval steps for you.</li>
+<li><strong>On Kubernetes:</strong> operators like <strong>Kagent</strong> declare agents, tools and A2A skills as custom resources. Agents are Deployments, tools are Services, memory lives in StatefulSets, and heavy work goes to Jobs.</li>
+<li><strong>Multi-agent systems</strong> use either a coordinator or peer-to-peer messaging, plus shared memory. Plan for failures (sagas) and require <strong>human approval</strong> for risky actions.</li>
+</ul>
+<p>More in <a href="#post-agents-prod">Running agents in production</a>.</p></div>
+</section>
+
+<section class="entry post" id="post-agents-prod" aria-labelledby="post-agents-prod-h">
+  <header class="entry-head">
+    <span class="tag">Start here</span>
+    <h2 id="post-agents-prod-h">Running agents in production</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#post-agents-prod-1-mcp-one-protocol-for-tools">1. MCP: one protocol for tools</a></li><li><a href="#post-agents-prod-2-whose-identity-reaches-the-backend">2. Whose identity reaches the backend?</a></li><li><a href="#post-agents-prod-3-a2a-agents-talking-to-agents">3. A2A: agents talking to agents</a></li><li><a href="#post-agents-prod-4-memory-and-long-running-work">4. Memory and long-running work</a></li></ol></nav>
+  <div class="prose"><p>Agents bring three problems that plain microservices don't: <strong>who they act as</strong>, <strong>how they talk to each other</strong>, and <strong>what they remember</strong>. The protocols are still young, but the operational patterns below hold regardless of framework.</p>
+<h3 id="post-agents-prod-1-mcp-one-protocol-for-tools">1. MCP: one protocol for tools</h3>
+<p>The <strong>Model Context Protocol</strong> replaces one-off integrations between every agent and every tool (M×N) with a single protocol (M+N). Tools describe themselves with a name, a description and a JSON schema, and calls use JSON-RPC. On Kubernetes:</p>
+<ul>
+<li>Run each MCP server as a Deployment behind a Service, keep session state external, and scale with HPA.</li>
+<li>Use a sidecar only when the tool must share the agent's files.</li>
+<li>Group related tools into a single server to keep the number of services manageable. Watch the total tool count, because agents choose less well from very long lists.</li>
+</ul>
+<p>MCP now sits under the Linux Foundation's Agentic AI Foundation, together with goose and AGENTS.md.</p>
+<h3 id="post-agents-prod-2-whose-identity-reaches-the-backend">2. Whose identity reaches the backend?</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>How</th>
+<th>Strength</th>
+<th>Watch out for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Token passthrough</td>
+<td>Agent forwards the user's OAuth token</td>
+<td>Existing per-user RBAC and audit just work</td>
+<td>Token expiry on long tasks, broad scopes, stolen tokens</td>
+</tr>
+<tr>
+<td>ServiceAccount delegation</td>
+<td>Pod ServiceAccount tokens; validate with <code>TokenReview</code>, authorize with <code>SubjectAccessReview</code> on app-specific "virtual" resources</td>
+<td>No extra identity provider inside the cluster</td>
+<td>Workload identity only, no user</td>
+</tr>
+<tr>
+<td>Token exchange (RFC 8693)</td>
+<td>Identity provider issues a token with the user in <code>sub</code> and the agent in <code>act</code></td>
+<td>User <em>and</em> agent visible; composite policies</td>
+<td>Run and cache an exchange service</td>
+</tr>
+<tr>
+<td>SPIFFE/SPIRE mTLS</td>
+<td>SPIRE issues short-lived X.509 identities per pod via a node agent</td>
+<td>No secrets to steal; auto-rotation</td>
+<td>Significant setup and operations</td>
+</tr>
+</tbody>
+</table>
+<p>Production setups combine them: SPIFFE mTLS between workloads, the user's identity in a header or exchanged token, and a policy engine (OPA) that requires both. <strong>MCP gateways</strong> (Envoy AI Gateway, agentgateway, ContextForge and others) centralize authentication, authorization, rate limits and audit, at the cost of an extra hop that must be highly available.
+→ See <a href="#d13-6">Identity and model endpoints</a>.</p>
+<h3 id="post-agents-prod-3-a2a-agents-talking-to-agents">3. A2A: agents talking to agents</h3>
+<p>MCP connects an agent to <em>tools</em>. The <strong>Agent-to-Agent (A2A)</strong> protocol connects an agent to other <em>agents</em>, which can reason and take time. It has three building blocks:</p>
+<ul>
+<li>an <strong>agent card</strong> that advertises skills and formats, like an OpenAPI spec;</li>
+<li>a <strong>task lifecycle</strong> (created → in progress → completed / failed / cancelled) that outlives any single HTTP call;</li>
+<li><strong>streamed artifacts</strong> for partial results.</li>
+</ul>
+<p>Each agent is its own Deployment, with NetworkPolicies between them and circuit breakers in the mesh. Treat the agent card as a contract you check in CI, and alert on tasks stuck in progress.</p>
+<h3 id="post-agents-prod-4-memory-and-long-running-work">4. Memory and long-running work</h3>
+<ul>
+<li><strong>In-memory state</strong> is fine for development and lost on the first restart or scale-out.</li>
+<li><strong>Short-term memory</strong> (the session) belongs in a key-value store such as Redis, run as a StatefulSet with a TTL per session, so any replica can serve the next turn.</li>
+<li><strong>Long-term memory</strong> (preferences, audit trail, cross-session analytics) belongs in a database, written asynchronously.</li>
+<li><strong>Long-running agents</strong> checkpoint after each major step to a PVC and run as Jobs with <code>restartPolicy: OnFailure</code>, so an evicted pod resumes where it left off. The checkpoints double as a debugging trail.</li>
+</ul>
+<p>Start with plain Deployments, Services, RBAC and StatefulSets, and add meshes, gateways and operators only when a real limitation shows up.</p></div>
 </section>
 
 <section class="entry tab" id="d-scheduler" aria-labelledby="d-scheduler-h">
@@ -223,9 +527,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> A pod stays <code>Pending</code> with <code>0/12 nodes are available</code>. The developer says there's "plenty of room".</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-1.svg" data-title="Phase 1: filtering" aria-label="Open diagram full screen: Phase 1: filtering"><img src="diagrams/sections/d01-1.svg" alt="Diagram: Phase 1: filtering" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Filtering drops any node that fails a hard rule: requested CPU or memory doesn't fit, nodeSelector doesn't match, an untolerated taint, required affinity or anti-affinity, or a hostPort that's already taken. "Plenty of room" usually means <em>free usage</em>, but the scheduler only counts <em>requests</em>. The event message lists which rule removed how many nodes.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> filter, score and bind decide placement one pod at a time. That's fine for web apps, but it's the root of the gang problem for training jobs (see <a href="#d02-2">Gang scheduling</a>).</p>
-</blockquote>
+<p><strong>Going deeper.</strong> For GPUs, these same filters do the steering. <code>nvidia.com/gpu: 1</code> is purely resource-based, so every GPU counts the same: a 16 GB T4 and an 80 GB A100 are both "1". A <code>nodeSelector</code> on GPU labels pins an exact model, node affinity can say "at least 40 GB, prefer Hopper", and a taint on GPU nodes keeps everything else off them. Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time. Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the <a href="#d02-2">gang problem</a>.</p>
 <h3 id="d01-2">Filtering outcomes at a glance</h3>
 <p><strong>Scenario.</strong> On-call needs a quick way to map an event message to a cause.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-2.svg" data-title="Filtering outcomes" aria-label="Open diagram full screen: Filtering outcomes"><img src="diagrams/sections/d01-2.svg" alt="Diagram: Filtering outcomes" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -234,9 +536,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> Three nodes pass filtering. Why does the pod always land on the same one?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-3.svg" data-title="Phase 2: scoring plugins" aria-label="Open diagram full screen: Phase 2: scoring plugins"><img src="diagrams/sections/d01-3.svg" alt="Diagram: Phase 2: scoring plugins" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Each plugin gives every node a 0–100 score: LeastAllocated (the spreader), BalancedAllocation (keeps CPU and memory even), ImageLocality (image already cached) and preferred affinity. The node with the highest weighted total wins. Preferred affinity is the only one you set directly in the pod spec.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> for GPU training, switch NodeResourcesFit to <strong>MostAllocated</strong> (bin-packing) and give <code>nvidia.com/gpu</code> a higher weight than CPU and memory. Packing frees whole nodes for the autoscaler to remove. Offer it as a separate scheduler profile so critical workloads can still spread.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> For GPU training I switch NodeResourcesFit to <strong>MostAllocated</strong> (bin-packing) and give <code>nvidia.com/gpu</code> a higher weight than CPU and memory. Packing leaves whole nodes empty, so the autoscaler can remove them. That matters when a GPU node costs tens of dollars an hour. The catch is a bigger blast radius per node, so I offer it as a separate scheduler profile and let critical services keep spreading.</p>
 <h3 id="d01-4">Score × weight</h3>
 <p><strong>Scenario.</strong> You need to explain on a whiteboard how "points" become a decision.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-4.svg" data-title="Score × weight" aria-label="Open diagram full screen: Score × weight"><img src="diagrams/sections/d01-4.svg" alt="Diagram: Score × weight" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -270,41 +570,51 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> On EKS, some pods run on Fargate and others on EC2 nodes, and nobody set <code>schedulerName</code> by hand.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-1.svg" data-title="How a Pod finds its scheduler" aria-label="Open diagram full screen: How a Pod finds its scheduler"><img src="diagrams/sections/d02-1.svg" alt="Diagram: How a Pod finds its scheduler" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Every scheduler watches for unscheduled pods whose <code>schedulerName</code> matches its own. For Fargate, a mutating webhook sets <code>fargate-scheduler</code> on pods that match a Fargate profile. The table compares the default scheduler with an ML-oriented one.</p>
+<p><strong>Going deeper.</strong> Ray (through KubeRay) is another two-scheduler setup. Kubernetes places and restarts the Ray head and worker pods, and Ray's own scheduler places tasks and actors inside them. That suits Python teams well, but capacity accounting and debugging now span two layers.</p>
 <h3 id="d02-2">Gang scheduling</h3>
 <p><strong>Scenario.</strong> An 8-worker PyTorch job only fits 6 workers. Six GPUs sit allocated, and nothing trains.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-2.svg" data-title="Gang scheduling" aria-label="Open diagram full screen: Gang scheduling"><img src="diagrams/sections/d02-2.svg" alt="Diagram: Gang scheduling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Pod-by-pod placement vs. all-or-nothing placement. A gang scheduler keeps every pod pending until the whole group fits.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> the reason is PyTorch's <strong>rendezvous barrier</strong>: no worker starts until all of them have joined. The chapter's options: the coscheduling plugin (a PodGroup with <code>minMember</code> and a timeout), Kueue's job-level admission, or a replacement scheduler (KAI, Volcano). Upstream Kubernetes is also designing a native Workload API for this.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> The reason is the <strong>rendezvous barrier</strong>: distributed PyTorch workers wait until every rank has joined, so 7 of 8 workers will sit on their GPUs forever. The options sit at different layers:</p>
+<ul>
+<li>the <strong>coscheduling plugin</strong>: a PodGroup with <code>minMember</code> and a timeout, inside kube-scheduler;</li>
+<li><strong>Kueue</strong>: decides at the job level whether a job may start;</li>
+<li><strong>KAI</strong> or <strong>Volcano</strong>: replace the scheduler.</li>
+</ul>
+<p>Upstream is also designing a native Workload API for this. Model-parallel <em>inference</em> has the same property: if one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.</p>
 <h3 id="d02-3">Topology bin-packing</h3>
 <p><strong>Scenario.</strong> Two pods that exchange tensors constantly end up on different nodes, and step time doubles.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-3.svg" data-title="Topology bin-packing" aria-label="Open diagram full screen: Topology bin-packing"><img src="diagrams/sections/d02-3.svg" alt="Diagram: Topology bin-packing" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Spreading vs. packing onto one NVLink-connected node. For tightly coupled training, the default spreader is the wrong instinct.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> NVLink inside a node is far faster than InfiniBand across nodes, and Ethernet is slower still. Tensor parallelism and FSDP talk on every forward and backward pass, so placement matters most for them. A job may rightly wait in the queue rather than start on badly connected GPUs.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> Placement depends on how the model is split:</p>
+<ul>
+<li><strong>Tensor parallelism</strong> splits every layer and exchanges results constantly. Keep it inside one node on NVLink/NVSwitch.</li>
+<li><strong>Pipeline parallelism</strong> splits by layers and only hands activations across once per stage, so it tolerates the slower links between nodes.</li>
+<li><strong>Hybrid:</strong> tensor parallelism inside nodes and pipeline parallelism between them is the common setup.</li>
+</ul>
+<p>Even inside one server, not every GPU pair may share the same NVLink group. <code>nvidia-smi topo -m</code> shows it, and a job may rightly wait in the queue rather than start on badly connected GPUs.</p>
 <h3 id="d02-4">Queueing and fair sharing</h3>
 <p><strong>Scenario.</strong> One researcher submits 100 jobs on Friday night, and nobody else gets a GPU all weekend.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-4.svg" data-title="Queueing and fair sharing" aria-label="Open diagram full screen: Queueing and fair sharing"><img src="diagrams/sections/d02-4.svg" alt="Diagram: Queueing and fair sharing" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> A greedy FIFO vs. queues with priorities and fair share, and preemption of low-priority research work when inference needs capacity.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> this is the "GPU as a Service" model. In Kueue, a ClusterQueue holds nominal quota and borrowing limits, teams submit to LocalQueues, and a cohort lends idle quota and takes it back by preemption. Fair sharing favors teams that have used less recently.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> In Kueue terms:</p>
+<ul>
+<li><strong>ClusterQueues</strong> hold each team's nominal quota and borrowing limit.</li>
+<li>Teams submit to <strong>LocalQueues</strong>.</li>
+<li>A <strong>cohort</strong> lends idle quota between teams and takes it back by preemption when its owner needs it.</li>
+</ul>
+<p>WorkloadPriorityClasses decide admission order, and fair sharing favors teams that have used less recently. Hard namespace ResourceQuotas can't do any of this: idle GPUs in one namespace never help another team's queue.</p>
 <h3 id="d02-5">Hardware-aware scheduling</h3>
 <p><strong>Scenario.</strong> An FP8 training job lands on older GPUs and runs at a fraction of the expected speed.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-5.svg" data-title="Hardware-aware scheduling" aria-label="Open diagram full screen: Hardware-aware scheduling"><img src="diagrams/sections/d02-5.svg" alt="Diagram: Hardware-aware scheduling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> A scheduler that matches workloads to hardware features (RDMA/InfiniBand switch, newer GPU generation) instead of only counting GPUs. Labels and selectors work to start with, and become painful across many hardware generations.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> Kueue expresses this as <strong>ResourceFlavors</strong> chosen by node labels (interconnect, fabric, GPU type). The premium flavor is listed first, with a fallback flavor and <code>TryNextFlavor</code>. KAI reads GPU topology directly from the NVIDIA stack.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> NVIDIA's GPU Feature Discovery labels every node with the GPU product (e.g. <code>A100-SXM4-40GB</code>), memory, architecture family, driver and CUDA versions, MIG capability, and the number of shared replicas. Kueue turns these labels into <strong>ResourceFlavors</strong>: the premium flavor (NVLink + InfiniBand) is listed first, with a fallback flavor and <code>TryNextFlavor</code>. Which hardware a job gets (flavor) and who goes first (priority) stay separate decisions.</p>
 <h3 id="d02-6">Volcano vs. Kueue</h3>
 <p><strong>Scenario.</strong> The team has to pick one, and the debate keeps going in circles.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-6.svg" data-title="Volcano vs. Kueue" aria-label="Open diagram full screen: Volcano vs. Kueue"><img src="diagrams/sections/d02-6.svg" alt="Diagram: Volcano vs. Kueue" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Volcano replaces the scheduler and understands dependencies between task types (start workers only once the master is placed). Kueue sits in front of the default scheduler and manages quota, borrowing and fairness between teams.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> the common production answer is "both layers": Kueue for admission and quota on top of a gang- or topology-aware scheduler, with a workload API (PyTorchJob/TrainJob, JobSet, LeaderWorkerSet) that groups the pods.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> The production answer is usually "both layers": Kueue for admission and quota on top of a gang-aware or topology-aware scheduler (kube-scheduler with plugins, KAI or Volcano), with a workload API that groups the pods (PyTorchJob/TrainJob, JobSet, LeaderWorkerSet). Kueue stays vendor-neutral and keeps policy separate from mechanism. A replacement scheduler is worth it when GPU-specific features (fractional GPUs, deep topology awareness) pay for the extra moving part.</p>
+<p>For fine-tuning, <strong>Kubeflow Trainer</strong> shows the same layering. The platform team publishes a <code>TrainingRuntime</code> (framework, image, defaults), and data scientists submit a <code>TrainJob</code>, often straight from a Python SDK. The controller turns the pair into a <strong>JobSet</strong>, a group of Jobs that Kueue can then admit as one gang.</p>
 <h3 id="d02-7">The landscape</h3>
 <p><strong>Scenario.</strong> Leadership asks for one page that compares the options.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-7.svg" data-title="The landscape" aria-label="Open diagram full screen: The landscape"><img src="diagrams/sections/d02-7.svg" alt="Diagram: The landscape" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -312,7 +622,17 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d02-8">What every scheduler relies on</h3>
 <p><strong>Scenario.</strong> Whichever scheduler we choose, how does it know what hardware a node has?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d02-8.svg" data-title="What every scheduler relies on" aria-label="Open diagram full screen: What every scheduler relies on"><img src="diagrams/sections/d02-8.svg" alt="Diagram: What every scheduler relies on" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> The NVIDIA device plugin advertises <code>nvidia.com/gpu</code>, and topology operators label nodes with InfiniBand/RDMA details. Every scheduler reads these labels and resources from the API server.</p></div>
+<p><strong>What the picture shows.</strong> The NVIDIA device plugin advertises <code>nvidia.com/gpu</code>, and topology operators label nodes with InfiniBand/RDMA details. Every scheduler reads these labels and resources from the API server.</p>
+<p><strong>Going deeper.</strong> On NVIDIA nodes, one <strong>GPU Operator</strong> (configured through a <code>ClusterPolicy</code>) installs and maintains everything a scheduler depends on:</p>
+<ul>
+<li>the driver container;</li>
+<li>the container toolkit, which injects <code>/dev/nvidia*</code> into containers;</li>
+<li>the device plugin;</li>
+<li>GPU Feature Discovery labels;</li>
+<li>the MIG manager;</li>
+<li>the DCGM exporter, which sends GPU utilization, memory, ECC errors, temperature and power to Prometheus.</li>
+</ul>
+<p>If the device plugin isn't running, GPU pods simply stay Pending.</p></div>
 </section>
 
 <section class="entry tab" id="d-batch-realtime" aria-labelledby="d-batch-realtime-h">
@@ -326,20 +646,23 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> Every evening the batch wave arrives and the API's p99 latency jumps above 100 ms.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-1.svg" data-title="Workloads and node tiers" aria-label="Open diagram full screen: Workloads and node tiers"><img src="diagrams/sections/d03-1.svg" alt="Diagram: Workloads and node tiers" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Web services are latency-sensitive and need stability, while batch is retry-capable and opportunistic. Each gets its own tier: on-demand, tainted nodes for web (with placeholder pods for headroom), diversified Spot capacity for batch, and a shared, untainted tier for utilization.</p>
+<p><strong>Going deeper.</strong> For LLMs, the latency-critical tier is the <strong>model server</strong>: vLLM, TGI, SGLang or NVIDIA NIM, each exposing an OpenAI-compatible API behind a Service. Large models need whole, dedicated GPUs and minutes to load, so I run them as plain Deployments (KServe's <em>Standard</em> mode) on tainted GPU nodes with warm capacity, rather than relying on scale-to-zero.</p>
+<p>AI applications follow the same split:</p>
+<ul>
+<li><strong>Chat-style apps</strong> are synchronous: the user waits, so the orchestrator and model server stay warm and close together.</li>
+<li><strong>Event-driven AI backends</strong> (for example, scoring every new order for fraud) run asynchronously off a message bus. They can scale from zero with KEDA or Knative, and can live in the cheaper tier.</li>
+</ul>
 <h3 id="d03-2">Priority, preemption and QoS</h3>
 <p><strong>Scenario.</strong> The cluster is full when a traffic spike hits. Who gets evicted, and who decides?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-2.svg" data-title="Priority, preemption and QoS" aria-label="Open diagram full screen: Priority, preemption and QoS"><img src="diagrams/sections/d03-2.svg" alt="Diagram: Priority, preemption and QoS" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Two different mechanisms. <strong>PriorityClasses</strong> are the scheduler's tool, applied cluster-wide (<code>web-critical</code> preempts, <code>batch-low</code> never does). <strong>QoS</strong> (Guaranteed &gt; Burstable &gt; BestEffort) is the kubelet's tool, applied on one node under resource pressure.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> Kueue adds a job-level layer on top. WorkloadPriorityClasses decide admission order, and preemption can reclaim borrowed quota. Which hardware a job gets (flavor) and who goes first (priority) are separate decisions.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> Kueue adds a job-level layer on top of these two. WorkloadPriorityClasses decide admission order, and preemption can reclaim quota that another team borrowed. Which hardware a job gets and who goes first are separate decisions.</p>
 <h3 id="d03-3">Placement, autoscaling and cost</h3>
 <p><strong>Scenario.</strong> Batch costs are climbing even though most nodes look half empty.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-3.svg" data-title="Placement, autoscaling and cost" aria-label="Open diagram full screen: Placement, autoscaling and cost"><img src="diagrams/sections/d03-3.svg" alt="Diagram: Placement, autoscaling and cost" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Affinity for web, anti-affinity for batch, and requests and limits per workload type. Autoscaling uses HPA for web (fast up, slow down) and Karpenter for batch (diversified Spot, consolidation). Spot interruptions are handled by checkpointing, and the key alerts are pending pods, queue depth and p99.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> bin-packing (MostAllocated) plus a matching descheduler policy (<code>HighNodeUtilization</code>) keeps nodes full, so empty ones can be removed. Never combine it with the opposite policy, or the two will fight each other.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> Packing pairs with the <strong>descheduler</strong>, which periodically evicts pods so they can be placed again on a tighter set of nodes. Its strategy must match the scheduler's: <code>HighNodeUtilization</code> goes with MostAllocated, and <code>LowNodeUtilization</code> goes with LeastAllocated. Mix them and you get an eviction loop. For training, every eviction costs a checkpoint and restart, so PodDisruptionBudgets, maintenance windows and excluded namespaces matter. Model-parallel inference scales in <em>whole groups</em> (a 4-GPU replica can't become 3), so autoscale on requests per second or latency with HPA or KEDA, and keep replicas warm because model loading is slow.</p>
+<p>LLM servers break the usual autoscaling signals. The default HPA watches CPU and memory, but the work happens on the GPU. Request-based scaling (Knative's KPA) treats a 10-token answer and a 10,000-token answer as the same. What works is <strong>KEDA</strong> on the model server's own metrics, such as <code>vllm:num_requests_waiting</code> or <code>vllm:num_requests_running</code>, or latency targets (TTFT, time per output token). Scale-to-zero rarely fits: a new replica can take minutes to pull and load the model, so keep a warm minimum and alert on token latency and queue depth rather than CPU.</p>
 <h3 id="d03-4">CPU: shares and throttling</h3>
 <p><strong>Scenario.</strong> The API's average latency looks fine, but p99 spikes every few seconds.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-4.svg" data-title="CPU: shares and throttling" aria-label="Open diagram full screen: CPU: shares and throttling"><img src="diagrams/sections/d03-4.svg" alt="Diagram: CPU: shares and throttling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -418,13 +741,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> 100 batch jobs finish at the same moment, all write to the database, and the web service's queries start failing.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-8.svg" data-title="Thundering herd" aria-label="Open diagram full screen: Thundering herd"><img src="diagrams/sections/d05-8.svg" alt="Diagram: Thundering herd" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> The batch jobs effectively DDoS your own database. Put a queue (SQS or Kafka) in between with controlled consumers, or add random jitter to the batch jobs as a quick fix.</p>
+<p><strong>Going deeper.</strong> Event-driven AI services and agents hit the same problem when a burst of events arrives at once. Put a message queue in front so events wait while pods restart, make every handler <strong>idempotent</strong> so duplicate events are harmless, and use a compensating action (the Saga pattern) to undo half-finished multi-step work.</p>
 <h3 id="d05-9">Scheduler thrashing</h3>
 <p><strong>Scenario.</strong> A traffic spike makes HPA add 50 web pods, which preempt 50 batch pods. The Job controller recreates them, and they get preempted again, over and over.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-9.svg" data-title="Scheduler thrashing" aria-label="Open diagram full screen: Scheduler thrashing"><img src="diagrams/sections/d05-9.svg" alt="Diagram: Scheduler thrashing" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> A feedback loop between controllers. Changing <code>restartPolicy</code> alone doesn't stop it. The fix is to queue instead of retry: admit batch jobs through Kueue only when capacity exists, give batch <code>preemptionPolicy: Never</code>, and set a Job <code>podFailurePolicy</code>.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> the same kind of loop happens when a descheduler's strategy disagrees with the scheduler's scoring. A steadily rising eviction count with no consolidation is the signal.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> The same kind of loop appears when a descheduler's strategy disagrees with the scheduler's scoring: pods get evicted, land back on the same node, and get evicted again. A steadily rising eviction count with no consolidation is the signal.</p>
 <h3 id="d05-10">CPU limit vs. request gap</h3>
 <p><strong>Scenario.</strong> Web latency spikes even though node CPU is only at 60%.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d05-10.svg" data-title="CPU limit vs. request gap" aria-label="Open diagram full screen: CPU limit vs. request gap"><img src="diagrams/sections/d05-10.svg" alt="Diagram: CPU limit vs. request gap" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -448,9 +770,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li>The kubelet asks the plugin to attach specific devices to the container.</li>
 </ol>
 <p>In our setup, the plugin is installed by the EKS Terraform module.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> device plugins expose <em>counts</em>, not <em>topology</em>. That's why topology-aware placement needs node labels (or GPU Feature Discovery), Kueue ResourceFlavors, or a scheduler like KAI that reads the GPU fabric. Inside a node, the kubelet's Topology Manager keeps CPUs and GPUs on the same NUMA node.</p>
-</blockquote></div>
+<p><strong>Going deeper.</strong> Two discovery layers come first. <strong>Node Feature Discovery</strong> labels basic hardware facts (PCI vendor and class), and <strong>GPU Feature Discovery</strong> adds GPU details (model, memory, family, CUDA version). The device plugin then does four jobs:</p>
+<ul>
+<li>it discovers devices;</li>
+<li>it allocates them exclusively to containers;</li>
+<li>it monitors their health;</li>
+<li>it advertises them as <code>nvidia.com/gpu</code> for scheduling.</li>
+</ul>
+<p>A minimal vLLM Deployment on such a node still needs a GPU limit, a toleration for the GPU taint, and a PVC as a model cache, so restarts don't re-download the weights. Plugins expose counts, not topology. That gap is why topology labels, Dynamic Resource Allocation and topology-aware schedulers exist.</p></div>
 </section>
 
 <section class="entry tab" id="d-multitenancy" aria-labelledby="d-multitenancy-h">
@@ -464,9 +791,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> Sales has just signed a healthcare customer with HIPAA requirements. Can they live next to free-tier tenants?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-1.svg" data-title="Tenant classes, soft and hard isolation" aria-label="Open diagram full screen: Tenant classes, soft and hard isolation"><img src="diagrams/sections/d07-1.svg" alt="Diagram: Tenant classes, soft and hard isolation" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Tenants are classified by data sovereignty, compliance, blast radius and SLA. <em>Soft</em> isolation is namespace-based: ResourceQuotas and LimitRanges, default-deny NetworkPolicies, Pod Security Admission <code>restricted</code>, and namespace-scoped service accounts. <em>Hard</em> isolation means dedicated node groups with taints, subnets per tier, or a dedicated cluster for highly regulated tenants.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> quota between tenants (who gets the GPUs) is a separate problem from isolation between tenants (who can see what). Kueue's ClusterQueues and cohorts handle the first; the tools on this tab handle the second.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> GPUs need the same soft vs. hard choice. <strong>Time slicing</strong> advertises several virtual GPUs per physical GPU, with no memory or fault isolation: one pod can exhaust the memory or crash the GPU for everyone. <strong>MIG</strong> (Ampere and newer) carves a GPU into hardware-isolated slices with their own memory, for example up to 7 on an A100-40GB. That's the right choice for strict multi-tenancy. Quota <em>between</em> tenants (who gets how many GPUs) is a separate problem, handled by Kueue's ClusterQueues and cohorts.</p>
 <h3 id="d07-2">Identity, data, network and observability</h3>
 <p><strong>Scenario.</strong> Tenant A's leaked credentials must not be able to read tenant B's data.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-2.svg" data-title="Identity, data, network and observability" aria-label="Open diagram full screen: Identity, data, network and observability"><img src="diagrams/sections/d07-2.svg" alt="Diagram: Identity, data, network and observability" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -477,10 +802,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Network:</strong> a shared ALB for the standard tier and a dedicated NLB plus PrivateLink for premium tenants.</li>
 </ul>
 <p>Logs, metrics and traces all carry tenant labels.</p>
+<p><strong>Going deeper.</strong> For shared LLM endpoints, the unit of fairness is the <strong>token</strong>, not the request: one call can cost 10 tokens or 10,000. AI gateways (Envoy AI Gateway, Kuadrant) enforce token-based rate limits per user or API key. Tracing follows the same tenant-aware approach: model servers like vLLM emit OpenTelemetry spans that can be sent to Jaeger with the tenant in context.</p>
 <h3 id="d07-3">Sandboxed runtimes: gVisor and Kata</h3>
 <p><strong>Scenario.</strong> A premium tenant asks whether a kernel exploit in another tenant's container could reach their workload.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-3.svg" data-title="Sandboxed runtimes: gVisor and Kata" aria-label="Open diagram full screen: Sandboxed runtimes: gVisor and Kata"><img src="diagrams/sections/d07-3.svg" alt="Diagram: Sandboxed runtimes: gVisor and Kata" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> With standard runC, all containers share the host kernel, so a kernel bug can lead to escape. gVisor puts a user-space kernel in between, and Kata runs each pod in a lightweight VM (similar in spirit to Fargate's Firecracker). You opt in per workload with a <code>RuntimeClass</code>.</p>
+<p><strong>Going deeper.</strong> AI agents that run generated code or untrusted tools need the same isolation. The Kubernetes community's <strong>agent sandbox</strong> project adds a pod-shaped, VM-isolated, single-instance runtime with a stable identity that can be paused and resumed. It's designed for interactive or untrusted agent workloads.</p>
 <h3 id="d07-4">Hardening runC: seccomp, AppArmor, user namespaces</h3>
 <p><strong>Scenario.</strong> Most workloads stay on runC. How do we shrink the attack surface without changing runtimes?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-4.svg" data-title="Hardening runC" aria-label="Open diagram full screen: Hardening runC"><img src="diagrams/sections/d07-4.svg" alt="Diagram: Hardening runC" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -511,6 +838,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> Spot interruptions keep restarting a database replica that ended up on a Spot node.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-1.svg" data-title="Workloads, node groups and scheduling" aria-label="Open diagram full screen: Workloads, node groups and scheduling"><img src="diagrams/sections/d08-1.svg" alt="Diagram: Workloads, node groups and scheduling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Stateless "cattle" and stateful "pets" get separate node groups: Spot-heavy with Karpenter for stateless, on-demand only and EBS-optimized for stateful. A <code>stateful=true:NoSchedule</code> taint keeps them apart. StatefulSets give ordered startup, stable names and per-pod PVCs, and a PodDisruptionBudget protects quorum.</p>
+<p><strong>Going deeper.</strong> An AI application maps cleanly onto the same split:</p>
+<ul>
+<li><strong>Stateless Deployments:</strong> the orchestrator (the app logic around the model), the embedding service, rerankers and model servers.</li>
+<li><strong>StatefulSets with PVCs:</strong> the vector database, the chat history and the agent session store.</li>
+<li><strong>Jobs or CronJobs:</strong> document ingestion and nightly batch runs.</li>
+</ul>
+<p>Separate lifecycles let you update prompts, models and data independently.</p>
 <h3 id="d08-2">Storage and StatefulSet mechanics</h3>
 <p><strong>Scenario.</strong> Which volume type, binding mode and reclaim policy should a new database use?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-2.svg" data-title="Storage and StatefulSet mechanics" aria-label="Open diagram full screen: Storage and StatefulSet mechanics"><img src="diagrams/sections/d08-2.svg" alt="Diagram: Storage and StatefulSet mechanics" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -521,6 +855,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Reclaim policy:</strong> Retain in production, Delete in dev.</li>
 <li><strong>Updates:</strong> partitioned rolling updates, or <code>OnDelete</code> for manual control.</li>
 </ul>
+<p><strong>Going deeper.</strong> EFS-style shared file systems are a good fit for model weights: many replicas read the same files and never write them. Mount them <code>ReadOnlyMany</code> and <code>readOnly: true</code>. Keep EBS for anything that writes.</p>
 <h3 id="d08-3">Performance, networking and backup</h3>
 <p><strong>Scenario.</strong> Replication traffic between database nodes adds latency to every commit.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-3.svg" data-title="Performance, networking and backup" aria-label="Open diagram full screen: Performance, networking and backup"><img src="diagrams/sections/d08-3.svg" alt="Diagram: Performance, networking and backup" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -530,6 +865,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Network:</strong> cluster placement groups for "chatty" peers, ENA/SR-IOV, ENA Express (SRD), and ENI trunking for pod density.</li>
 <li><strong>Backup:</strong> Velero for the cluster, plus native consistent dumps to S3.</li>
 </ul>
+<p><strong>Going deeper.</strong> Local NVMe also speeds up model servers. A node-local model cache on NVMe (KServe has one, keyed by the model's storage URI) makes downloads from Hugging Face or S3 behave like a local volume after the first pull, and GPUDirect Storage can feed weights from NVMe straight into GPU memory.</p>
 <h3 id="d08-4">Spreading across AZs and nodes</h3>
 <p><strong>Scenario.</strong> All three Kafka brokers end up in one AZ, and an AZ outage takes the cluster down.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-4.svg" data-title="Spreading across AZs and nodes" aria-label="Open diagram full screen: Spreading across AZs and nodes"><img src="diagrams/sections/d08-4.svg" alt="Diagram: Spreading across AZs and nodes" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -538,9 +874,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> A database on an r6i.8xlarge is 15–20% slower than on bare metal, with the same configuration.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-5.svg" data-title="NUMA and CPU pinning" aria-label="Open diagram full screen: NUMA and CPU pinning"><img src="diagrams/sections/d08-5.svg" alt="Diagram: NUMA and CPU pinning" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Memory access is local or remote depending on which socket holds the data. When the kernel moves a process between sockets, it loses its cache. Setting the kubelet's <code>cpuManagerPolicy: static</code> and <code>topologyManagerPolicy: single-numa-node</code> keeps a Guaranteed pod's CPUs and memory on one NUMA node.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> the same Topology Manager matters for GPU training. Without it, the CPU manager and device manager can hand a pod CPUs from one NUMA node and GPUs from another. The policies range from <code>best-effort</code> to <code>single-numa-node</code>. The strictest gives the best locality but makes scheduling harder.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> The kubelet's <strong>Topology Manager</strong> matters just as much for GPU pods. Without it, the CPU manager and the device manager can give a pod CPUs from one NUMA node and GPUs from another. The policies run from <code>best-effort</code> through <code>restricted</code> to <code>single-numa-node</code>. The strictest gives the best locality but makes pods harder to place.</p>
 <h3 id="d08-6">I/O scheduler tuning</h3>
 <p><strong>Scenario.</strong> The database dashboard shows high I/O wait.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-6.svg" data-title="I/O scheduler tuning" aria-label="Open diagram full screen: I/O scheduler tuning"><img src="diagrams/sections/d08-6.svg" alt="Diagram: I/O scheduler tuning" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -595,6 +929,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> With 5,000 Services, every new connection gets slower.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-4.svg" data-title="kube-proxy: iptables vs. IPVS" aria-label="Open diagram full screen: kube-proxy: iptables vs. IPVS"><img src="diagrams/sections/d09-4.svg" alt="Diagram: kube-proxy: iptables vs. IPVS" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> iptables mode walks a linear list of rules and picks backends with probabilistic NAT. IPVS uses hash lookups and real load-balancing algorithms (round robin, least connections). Both still rely on conntrack.</p>
+<p><strong>Going deeper.</strong> For LLM backends, round-robin is the wrong algorithm, whichever kube-proxy mode delivers it:</p>
+<ul>
+<li>requests vary hugely in cost;</li>
+<li>a replica that already holds a conversation's KV cache can skip most of the prefill work;</li>
+<li>LoRA adapters mean one endpoint serves several models.</li>
+</ul>
+<p>The <strong>Gateway API Inference Extension</strong> adds an <code>InferencePool</code> and an <em>endpoint picker</em> that chooses a pod by queue length, KV-cache contents or loaded adapter, and can shed low-priority requests when the pool is saturated.</p>
 <h3 id="d09-4b">conntrack: the connection ledger</h3>
 <p><strong>Scenario.</strong> Under heavy load, a node starts dropping new connections even though CPU is fine.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d09-4b.svg" data-title="conntrack: the connection ledger" aria-label="Open diagram full screen: conntrack: the connection ledger"><img src="diagrams/sections/d09-4b.svg" alt="Diagram: conntrack: the connection ledger" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -646,13 +987,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> GPUs sit idle waiting on the network during gradient synchronization.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d10-4.svg" data-title="Standard vs. SR-IOV vs. RDMA" aria-label="Open diagram full screen: Standard vs. SR-IOV vs. RDMA"><img src="diagrams/sections/d10-4.svg" alt="Diagram: Standard vs. SR-IOV vs. RDMA" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Standard virtualization goes through the hypervisor and a software switch. SR-IOV gives a direct hardware path, but the TCP/IP stack still costs CPU. RDMA copies memory to memory between nodes with near-zero CPU.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> all-reduce, all-gather and FSDP traffic grow with model size, so on a large job the network decides the step time. That's why the scheduling side (topology-aware placement) and the network side (RDMA fabrics) have to be designed together.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> For GPU collectives, NCCL is the library doing the all-reduce and all-gather. Across nodes it should run over RDMA (InfiniBand or RoCE, with GPUDirect RDMA moving data straight between GPU memories). On Kubernetes that often means setting <code>NCCL_SOCKET_IFNAME</code> and making sure pods can find each other by name. In a synchronized job the slowest node sets everyone's pace, so one congested link shows up as a fleet-wide slowdown.</p>
+<p>Training stresses this path even more than inference. With sharded data parallelism (PyTorch FSDP2), every layer's forward and backward pass gathers weight shards from all GPUs, which adds up to many GB per second of steady traffic. A fine-tuning job that fits in a few GPUs can still end up network-bound if those GPUs sit on different nodes.</p>
 <h3 id="d10-5">Latency and EFA</h3>
 <p><strong>Scenario.</strong> Scaling a training job from 2 to 16 nodes makes each step slower.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d10-5.svg" data-title="Latency and EFA" aria-label="Open diagram full screen: Latency and EFA"><img src="diagrams/sections/d10-5.svg" alt="Diagram: Latency and EFA" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Cluster placement groups for latency, and EFA (RDMA with NCCL support) for throughput. On EKS, the <code>aws-efa-k8s-device-plugin</code> advertises EFA interfaces as a schedulable resource, so pods can request them like GPUs.</p></div>
+<p><strong>What the picture shows.</strong> Cluster placement groups for latency, and EFA (RDMA with NCCL support) for throughput. On EKS, the <code>aws-efa-k8s-device-plugin</code> advertises EFA interfaces as a schedulable resource, so pods can request them like GPUs.</p>
+<p><strong>Going deeper.</strong> Disaggregated LLM serving pushes this further. When prefill and decode run on separate pods and pass the KV cache between them, the pods need on the order of hundreds of Gbps between them, far beyond a normal 10–20 Gbps pod network. That's why setups like llm-d or NVIDIA Dynamo assume RDMA, RoCE or NVLink fabrics, and behave more like an appliance than a typical Deployment.</p></div>
 </section>
 
 <section class="entry tab" id="d-challenges-2" aria-labelledby="d-challenges-2-h">
@@ -695,17 +1036,30 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> Half the nodes average 20% CPU, and the GPU bill keeps growing.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d12-1.svg" data-title="Compute" aria-label="Open diagram full screen: Compute"><img src="diagrams/sections/d12-1.svg" alt="Diagram: Compute" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Right-size with Kubecost, Goldilocks, StormForge or KRR. Choose purchase options deliberately: on-demand, Reserved Instances, Savings Plans, Spot (2-minute notice, good for checkpointed training with Ray, Kubeflow or Horovod, with Karpenter falling back to on-demand), Graviton, Fargate, and Capacity Blocks to reserve GPUs for a planned window.</p>
-<blockquote>
-<p><strong>From the chapter:</strong> for GPU nodes, packing (MostAllocated with GPUs weighted highest) plus a matching descheduler policy creates empty nodes that the autoscaler can remove. At $10–30 per GPU node-hour, that matters. Weigh it against the cost of the checkpoint-and-restart that every eviction triggers.</p>
-</blockquote>
+<p><strong>Going deeper.</strong> For GPU nodes, the biggest waste is idle GPUs, not instance pricing:</p>
+<ul>
+<li><strong>Bin-pack</strong> (MostAllocated with GPUs weighted highest), so empty nodes can be removed.</li>
+<li><strong>Share</strong> GPUs that small models use only partly: MIG for isolation, time slicing for dev and bursty inference.</li>
+<li><strong>Quantize</strong> where quality allows: a 70B model needs about 280 GB at fp32 but about 35 GB at 4-bit.</li>
+</ul>
+<p>Weigh every consolidation against the checkpoint-and-restart it forces on training jobs.</p>
 <h3 id="d12-2">Networking</h3>
 <p><strong>Scenario.</strong> The data-transfer line on the bill is surprisingly large.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d12-2.svg" data-title="Networking" aria-label="Open diagram full screen: Networking"><img src="diagrams/sections/d12-2.svg" alt="Diagram: Networking" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Cross-AZ pod traffic costs money, so use topology-aware routing (EndpointSlice hints) and same-AZ provisioning with Karpenter. Use ALB IP mode, VPC endpoints instead of NAT for AWS services, and an ECR endpoint plus pre-cached images in a custom AMI.</p>
+<p><strong>Going deeper.</strong> Model images are a special case: tens or hundreds of GB. Layered OCI images let ten fine-tuned variants share one cached copy of the base model on a node. Pre-pulling or prefetching images is what keeps scale-up times predictable (see <a href="#post-model-data">Getting model weights into pods</a>).</p>
+<p>Startup time is a cost too: a slow-starting replica means paying for extra warm capacity. For model servers:</p>
+<ul>
+<li>Use <code>imagePullPolicy: IfNotPresent</code>, and pin images by version or digest instead of <code>latest</code>.</li>
+<li>Avoid downloading weights at startup (PVCs or OCI images instead).</li>
+<li>Use a parallel loader (Run:ai Model Streamer, Tensorizer).</li>
+</ul>
+<p>Together these cut a replica's time-to-ready from minutes to tens of seconds.</p>
 <h3 id="d12-3">Storage</h3>
 <p><strong>Scenario.</strong> Old volumes and logs keep growing after the workloads that wrote them are gone.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d12-3.svg" data-title="Storage" aria-label="Open diagram full screen: Storage"><img src="diagrams/sections/d12-3.svg" alt="Diagram: Storage" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Ephemeral storage for scratch data, Mountpoint for S3 (a file system view of S3, not a block device), gp3 over gp2 (about 20% cheaper), reclaim policies, IOPS tiers (io2 for the hottest data, st1/sc1 for cold), smaller images through multi-stage builds, and log retention policies.</p></div>
+<p><strong>What the picture shows.</strong> Ephemeral storage for scratch data, Mountpoint for S3 (a file system view of S3, not a block device), gp3 over gp2 (about 20% cheaper), reclaim policies, IOPS tiers (io2 for the hottest data, st1/sc1 for cold), smaller images through multi-stage builds, and log retention policies.</p>
+<p><strong>Going deeper.</strong> For model weights, the storage choice is a cost-vs-speed trade-off. A shared ReadOnlyMany PersistentVolume stores one copy for all replicas but pays network latency on every read. Copying into an <code>emptyDir</code> gives fast local reads but stores one copy per pod per node. OCI images sit in between (see <a href="#post-model-data">Getting model weights into pods</a>).</p></div>
 </section>
 
 <section class="entry tab" id="d-security" aria-labelledby="d-security-h">
@@ -723,6 +1077,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> A base image with a critical CVE almost reaches production.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d13-2.svg" data-title="The build pipeline" aria-label="Open diagram full screen: The build pipeline"><img src="diagrams/sections/d13-2.svg" alt="Diagram: The build pipeline" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Build (minimal or distroless base images, multi-stage builds, immutable tags) → test (Snyk in CI) → store (signing with Cosign or AWS Signer, OPA Gatekeeper) → encrypt (KMS, Vault, Secrets Store CSI) → scan (Inspector, Trivy) → deploy (private subnets, no SSH, IMDS blocked, hardened AMI) → monitor.</p>
+<p><strong>Going deeper.</strong> Model files belong in the supply chain too. Classic PyTorch <code>.pt</code> files use Python pickle, which can execute arbitrary code when loaded. <strong>Safetensors</strong> stores only tensors and can't, which makes it the safer default for weights from outside the organization. Signing and scanning model images works the same way as for application images.</p>
 <h3 id="d13-3">Runtime security</h3>
 <p><strong>Scenario.</strong> A container is found running as root with <code>CAP_SYS_ADMIN</code>.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d13-3.svg" data-title="Runtime security" aria-label="Open diagram full screen: Runtime security"><img src="diagrams/sections/d13-3.svg" alt="Diagram: Runtime security" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
@@ -738,7 +1093,16 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <h3 id="d13-6">Identity and model endpoints</h3>
 <p><strong>Scenario.</strong> The inference service needs S3 access and a public HTTPS endpoint.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d13-6.svg" data-title="Identity and model endpoints" aria-label="Open diagram full screen: Identity and model endpoints"><img src="diagrams/sections/d13-6.svg" alt="Diagram: Identity and model endpoints" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> IRSA vs. EKS Pod Identity (simpler setup through an agent DaemonSet), TLS everywhere with ACM certificates on the ALB or NLB, and WAF on the ingress.</p></div>
+<p><strong>What the picture shows.</strong> IRSA vs. EKS Pod Identity (simpler setup through an agent DaemonSet), TLS everywhere with ACM certificates on the ALB or NLB, and WAF on the ingress.</p>
+<p><strong>Going deeper.</strong> Model endpoints also need <strong>guardrails</strong>: checks on the prompt before the model and on the answer after it. They catch prompt injection ("ignore all previous instructions"), jailbreaks, toxic output and leaked personal data. Small classifier models such as Llama Guard or Granite Guardian run as their own vLLM deployments. Frameworks like NeMo Guardrails, the FMS Guardrails Orchestrator, Guardrails AI or a moderation API wire them in. Every check adds latency and GPU cost, so keep the in-line checks small and sample the rest asynchronously.</p>
+<p>Agents add an identity question: when an agent calls a tool (an MCP server) on a user's behalf, whose identity does the backend see? There are four common answers:</p>
+<ul>
+<li><strong>Pass the user's token through:</strong> full per-user audit, but long-running tasks outlive the token and the token needs very broad scopes.</li>
+<li><strong>Kubernetes ServiceAccounts:</strong> validated with <code>TokenReview</code> and authorized with <code>SubjectAccessReview</code>. Simple inside one cluster, but you lose the user.</li>
+<li><strong>OAuth2 token exchange (RFC 8693):</strong> one token carries both the user (<code>sub</code>) and the agent (<code>act</code>).</li>
+<li><strong>SPIFFE/SPIRE mTLS:</strong> short-lived workload certificates that can't be stolen like a token.</li>
+</ul>
+<p>In practice teams layer them: workload mTLS plus user identity in the request, with a policy engine checking both. More in <a href="#post-agents-prod">Running agents in production</a>.</p></div>
 </section>
 
 <section class="entry tab" id="d-storage-basics" aria-labelledby="d-storage-basics-h">
@@ -757,10 +1121,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>PV:</strong> the desk that actually gets built, which is the real EBS volume, bound to the order.</li>
 <li><strong>Volume and volumeMount:</strong> where the pod sets the desk up.</li>
 </ul>
-<p>The YAML examples show dynamic provisioning end to end. Mountpoint for S3 gives you a file-system view of a bucket; it is still object storage.</p></div>
+<p>The YAML examples show dynamic provisioning end to end. Mountpoint for S3 gives you a file-system view of a bucket; it is still object storage.</p>
+<p><strong>Going deeper.</strong> The same objects serve model weights. One PersistentVolume on NFS or EFS with <code>ReadOnlyMany</code> access, mounted <code>readOnly: true</code> by every replica, stores the model once and lets the OS cache it aggressively. It works well for tens of replicas. At hundreds, the shared backend becomes the bottleneck.</p></div>
 </section>
     <footer>
-      <p>Book notes are my own summary of the "Job Scheduling Optimization" chapter of <em>Generative AI on Kubernetes</em>. Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing.</p>
+      <p>Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing.</p>
     </footer>
   </main>
 </div>

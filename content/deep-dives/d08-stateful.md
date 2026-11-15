@@ -13,6 +13,14 @@ A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services
 
 **What the picture shows.** Stateless "cattle" and stateful "pets" get separate node groups: Spot-heavy with Karpenter for stateless, on-demand only and EBS-optimized for stateful. A `stateful=true:NoSchedule` taint keeps them apart. StatefulSets give ordered startup, stable names and per-pod PVCs, and a PodDisruptionBudget protects quorum.
 
+**Going deeper.** An AI application maps cleanly onto the same split:
+
+- **Stateless Deployments:** the orchestrator (the app logic around the model), the embedding service, rerankers and model servers.
+- **StatefulSets with PVCs:** the vector database, the chat history and the agent session store.
+- **Jobs or CronJobs:** document ingestion and nightly batch runs.
+
+Separate lifecycles let you update prompts, models and data independently.
+
 ### Storage and StatefulSet mechanics
 
 **Scenario.** Which volume type, binding mode and reclaim policy should a new database use?
@@ -26,6 +34,8 @@ A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services
 - **Reclaim policy:** Retain in production, Delete in dev.
 - **Updates:** partitioned rolling updates, or `OnDelete` for manual control.
 
+**Going deeper.** EFS-style shared file systems are a good fit for model weights: many replicas read the same files and never write them. Mount them `ReadOnlyMany` and `readOnly: true`. Keep EBS for anything that writes.
+
 ### Performance, networking and backup
 
 **Scenario.** Replication traffic between database nodes adds latency to every commit.
@@ -37,6 +47,8 @@ A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services
 - **I/O:** local NVMe for scratch data, and EBS metrics to watch.
 - **Network:** cluster placement groups for "chatty" peers, ENA/SR-IOV, ENA Express (SRD), and ENI trunking for pod density.
 - **Backup:** Velero for the cluster, plus native consistent dumps to S3.
+
+**Going deeper.** Local NVMe also speeds up model servers. A node-local model cache on NVMe (KServe has one, keyed by the model's storage URI) makes downloads from Hugging Face or S3 behave like a local volume after the first pull, and GPUDirect Storage can feed weights from NVMe straight into GPU memory.
 
 ### Spreading across AZs and nodes
 
@@ -54,7 +66,7 @@ A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services
 
 **What the picture shows.** Memory access is local or remote depending on which socket holds the data. When the kernel moves a process between sockets, it loses its cache. Setting the kubelet's `cpuManagerPolicy: static` and `topologyManagerPolicy: single-numa-node` keeps a Guaranteed pod's CPUs and memory on one NUMA node.
 
-> **From the chapter:** the same Topology Manager matters for GPU training. Without it, the CPU manager and device manager can hand a pod CPUs from one NUMA node and GPUs from another. The policies range from `best-effort` to `single-numa-node`. The strictest gives the best locality but makes scheduling harder.
+**Going deeper.** The kubelet's **Topology Manager** matters just as much for GPU pods. Without it, the CPU manager and the device manager can give a pod CPUs from one NUMA node and GPUs from another. The policies run from `best-effort` through `restricted` to `single-numa-node`. The strictest gives the best locality but makes pods harder to place.
 
 ### I/O scheduler tuning
 
