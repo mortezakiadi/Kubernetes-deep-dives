@@ -118,6 +118,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose pre.snippet .kl .tk { color: #fde68a; font-weight: 600; }
 .prose pre.snippet .kl .tc { color: #e5c76b; }
 .legend mark { margin-right: 2px; }
+.prose table { border-collapse: collapse; margin: 10px 0 14px; font-size: 14.5px; max-width: 100%; }
+.prose th, .prose td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+.prose thead th { background: var(--accent-soft); font-weight: 600; }
+.prose table.mini td:not(:first-child), .prose table.mini th:not(:first-child) { text-align: center; }
+.prose table.mini tr.sum td { font-weight: 600; background: rgba(127,127,127,.06); }
+.prose table.mini td.no { color: #b91c1c; font-weight: 600; }
+.prose table.mini td.yes { color: #15803d; font-weight: 600; }
 .prose mark.kw { background: none; color: var(--accent); font-weight: 600; }
 .prose mark.kw-act { background: var(--mark-soft); color: var(--mark); font-weight: 600; padding: 0 3px; border-radius: 3px; }
 .prose p > strong:first-child { font: 600 12px/1 var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin-right: 4px; }
@@ -211,6 +218,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Worked example, one node:</strong> 4 CPU cores of capacity, about <strong>3.9 allocatable</strong>. Three pods already run there: pod A requests 1.5 cores and uses 0.3, pod B requests 1.5 and uses 0.5, pod C requests 0.8 and uses 0.6.</li>
 <li><strong>Reserved vs. used:</strong> together they request <strong>3.8 cores</strong> but use only <strong>1.4</strong>, about 35% of the node. The dashboard shows the 35%.</li>
 <li><strong>The new pod:</strong> it requests 0.5 cores. The scheduler computes 3.9 − 3.8 = <strong>0.1 cores left</strong>. That's less than 0.5, so the node fails the filter, even though about 2.5 cores are sitting idle.</li>
+<li><strong>At a glance:</strong> the same numbers side by side. <table class="mini"><thead><tr><th>CPU cores</th><th>Scheduler's view (requests)</th><th>Dashboard's view (real usage)</th></tr></thead><tbody><tr><td>Pod A</td><td>1.5</td><td>0.3</td></tr><tr><td>Pod B</td><td>1.5</td><td>0.5</td></tr><tr><td>Pod C</td><td>0.8</td><td>0.6</td></tr><tr class="sum"><td>Total on the node</td><td>3.8 of 3.9 allocatable</td><td>1.4 (about 35%)</td></tr><tr class="sum"><td>Room left</td><td>0.1</td><td>about 2.5</td></tr><tr class="verdict"><td>New pod needs 0.5</td><td class="no">✗ doesn't fit: node filtered out</td><td class="yes">✓ would easily fit</td></tr></tbody></table></li>
 <li><strong>All 12 nodes look like this:</strong> the result is <code>0/12 nodes are available: 12 Insufficient cpu</code>, which is exactly the scenario.</li>
 <li><strong>Why it works this way:</strong> a request is a promise. If pod A suddenly needs its full 1.5 cores, it must be able to get them, so the scheduler can't hand that reserved space to another pod just because it's idle right now.</li>
 <li><strong>The usual fix:</strong> right-size the requests to match real usage (tools like <mark class="kw-tool">Goldilocks</mark> or the Vertical Pod Autoscaler help) instead of adding nodes.</li>
