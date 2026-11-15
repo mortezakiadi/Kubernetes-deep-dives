@@ -59,7 +59,9 @@ profiles:
           weight: 1
 ```
 
-> **Note: when would you actually write a `KubeSchedulerConfiguration`?** Only when you want to *change* the scheduler's built-in settings. Two things to know first:
+> **Note: when would you actually write a `KubeSchedulerConfiguration`?**
+>
+> Only when you want to *change* the scheduler's built-in settings. Two things to know first:
 >
 > - **It isn't a Kubernetes object.** It has `apiVersion` and `kind`, but you don't `kubectl apply` it (the API would reject it). It's a config file the kube-scheduler program reads at startup, passed with `--config`.
 > - **Where you can use it depends on who runs the scheduler:**
