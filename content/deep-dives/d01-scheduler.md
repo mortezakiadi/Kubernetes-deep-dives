@@ -175,6 +175,58 @@ spec:
 >       - name: builder
 >         image: my-company/report-builder:3.1
 >     ```
+>
+>     **What if these were *required* instead?** The story changes. Required rules are pass/fail filters, so there's no `weight` or `preference`; you list `nodeSelectorTerms` instead and must decide whether you mean "SSD **and** zone a" or "SSD **or** zone a":
+>
+>     ```yaml
+>     # Both conditions in ONE term → AND: an SSD node that is also in us-east-1a
+>     apiVersion: v1
+>     kind: Pod
+>     metadata:
+>       name: report-builder
+>     spec:
+>       affinity:
+>         nodeAffinity:
+>           requiredDuringSchedulingIgnoredDuringExecution:   # no weights allowed  #!
+>             nodeSelectorTerms:
+>             - matchExpressions:          # one term, two conditions = AND  #!
+>               - key: disktype
+>                 operator: In
+>                 values: ["ssd"]
+>               - key: topology.kubernetes.io/zone
+>                 operator: In
+>                 values: ["us-east-1a"]
+>       containers:
+>       - name: builder
+>         image: my-company/report-builder:3.1
+>     ---
+>     # Each condition in its OWN term → OR: an SSD node anywhere, or any node in us-east-1a
+>     apiVersion: v1
+>     kind: Pod
+>     metadata:
+>       name: report-builder
+>     spec:
+>       affinity:
+>         nodeAffinity:
+>           requiredDuringSchedulingIgnoredDuringExecution:
+>             nodeSelectorTerms:
+>             - matchExpressions:          # term 1  #!
+>               - key: disktype
+>                 operator: In
+>                 values: ["ssd"]
+>             - matchExpressions:          # term 2 (OR)  #!
+>               - key: topology.kubernetes.io/zone
+>                 operator: In
+>                 values: ["us-east-1a"]
+>       containers:
+>       - name: builder
+>         image: my-company/report-builder:3.1
+>     ```
+>
+>     How the three versions treat each kind of node: <table class="mini"><thead><tr><th>Node</th><th>Preferred (10 / 90)</th><th>Required, AND</th><th>Required, OR</th></tr></thead><tbody><tr><td>SSD, in zone a</td><td>best choice</td><td class="yes">✓ allowed</td><td class="yes">✓ allowed</td></tr><tr><td>Zone a, no SSD</td><td>strong choice (90)</td><td class="no">✗ removed</td><td class="yes">✓ allowed</td></tr><tr><td>SSD, other zone</td><td>weak choice (10)</td><td class="no">✗ removed</td><td class="yes">✓ allowed</td></tr><tr><td>Neither</td><td>allowed, lowest score</td><td class="no">✗ removed</td><td class="no">✗ removed</td></tr><tr class="sum"><td>No matching node at all</td><td>pod runs anyway</td><td>pod stays Pending</td><td>pod stays Pending</td></tr></tbody></table>
+>
+>     Order still doesn't matter in any of them, and `IgnoredDuringExecution` still means a running pod isn't moved if labels change later. A common pattern is to mix them: a required rule for what's non-negotiable (say, the zone where the data lives) plus a preferred rule for nice-to-haves (say, SSD with weight 50).
+>
 > - **Why you usually want them together:** a toleration only *allows* a pod onto a tainted node; it doesn't *send* it there, so the pod could still land on any untainted node. Dedicated nodes therefore use three pieces: a **taint** on the nodes (keeps other pods off), a **toleration** on the pod (lets it in), and **node affinity** or `nodeSelector` on the pod (sends it there). Pod anti-affinity is often added to spread replicas across those nodes.
 >
 >     ```yaml
