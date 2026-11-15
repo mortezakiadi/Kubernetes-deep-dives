@@ -654,6 +654,33 @@ spec:
       - name: gpu                    # no nvidia.com/gpu count: the claim is the request
 ```
 
+> **Note: how do you install DRA?**
+>
+> You don't install DRA itself. The API (`ResourceClaim`, `ResourceClaimTemplate`, `DeviceClass`) is built into Kubernetes 1.34 and later. What you install is a **DRA driver** for your hardware: it advertises the devices on each node and allocates the one a claim asks for. For NVIDIA GPUs that's the NVIDIA DRA driver, installed with Helm:
+>
+> ```bash
+> helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+> helm repo update
+> helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
+>   --create-namespace --namespace nvidia-dra-driver-gpu \
+>   --set resources.computeDomains.enabled=false \
+>   --set gpuResourcesEnabledOverride=true    # turn on GPU allocation
+>
+> # check that the driver pods are running
+> kubectl get pods -n nvidia-dra-driver-gpu
+>
+> # the driver creates the DeviceClass the claim above refers to
+> kubectl get deviceclass gpu.nvidia.com
+> ```
+>
+> Things to check before you rely on it:
+>
+> - **Kubernetes version:** NVIDIA asks for 1.34.2 or later.
+> - **Chart name:** from v0.4.0 the driver moved to `kubernetes-sigs` and the chart is called `dra-driver-nvidia-gpu`; use the name that matches your version.
+> - **Don't run two allocators:** if the NVIDIA GPU Operator is installed, use v25.10.0 or later with its device plugin turned off, and label the GPU nodes (for example `nvidia.com/dra-kubelet-plugin=true`) so the driver runs only there.
+> - **Old-style requests aren't DRA:** a pod that asks for `nvidia.com/gpu: 1` under `resources.limits` still goes through the device plugin path, even with a DRA driver installed.
+> - **On EKS:** Bottlerocket nodes aren't supported by the NVIDIA DRA driver; Karpenter needs `settings.enableDRA: true` (alpha); and support for EKS Auto Mode was announced in November 2026 for Kubernetes 1.36+, so check the current AWS docs.
+
 - Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the [gang problem](#d02-2).
 
 ```yaml
