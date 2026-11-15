@@ -354,6 +354,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <thead>
 <tr>
 <th>Mechanism</th>
+<th>Kind</th>
 <th>What it publishes</th>
 <th>How a pod uses it</th>
 </tr>
@@ -361,33 +362,38 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <tbody>
 <tr>
 <td><strong>Device plugin</strong> (NVIDIA; also AMD <code>amd.com/gpu</code>, AWS Neuron <code>aws.amazon.com/neuron</code>)</td>
+<td><strong>Count</strong></td>
 <td>A count in the node's capacity, e.g. <code>nvidia.com/gpu: 8</code></td>
 <td><code>resources.limits</code></td>
 </tr>
 <tr>
 <td><strong>GPU Feature Discovery</strong> (NVIDIA, installed with the GPU Operator)</td>
+<td><strong>Label</strong></td>
 <td>Node labels with GPU details: model, memory, count</td>
 <td><code>nodeSelector</code> / node affinity</td>
 </tr>
 <tr>
 <td><strong>Node Feature Discovery</strong></td>
+<td><strong>Label</strong></td>
 <td>Generic hardware labels, e.g. <code>feature.node.kubernetes.io/pci-10de.present</code> (10de = NVIDIA)</td>
 <td><code>nodeSelector</code> / node affinity</td>
 </tr>
 <tr>
 <td><strong>Cloud and Karpenter labels</strong></td>
+<td><strong>Label</strong></td>
 <td>Labels from the instance type: <code>node.kubernetes.io/instance-type</code>, <code>karpenter.k8s.aws/instance-gpu-name</code>, <code>instance-gpu-memory</code>, <code>instance-gpu-count</code></td>
 <td>Node affinity, or NodePool requirements</td>
 </tr>
 <tr>
 <td><strong>DRA driver</strong></td>
+<td><strong>DRA</strong> (per device)</td>
 <td>One ResourceSlice entry per device, with its attributes</td>
 <td>A <code>ResourceClaim</code> with CEL selectors</td>
 </tr>
 </tbody>
 </table><ul>
 <li>
-<p>A few things follow from that table. <mark class="kw-tool">GPU Feature Discovery</mark> builds on <mark class="kw-tool">Node Feature Discovery</mark>, adding GPU details to its generic "there's an NVIDIA card" label. <mark class="kw-tool">Karpenter</mark>'s labels are known <em>before</em> a node exists, so they can make Karpenter launch the right instance; GPU Feature Discovery can only label a node once it's running. DRA doesn't need any of these labels, though they can still be used alongside it (for example to keep a node pool for one GPU model). And NVIDIA's <mark class="kw-tool">DCGM exporter</mark>, often seen next to these, only reports GPU usage and health for monitoring; the scheduler never reads it.</p>
+<p>A few things follow from that table. <mark class="kw-tool">GPU Feature Discovery</mark>'s <code>nvidia.com/gpu.count</code> label is still only a label: the scheduler reserves against the device plugin's <code>nvidia.com/gpu</code> count, never against it. GPU Feature Discovery builds on <mark class="kw-tool">Node Feature Discovery</mark>, adding GPU details to its generic "there's an NVIDIA card" label. <mark class="kw-tool">Karpenter</mark>'s labels are known <em>before</em> a node exists, so they can make Karpenter launch the right instance; GPU Feature Discovery can only label a node once it's running. DRA doesn't need any of these labels, though they can still be used alongside it (for example to keep a node pool for one GPU model). And NVIDIA's <mark class="kw-tool">DCGM exporter</mark>, often seen next to these, only reports GPU usage and health for monitoring; the scheduler never reads it.</p>
 </li>
 <li>
 <p>For GPUs, these same <mark class="kw-act">filters</mark> do the steering.</p>
