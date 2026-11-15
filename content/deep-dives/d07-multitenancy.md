@@ -1,13 +1,13 @@
 ---
 id: d-multitenancy
-title: "Multi-tenancy on EKS: soft vs. hard isolation"
-short: "EKS Multi-tenancy"
+title: "Multi-tenancy on Kubernetes: soft vs. hard isolation"
+short: "Kubernetes Multi-tenancy"
 ---
-A SaaS platform hosts standard, premium and regulated tenants on shared EKS. The question running through this deep dive: *if one tenant is compromised, what can it reach?*
+A SaaS platform hosts standard, premium and regulated tenants on a shared Kubernetes cluster. The question running through this deep dive: *if one tenant is compromised, what can it reach?*
 
 ### Tenant classes, soft and hard isolation
 
-**Scenario.** A SaaS company is moving all its customers onto one shared EKS cluster. Most customers are small, but a few are banks with PCI and data-residency rules, and one noisy customer once took down a shared database. The architects need a plan for which customers can share and which need walls between them.
+**Scenario.** A SaaS company is moving all its customers onto one shared Kubernetes cluster. Most customers are small, but a few are banks with PCI and data-residency rules, and one noisy customer once took down a shared database. The architects need a plan for which customers can share and which need walls between them.
 
 ![Tenant classes, soft and hard isolation](diagrams/sections/d07-1.svg)
 

@@ -43,7 +43,7 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 
 **What the picture shows.** Runbook 3: DNS issues, where pods can't find the address of who they want to talk to.
 
-- **Why DNS looks like a network outage:** the network is fine, but names don't resolve. On EKS this almost always points to **CoreDNS**, the cluster's internal phonebook: usually 2 pods that answer queries such as "what is the IP of `my-service.default.svc.cluster.local`?"
+- **Why DNS looks like a network outage:** the network is fine, but names don't resolve. In Kubernetes this almost always points to **CoreDNS**, the cluster's internal phonebook: usually 2 pods that answer queries such as "what is the IP of `my-service.default.svc.cluster.local`?"
 - **Troubleshooting 1, Corefile misconfiguration:** the Corefile (CoreDNS's config, stored in a ConfigMap) can break the phonebook.
   - **Looping:** if DNS plugins forward to each other, CoreDNS detects a loop and shuts down. Example: a pod asks for `google.com`; CoreDNS forwards using `forward . /etc/resolv.conf`; the node's `resolv.conf` points to a local stub (`127.0.0.1` or `127.0.0.53`), which sends the query back, and the request spirals.
   - **Upstream failure:** that `forward` line normally sends external names to the VPC DNS (`169.254.169.253`). If the node's `resolv.conf` is broken, nothing outside the cluster resolves.

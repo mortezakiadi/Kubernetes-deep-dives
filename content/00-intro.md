@@ -1,6 +1,6 @@
 ---
 title: "Kubernetes deep dives"
-subtitle: "How EKS schedules, isolates and runs workloads: from kube-scheduler and gang scheduling to cgroups, ENIs and EBS. Each idea is shown as a real scenario first, then the diagram that explains it."
+subtitle: "How Kubernetes schedules, isolates and runs workloads: from kube-scheduler and gang scheduling to cgroups, ENIs and EBS. Each idea is shown as a real scenario first, then the diagram that explains it."
 author: "Morteza Kiadi"
 links: ""
 ---

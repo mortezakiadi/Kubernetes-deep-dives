@@ -1,7 +1,7 @@
 ---
 id: d-networking
 title: "Node networking and the high-performance path"
-short: "EKS Networking"
+short: "Kubernetes Networking"
 ---
 This deep dive covers what happens on a worker node when a pod starts, and the path that large training jobs need: SR-IOV, RDMA and EFA.
 
@@ -34,7 +34,7 @@ This deep dive covers what happens on a worker node when a pod starts, and the p
 
 ### Network optimization levers
 
-**Scenario.** A high-traffic cluster shows rising network latency and DNS timeouts as it grows. The team lists the network optimizations available on EKS: hardware NIC sharing, eBPF, a different kube-proxy mode, CoreDNS scaling and EC2 placement.
+**Scenario.** A high-traffic cluster shows rising network latency and DNS timeouts as it grows. The team lists the network optimizations available to them: hardware NIC sharing, eBPF, a different kube-proxy mode, CoreDNS scaling and EC2 placement.
 
 ![Network optimization levers](diagrams/sections/d10-3.svg)
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kubernetes deep dives</title>
-<meta name="description" content="How EKS schedules, isolates and runs workloads: from kube-scheduler and gang scheduling to cgroups, ENIs and EBS. Each idea is shown as a real scenario first, then the diagram that explains it.">
+<meta name="description" content="How Kubernetes schedules, isolates and runs workloads: from kube-scheduler and gang scheduling to cgroups, ENIs and EBS. Each idea is shown as a real scenario first, then the diagram that explains it.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -143,19 +143,19 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <p class="brand">Kubernetes deep dives</p>
     <nav aria-label="Contents">
       <h3>Deep dives</h3>
-      <ul><li><a href="#d-scheduler"><b>01</b> EKS Scheduler</a></li>
-<li><a href="#d-multischeduler"><b>02</b> EKS Multi-Scheduler</a></li>
-<li><a href="#d-batch-realtime"><b>03</b> EKS Batch and Realtime</a></li>
+      <ul><li><a href="#d-scheduler"><b>01</b> Kubernetes Scheduler</a></li>
+<li><a href="#d-multischeduler"><b>02</b> Kubernetes Multi-Scheduler</a></li>
+<li><a href="#d-batch-realtime"><b>03</b> Kubernetes Batch and Realtime</a></li>
 <li><a href="#d-cgroups"><b>04</b> cgroups</a></li>
 <li><a href="#d-challenges-1"><b>05</b> Challenges 1</a></li>
-<li><a href="#d-gpu"><b>06</b> EKS and GPU</a></li>
-<li><a href="#d-multitenancy"><b>07</b> EKS Multi-tenancy</a></li>
-<li><a href="#d-stateful"><b>08</b> EKS Stateful workloads</a></li>
+<li><a href="#d-gpu"><b>06</b> Kubernetes and GPU</a></li>
+<li><a href="#d-multitenancy"><b>07</b> Kubernetes Multi-tenancy</a></li>
+<li><a href="#d-stateful"><b>08</b> Kubernetes Stateful workloads</a></li>
 <li><a href="#d-pod-networking"><b>09</b> EKS Pod Networking</a></li>
-<li><a href="#d-networking"><b>10</b> EKS Networking</a></li>
+<li><a href="#d-networking"><b>10</b> Kubernetes Networking</a></li>
 <li><a href="#d-challenges-2"><b>11</b> Challenges 2</a></li>
 <li><a href="#d-optimization"><b>12</b> EKS Optimization</a></li>
-<li><a href="#d-security"><b>13</b> EKS Security</a></li>
+<li><a href="#d-security"><b>13</b> Kubernetes Security</a></li>
 <li><a href="#d-storage-basics"><b>14</b> StorageClass, PV and PVC</a></li></ul>
       <h3>Further research</h3>
       <ul><li class="notes"><a href="#post-serving">Serving LLMs on Kubernetes</a></li>
@@ -170,7 +170,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
   <main>
     <header class="hero" id="top">
       <h1>Kubernetes deep dives</h1>
-      <p class="sub">How EKS schedules, isolates and runs workloads: from kube-scheduler and gang scheduling to cgroups, ENIs and EBS. Each idea is shown as a real scenario first, then the diagram that explains it.</p>
+      <p class="sub">How Kubernetes schedules, isolates and runs workloads: from kube-scheduler and gang scheduling to cgroups, ENIs and EBS. Each idea is shown as a real scenario first, then the diagram that explains it.</p>
       <p class="byline">By Morteza Kiadi</p>
       <div class="prose"><p>I drew these diagrams while working through how Kubernetes and Amazon EKS really behave in production. Every section here starts with a <strong>scenario</strong>, a concrete problem or question, followed by the part of my diagram that explains it and a short note on what to take away.</p>
 <p>Click any diagram to open it full screen, then scroll or pinch to zoom and drag to move around.</p></div>
@@ -193,7 +193,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d01-1.svg" data-title="Phase 1: filtering" aria-label="Open diagram full screen: Phase 1: filtering"><img src="diagrams/sections/d01-1.svg" alt="Diagram: Phase 1: filtering" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> The scheduler works in two phases, <strong>filtering</strong> then <strong>scoring</strong>. This picture is the first phase: find every node that is physically and logically able to host the pod. Each node runs through a series of checks (<mark class="kw-act">filter</mark> plugins, formerly called predicates), and failing even one check removes it.</p>
 <ul>
-<li><strong>EKS Scheduler:</strong> the "brain" that decides where every new pod lives.</li>
+<li><strong>Kubernetes scheduler ("EKS Scheduler" box):</strong> the "brain" that decides where every new pod lives.</li>
 <li><strong>Phase 1: Filtering (the "predicate" phase):</strong> the goal is simple, keep only the nodes that can run the pod.</li>
 <li><strong>Insufficient resources (the bin-packing rule):</strong> the scheduler takes the node's total capacity and subtracts the <em>requests</em> of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper.</li>
 <li><strong>Node selector mismatch:</strong> if the pod has a <code>nodeSelector</code> (for example <code>disktype: ssd</code>), any node without that exact label is dropped.</li>
@@ -477,7 +477,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
   <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d03-1">Workloads and node tiers</a></li><li><a href="#d03-2">Priority, preemption and QoS</a></li><li><a href="#d03-3">Placement, autoscaling and cost</a></li><li><a href="#d03-4">CPU: shares and throttling</a></li><li><a href="#d03-5">Kernel vs. Kubernetes</a></li><li><a href="#d03-6">Memory: who gets killed</a></li><li><a href="#d03-7">Network: the unmanaged resource</a></li><li><a href="#d03-8">Storage I/O: the other unmanaged resource</a></li></ol></nav>
   <div class="prose"><p>One cluster runs a latency-critical web API next to cost-driven batch jobs. This deep dive follows the isolation stack from node tiers down to CPU, memory, network and disk.</p>
 <h3 id="d03-1">Workloads and node tiers</h3>
-<p><strong>Scenario.</strong> A company wants to run its customer-facing web API and its nightly batch jobs on the same EKS cluster to save money. The web team is worried that a big batch run will slow the API down; the finance team wants batch to run as cheaply as possible. How do you design node pools so both groups are happy?</p>
+<p><strong>Scenario.</strong> A company wants to run its customer-facing web API and its nightly batch jobs on the same Kubernetes cluster to save money. The web team is worried that a big batch run will slow the API down; the finance team wants batch to run as cheaply as possible. How do you design node pools so both groups are happy?</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d03-1.svg" data-title="Workloads and node tiers" aria-label="Open diagram full screen: Workloads and node tiers"><img src="diagrams/sections/d03-1.svg" alt="Diagram: Workloads and node tiers" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> A mind map of the mixed-workload strategy: first understand each workload, then give each one the right kind of node.</p>
 <ul>
@@ -813,11 +813,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
   </header>
   
   <div class="prose"><h3 id="d06-1">The NVIDIA device plugin</h3>
-<p><strong>Scenario.</strong> A team adds GPU nodes to their EKS cluster and deploys a pod that requests <code>nvidia.com/gpu: 1</code>. The pod stays <code>Pending</code> with "Insufficient nvidia.com/gpu", even though the nodes clearly have GPUs installed. Kubernetes can't see them yet.</p>
+<p><strong>Scenario.</strong> A team adds GPU nodes to their Kubernetes cluster and deploys a pod that requests <code>nvidia.com/gpu: 1</code>. The pod stays <code>Pending</code> with "Insufficient nvidia.com/gpu", even though the nodes clearly have GPUs installed. Kubernetes can't see them yet.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d06-1.svg" data-title="The NVIDIA device plugin" aria-label="Open diagram full screen: The NVIDIA device plugin"><img src="diagrams/sections/d06-1.svg" alt="Diagram: The NVIDIA device plugin" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> How the NVIDIA <mark class="kw">device plugin</mark> makes GPUs visible to Kubernetes, in numbered steps.</p>
 <ul>
-<li><strong>Installing the plugin:</strong> we add a module to the EKS setup that installs the NVIDIA device plugin for Kubernetes.</li>
+<li><strong>Installing the plugin:</strong> we add a module to the cluster setup (Terraform) that installs the NVIDIA device plugin for Kubernetes.</li>
 <li><strong>Step 1:</strong> the plugin runs on every GPU worker node as a <strong>DaemonSet</strong>.</li>
 <li><strong>Step 2:</strong> on each node, the plugin registers itself with the <strong>kubelet</strong>, which reports the node's GPUs to the <strong>API server</strong> as <code>nvidia.com/gpu</code>. From then on GPUs are a countable resource the scheduler can use. This is the missing piece in the scenario.</li>
 <li><strong>Steps 3 and 4:</strong> when the scheduler places a pod that requests a GPU, the pod is bound to that worker node.</li>
@@ -849,12 +849,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <section class="entry tab" id="d-multitenancy" aria-labelledby="d-multitenancy-h">
   <header class="entry-head">
     <span class="tag">Deep dive 07 · 6 sections</span>
-    <h2 id="d-multitenancy-h">Multi-tenancy on EKS: soft vs. hard isolation</h2>
+    <h2 id="d-multitenancy-h">Multi-tenancy on Kubernetes: soft vs. hard isolation</h2>
   </header>
   <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d07-1">Tenant classes, soft and hard isolation</a></li><li><a href="#d07-2">Identity, data, network and observability</a></li><li><a href="#d07-3">Sandboxed runtimes: gVisor and Kata</a></li><li><a href="#d07-4">Hardening runC: seccomp, AppArmor, user namespaces</a></li><li><a href="#d07-5">Control plane security</a></li><li><a href="#d07-6">Network isolation and egress</a></li></ol></nav>
-  <div class="prose"><p>A SaaS platform hosts standard, premium and regulated tenants on shared EKS. The question running through this deep dive: <em>if one tenant is compromised, what can it reach?</em></p>
+  <div class="prose"><p>A SaaS platform hosts standard, premium and regulated tenants on a shared Kubernetes cluster. The question running through this deep dive: <em>if one tenant is compromised, what can it reach?</em></p>
 <h3 id="d07-1">Tenant classes, soft and hard isolation</h3>
-<p><strong>Scenario.</strong> A SaaS company is moving all its customers onto one shared EKS cluster. Most customers are small, but a few are banks with PCI and data-residency rules, and one noisy customer once took down a shared database. The architects need a plan for which customers can share and which need walls between them.</p>
+<p><strong>Scenario.</strong> A SaaS company is moving all its customers onto one shared Kubernetes cluster. Most customers are small, but a few are banks with PCI and data-residency rules, and one noisy customer once took down a shared database. The architects need a plan for which customers can share and which need walls between them.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d07-1.svg" data-title="Tenant classes, soft and hard isolation" aria-label="Open diagram full screen: Tenant classes, soft and hard isolation"><img src="diagrams/sections/d07-1.svg" alt="Diagram: Tenant classes, soft and hard isolation" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> A mind map of the multi-tenancy strategy, from classifying tenants to the two isolation styles.</p>
 <ul>
@@ -963,12 +963,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <section class="entry tab" id="d-stateful" aria-labelledby="d-stateful-h">
   <header class="entry-head">
     <span class="tag">Deep dive 08 · 11 sections</span>
-    <h2 id="d-stateful-h">Stateful workloads: databases on EKS</h2>
+    <h2 id="d-stateful-h">Stateful workloads: databases on Kubernetes</h2>
   </header>
   <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d08-1">Workloads, node groups and scheduling</a></li><li><a href="#d08-2">Storage and StatefulSet mechanics</a></li><li><a href="#d08-3">Performance, networking and backup</a></li><li><a href="#d08-4">Spreading across AZs and nodes</a></li><li><a href="#d08-5">NUMA and CPU pinning</a></li><li><a href="#d08-6">I/O scheduler tuning</a></li><li><a href="#d08-7">EBS is AZ-locked: three strategies</a></li><li><a href="#d08-8">How EBS really behaves</a></li><li><a href="#d08-9">File system, mount options and O_DIRECT</a></li><li><a href="#d08-10">The EBS CSI driver</a></li><li><a href="#d08-11">The PV subsystem end to end</a></li></ol></nav>
-  <div class="prose"><p>A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services. This deep dive is everything I'd check before trusting that setup in production.</p>
+  <div class="prose"><p>A team moves PostgreSQL, Kafka and Cassandra onto Kubernetes next to stateless services. This deep dive is everything I'd check before trusting that setup in production.</p>
 <h3 id="d08-1">Workloads, node groups and scheduling</h3>
-<p><strong>Scenario.</strong> A team that only ran stateless microservices on EKS now has to add PostgreSQL and Cassandra to the same cluster. Their first attempt puts the databases on cheap Spot nodes next to everything else, and a Spot <mark class="kw-act">reclaim</mark> takes out two Cassandra replicas at once. They need a design that treats databases differently.</p>
+<p><strong>Scenario.</strong> A team that only ran stateless microservices on Kubernetes now has to add PostgreSQL and Cassandra to the same cluster. Their first attempt puts the databases on cheap Spot nodes next to everything else, and a Spot <mark class="kw-act">reclaim</mark> takes out two Cassandra replicas at once. They need a design that treats databases differently.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d08-1.svg" data-title="Workloads, node groups and scheduling" aria-label="Open diagram full screen: Workloads, node groups and scheduling"><img src="diagrams/sections/d08-1.svg" alt="Diagram: Workloads, node groups and scheduling" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> A mind map for running stateless and stateful workloads side by side.</p>
 <ul>
@@ -1340,7 +1340,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>The fix:</strong> Cilium and Calico add DNS-aware policies and cluster-wide (global) policies on top of the standard model.</li>
 </ul>
 <h3 id="d10-3">Network optimization levers</h3>
-<p><strong>Scenario.</strong> A high-traffic cluster shows rising network latency and DNS timeouts as it grows. The team lists the network optimizations available on EKS: hardware NIC sharing, eBPF, a different kube-proxy mode, <mark class="kw">CoreDNS</mark> scaling and EC2 placement.</p>
+<p><strong>Scenario.</strong> A high-traffic cluster shows rising network latency and DNS timeouts as it grows. The team lists the network optimizations available to them: hardware NIC sharing, eBPF, a different kube-proxy mode, <mark class="kw">CoreDNS</mark> scaling and EC2 placement.</p>
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d10-3.svg" data-title="Network optimization levers" aria-label="Open diagram full screen: Network optimization levers"><img src="diagrams/sections/d10-3.svg" alt="Diagram: Network optimization levers" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> A mind map of network optimizations, branch by branch.</p>
 <ul>
@@ -1429,7 +1429,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <figure class="diagram"><button class="open" type="button" data-src="diagrams/sections/d11-3.svg" data-title="DNS issues" aria-label="Open diagram full screen: DNS issues"><img src="diagrams/sections/d11-3.svg" alt="Diagram: DNS issues" loading="lazy" decoding="async"><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Runbook 3: DNS issues, where pods can't find the address of who they want to talk to.</p>
 <ul>
-<li><strong>Why DNS looks like a network outage:</strong> the network is fine, but names don't resolve. On EKS this almost always points to <strong>CoreDNS</strong>, the cluster's internal phonebook: usually 2 pods that answer queries such as "what is the IP of <code>my-service.default.svc.cluster.local</code>?"</li>
+<li><strong>Why DNS looks like a network outage:</strong> the network is fine, but names don't resolve. In Kubernetes this almost always points to <strong>CoreDNS</strong>, the cluster's internal phonebook: usually 2 pods that answer queries such as "what is the IP of <code>my-service.default.svc.cluster.local</code>?"</li>
 <li><strong>Troubleshooting 1, Corefile misconfiguration:</strong> the Corefile (<mark class="kw">CoreDNS</mark>'s config, stored in a ConfigMap) can break the phonebook.</li>
 <li><strong>Looping:</strong> if DNS plugins forward to each other, CoreDNS detects a loop and shuts down. Example: a pod asks for <code>google.com</code>; CoreDNS forwards using <code>forward . /etc/resolv.conf</code>; the node's <code>resolv.conf</code> points to a local stub (<code>127.0.0.1</code> or <code>127.0.0.53</code>), which sends the query back, and the request spirals.</li>
 <li><strong>Upstream failure:</strong> that <code>forward</code> line normally sends external names to the VPC DNS (<code>169.254.169.253</code>). If the node's <code>resolv.conf</code> is broken, nothing outside the cluster resolves.</li>
@@ -1550,7 +1550,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <section class="entry tab" id="d-security" aria-labelledby="d-security-h">
   <header class="entry-head">
     <span class="tag">Deep dive 13 · 6 sections</span>
-    <h2 id="d-security-h">EKS security from build to runtime</h2>
+    <h2 id="d-security-h">Kubernetes security from build to runtime</h2>
   </header>
   <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d13-1">What we protect</a></li><li><a href="#d13-2">The build pipeline</a></li><li><a href="#d13-3">Runtime security</a></li><li><a href="#d13-4">Network security</a></li><li><a href="#d13-5">Secret management</a></li><li><a href="#d13-6">Identity and model endpoints</a></li></ol></nav>
   <div class="prose"><p>Security asks for one picture of how a model-serving platform is protected before launch. This deep dive answers it layer by layer.</p>

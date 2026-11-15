@@ -1,13 +1,13 @@
 ---
 id: d-stateful
-title: "Stateful workloads: databases on EKS"
-short: "EKS Stateful workloads"
+title: "Stateful workloads: databases on Kubernetes"
+short: "Kubernetes Stateful workloads"
 ---
-A team moves PostgreSQL, Kafka and Cassandra onto EKS next to stateless services. This deep dive is everything I'd check before trusting that setup in production.
+A team moves PostgreSQL, Kafka and Cassandra onto Kubernetes next to stateless services. This deep dive is everything I'd check before trusting that setup in production.
 
 ### Workloads, node groups and scheduling
 
-**Scenario.** A team that only ran stateless microservices on EKS now has to add PostgreSQL and Cassandra to the same cluster. Their first attempt puts the databases on cheap Spot nodes next to everything else, and a Spot reclaim takes out two Cassandra replicas at once. They need a design that treats databases differently.
+**Scenario.** A team that only ran stateless microservices on Kubernetes now has to add PostgreSQL and Cassandra to the same cluster. Their first attempt puts the databases on cheap Spot nodes next to everything else, and a Spot reclaim takes out two Cassandra replicas at once. They need a design that treats databases differently.
 
 ![Workloads, node groups and scheduling](diagrams/sections/d08-1.svg)
 

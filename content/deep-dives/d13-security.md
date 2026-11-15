@@ -1,7 +1,7 @@
 ---
 id: d-security
-title: "EKS security from build to runtime"
-short: "EKS Security"
+title: "Kubernetes security from build to runtime"
+short: "Kubernetes Security"
 ---
 Security asks for one picture of how a model-serving platform is protected before launch. This deep dive answers it layer by layer.
 

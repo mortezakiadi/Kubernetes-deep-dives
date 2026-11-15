@@ -1,17 +1,17 @@
 ---
 id: d-gpu
 title: "How GPUs become schedulable"
-short: "EKS and GPU"
+short: "Kubernetes and GPU"
 ---
 ### The NVIDIA device plugin
 
-**Scenario.** A team adds GPU nodes to their EKS cluster and deploys a pod that requests `nvidia.com/gpu: 1`. The pod stays `Pending` with "Insufficient nvidia.com/gpu", even though the nodes clearly have GPUs installed. Kubernetes can't see them yet.
+**Scenario.** A team adds GPU nodes to their Kubernetes cluster and deploys a pod that requests `nvidia.com/gpu: 1`. The pod stays `Pending` with "Insufficient nvidia.com/gpu", even though the nodes clearly have GPUs installed. Kubernetes can't see them yet.
 
 ![The NVIDIA device plugin](diagrams/sections/d06-1.svg)
 
 **What the picture shows.** How the NVIDIA device plugin makes GPUs visible to Kubernetes, in numbered steps.
 
-- **Installing the plugin:** we add a module to the EKS setup that installs the NVIDIA device plugin for Kubernetes.
+- **Installing the plugin:** we add a module to the cluster setup (Terraform) that installs the NVIDIA device plugin for Kubernetes.
 - **Step 1:** the plugin runs on every GPU worker node as a **DaemonSet**.
 - **Step 2:** on each node, the plugin registers itself with the **kubelet**, which reports the node's GPUs to the **API server** as `nvidia.com/gpu`. From then on GPUs are a countable resource the scheduler can use. This is the missing piece in the scenario.
 - **Steps 3 and 4:** when the scheduler places a pod that requests a GPU, the pod is bound to that worker node.

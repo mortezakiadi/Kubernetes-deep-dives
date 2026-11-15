@@ -1,7 +1,7 @@
 ---
 id: d-scheduler
 title: "How kube-scheduler picks a node"
-short: "EKS Scheduler"
+short: "Kubernetes Scheduler"
 ---
 Every pod goes through the same decision: filter out the nodes that can't run it, score the ones that can, and bind it to the best one. This deep dive follows that decision step by step.
 
@@ -13,7 +13,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 **What the picture shows.** The scheduler works in two phases, **filtering** then **scoring**. This picture is the first phase: find every node that is physically and logically able to host the pod. Each node runs through a series of checks (filter plugins, formerly called predicates), and failing even one check removes it.
 
-- **EKS Scheduler:** the "brain" that decides where every new pod lives.
+- **Kubernetes scheduler ("EKS Scheduler" box):** the "brain" that decides where every new pod lives.
 - **Phase 1: Filtering (the "predicate" phase):** the goal is simple, keep only the nodes that can run the pod.
 - **Insufficient resources (the bin-packing rule):** the scheduler takes the node's total capacity and subtracts the *requests* of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper.
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.

@@ -1,13 +1,13 @@
 ---
 id: d-batch-realtime
 title: "Batch and real-time on one cluster"
-short: "EKS Batch and Realtime"
+short: "Kubernetes Batch and Realtime"
 ---
 One cluster runs a latency-critical web API next to cost-driven batch jobs. This deep dive follows the isolation stack from node tiers down to CPU, memory, network and disk.
 
 ### Workloads and node tiers
 
-**Scenario.** A company wants to run its customer-facing web API and its nightly batch jobs on the same EKS cluster to save money. The web team is worried that a big batch run will slow the API down; the finance team wants batch to run as cheaply as possible. How do you design node pools so both groups are happy?
+**Scenario.** A company wants to run its customer-facing web API and its nightly batch jobs on the same Kubernetes cluster to save money. The web team is worried that a big batch run will slow the API down; the finance team wants batch to run as cheaply as possible. How do you design node pools so both groups are happy?
 
 ![Workloads and node tiers](diagrams/sections/d03-1.svg)
 
