@@ -282,7 +282,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong><code>requiredDuringScheduling…</code>:</strong> a <strong><mark class="kw">hard rule</mark></strong>, checked in the <strong><mark class="kw-act">filter phase</mark></strong>. No matching node means the pod stays <code>Pending</code>.</li>
 <li><strong><code>preferredDuringScheduling…</code>:</strong> a <strong><mark class="kw">soft rule</mark></strong>, checked in the <strong><mark class="kw-act">scoring phase</mark></strong> with a <code>weight</code> from 1 to 100. The pod still runs if nothing matches.</li>
 <li><strong><code>…IgnoredDuringExecution</code>:</strong> the rule is checked only when the pod is placed. If a node's labels, or the other pods around it, change later, the running pod is <strong>not</strong> moved.</li>
-<li><strong><code>requiredDuringSchedulingRequiredDuringExecution</code>:</strong> described in the Kubernetes docs as a possible future variant that would evict running pods when the rule stops matching. It has never been implemented, so you can't use it.</li>
+<li><strong><code>requiredDuringSchedulingRequiredDuringExecution</code>:</strong> described in the Kubernetes docs as a possible future variant that would evict running pods when the rule stops matching. It has never been implemented, so <strong>affinity rules are never re-checked once a pod is running</strong>.</li>
 <li>
 <p><strong>Both versions (<code>required…</code> and <code>preferred…</code>) exist for all three kinds of affinity:</strong> ("both" in the table means you can write either version)</p>
 <p><table class="mini"><thead><tr><th>Kind</th><th>What it controls</th><th>Versions</th><th>Needs <code>topologyKey</code>?</th></tr></thead><tbody><tr><td><code>nodeAffinity</code></td><td>which <b>nodes</b> to run on, by node label</td><td>both</td><td>no</td></tr><tr><td><code>podAffinity</code></td><td>run <b>near</b> certain other pods</td><td>both</td><td>yes</td></tr><tr><td><code>podAntiAffinity</code></td><td>run <b>away from</b> certain other pods</td><td>both</td><td>yes</td></tr></tbody></table></p>
@@ -294,7 +294,11 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p>So the same anti-affinity rule spreads pods across <strong>nodes</strong> or across <strong>zones</strong>, depending only on which label you name.</p>
 </li>
 <li>
-<p><strong>Taints are where "during execution" does exist today,</strong> through the taint's <code>effect</code>: <code>NoSchedule</code> (hard rule for new pods), <code>PreferNoSchedule</code> (soft, scoring only) and <code>NoExecute</code> (also evicts pods that are already running without a matching toleration; <code>tolerationSeconds</code> lets a pod stay for a set time first).</p>
+<p><strong>If you need "move the pod when things change", use a different tool.</strong> <mark class="kw">Affinity</mark> can't do it, but two other features can:</p>
+<ul>
+<li><strong>Taints with <code>effect: NoExecute</code>:</strong> taints are a separate feature, set on the <em>node</em>. Their <code>effect</code> decides how strict they are: <code>NoSchedule</code> (hard rule for new pods), <code>PreferNoSchedule</code> (soft, scoring only) and <code>NoExecute</code>, which also evicts pods that are <em>already running</em> there without a matching toleration (<code>tolerationSeconds</code> lets a pod stay for a set time first). So the taint's <code>NoExecute</code> effect behaves like the "during execution" half that affinity never got.</li>
+<li><strong>The descheduler:</strong> an add-on that periodically evicts running pods that no longer satisfy their node affinity or pod anti-affinity (its <code>RemovePodsViolatingNodeAffinity</code> and <code>RemovePodsViolatingInterPodAntiAffinity</code> plugins), so the scheduler can place them again.</li>
+</ul>
 </li>
 <li><strong>The full "dedicated GPU nodes" example is in the YAML right below this note.</strong></li>
 </ul>

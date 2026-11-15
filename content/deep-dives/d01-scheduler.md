@@ -269,7 +269,7 @@ spec:
 > - **`requiredDuringScheduling…`:** a **<mark class="kw">hard rule</mark>**, checked in the **<mark class="kw-act">filter phase</mark>**. No matching node means the pod stays `Pending`.
 > - **`preferredDuringScheduling…`:** a **<mark class="kw">soft rule</mark>**, checked in the **<mark class="kw-act">scoring phase</mark>** with a `weight` from 1 to 100. The pod still runs if nothing matches.
 > - **`…IgnoredDuringExecution`:** the rule is checked only when the pod is placed. If a node's labels, or the other pods around it, change later, the running pod is **not** moved.
-> - **`requiredDuringSchedulingRequiredDuringExecution`:** described in the Kubernetes docs as a possible future variant that would evict running pods when the rule stops matching. It has never been implemented, so you can't use it.
+> - **`requiredDuringSchedulingRequiredDuringExecution`:** described in the Kubernetes docs as a possible future variant that would evict running pods when the rule stops matching. It has never been implemented, so **affinity rules are never re-checked once a pod is running**.
 > - **Both versions (`required…` and `preferred…`) exist for all three kinds of affinity:** ("both" in the table means you can write either version)
 >
 >     <table class="mini"><thead><tr><th>Kind</th><th>What it controls</th><th>Versions</th><th>Needs <code>topologyKey</code>?</th></tr></thead><tbody><tr><td><code>nodeAffinity</code></td><td>which <b>nodes</b> to run on, by node label</td><td>both</td><td>no</td></tr><tr><td><code>podAffinity</code></td><td>run <b>near</b> certain other pods</td><td>both</td><td>yes</td></tr><tr><td><code>podAntiAffinity</code></td><td>run <b>away from</b> certain other pods</td><td>both</td><td>yes</td></tr></tbody></table>
@@ -286,7 +286,9 @@ spec:
 >
 >     So the same anti-affinity rule spreads pods across **nodes** or across **zones**, depending only on which label you name.
 >
-> - **Taints are where "during execution" does exist today,** through the taint's `effect`: `NoSchedule` (hard rule for new pods), `PreferNoSchedule` (soft, scoring only) and `NoExecute` (also evicts pods that are already running without a matching toleration; `tolerationSeconds` lets a pod stay for a set time first).
+> - **If you need "move the pod when things change", use a different tool.** Affinity can't do it, but two other features can:
+>   - **Taints with `effect: NoExecute`:** taints are a separate feature, set on the *node*. Their `effect` decides how strict they are: `NoSchedule` (hard rule for new pods), `PreferNoSchedule` (soft, scoring only) and `NoExecute`, which also evicts pods that are *already running* there without a matching toleration (`tolerationSeconds` lets a pod stay for a set time first). So the taint's `NoExecute` effect behaves like the "during execution" half that affinity never got.
+>   - **The descheduler:** an add-on that periodically evicts running pods that no longer satisfy their node affinity or pod anti-affinity (its `RemovePodsViolatingNodeAffinity` and `RemovePodsViolatingInterPodAntiAffinity` plugins), so the scheduler can place them again.
 > - **The full "dedicated GPU nodes" example is in the YAML right below this note.**
 
 ```yaml
