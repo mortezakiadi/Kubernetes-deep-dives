@@ -115,6 +115,86 @@ spec:
     image: my-company/trainer:2.0
 ```
 
+> **Note: can one pod use taints, tolerations, affinity and anti-affinity together? Does the order matter?**
+>
+> Yes, one pod can use all of them at once, and no, the order doesn't matter.
+>
+> - **They're separate fields:** `tolerations`, `nodeSelector`, `affinity.nodeAffinity`, `affinity.podAffinity`, `affinity.podAntiAffinity` and `topologySpreadConstraints` are all named fields of the pod spec, so you can write them in any order.
+> - **Every hard rule must pass:** the scheduler runs its filters in its own fixed order, and a node survives only if it passes *all* of them. That's a logical AND, which gives the same answer in any order.
+> - **Inside node affinity:** several `nodeSelectorTerms` are combined with **OR** (matching any one term is enough); several `matchExpressions` inside one term are combined with **AND** (the node must match all of them).
+> - **Preferred (soft) rules** are scored: their `weight` decides how much each counts, not their position in the list.
+> - **Why you usually want them together:** a toleration only *allows* a pod onto a tainted node; it doesn't *send* it there, so the pod could still land on any untainted node. Dedicated nodes therefore use three pieces: a **taint** on the nodes (keeps other pods off), a **toleration** on the pod (lets it in), and **node affinity** or `nodeSelector` on the pod (sends it there). Pod anti-affinity is often added to spread replicas across those nodes.
+>
+> **The long affinity names, decoded.** Each name has two halves: *when scheduling* and *while running*.
+>
+> - **`requiredDuringScheduling…`:** a hard rule, checked in the filter phase. No matching node means the pod stays `Pending`.
+> - **`preferredDuringScheduling…`:** a soft rule, checked in the scoring phase with a `weight` from 1 to 100. The pod still runs if nothing matches.
+> - **`…IgnoredDuringExecution`:** the rule is checked only when the pod is placed. If a node's labels, or the other pods around it, change later, the running pod is **not** moved.
+> - **`requiredDuringSchedulingRequiredDuringExecution`:** described in the Kubernetes docs as a possible future variant that would evict running pods when the rule stops matching. It has never been implemented, so you can't use it.
+> - **The same two names exist for `nodeAffinity`, `podAffinity` and `podAntiAffinity`.** Pod (anti-)affinity terms also need a `topologyKey`, such as `kubernetes.io/hostname` (same node) or `topology.kubernetes.io/zone` (same zone).
+> - **Taints are where "during execution" does exist today,** through the taint's `effect`: `NoSchedule` (hard rule for new pods), `PreferNoSchedule` (soft, scoring only) and `NoExecute` (also evicts pods that are already running without a matching toleration; `tolerationSeconds` lets a pod stay for a set time first).
+> - **The full "dedicated GPU nodes" example is in the YAML right below this note.**
+
+```yaml
+# 1. The GPU nodes: a label (to be found) and a taint (to keep others out)
+#    Usually set in the node group or Karpenter NodePool, not by hand.
+apiVersion: v1
+kind: Node
+metadata:
+  name: gpu-node-1
+  labels:
+    node-type: gpu #!
+spec:
+  taints: #!
+  - key: dedicated #!
+    value: gpu
+    effect: NoSchedule
+---
+# 2. The GPU workload: toleration + node affinity + pod anti-affinity
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: inference}
+  template:
+    metadata:
+      labels: {app: inference}
+    spec:
+      tolerations:                     # allowed onto the tainted GPU nodes #!
+      - key: dedicated #!
+        operator: Equal
+        value: gpu
+        effect: NoSchedule
+      - key: node.kubernetes.io/unreachable
+        operator: Exists
+        effect: NoExecute #!
+        tolerationSeconds: 60          # stay 60 s on an unreachable node, then get evicted #!
+      affinity:
+        nodeAffinity:                  # sent to the GPU nodes (hard rule) #!
+          requiredDuringSchedulingIgnoredDuringExecution: #!
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-type
+                operator: In
+                values: ["gpu"] #!
+        podAntiAffinity:               # spread replicas across nodes (soft rule) #!
+          preferredDuringSchedulingIgnoredDuringExecution: #!
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels: {app: inference}
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: server
+        image: vllm/vllm-openai:latest
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+```
+
 - **Affinity and anti-affinity violations:** a required node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
 
 ```yaml
@@ -166,9 +246,137 @@ The `0/12 nodes are available` event lists how many nodes each of these rules re
 
 - For GPUs, these same filters do the steering.
 - `nvidia.com/gpu: 1` is purely resource-based, so every GPU counts the same: a 16 GB T4 and an 80 GB A100 are both "1".
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: inference
+spec:
+  containers:
+  - name: server
+    image: vllm/vllm-openai:latest
+    resources:
+      limits:
+        nvidia.com/gpu: 1      # "any one GPU": a 16 GB T4 and an 80 GB A100 both count as 1 #!
+```
+
 - A `nodeSelector` on GPU labels pins an exact model, node affinity can say "at least 40 GB, prefer Hopper", and a taint on GPU nodes keeps everything else off them.
+
+```yaml
+# GPU labels like these are added to nodes by NVIDIA GPU Feature Discovery
+# (part of the GPU Operator); gpu.memory is in MiB.
+# Option 1: pin an exact GPU model with nodeSelector
+apiVersion: v1
+kind: Pod
+metadata:
+  name: inference-a100
+spec:
+  nodeSelector:
+    nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB #!
+  tolerations:                       # GPU nodes are usually tainted
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+  containers:
+  - name: server
+    image: vllm/vllm-openai:latest
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+---
+# Option 2: "at least 40 GB, prefer Hopper" with node affinity
+apiVersion: v1
+kind: Pod
+metadata:
+  name: inference-big-gpu
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: nvidia.com/gpu.memory #!
+            operator: Gt #!
+            values: ["40000"]        # more than ~40 GB #!
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 50
+        preference:
+          matchExpressions:
+          - key: nvidia.com/gpu.family #!
+            operator: In
+            values: ["hopper"] #!
+  tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+  containers:
+  - name: server
+    image: vllm/vllm-openai:latest
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+```
+
 - Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.
+
+```yaml
+# DRA: describe the GPU you need; the DRA driver finds a match.
+# The device class and attribute names come from the driver (here NVIDIA's).
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: gpu-40gb-plus
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.nvidia.com #!
+          selectors:
+          - cel:
+              expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: inference-dra
+spec:
+  resourceClaims:
+  - name: gpu
+    resourceClaimTemplateName: gpu-40gb-plus #!
+  containers:
+  - name: server
+    image: vllm/vllm-openai:latest
+    resources:
+      claims: #!
+      - name: gpu                    # no nvidia.com/gpu count: the claim is the request
+```
+
 - Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the [gang problem](#d02-2).
+
+```yaml
+# 8 workers that must all run together, but the default scheduler
+# filters and places each pod on its own: 6 can start while 2 stay Pending.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: distributed-train
+spec:
+  parallelism: 8 #!
+  completions: 8
+  completionMode: Indexed
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: worker
+        image: my-company/trainer:2.0
+        resources:
+          limits:
+            nvidia.com/gpu: 1 #!
+```
 
 ### Filtering outcomes at a glance
 
