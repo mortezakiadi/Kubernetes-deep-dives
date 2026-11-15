@@ -43,7 +43,7 @@ def read_md(path):
             text = re.sub(r"<[^>]+>", "", mh.group(1))
             hid = meta.get("id", "s") + "-" + re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
         parts[i] = f'<h3 id="{hid}">{mh.group(1)}</h3>'
-    return meta, "".join(parts)
+    return meta, highlight("".join(parts))
 
 
 def toc(body_html):
@@ -52,6 +52,52 @@ def toc(body_html):
         return ""
     lis = "".join(f'<li><a href="#{i}">{re.sub("<[^>]+>", "", t)}</a></li>' for i, t in items)
     return f'<nav class="toc" aria-label="Sections in this deep dive"><ol>{lis}</ol></nav>'
+
+
+# ---- key-term highlighting: first use of each term per section ----
+_ACTIONS = [r"filter(?:s|ed|ing)?", r"scor(?:e|es|ed|ing)", r"bind(?:s|ing)?", r"preempt(?:s|ed|ing|ion)?",
+            r"evict(?:s|ed|ing|ion)?", r"admit(?:s|ted|ting)?", r"borrow(?:s|ed|ing)?", r"throttl(?:e|es|ed|ing)",
+            r"reclaim(?:s|ed|ing)?", r"autoscal(?:e|es|ed|ing|er)", r"scale[sd]? (?:up|down|out|to zero)", r"bin-pack(?:s|ed|ing)?",
+            r"checkpoint(?:s|ed|ing)?", r"cordon(?:s|ed)?|drain(?:s|ed|ing)?"]
+_CONCEPTS = [r"gang scheduling", r"fair[- ]sharing", r"quotas?", r"cohorts?", r"topology-aware(?: scheduling)?", r"Kueue",
+             r"Volcano", r"KAI(?: Scheduler)?", r"JobSets?", r"DRA", r"MIG", r"time[- ]slicing", r"Karpenter",
+             r"Cluster Autoscaler", r"HPA", r"KEDA", r"PriorityClass(?:es)?", r"QoS", r"cgroups?", r"CFS", r"OOM ?kill(?:s|ed|er)?",
+             r"TTFT", r"TPOT", r"KV cache", r"prefix cach(?:e|ing)", r"LoRA", r"vLLM", r"KServe", r"NetworkPolic(?:y|ies)",
+             r"ServiceAccounts?", r"IRSA", r"Pod Identity", r"SPIFFE(?:/SPIRE)?", r"mTLS", r"MCP", r"A2A", r"RAG", r"NUMA",
+             r"EFA", r"RDMA", r"NVLink", r"VPC CNI", r"prefix delegation", r"conntrack", r"SNAT", r"ENIs?", r"CoreDNS",
+             r"taints?", r"tolerations?", r"(?:node |pod )?affinity", r"PDBs?", r"StatefulSets?", r"PVCs?", r"EBS", r"EFS",
+             r"FSx(?: for Lustre)?", r"NVMe", r"requests and limits", r"device plugin", r"GPU Operator", r"guardrails?",
+             r"disaggregated serving", r"TokenReview", r"SubjectAccessReview", r"token exchange"]
+_KW = re.compile(r"\b(?:(?P<a>" + "|".join(_ACTIONS) + r")|(?P<c>" + "|".join(_CONCEPTS) + r"))\b", re.I)
+_SKIP = {"code", "pre", "a", "h1", "h2", "h3", "h4", "strong", "figcaption", "button", "figure", "mark", "th", "script", "style"}
+
+
+def highlight(h):
+    out, depth, seen = [], 0, set()
+    for tok in re.split(r"(<[^>]+>)", h):
+        if tok.startswith("<"):
+            m = re.match(r"<(/?)([a-zA-Z0-9]+)", tok)
+            if m:
+                name = m.group(2).lower()
+                if name == "h3" and not m.group(1):
+                    seen = set()
+                if name in _SKIP and not tok.endswith("/>"):
+                    depth += -1 if m.group(1) else 1
+            out.append(tok)
+            continue
+        if depth > 0 or not tok.strip():
+            out.append(tok)
+            continue
+
+        def rep(mm):
+            key = re.sub(r"(?:es|s|ed|ing|ion|er|d|ted|ting)$", "", mm.group(0).lower())[:6]
+            if key in seen:
+                return mm.group(0)
+            seen.add(key)
+            cls = "kw-act" if mm.group("a") else "kw"
+            return f'<mark class="{cls}">{mm.group(0)}</mark>'
+        out.append(_KW.sub(rep, tok))
+    return "".join(out)
 
 
 def main():
