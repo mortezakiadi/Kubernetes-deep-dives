@@ -139,6 +139,10 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose details.acc[open] > summary::after { transform: rotate(90deg); }
 .prose details.acc > summary:hover { color: var(--accent); }
 .prose .acc-num { flex: none; min-width: 24px; height: 24px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; }
+.prose details.acc.gd { margin-top: 18px; border-style: dashed; }
+.prose details.acc.gd > summary .acc-title { text-transform: uppercase; letter-spacing: .08em; font-size: 12.5px; color: var(--accent); }
+.prose .acc-count { font-weight: 400; font-size: 13px; color: var(--muted); }
+.prose details.acc.gd .acc-body { padding-left: 16px; }
 .prose .acc-body { padding: 0 16px 10px 48px; }
 .prose .acc-body > p:first-child { margin-top: 0; }
 .prose mark.kw { background: none; color: var(--accent); font-weight: 600; }

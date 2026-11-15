@@ -139,6 +139,10 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose details.acc[open] > summary::after { transform: rotate(90deg); }
 .prose details.acc > summary:hover { color: var(--accent); }
 .prose .acc-num { flex: none; min-width: 24px; height: 24px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; }
+.prose details.acc.gd { margin-top: 18px; border-style: dashed; }
+.prose details.acc.gd > summary .acc-title { text-transform: uppercase; letter-spacing: .08em; font-size: 12.5px; color: var(--accent); }
+.prose .acc-count { font-weight: 400; font-size: 13px; color: var(--muted); }
+.prose details.acc.gd .acc-body { padding-left: 16px; }
 .prose .acc-body { padding: 0 16px 10px 48px; }
 .prose .acc-body > p:first-child { margin-top: 0; }
 .prose mark.kw { background: none; color: var(--accent); font-weight: 600; }
@@ -340,24 +344,24 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">5 points</span></summary><div class="acc-body"><ul>
 <li>For GPUs, these same <mark class="kw-act">filters</mark> do the steering.</li>
 <li><code>nvidia.com/gpu: 1</code> is purely resource-based, so every GPU counts the same: a 16 GB T4 and an 80 GB A100 are both "1".</li>
-</ul>
-<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: server</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln kl">        <span class="tk">nvidia.com/gpu</span>: 1      <span class="tc"># "any one GPU": a 16 GB T4 and an 80 GB A100 both count as 1</span></span></code></pre>
-<ul>
+</ul><pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: server</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln kl">        <span class="tk">nvidia.com/gpu</span>: 1      <span class="tc"># "any one GPU": a 16 GB T4 and an 80 GB A100 both count as 1</span></span></code></pre><ul>
 <li>A <code>nodeSelector</code> on GPU labels pins an exact model, <mark class="kw">node affinity</mark> can say "at least 40 GB, prefer Hopper", and a <mark class="kw">taint</mark> on GPU nodes keeps everything else off them.</li>
-</ul>
-<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tc"># GPU labels like these are added to nodes by NVIDIA GPU Feature Discovery</span></span><span class="ln"><span class="tc"># (part of the GPU Operator); gpu.memory is in MiB.</span></span><span class="ln"><span class="tc"># Option 1: pin an exact GPU model with nodeSelector</span></span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference-a100</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">nodeSelector</span>:</span><span class="ln kl">    <span class="tk">nvidia.com/gpu.product</span>: NVIDIA-A100-SXM4-80GB</span><span class="ln">  <span class="tk">tolerations</span>:                       <span class="tc"># GPU nodes are usually tainted</span></span><span class="ln">  - <span class="tk">key</span>: nvidia.com/gpu</span><span class="ln">    <span class="tk">operator</span>: Exists</span><span class="ln">    <span class="tk">effect</span>: NoSchedule</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: server</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln">        <span class="tk">nvidia.com/gpu</span>: 1</span><span class="ln">---</span><span class="ln"><span class="tc"># Option 2: "at least 40 GB, prefer Hopper" with node affinity</span></span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference-big-gpu</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">affinity</span>:</span><span class="ln">    <span class="tk">nodeAffinity</span>:</span><span class="ln">      <span class="tk">requiredDuringSchedulingIgnoredDuringExecution</span>:</span><span class="ln">        <span class="tk">nodeSelectorTerms</span>:</span><span class="ln">        - <span class="tk">matchExpressions</span>:</span><span class="ln kl">          - <span class="tk">key</span>: nvidia.com/gpu.memory</span><span class="ln kl">            <span class="tk">operator</span>: Gt</span><span class="ln kl">            <span class="tk">values</span>: ["40000"]        <span class="tc"># more than ~40 GB</span></span><span class="ln">      <span class="tk">preferredDuringSchedulingIgnoredDuringExecution</span>:</span><span class="ln">      - <span class="tk">weight</span>: 50</span><span class="ln">        <span class="tk">preference</span>:</span><span class="ln">          <span class="tk">matchExpressions</span>:</span><span class="ln kl">          - <span class="tk">key</span>: nvidia.com/gpu.family</span><span class="ln">            <span class="tk">operator</span>: In</span><span class="ln kl">            <span class="tk">values</span>: ["hopper"]</span><span class="ln">  <span class="tk">tolerations</span>:</span><span class="ln">  - <span class="tk">key</span>: nvidia.com/gpu</span><span class="ln">    <span class="tk">operator</span>: Exists</span><span class="ln">    <span class="tk">effect</span>: NoSchedule</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: server</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln">        <span class="tk">nvidia.com/gpu</span>: 1</span></code></pre>
-<ul>
+</ul><pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tc"># GPU labels like these are added to nodes by NVIDIA GPU Feature Discovery</span></span><span class="ln"><span class="tc"># (part of the GPU Operator); gpu.memory is in MiB.</span></span><span class="ln"><span class="tc"># Option 1: pin an exact GPU model with nodeSelector</span></span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference-a100</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">nodeSelector</span>:</span><span class="ln kl">    <span class="tk">nvidia.com/gpu.product</span>: NVIDIA-A100-SXM4-80GB</span><span class="ln">  <span class="tk">tolerations</span>:                       <span class="tc"># GPU nodes are usually tainted</span></span><span class="ln">  - <span class="tk">key</span>: nvidia.com/gpu</span><span class="ln">    <span class="tk">operator</span>: Exists</span><span class="ln">    <span class="tk">effect</span>: NoSchedule</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: server</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln">        <span class="tk">nvidia.com/gpu</span>: 1</span><span class="ln">---</span><span class="ln"><span class="tc"># Option 2: "at least 40 GB, prefer Hopper" with node affinity</span></span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference-big-gpu</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">affinity</span>:</span><span class="ln">    <span class="tk">nodeAffinity</span>:</span><span class="ln">      <span class="tk">requiredDuringSchedulingIgnoredDuringExecution</span>:</span><span class="ln">        <span class="tk">nodeSelectorTerms</span>:</span><span class="ln">        - <span class="tk">matchExpressions</span>:</span><span class="ln kl">          - <span class="tk">key</span>: nvidia.com/gpu.memory</span><span class="ln kl">            <span class="tk">operator</span>: Gt</span><span class="ln kl">            <span class="tk">values</span>: ["40000"]        <span class="tc"># more than ~40 GB</span></span><span class="ln">      <span class="tk">preferredDuringSchedulingIgnoredDuringExecution</span>:</span><span class="ln">      - <span class="tk">weight</span>: 50</span><span class="ln">        <span class="tk">preference</span>:</span><span class="ln">          <span class="tk">matchExpressions</span>:</span><span class="ln kl">          - <span class="tk">key</span>: nvidia.com/gpu.family</span><span class="ln">            <span class="tk">operator</span>: In</span><span class="ln kl">            <span class="tk">values</span>: ["hopper"]</span><span class="ln">  <span class="tk">tolerations</span>:</span><span class="ln">  - <span class="tk">key</span>: nvidia.com/gpu</span><span class="ln">    <span class="tk">operator</span>: Exists</span><span class="ln">    <span class="tk">effect</span>: NoSchedule</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: server</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln">        <span class="tk">nvidia.com/gpu</span>: 1</span></code></pre><ul>
 <li><mark class="kw">Dynamic Resource Allocation</mark> (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.</li>
-</ul>
-<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tc"># DRA: describe the GPU you need; the DRA driver finds a match.</span></span><span class="ln"><span class="tc"># The device class and attribute names come from the driver (here NVIDIA's).</span></span><span class="ln"><span class="tk">apiVersion</span>: resource.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: ResourceClaimTemplate</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: gpu-40gb-plus</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">spec</span>:</span><span class="ln">    <span class="tk">devices</span>:</span><span class="ln">      <span class="tk">requests</span>:</span><span class="ln">      - <span class="tk">name</span>: gpu</span><span class="ln">        <span class="tk">exactly</span>:</span><span class="ln kl">          <span class="tk">deviceClassName</span>: gpu.nvidia.com</span><span class="ln">          <span class="tk">selectors</span>:</span><span class="ln">          - <span class="tk">cel</span>:</span><span class="ln kl">              <span class="tk">expression</span>: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) &gt;= 0</span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference-dra</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">resourceClaims</span>:</span><span class="ln">  - <span class="tk">name</span>: gpu</span><span class="ln kl">    <span class="tk">resourceClaimTemplateName</span>: gpu-40gb-plus</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: server</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln kl">      <span class="tk">claims</span>:</span><span class="ln">      - <span class="tk">name</span>: gpu                    <span class="tc"># no nvidia.com/gpu count: the claim is the request</span></span></code></pre>
-<ul>
+</ul><pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tc"># DRA: describe the GPU you need; the DRA driver finds a match.</span></span><span class="ln"><span class="tc"># The device class and attribute names come from the driver (here NVIDIA's).</span></span><span class="ln"><span class="tk">apiVersion</span>: resource.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: ResourceClaimTemplate</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: gpu-40gb-plus</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">spec</span>:</span><span class="ln">    <span class="tk">devices</span>:</span><span class="ln">      <span class="tk">requests</span>:</span><span class="ln">      - <span class="tk">name</span>: gpu</span><span class="ln">        <span class="tk">exactly</span>:</span><span class="ln kl">          <span class="tk">deviceClassName</span>: gpu.nvidia.com</span><span class="ln">          <span class="tk">selectors</span>:</span><span class="ln">          - <span class="tk">cel</span>:</span><span class="ln kl">              <span class="tk">expression</span>: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) &gt;= 0</span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference-dra</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">resourceClaims</span>:</span><span class="ln">  - <span class="tk">name</span>: gpu</span><span class="ln kl">    <span class="tk">resourceClaimTemplateName</span>: gpu-40gb-plus</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: server</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln kl">      <span class="tk">claims</span>:</span><span class="ln">      - <span class="tk">name</span>: gpu                    <span class="tc"># no nvidia.com/gpu count: the claim is the request</span></span></code></pre><ul>
 <li>Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the <a href="#d02-2">gang problem</a>.</li>
-</ul>
-<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tc"># 8 workers that must all run together, but the default scheduler</span></span><span class="ln"><span class="tc"># filters and places each pod on its own: 6 can start while 2 stay Pending.</span></span><span class="ln"><span class="tk">apiVersion</span>: batch/v1</span><span class="ln"><span class="tk">kind</span>: Job</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: distributed-train</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln kl">  <span class="tk">parallelism</span>: 8</span><span class="ln">  <span class="tk">completions</span>: 8</span><span class="ln">  <span class="tk">completionMode</span>: Indexed</span><span class="ln">  <span class="tk">template</span>:</span><span class="ln">    <span class="tk">spec</span>:</span><span class="ln">      <span class="tk">restartPolicy</span>: Never</span><span class="ln">      <span class="tk">containers</span>:</span><span class="ln">      - <span class="tk">name</span>: worker</span><span class="ln">        <span class="tk">image</span>: my-company/trainer:2.0</span><span class="ln">        <span class="tk">resources</span>:</span><span class="ln">          <span class="tk">limits</span>:</span><span class="ln kl">            <span class="tk">nvidia.com/gpu</span>: 1</span></code></pre>
+</ul><pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tc"># 8 workers that must all run together, but the default scheduler</span></span><span class="ln"><span class="tc"># filters and places each pod on its own: 6 can start while 2 stay Pending.</span></span><span class="ln"><span class="tk">apiVersion</span>: batch/v1</span><span class="ln"><span class="tk">kind</span>: Job</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: distributed-train</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln kl">  <span class="tk">parallelism</span>: 8</span><span class="ln">  <span class="tk">completions</span>: 8</span><span class="ln">  <span class="tk">completionMode</span>: Indexed</span><span class="ln">  <span class="tk">template</span>:</span><span class="ln">    <span class="tk">spec</span>:</span><span class="ln">      <span class="tk">restartPolicy</span>: Never</span><span class="ln">      <span class="tk">containers</span>:</span><span class="ln">      - <span class="tk">name</span>: worker</span><span class="ln">        <span class="tk">image</span>: my-company/trainer:2.0</span><span class="ln">        <span class="tk">resources</span>:</span><span class="ln">          <span class="tk">limits</span>:</span><span class="ln kl">            <span class="tk">nvidia.com/gpu</span>: 1</span></code></pre></div></details>
+
+
+
+
+
+
+
+
 <h3 id="d01-2">Filtering outcomes at a glance</h3>
 <p><strong>Scenario.</strong> It's 3 a.m. and the on-call engineer has a pod stuck in <code>Pending</code> with a long event message. They need a one-glance reference that turns "which rule failed" into "what to change", without re-reading the scheduler docs.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Filtering outcomes" class="open" data-src="diagrams/sections/d01-2.svg" data-title="Filtering outcomes" type="button"><img alt="Diagram: Filtering outcomes" decoding="async" loading="lazy" src="diagrams/sections/d01-2.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -374,13 +378,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <figure class="diagram"><button aria-label="Open diagram full screen: Phase 2: scoring plugins" class="open" data-src="diagrams/sections/d01-3.svg" data-title="Phase 2: scoring plugins" type="button"><img alt="Diagram: Phase 2: scoring plugins" decoding="async" loading="lazy" src="diagrams/sections/d01-3.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Once <mark class="kw-act">filtering</mark> has narrowed the list, the <strong>scoring phase</strong> (also called the ranking phase) picks the best of the capable nodes. Every remaining node runs through several priority functions, gets a <mark class="kw-act">score</mark> from each, and the highest total wins.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">LeastAllocated (the "spreader")</span></summary><div class="acc-body">the default strategy of the <mark class="kw">NodeResourcesFit</mark> plugin. It compares requested CPU and memory to capacity and gives emptier nodes higher <mark class="kw-act">scores</mark>, which <mark class="kw-act">spreads</mark> pods out and helps availability.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">BalancedResourceAllocation (the "balancer")</span></summary><div class="acc-body">keeps CPU and memory use even on a node. A node with lots of CPU but almost no free RAM scores lower for a memory-heavy pod, so nodes don't become lopsided.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">ImageLocality (the "speedster")</span></summary><div class="acc-body">scores nodes higher when the pod's images (say a 2 GB Java image) are already on local disk, so the pod skips the pull and starts faster. Bigger cached images count more. An image cached on only a few nodes is scaled <em>down</em>, so that one node with a popular image doesn't attract every new pod (the diagram's wording, "images on many nodes count less", has this backwards).</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Node / inter-pod affinity (the "socialite")</span></summary><div class="acc-body">handles your <em>preferred</em> (soft) rules, such as "I'd like to run near my database". Nodes in the same rack or zone as the database score higher. It's the main score you steer from the pod spec (along with soft <mark class="kw">topology spread</mark> and <code>PreferNoSchedule</code> <mark class="kw">taints</mark>); the others are computed by Kubernetes.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">The default-weights trap</span></summary><div class="acc-body">most of these plugins have the same small weight (1 or 2). In a large cluster that can lead to poor choices, and this is the scenario: the full node won because it already had the image cached, and the CPU contention showed up later.</div></details></div>
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
 <li>For GPU training I switch <mark class="kw">NodeResourcesFit</mark> to <strong>MostAllocated</strong> (<mark class="kw-act">bin-packing</mark>) and give <code>nvidia.com/gpu</code> a higher weight than CPU and memory.</li>
 <li>Packing leaves whole nodes empty, so the autoscaler can remove them.</li>
 <li>That matters when a GPU node costs tens of dollars an hour.</li>
 <li>The catch is a bigger <mark class="kw">blast radius</mark> per node, so I offer it as a separate scheduler profile and let critical services keep <mark class="kw-act">spreading</mark>.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d01-4">Score × weight</h3>
 <p><strong>Scenario.</strong> In a design review, a new engineer asks how the scheduler turns "points" into a decision. "If one plugin likes node A and another likes node B, who wins?" You want to explain it on a whiteboard in two minutes.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Score × weight" class="open" data-src="diagrams/sections/d01-4.svg" data-title="Score × weight" type="button"><img alt="Diagram: Score × weight" decoding="async" loading="lazy" src="diagrams/sections/d01-4.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -583,12 +587,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
 <li>Ray (through <mark class="kw-tool">KubeRay</mark>) is another two-scheduler setup.</li>
 <li>Kubernetes places and restarts the Ray head and worker pods, and Ray's own scheduler places tasks and actors inside them.</li>
 <li>That suits Python teams well, but capacity accounting and debugging now span two layers.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d02-2">Gang scheduling</h3>
 <p><strong>Scenario.</strong> A research team submits a distributed PyTorch job with 8 GPU workers. The cluster only has room for 6, so the default scheduler starts 6 workers and leaves 2 <code>Pending</code>. The 6 running workers sit idle for hours, burning expensive GPU time while they wait for teammates that may never arrive. How do you stop that from happening?</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Gang scheduling" class="open" data-src="diagrams/sections/d02-2.svg" data-title="Gang scheduling" type="button"><img alt="Diagram: Gang scheduling" decoding="async" loading="lazy" src="diagrams/sections/d02-2.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -598,13 +602,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>The failure point:</strong> in a shared cluster, a coworker's 1-GPU pod submitted one second before yours can take a slot. Your job starts with 7 workers, hangs, and wastes money. Standard Kubernetes can't say "hold these 7 slots until the 8th is free."</li>
 </ul>
 </div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Best at this</span></summary><div class="acc-body"><mark class="kw-tool">Volcano</mark> and <mark class="kw-tool">KAI</mark> are built specifically for this kind of atomic scheduling.</div></details></div>
-<p><strong>Going deeper.</strong> The reason is the <strong>rendezvous barrier</strong>: distributed PyTorch workers wait until every rank has joined, so 7 of 8 workers will sit on their GPUs forever. The options sit at different layers:</p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><p>The reason is the <strong>rendezvous barrier</strong>: distributed PyTorch workers wait until every rank has joined, so 7 of 8 workers will sit on their GPUs forever. The options sit at different layers:</p><ul>
 <li>the <strong>coscheduling plugin</strong>: a <mark class="kw">PodGroup</mark> with <code>minMember</code> and a timeout, inside <mark class="kw-tool">kube-scheduler</mark>;</li>
 <li><strong>Kueue</strong>: decides at the job level whether a job may start;</li>
 <li><strong>KAI</strong> or <strong>Volcano</strong>: replace the scheduler.</li>
-</ul>
-<p>Upstream Kubernetes added a native <strong>Workload API</strong> with <mark class="kw">gang scheduling</mark> as an alpha feature in 1.35 (off by default), and extended it in 1.36. Model-parallel <em>inference</em> has the same property: if one shard's pod is missing or dies, the whole replica is down, so it needs <mark class="kw">all-or-nothing</mark> scheduling and group restarts too.</p>
+</ul><p>Upstream Kubernetes added a native <strong>Workload API</strong> with <mark class="kw">gang scheduling</mark> as an alpha feature in 1.35 (off by default), and extended it in 1.36. Model-parallel <em>inference</em> has the same property: if one shard's pod is missing or dies, the whole replica is down, so it needs <mark class="kw">all-or-nothing</mark> scheduling and group restarts too.</p></div></details>
+
+
 <h3 id="d02-3">Topology bin-packing</h3>
 <p><strong>Scenario.</strong> A training job's two pods talk to each other constantly. The default scheduler puts them on two different GPU nodes because both nodes look "least allocated". Now every gradient exchange crosses the network instead of <mark class="kw">NVLink</mark>, and the training run takes several times longer than expected.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Topology bin-packing" class="open" data-src="diagrams/sections/d02-3.svg" data-title="Topology bin-packing" type="button"><img alt="Diagram: Topology bin-packing" decoding="async" loading="lazy" src="diagrams/sections/d02-3.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -617,13 +621,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong> Placement depends on how the model is split:</p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><p>Placement depends on how the model is split:</p><ul>
 <li><strong>Tensor parallelism</strong> splits every layer and exchanges results constantly. Keep it inside one node on <mark class="kw">NVLink</mark>/NVSwitch.</li>
 <li><strong>Pipeline parallelism</strong> splits by layers and only hands activations across once per stage, so it tolerates the slower links between nodes.</li>
 <li><strong>Hybrid:</strong> <mark class="kw">tensor parallelism</mark> inside nodes and <mark class="kw">pipeline parallelism</mark> between them is the common setup.</li>
-</ul>
-<p>Even inside one server, not every GPU pair may share the same NVLink group. <code>nvidia-smi topo -m</code> shows it, and a job may rightly wait in the queue rather than start on badly connected GPUs.</p>
+</ul><p>Even inside one server, not every GPU pair may share the same NVLink group. <code>nvidia-smi topo -m</code> shows it, and a job may rightly wait in the queue rather than start on badly connected GPUs.</p></div></details>
+
+
 <h3 id="d02-4">Queueing and fair sharing</h3>
 <p><strong>Scenario.</strong> In a shared research cluster, one user submits 100 training jobs on Monday morning and every GPU is taken. Other teams' jobs fail immediately with <mark class="kw">quota</mark> errors instead of waiting their turn, and over the weekend the GPUs reserved for one team sit idle while another team is desperate for capacity.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Queueing and fair sharing" class="open" data-src="diagrams/sections/d02-4.svg" data-title="Queueing and fair sharing" type="button"><img alt="Diagram: Queueing and fair sharing" decoding="async" loading="lazy" src="diagrams/sections/d02-4.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -636,13 +640,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong> In <mark class="kw-tool">Kueue</mark> terms:</p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><p>In <mark class="kw-tool">Kueue</mark> terms:</p><ul>
 <li><strong>ClusterQueues</strong> hold each team's nominal <mark class="kw">quota</mark> and <mark class="kw-act">borrowing</mark> limit.</li>
 <li>Teams submit to <strong>LocalQueues</strong>.</li>
 <li>A <strong>cohort</strong> lends idle quota between teams and takes it back by <mark class="kw-act">preemption</mark> when its owner needs it.</li>
-</ul>
-<p>WorkloadPriorityClasses decide <mark class="kw-act">admission</mark> order, and <mark class="kw">fair sharing</mark> favors teams that have used less recently. Hard namespace <mark class="kw">ResourceQuotas</mark> can't do any of this: idle GPUs in one namespace never help another team's queue.</p>
+</ul><p>WorkloadPriorityClasses decide <mark class="kw-act">admission</mark> order, and <mark class="kw">fair sharing</mark> favors teams that have used less recently. Hard namespace <mark class="kw">ResourceQuotas</mark> can't do any of this: idle GPUs in one namespace never help another team's queue.</p></div></details>
+
+
 <h3 id="d02-5">Hardware-aware scheduling</h3>
 <p><strong>Scenario.</strong> A company buys a new rack of Blackwell GPUs connected by <mark class="kw">InfiniBand</mark>. Its inference team needs FP4 support, and its training team needs all workers on the same InfiniBand switch. The platform team wonders whether node labels are enough, or whether they need a custom scheduler.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Hardware-aware scheduling" class="open" data-src="diagrams/sections/d02-5.svg" data-title="Hardware-aware scheduling" type="button"><img alt="Diagram: Hardware-aware scheduling" decoding="async" loading="lazy" src="diagrams/sections/d02-5.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -659,12 +663,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
 <li>NVIDIA's <mark class="kw-tool">GPU Feature Discovery</mark> labels every node with the GPU product (e.g. <code>A100-SXM4-40GB</code>), memory, architecture family, driver and CUDA versions, <mark class="kw">MIG</mark> capability, and the number of shared replicas.</li>
 <li><mark class="kw-tool">Kueue</mark> turns these labels into <strong>ResourceFlavors</strong>: the premium flavor (<mark class="kw">NVLink</mark> + <mark class="kw">InfiniBand</mark>) is listed first, with a fallback flavor and <code>TryNextFlavor</code>.</li>
 <li>Which hardware a job gets (flavor) and who goes first (priority) stay separate decisions.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d02-6">Volcano vs. Kueue</h3>
 <p><strong>Scenario.</strong> The platform team must pick a batch scheduler for a shared GPU cluster. One group runs PyTorch jobs with a master pod and 100 workers; another group is a set of departments that share 128 GPUs and want to <mark class="kw-act">borrow</mark> each other's idle capacity. Should they choose <mark class="kw-tool">Volcano</mark> or <mark class="kw-tool">Kueue</mark>?</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Volcano vs. Kueue" class="open" data-src="diagrams/sections/d02-6.svg" data-title="Volcano vs. Kueue" type="button"><img alt="Diagram: Volcano vs. Kueue" decoding="async" loading="lazy" src="diagrams/sections/d02-6.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -673,8 +677,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">6 points</span></summary><div class="acc-body"><ul>
 <li>The production answer is usually "both layers": <mark class="kw-tool">Kueue</mark> for <mark class="kw-act">admission</mark> and <mark class="kw">quota</mark> on top of a gang-aware or <mark class="kw">topology-aware</mark> scheduler (<mark class="kw-tool">kube-scheduler</mark> with plugins, <mark class="kw-tool">KAI</mark> or <mark class="kw-tool">Volcano</mark>), with a workload API that groups the pods (PyTorchJob/TrainJob, <mark class="kw-tool">JobSet</mark>, <mark class="kw-tool">LeaderWorkerSet</mark>).</li>
 <li>Kueue stays vendor-neutral and keeps policy separate from mechanism.</li>
 <li>
@@ -685,7 +688,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </li>
 <li>The platform team publishes a <code>TrainingRuntime</code> (framework, image, defaults), and data scientists submit a <code>TrainJob</code>, often straight from a Python SDK.</li>
 <li>The controller turns the pair into a <strong>JobSet</strong>, a group of Jobs that Kueue can then <mark class="kw-act">admit</mark> as one gang.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d02-7">The landscape</h3>
 <p><strong>Scenario.</strong> A manager asks for a one-page overview of the scheduler landscape before approving a proposal. They want to know which tools exist, who maintains them, and which one fits which kind of organization.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: The landscape" class="open" data-src="diagrams/sections/d02-7.svg" data-title="The landscape" type="button"><img alt="Diagram: The landscape" decoding="async" loading="lazy" src="diagrams/sections/d02-7.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -713,16 +717,16 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Network side:</strong> the NVIDIA <mark class="kw-tool">Network Operator</mark> exposes <mark class="kw">RDMA</mark> / <mark class="kw">InfiniBand</mark> devices to pods, and switch-topology labels (from tools such as NVIDIA's <mark class="kw-tool">Topograph</mark>) tell the scheduler which nodes share a switch, so it can group pods under one.</li>
 </ul>
 </div></details></div>
-<p><strong>Going deeper.</strong> On NVIDIA nodes, one <strong>GPU Operator</strong> (configured through a <code>ClusterPolicy</code>) installs and maintains everything a scheduler depends on:</p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">6 points</span></summary><div class="acc-body"><p>On NVIDIA nodes, one <strong>GPU Operator</strong> (configured through a <code>ClusterPolicy</code>) installs and maintains everything a scheduler depends on:</p><ul>
 <li>the driver container;</li>
 <li>the container toolkit, which injects <code>/dev/nvidia*</code> into containers;</li>
 <li>the <mark class="kw">device plugin</mark>;</li>
 <li><mark class="kw-tool">GPU Feature Discovery</mark> labels;</li>
 <li>the <mark class="kw">MIG</mark> manager;</li>
 <li>the <mark class="kw-tool">DCGM exporter</mark>, which sends GPU utilization, memory, ECC errors, temperature and power to <mark class="kw-tool">Prometheus</mark>.</li>
-</ul>
-<p>If the device plugin isn't running, GPU pods simply stay Pending.</p></div>
+</ul><p>If the device plugin isn't running, GPU pods simply stay Pending.</p></div></details>
+
+</div>
 </section>
 
 <section class="entry tab" id="d-batch-realtime" aria-labelledby="d-batch-realtime-h">
@@ -750,12 +754,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong> For LLMs, the latency-critical tier is the <strong>model server</strong>: <mark class="kw-tool">vLLM</mark>, <mark class="kw-tool">TGI</mark>, <mark class="kw-tool">SGLang</mark> or <mark class="kw-tool">NVIDIA NIM</mark>, each exposing an OpenAI-compatible API behind a Service. Large models need whole, dedicated GPUs and minutes to load, so I run them as plain Deployments (<mark class="kw-tool">KServe</mark>'s <em>Standard</em> mode) on tainted GPU nodes with warm capacity, rather than relying on <mark class="kw-act">scale-to-zero</mark>.</p>
-<p>AI applications follow the same split:</p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">2 points</span></summary><div class="acc-body"><p>For LLMs, the latency-critical tier is the <strong>model server</strong>: <mark class="kw-tool">vLLM</mark>, <mark class="kw-tool">TGI</mark>, <mark class="kw-tool">SGLang</mark> or <mark class="kw-tool">NVIDIA NIM</mark>, each exposing an OpenAI-compatible API behind a Service. Large models need whole, dedicated GPUs and minutes to load, so I run them as plain Deployments (<mark class="kw-tool">KServe</mark>'s <em>Standard</em> mode) on tainted GPU nodes with warm capacity, rather than relying on <mark class="kw-act">scale-to-zero</mark>.</p><p>AI applications follow the same split:</p><ul>
 <li><strong>Chat-style apps</strong> are synchronous: the user waits, so the orchestrator and model server stay warm and close together.</li>
 <li><strong>Event-driven AI backends</strong> (for example, <mark class="kw-act">scoring</mark> every new order for fraud) run asynchronously off a message bus. They can scale from zero with <mark class="kw-tool">KEDA</mark> or <mark class="kw-tool">Knative</mark>, and can live in the cheaper tier.</li>
-</ul>
+</ul></div></details>
+
+
 <h3 id="d03-2">Priority, preemption and QoS</h3>
 <p><strong>Scenario.</strong> During a traffic spike the web API needs more pods, but every node is full of batch jobs and a new node takes minutes to start. Later, a node runs out of memory and some pods are killed. The team wants web traffic to win in both cases, without starving batch work the rest of the time.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Priority, preemption and QoS" class="open" data-src="diagrams/sections/d03-2.svg" data-title="Priority, preemption and QoS" type="button"><img alt="Diagram: Priority, preemption and QoS" decoding="async" loading="lazy" src="diagrams/sections/d03-2.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -778,12 +782,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
 <li><mark class="kw-tool">Kueue</mark> adds a job-level layer on top of these two.</li>
 <li>WorkloadPriorityClasses decide <mark class="kw-act">admission</mark> order, and <mark class="kw-act">preemption</mark> can <mark class="kw-act">reclaim</mark> <mark class="kw">quota</mark> that another team <mark class="kw-act">borrowed</mark>.</li>
 <li>Which hardware a job gets and who goes first are separate decisions.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d03-3">Placement, autoscaling and cost</h3>
 <p><strong>Scenario.</strong> The mixed cluster is running, but the team still has open questions: where exactly should each pod land, how fast should each tier scale, how should <mark class="kw">requests and limits</mark> be set, what happens when AWS takes back a <mark class="kw">Spot</mark> node, and which numbers should page someone at night?</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Placement, autoscaling and cost" class="open" data-src="diagrams/sections/d03-3.svg" data-title="Placement, autoscaling and cost" type="button"><img alt="Diagram: Placement, autoscaling and cost" decoding="async" loading="lazy" src="diagrams/sections/d03-3.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -810,8 +814,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">10 points</span></summary><div class="acc-body"><ul>
 <li>Packing pairs with the <strong>descheduler</strong>, which periodically <mark class="kw-act">evicts</mark> pods so they can be placed again on a tighter set of nodes.</li>
 <li>Its strategy must match the scheduler's: <code>HighNodeUtilization</code> goes with <mark class="kw">MostAllocated</mark>, and <code>LowNodeUtilization</code> goes with <mark class="kw">LeastAllocated</mark>.</li>
 <li>Mix them and you get an eviction loop.</li>
@@ -826,7 +829,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li>Request-based scaling (<mark class="kw-tool">Knative</mark>'s KPA) treats a 10-token answer and a 10,000-token answer as the same.</li>
 <li>What works is <strong>KEDA</strong> on the model server's own metrics, such as <code>vllm:num_requests_waiting</code> or <code>vllm:num_requests_running</code>, or latency targets (<mark class="kw">TTFT</mark>, time per output token).</li>
 <li><mark class="kw-act">Scale-to-zero</mark> rarely fits: a new replica can take minutes to pull and load the model, so keep a warm minimum and alert on token latency and queue depth rather than CPU.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d03-4">CPU: shares and throttling</h3>
 <p><strong>Scenario.</strong> Users report that the web API is sometimes slow, with p99 latency spiking, but the CPU graphs for its pods look fine and the node is mostly idle. A batch job shares the node. Is the batch job stealing CPU, or is something else slowing the API down?</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: CPU: shares and throttling" class="open" data-src="diagrams/sections/d03-4.svg" data-title="CPU: shares and throttling" type="button"><img alt="Diagram: CPU: shares and throttling" decoding="async" loading="lazy" src="diagrams/sections/d03-4.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1019,7 +1023,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <figure class="diagram"><button aria-label="Open diagram full screen: Thundering herd" class="open" data-src="diagrams/sections/d05-8.svg" data-title="Thundering herd" type="button"><img alt="Diagram: Thundering herd" decoding="async" loading="lazy" src="diagrams/sections/d05-8.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> The thundering herd: your own jobs attacking your own database.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Why they finish together</span></summary><div class="acc-body">AI and big-data pipelines often start jobs in parallel, and if every job processes the same amount of data (say 1 GB each), they finish at almost the same moment.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">The incident</span></summary><div class="acc-body">100 batch jobs complete at once and all write to the database. The connection pool runs out, and web service queries fail.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">The root cause</span></summary><div class="acc-body">batch jobs aren't rate-limited when they talk to shared services. By crossing the finish line in the same millisecond, they effectively run a DDoS attack on your own infrastructure.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">The solution, a queue as shock absorber</span></summary><div class="acc-body">put a message queue (SQS, RabbitMQ or Kafka) in between. Batch jobs publish their results, and a separate consumer with controlled parallelism writes them to the database.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">The quick fix, jitter</span></summary><div class="acc-body">if you can't add a queue yet, have each pod sleep for a random time before writing, so the writes <mark class="kw-act">spread</mark> out.</div></details></div>
-<p><strong>Going deeper.</strong> Event-driven AI services and agents hit the same problem when a burst of events arrives at once. Put a message queue in front so events wait while pods restart, make every handler <strong>idempotent</strong> so duplicate events are harmless, and use a compensating action (the <mark class="kw">Saga pattern</mark>) to undo half-finished multi-step work.</p>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span></summary><div class="acc-body"><p>Event-driven AI services and agents hit the same problem when a burst of events arrives at once. Put a message queue in front so events wait while pods restart, make every handler <strong>idempotent</strong> so duplicate events are harmless, and use a compensating action (the <mark class="kw">Saga pattern</mark>) to undo half-finished multi-step work.</p></div></details>
 <h3 id="d05-9">Scheduler thrashing</h3>
 <p><strong>Scenario.</strong> During a traffic spike the cluster becomes unstable: the same batch pods are created, <mark class="kw-act">evicted</mark>, created again and evicted again, over and over. Nodes churn, nothing finishes, and the scheduler is busier than ever. Two controllers are fighting each other.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Scheduler thrashing" class="open" data-src="diagrams/sections/d05-9.svg" data-title="Scheduler thrashing" type="button"><img alt="Diagram: Scheduler thrashing" decoding="async" loading="lazy" src="diagrams/sections/d05-9.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1031,7 +1035,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </ul>
 </div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Why restartPolicy isn't the fix</span></summary><div class="acc-body">Jobs use <code>Never</code> or <code>OnFailure</code>, but either way the Job controller immediately creates a replacement when a pod is preempted, so <code>restartPolicy</code> alone doesn't stop the loop.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">The solution, queue instead of retry</span></summary><div class="acc-body"><mark class="kw-act">admit</mark> Jobs through <mark class="kw-tool">Kueue</mark> only when capacity actually exists; when a Kueue job is preempted it is suspended and <mark class="kw-act">requeued</mark> as a whole, instead of being recreated pod by pod. Add <code>preemptionPolicy: Never</code> on batch so it never pushes others out, and a <code>podFailurePolicy</code> so preempted pods don't use up the Job's retry budget (<code>backoffLimit</code>).<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: batch/v1</span><span class="ln"><span class="tk">kind</span>: Job</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: nightly-batch</span><span class="ln">  <span class="tk">labels</span>:</span><span class="ln kl">    <span class="tk">kueue.x-k8s.io/queue-name</span>: batch   <span class="tc"># admitted only when capacity exists</span></span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">parallelism</span>: 50</span><span class="ln">  <span class="tk">completions</span>: 50</span><span class="ln">  <span class="tk">backoffLimit</span>: 6</span><span class="ln kl">  <span class="tk">podFailurePolicy</span>:</span><span class="ln">    <span class="tk">rules</span>:</span><span class="ln kl">    - <span class="tk">action</span>: Ignore                  <span class="tc"># preemption doesn't burn the retry budget</span></span><span class="ln">      <span class="tk">onPodConditions</span>:</span><span class="ln kl">      - <span class="tk">type</span>: DisruptionTarget</span><span class="ln">  <span class="tk">template</span>:</span><span class="ln">    <span class="tk">spec</span>:</span><span class="ln kl">      <span class="tk">priorityClassName</span>: batch-low    <span class="tc"># preemptionPolicy: Never</span></span><span class="ln">      <span class="tk">restartPolicy</span>: Never</span><span class="ln">      <span class="tk">containers</span>:</span><span class="ln">      - <span class="tk">name</span>: worker</span><span class="ln">        <span class="tk">image</span>: my-company/batch:1.0</span></code></pre></div></details></div>
 
-<p><strong>Going deeper.</strong> The same kind of loop appears when a <mark class="kw-tool">descheduler</mark>'s strategy disagrees with the scheduler's <mark class="kw-act">scoring</mark>: pods get <mark class="kw-act">evicted</mark>, land back on the same node, and get evicted again. A steadily rising eviction count with no <mark class="kw-act">consolidation</mark> is the signal.</p>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span></summary><div class="acc-body"><p>The same kind of loop appears when a <mark class="kw-tool">descheduler</mark>'s strategy disagrees with the scheduler's <mark class="kw-act">scoring</mark>: pods get <mark class="kw-act">evicted</mark>, land back on the same node, and get evicted again. A steadily rising eviction count with no <mark class="kw-act">consolidation</mark> is the signal.</p></div></details>
 <h3 id="d05-10">CPU limit vs. request gap</h3>
 <p><strong>Scenario.</strong> The web service's p99 latency spikes, yet the node's average CPU use is only 60%. The web pods aren't busy and nothing looks saturated. The only clue is a batch job on the same node with a 1-core request and an 8-core limit.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: CPU limit vs. request gap" class="open" data-src="diagrams/sections/d05-10.svg" data-title="CPU limit vs. request gap" type="button"><img alt="Diagram: CPU limit vs. request gap" decoding="async" loading="lazy" src="diagrams/sections/d05-10.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1052,8 +1056,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>What the picture shows.</strong> How the NVIDIA <mark class="kw">device plugin</mark> makes GPUs visible to Kubernetes, in numbered steps.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Installing the plugin</span></summary><div class="acc-body">we add a module to the cluster setup (Terraform) that installs the NVIDIA device plugin for Kubernetes.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Step 1</span></summary><div class="acc-body">the plugin runs on every GPU worker node as a <strong>DaemonSet</strong>.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Step 2</span></summary><div class="acc-body">on each node, the plugin registers itself with the <strong>kubelet</strong>, which reports the node's GPUs to the <strong>API server</strong> as <code>nvidia.com/gpu</code>. From then on GPUs are a countable resource the scheduler can use. This is the missing piece in the scenario.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Steps 3 and 4</span></summary><div class="acc-body">when the scheduler places a pod that requests a GPU, the pod is bound to that worker node.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Step 5</span></summary><div class="acc-body">the <mark class="kw-tool">kubelet</mark> on that node tells the plugin how many GPUs the pod needs, and the plugin assigns specific GPU devices to the container.<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: inference</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln kl">        <span class="tk">nvidia.com/gpu</span>: 1    <span class="tc"># schedulable only after the device plugin registers GPUs</span></span></code></pre></div></details></div>
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">10 points</span></summary><div class="acc-body"><ul>
 <li>Two discovery layers come first.</li>
 <li><strong>Node Feature Discovery</strong> labels basic hardware facts (PCI vendor and class), and <strong>GPU Feature Discovery</strong> adds GPU details (model, memory, family, CUDA version).</li>
 <li>
@@ -1072,7 +1075,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </li>
 <li>Plugins expose counts, not topology.</li>
 <li>That gap is why topology labels, <mark class="kw">Dynamic Resource Allocation</mark> and <mark class="kw">topology-aware</mark> schedulers exist.</li>
-</ul></div>
+</ul></div></details>
+</div>
 </section>
 
 <section class="entry tab" id="d-multitenancy" aria-labelledby="d-multitenancy-h">
@@ -1104,14 +1108,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">5 points</span></summary><div class="acc-body"><ul>
 <li>GPUs need the same soft vs. hard choice.</li>
 <li><strong>Time slicing</strong> advertises several virtual GPUs per physical GPU, with no memory or fault isolation: one pod can exhaust the memory or crash the GPU for everyone.</li>
 <li><strong>MIG</strong> (on data-center GPUs such as A100, H100 and newer) carves a GPU into hardware-isolated slices with their own memory, for example up to 7 on an A100-40GB.</li>
 <li>That's the right choice for strict multi-tenancy.</li>
 <li><mark class="kw">Quota</mark> <em>between</em> tenants (who gets how many GPUs) is a separate problem, handled by <mark class="kw-tool">Kueue</mark>'s <mark class="kw">ClusterQueues</mark> and <mark class="kw">cohorts</mark>.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d07-2">Identity, data, network and observability</h3>
 <p><strong>Scenario.</strong> The same SaaS company now has to prove to an auditor that tenant A can never read tenant B's data, even if a pod is compromised or credentials leak. That has to hold across AWS permissions, the databases, the network and the logs.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Identity, data, network and observability" class="open" data-src="diagrams/sections/d07-2.svg" data-title="Identity, data, network and observability" type="button"><img alt="Diagram: Identity, data, network and observability" decoding="async" loading="lazy" src="diagrams/sections/d07-2.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1136,12 +1140,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Distributed tracing (X-Ray or Jaeger):</strong> with tenant context propagated through every call.</li>
 </ul>
 </div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">The three-layer boundary</span></summary><div class="acc-body">tenant isolation is enforced at (1) the Kubernetes namespace and scheduling boundary, (2) the per-tenant AWS IAM identity boundary, and (3) the database boundary, either a separate instance or RLS.</div></details></div>
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
 <li>For shared LLM endpoints, the unit of fairness is the <strong>token</strong>, not the request: one call can cost 10 tokens or 10,000.</li>
 <li>AI gateways (<mark class="kw-tool">Envoy AI Gateway</mark>, <mark class="kw-tool">Kuadrant</mark>) enforce token-based rate limits per user or API key.</li>
 <li>Tracing follows the same tenant-aware approach: model servers like <mark class="kw-tool">vLLM</mark> emit <mark class="kw-tool">OpenTelemetry</mark> spans that can be sent to <mark class="kw-tool">Jaeger</mark> with the tenant in context.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d07-3">Sandboxed runtimes: gVisor and Kata</h3>
 <p><strong>Scenario.</strong> A premium customer asks: "If another tenant's container is hacked and the attacker finds a Linux kernel bug, can they escape and reach my workload on the same node?" With plain containers, the honest answer is yes.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Sandboxed runtimes: gVisor and Kata" class="open" data-src="diagrams/sections/d07-3.svg" data-title="Sandboxed runtimes: gVisor and Kata" type="button"><img alt="Diagram: Sandboxed runtimes: gVisor and Kata" decoding="async" loading="lazy" src="diagrams/sections/d07-3.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1153,12 +1157,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </ul>
 </div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">How you switch it on, step 1, a RuntimeClass</span></summary><div class="acc-body">named <code>gvisor</code>, with <code>handler: runsc</code>, which tells the container engine to use gVisor.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Step 2, the Deployment</span></summary><div class="acc-body">a premium tenant's Deployment adds one line, <code>runtimeClassName: gvisor</code>. Kubernetes runs those containers with gVisor, using the same standard image, with no rebuild. If only some nodes have gVisor installed, add a <code>scheduling.nodeSelector</code> to the <mark class="kw">RuntimeClass</mark> so these pods land on them.<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: node.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: RuntimeClass</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: gvisor</span><span class="ln kl"><span class="tk">handler</span>: runsc</span><span class="ln"><span class="tk">scheduling</span>:</span><span class="ln">  <span class="tk">nodeSelector</span>:</span><span class="ln kl">    <span class="tk">sandbox.gvisor</span>: "true"         <span class="tc"># only nodes where gVisor is installed</span></span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: apps/v1</span><span class="ln"><span class="tk">kind</span>: Deployment</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: premium-tenant-app</span><span class="ln">  <span class="tk">namespace</span>: tenant-a-premium</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">replicas</span>: 2</span><span class="ln">  <span class="tk">selector</span>:</span><span class="ln">    <span class="tk">matchLabels</span>: {app: my-app}</span><span class="ln">  <span class="tk">template</span>:</span><span class="ln">    <span class="tk">metadata</span>:</span><span class="ln">      <span class="tk">labels</span>: {app: my-app}</span><span class="ln">    <span class="tk">spec</span>:</span><span class="ln kl">      <span class="tk">runtimeClassName</span>: gvisor     <span class="tc"># the one extra line</span></span><span class="ln">      <span class="tk">containers</span>:</span><span class="ln">      - <span class="tk">name</span>: my-container</span><span class="ln">        <span class="tk">image</span>: my-company/standard-app:1.0</span></code></pre></div></details></div>
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
 <li>AI agents that run generated code or untrusted tools need the same isolation.</li>
 <li>The Kubernetes community's <strong>agent sandbox</strong> project adds a pod-shaped, single-instance <code>Sandbox</code> with a stable identity that can be paused and resumed, isolated with <mark class="kw-tool">gVisor</mark> or <mark class="kw-tool">Kata</mark>.</li>
 <li>It's designed for interactive or untrusted agent workloads.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d07-4">Hardening runC: seccomp, AppArmor, user namespaces</h3>
 <p><strong>Scenario.</strong> A security reviewer asks what happens if an attacker gets code execution inside one tenant's container. Even without a sandboxed runtime, the platform should limit what that attacker can do: which system calls they can make, which files they can touch, and who they are on the host if they break out.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Hardening runC" class="open" data-src="diagrams/sections/d07-4.svg" data-title="Hardening runC" type="button"><img alt="Diagram: Hardening runC" decoding="async" loading="lazy" src="diagrams/sections/d07-4.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1217,13 +1221,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong> An AI application maps cleanly onto the same split:</p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><p>An AI application maps cleanly onto the same split:</p><ul>
 <li><strong>Stateless Deployments:</strong> the orchestrator (the app logic around the model), the <mark class="kw">embedding</mark> service, <mark class="kw">rerankers</mark> and model servers.</li>
 <li><strong>StatefulSets with PVCs:</strong> the <mark class="kw">vector database</mark>, the chat history and the agent session store.</li>
 <li><strong>Jobs or CronJobs:</strong> document ingestion and nightly batch runs.</li>
-</ul>
-<p>Separate lifecycles let you update prompts, models and data independently.</p>
+</ul><p>Separate lifecycles let you update prompts, models and data independently.</p></div></details>
+
+
 <h3 id="d08-2">Storage and StatefulSet mechanics</h3>
 <p><strong>Scenario.</strong> The database team asks the platform team to choose a storage setup: which <mark class="kw">EBS</mark> type, when <mark class="kw">EFS</mark> makes sense, which filesystem, what happens to a volume when a <mark class="kw">PVC</mark> is deleted, and how to stop volumes being created in a different AZ from their pod.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Storage and StatefulSet mechanics" class="open" data-src="diagrams/sections/d08-2.svg" data-title="Storage and StatefulSet mechanics" type="button"><img alt="Diagram: Storage and StatefulSet mechanics" decoding="async" loading="lazy" src="diagrams/sections/d08-2.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1245,12 +1249,12 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </div></details></div>
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
 <li>EFS-style shared file systems are a good fit for model weights: many replicas read the same files and never write them.</li>
 <li>Mount them <code>ReadOnlyMany</code> and <code>readOnly: true</code>.</li>
 <li>Keep <mark class="kw">EBS</mark> for anything that writes.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d08-3">Performance, networking and backup</h3>
 <p><strong>Scenario.</strong> The databases are running, but the team still has to answer three questions before go-live: how will they back up and restore, how do they get the best I/O out of the disks, and how do they keep network latency low between database replicas?</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Performance, networking and backup" class="open" data-src="diagrams/sections/d08-3.svg" data-title="Performance, networking and backup" type="button"><img alt="Diagram: Performance, networking and backup" decoding="async" loading="lazy" src="diagrams/sections/d08-3.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1271,7 +1275,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Pod density:</strong> the per-instance <mark class="kw">ENI</mark> limit caps pods per node; <strong>prefix delegation</strong> is what raises it. (<mark class="kw">ENI trunking</mark>, which the diagram lists here, is for giving pods their own security groups, see <a href="#d09-5">Security groups for pods</a>.)</li>
 </ul>
 </div></details></div>
-<p><strong>Going deeper.</strong> Local <mark class="kw">NVMe</mark> also speeds up model servers. A node-local model cache on NVMe (<mark class="kw-tool">KServe</mark> has one, keyed by the model's storage URI) makes downloads from Hugging Face or S3 behave like a local volume after the first pull, and <mark class="kw">GPUDirect Storage</mark> can feed weights from NVMe straight into GPU memory.</p>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span></summary><div class="acc-body"><p>Local <mark class="kw">NVMe</mark> also speeds up model servers. A node-local model cache on NVMe (<mark class="kw-tool">KServe</mark> has one, keyed by the model's storage URI) makes downloads from Hugging Face or S3 behave like a local volume after the first pull, and <mark class="kw">GPUDirect Storage</mark> can feed weights from NVMe straight into GPU memory.</p></div></details>
 <h3 id="d08-4">Spreading across AZs and nodes</h3>
 <p><strong>Scenario.</strong> A Cassandra cluster's three replicas all end up in the same Availability Zone because that AZ had the most free capacity. When that AZ has an outage, the whole database goes down, even though the cluster spans three AZs.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Spreading across AZs and nodes" class="open" data-src="diagrams/sections/d08-4.svg" data-title="Spreading across AZs and nodes" type="button"><img alt="Diagram: Spreading across AZs and nodes" decoding="async" loading="lazy" src="diagrams/sections/d08-4.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1288,13 +1292,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>What the picture shows.</strong> CPU pinning and <mark class="kw">NUMA</mark> awareness on large multi-socket servers.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">NUMA nodes</span></summary><div class="acc-body">a large two-socket server (such as an <code>r6i.32xlarge</code> or a metal instance) is split into NUMA nodes, each with its own CPU cores and its own bank of local RAM.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Local access</span></summary><div class="acc-body">a core reading RAM attached to its own socket is very fast.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Remote access</span></summary><div class="acc-body">if the data is in RAM on the other socket, the request must cross a bridge (Intel UPI or AMD Infinity Fabric), which adds latency and cuts bandwidth.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Without awareness</span></summary><div class="acc-body">Kubernetes treats all CPUs and RAM as one pool. If a database's vCPUs are on socket 0 but its data is in socket 1's RAM, every query pays a remote-memory tax.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Context switching and cache thrashing</span></summary><div class="acc-body">the kernel also moves the database process between cores to balance load, and each move throws away warm CPU caches.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">The solution, kubelet configuration</span></summary><div class="acc-body">enable the static <mark class="kw">CPU manager</mark> and topology manager policies, so <mark class="kw">Guaranteed</mark> pods with whole-number CPU requests get exclusive cores, and their CPU and memory come from the same NUMA node.<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: kubelet.config.k8s.io/v1beta1</span><span class="ln"><span class="tk">kind</span>: KubeletConfiguration</span><span class="ln kl"><span class="tk">cpuManagerPolicy</span>: static</span><span class="ln kl"><span class="tk">topologyManagerPolicy</span>: single-numa-node</span><span class="ln kl"><span class="tk">memoryManagerPolicy</span>: Static</span><span class="ln"><span class="tk">reservedSystemCPUs</span>: "0,1"</span><span class="ln"><span class="tk">reservedMemory</span>:                 <span class="tc"># required by the Static memory manager</span></span><span class="ln">- <span class="tk">numaNode</span>: 0</span><span class="ln">  <span class="tk">limits</span>:</span><span class="ln">    <span class="tk">memory</span>: 1Gi</span></code></pre></div></details></div>
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
 <li>The <mark class="kw-tool">kubelet</mark>'s <strong>Topology Manager</strong> matters just as much for GPU pods.</li>
 <li>Without it, the <mark class="kw">CPU manager</mark> and the device manager can give a pod CPUs from one <mark class="kw">NUMA</mark> node and GPUs from another.</li>
 <li>The policies run from <code>best-effort</code> through <code>restricted</code> to <code>single-numa-node</code>.</li>
 <li>The strictest gives the best locality but makes pods harder to place.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d08-6">I/O scheduler tuning</h3>
 <p><strong>Scenario.</strong> Database dashboards show high "<mark class="kw">I/O wait</mark>" even though the <mark class="kw">EBS</mark> volume is far from its <mark class="kw">IOPS</mark> limit. Someone suggests the Linux I/O scheduler, the kernel's queue in front of the disk, might be adding overhead on modern <mark class="kw">NVMe</mark> storage.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: I/O scheduler tuning" class="open" data-src="diagrams/sections/d08-6.svg" data-title="I/O scheduler tuning" type="button"><img alt="Diagram: I/O scheduler tuning" decoding="async" loading="lazy" src="diagrams/sections/d08-6.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1463,13 +1467,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Use it when:</strong> you have thousands of Services and rule updates are slow. Note that IPVS mode was deprecated in Kubernetes 1.35; the recommended replacement is the <strong>nftables</strong> mode (stable since 1.33), which also scales well.</li>
 </ul>
 </div></details></div>
-<p><strong>Going deeper.</strong> For LLM backends, round-robin is the wrong algorithm, whichever <mark class="kw-tool">kube-proxy</mark> mode delivers it:</p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><p>For LLM backends, round-robin is the wrong algorithm, whichever <mark class="kw-tool">kube-proxy</mark> mode delivers it:</p><ul>
 <li>requests vary hugely in cost;</li>
 <li>a replica that already holds a conversation's <mark class="kw">KV cache</mark> can skip most of the <mark class="kw">prefill</mark> work;</li>
 <li><mark class="kw">LoRA</mark> adapters mean one endpoint serves several models.</li>
-</ul>
-<p>The <strong>Gateway API Inference Extension</strong> adds an <code>InferencePool</code> and an <em><mark class="kw">endpoint picker</mark></em> that chooses a pod by queue length, <mark class="kw">KV-cache</mark> contents or loaded adapter, and can shed low-priority requests when the pool is saturated.</p>
+</ul><p>The <strong>Gateway API Inference Extension</strong> adds an <code>InferencePool</code> and an <em><mark class="kw">endpoint picker</mark></em> that chooses a pod by queue length, <mark class="kw">KV-cache</mark> contents or loaded adapter, and can shed low-priority requests when the pool is saturated.</p></div></details>
+
+
 <h3 id="d09-4b">conntrack: the connection ledger</h3>
 <p><strong>Scenario.</strong> A busy node starts dropping new connections at random, and the kernel log shows <code>nf_conntrack: table full, dropping packet</code>. The pods themselves look healthy. The team needs to understand what this table is and why it filled up.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: conntrack: the connection ledger" class="open" data-src="diagrams/sections/d09-4b.svg" data-title="conntrack: the connection ledger" type="button"><img alt="Diagram: conntrack: the connection ledger" decoding="async" loading="lazy" src="diagrams/sections/d09-4b.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1571,8 +1575,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <figure class="diagram"><button aria-label="Open diagram full screen: Standard vs. SR-IOV vs. RDMA" class="open" data-src="diagrams/sections/d10-4.svg" data-title="Standard vs. SR-IOV vs. RDMA" type="button"><img alt="Diagram: Standard vs. SR-IOV vs. RDMA" decoding="async" loading="lazy" src="diagrams/sections/d10-4.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Three generations of the data path between two GPU servers, from slowest to fastest.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Standard path</span></summary><div class="acc-body">data goes through several software layers, the host <strong>hypervisor</strong> and a software <strong>virtual switch</strong>. It's CPU-intensive and adds latency at every hop.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">SR-IOV path</span></summary><div class="acc-body">bypasses the slow hypervisor and software switch, giving data a direct hardware path. But the standard TCP/IP stack is still there, so the CPU still has to process every packet.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">RDMA transfer</span></summary><div class="acc-body">GPU memory on one physical server is copied directly to GPU memory on the other, without involving the operating system or CPU on either side. This is the path distributed training needs (see the next section for how <mark class="kw">EFA</mark> provides it on AWS).</div></details></div>
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">7 points</span></summary><div class="acc-body"><ul>
 <li>For GPU collectives, <mark class="kw-tool">NCCL</mark> is the library doing the <mark class="kw">all-reduce</mark> and all-gather.</li>
 <li>Across nodes it should run over <mark class="kw">RDMA</mark> (<mark class="kw">InfiniBand</mark> or <mark class="kw">RoCE</mark>, with <mark class="kw">GPUDirect RDMA</mark> moving data straight between GPU memories).</li>
 <li>On Kubernetes that often means setting <code>NCCL_SOCKET_IFNAME</code> and making sure pods can find each other by name.</li>
@@ -1584,19 +1587,20 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </li>
 <li>With sharded data parallelism (PyTorch <mark class="kw">FSDP2</mark>), every layer's forward and backward pass gathers weight shards from all GPUs, which adds up to many GB per second of steady traffic.</li>
 <li>A fine-tuning job that fits in a few GPUs can still end up network-bound if those GPUs sit on different nodes.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d10-5">Latency and EFA</h3>
 <p><strong>Scenario.</strong> A team moves its multi-node training to EC2 instances with <mark class="kw">EFA</mark>, but <mark class="kw-tool">NCCL</mark> still runs over plain TCP and nothing gets faster. The hardware supports <mark class="kw">RDMA</mark>; Kubernetes just doesn't know about it yet.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Latency and EFA" class="open" data-src="diagrams/sections/d10-5.svg" data-title="Latency and EFA" type="button"><img alt="Diagram: Latency and EFA" decoding="async" loading="lazy" src="diagrams/sections/d10-5.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Two levers for faster GPU-to-GPU networking on AWS.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Network latency, EC2 placement groups</span></summary><div class="acc-body">keep the training nodes physically close together.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Throughput enhancement, EFA (Elastic Fabric Adapter)</span></summary><div class="acc-body">uses <mark class="kw">RDMA</mark> to move data directly between the memory of two nodes, across the network, without the OS or CPU. CPU use for the copy is close to zero (zero-copy), and <mark class="kw">EFA</mark> works with <mark class="kw-tool">NCCL</mark> for GPU communication.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Making Kubernetes see EFA, step 1</span></summary><div class="acc-body">install <code>aws-efa-k8s-device-plugin</code>, so nodes advertise EFA devices as a resource.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Step 2</span></summary><div class="acc-body">in the EKS Terraform module, advertise the EFA resource so training pods can request it. Without these two steps, NCCL silently falls back to TCP, which is the scenario.<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: trainer-0</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: trainer</span><span class="ln">    <span class="tk">image</span>: my-company/trainer:2.0</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln">        <span class="tk">nvidia.com/gpu</span>: 8</span><span class="ln kl">        <span class="tk">vpc.amazonaws.com/efa</span>: 4     <span class="tc"># advertised by the EFA device plugin</span></span><span class="ln kl">        <span class="tk">hugepages-2Mi</span>: 5120Mi</span><span class="ln">        <span class="tk">memory</span>: 64Gi</span></code></pre></div></details></div>
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
 <li>Disaggregated LLM serving pushes this further.</li>
 <li>When <mark class="kw">prefill</mark> and <mark class="kw">decode</mark> run on separate pods and pass the <mark class="kw">KV cache</mark> between them, the pods need on the order of hundreds of Gbps between them, far beyond a normal 10–20 Gbps pod network.</li>
 <li>That's why setups like <mark class="kw-tool">llm-d</mark> or <mark class="kw-tool">NVIDIA Dynamo</mark> assume <mark class="kw">RDMA</mark>, <mark class="kw">RoCE</mark> or <mark class="kw">NVLink</mark> fabrics, and behave more like an appliance than a typical Deployment.</li>
-</ul></div>
+</ul></div></details>
+</div>
 </section>
 
 <section class="entry tab" id="d-challenges-2" aria-labelledby="d-challenges-2-h">
@@ -1678,13 +1682,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>EC2 Capacity Blocks for ML:</strong> reserve accelerated (GPU) capacity for a fixed window, delivered in UltraClusters.</li>
 </ul>
 </div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">EndpointSlices</span></summary><div class="acc-body">route traffic between services to the nearest pod in the same AZ, which also cuts cross-AZ charges (see the next section).</div></details></div>
-<p><strong>Going deeper.</strong> For GPU nodes, the biggest waste is idle GPUs, not instance pricing:</p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><p>For GPU nodes, the biggest waste is idle GPUs, not instance pricing:</p><ul>
 <li><strong>Bin-pack</strong> (<mark class="kw">MostAllocated</mark> with GPUs weighted highest), so empty nodes can be removed.</li>
 <li><strong>Share</strong> GPUs that small models use only partly: <mark class="kw">MIG</mark> for isolation, <mark class="kw">time slicing</mark> for dev and bursty inference.</li>
 <li><strong>Quantize</strong> where quality allows: a 70B model needs about 280 GB at fp32 but about 35 GB at 4-bit.</li>
-</ul>
-<p>Weigh every <mark class="kw-act">consolidation</mark> against the checkpoint-and-restart it forces on training jobs.</p>
+</ul><p>Weigh every <mark class="kw-act">consolidation</mark> against the checkpoint-and-restart it forces on training jobs.</p></div></details>
+
+
 <h3 id="d12-2">Networking</h3>
 <p><strong>Scenario.</strong> The cost report shows that data transfer is now the third-largest line item. Services talk across Availability Zones all day, nodes pull large images over the internet, and traffic to S3 goes through a NAT gateway. None of it was designed with cost in mind.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Networking" class="open" data-src="diagrams/sections/d12-2.svg" data-title="Networking" type="button"><img alt="Diagram: Networking" decoding="async" loading="lazy" src="diagrams/sections/d12-2.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1707,19 +1711,19 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">6 points</span></summary><div class="acc-body"><ul>
 <li>Model images are a special case: tens or hundreds of GB.</li>
 <li>Layered OCI images let ten fine-tuned variants share one cached copy of the base model on a node.</li>
 <li>Pre-pulling or prefetching images is what keeps scale-up times predictable (see <a href="#post-model-data">Getting model weights into pods</a>).</li>
-</ul>
-<p>Startup time is a cost too: a slow-starting replica means paying for extra warm capacity. For model servers:</p>
-<ul>
+</ul><p>Startup time is a cost too: a slow-starting replica means paying for extra warm capacity. For model servers:</p><ul>
 <li>Use <code>imagePullPolicy: IfNotPresent</code>, and pin images by version or digest instead of <code>latest</code>.</li>
 <li>Avoid downloading weights at startup (<mark class="kw">PVCs</mark> or OCI images instead).</li>
 <li>Use a parallel loader (<mark class="kw-tool">Run:ai</mark> Model Streamer, Tensorizer).</li>
-</ul>
-<p>Together these cut a replica's time-to-ready from minutes to tens of seconds.</p>
+</ul><p>Together these cut a replica's time-to-ready from minutes to tens of seconds.</p></div></details>
+
+
+
+
 <h3 id="d12-3">Storage</h3>
 <p><strong>Scenario.</strong> Storage costs keep creeping up: old <mark class="kw">EBS</mark> volumes from deleted <mark class="kw">PVCs</mark> are still around, logs are kept forever, every volume is <mark class="kw">gp2</mark>, and container images are several gigabytes each. The team wants a checklist of storage savings that won't hurt performance.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Storage" class="open" data-src="diagrams/sections/d12-3.svg" data-title="Storage" type="button"><img alt="Diagram: Storage" decoding="async" loading="lazy" src="diagrams/sections/d12-3.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1733,13 +1737,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Infrequent access (logs, backups):</strong> Throughput Optimized HDD (st1) or Cold HDD (sc1).</li>
 </ul>
 </div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Container image size</span></summary><div class="acc-body">multi-stage builds keep images small.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Data retention policy</span></summary><div class="acc-body">set retention for CloudWatch Logs and Elasticsearch so old data expires.</div></details></div>
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
 <li>For model weights, the storage choice is a cost-vs-speed trade-off.</li>
 <li>A shared ReadOnlyMany <mark class="kw">PersistentVolume</mark> stores one copy for all replicas but pays network latency on every read.</li>
 <li>Copying into an <code>emptyDir</code> gives fast local reads but stores one copy per pod per node.</li>
 <li>OCI images sit in between (see <a href="#post-model-data">Getting model weights into pods</a>).</li>
-</ul></div>
+</ul></div></details>
+</div>
 </section>
 
 <section class="entry tab" id="d-security" aria-labelledby="d-security-h">
@@ -1768,13 +1772,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <figure class="diagram"><button aria-label="Open diagram full screen: The build pipeline" class="open" data-src="diagrams/sections/d13-2.svg" data-title="The build pipeline" type="button"><img alt="Diagram: The build pipeline" decoding="async" loading="lazy" src="diagrams/sections/d13-2.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Securing the container lifecycle, stage by stage.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Build</span></summary><div class="acc-body">a trusted, minimal base image to shrink the attack surface (Alpine Linux, distroless or <code>scratch</code>); immutable tags; multi-stage builds; and DockerSlim to minimize image size.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Test</span></summary><div class="acc-body">automated security testing in CI/CD, for example with <mark class="kw-tool">Snyk</mark>.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Store</span></summary><div class="acc-body">sign images with Docker Content Trust or <mark class="kw-tool">Cosign</mark>.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Encrypt</span></summary><div class="acc-body">keep secrets out of images, using Kubernetes Secrets with HashiCorp Vault, AWS <mark class="kw">KMS</mark>, AWS IAM and the Secrets Store CSI driver.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Scan</span></summary><div class="acc-body">scan images for vulnerabilities with Amazon Inspector or <mark class="kw-tool">Trivy</mark>.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Deploy</span></summary><div class="acc-body">verify signatures with AWS Signer and enforce rules with policy-as-code (<mark class="kw-tool">OPA Gatekeeper</mark>).</div></details><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">Monitor, the runtime environment</span></summary><div class="acc-body">run nodes in private subnets, disable SSH, block the instance metadata service (IMDS) from pods, encrypt all storage and use a hardened AMI.</div></details></div>
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
 <li>Model files belong in the supply chain too.</li>
 <li>Classic PyTorch <code>.pt</code> files use Python pickle, which can execute arbitrary code when loaded.</li>
 <li><strong>Safetensors</strong> stores only tensors and can't, which makes it the safer default for weights from outside the organization.</li>
 <li>Signing and scanning model images works the same way as for application images.</li>
-</ul>
+</ul></div></details>
+
 <h3 id="d13-3">Runtime security</h3>
 <p><strong>Scenario.</strong> A security scan finds that several production pods run as root, with privileged mode and every Linux capability enabled, "because it was easier". Nobody would notice if one of them started behaving maliciously. The team needs runtime <mark class="kw">guardrails</mark> and detection.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Runtime security" class="open" data-src="diagrams/sections/d13-3.svg" data-title="Runtime security" type="button"><img alt="Diagram: Runtime security" decoding="async" loading="lazy" src="diagrams/sections/d13-3.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1810,22 +1814,22 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </div></details></div>
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">9 points</span></summary><div class="acc-body"><ul>
 <li>Model endpoints also need <strong>guardrails</strong>: checks on the prompt before the model and on the answer after it.</li>
 <li>They catch prompt injection ("ignore all previous instructions"), jailbreaks, toxic output and leaked personal data.</li>
 <li>Small classifier models such as <mark class="kw-tool">Llama Guard</mark> or <mark class="kw-tool">Granite Guardian</mark> run as their own <mark class="kw-tool">vLLM</mark> deployments.</li>
 <li>Frameworks like <mark class="kw-tool">NeMo Guardrails</mark>, the FMS <mark class="kw">Guardrails</mark> Orchestrator, Guardrails AI or a moderation API wire them in.</li>
 <li>Every check adds latency and GPU cost, so keep the in-line checks small and sample the rest asynchronously.</li>
-</ul>
-<p>Agents add an identity question: when an agent calls a tool (an <mark class="kw-tool">MCP</mark> server) on a user's behalf, whose identity does the backend see? There are four common answers:</p>
-<ul>
+</ul><p>Agents add an identity question: when an agent calls a tool (an <mark class="kw-tool">MCP</mark> server) on a user's behalf, whose identity does the backend see? There are four common answers:</p><ul>
 <li><strong>Pass the user's token through:</strong> full per-user audit, but long-running tasks outlive the token and the token needs very broad scopes.</li>
 <li><strong>Kubernetes ServiceAccounts:</strong> validated with <code>TokenReview</code> and authorized with <code>SubjectAccessReview</code>. Simple inside one cluster, but you lose the user.</li>
 <li><strong>OAuth2 token exchange (RFC 8693):</strong> one token carries both the user (<code>sub</code>) and the agent (<code>act</code>).</li>
 <li><strong>SPIFFE/SPIRE mTLS:</strong> short-lived, automatically <mark class="kw-act">rotated</mark> workload certificates, so there's no long-lived token to steal.</li>
-</ul>
-<p>In practice teams layer them: workload <mark class="kw">mTLS</mark> plus user identity in the request, with a policy engine checking both. More in <a href="#post-agents-prod">Running agents in production</a>.</p></div>
+</ul><p>In practice teams layer them: workload <mark class="kw">mTLS</mark> plus user identity in the request, with a policy engine checking both. More in <a href="#post-agents-prod">Running agents in production</a>.</p></div></details>
+
+
+
+</div>
 </section>
 
 <section class="entry tab" id="d-storage-basics" aria-labelledby="d-storage-basics-h">
@@ -1841,13 +1845,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">StorageClass, the catalogue of desk designs</span></summary><div class="acc-body">what the library offers, such as a wooden desk or a glass desk. In Kubernetes these are storage tiers like <mark class="kw">gp3</mark> or <mark class="kw">io2</mark>.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">PVC, the order slip</span></summary><div class="acc-body">you fill in a reservation for the kind of desk you want; it <mark class="kw-act">binds</mark> to the desk that gets built and reserves it for you.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">PV, the actual desk built for you</span></summary><div class="acc-body">the real <mark class="kw">EBS</mark> volume.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Dynamic provisioning</span></summary><div class="acc-body">the library builds the desk (the PV) automatically from the chosen design (the <mark class="kw">StorageClass</mark>) when an order slip (the <mark class="kw">PVC</mark>) comes in.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Pod, with volumes and volumeMounts</span></summary><div class="acc-body">now that the desk is reserved, you want to use it. The student shows the reservation slip to the librarian (<code>volumes</code> names the PVC), is directed to the desk, and sets up there (<code>volumeMounts</code> says where in the container the disk appears).<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: app</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: app</span><span class="ln">    <span class="tk">image</span>: my-company/app:1.0</span><span class="ln">    <span class="tk">volumeMounts</span>:</span><span class="ln">    - <span class="tk">name</span>: data</span><span class="ln kl">      <span class="tk">mountPath</span>: /var/lib/data    <span class="tc"># where the "desk" appears in the container</span></span><span class="ln">  <span class="tk">volumes</span>:</span><span class="ln">  - <span class="tk">name</span>: data</span><span class="ln kl">    <span class="tk">persistentVolumeClaim</span>:</span><span class="ln kl">      <span class="tk">claimName</span>: data             <span class="tc"># the "order slip"</span></span></code></pre></div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Mountpoint for S3 CSI driver</span></summary><div class="acc-body">a different kind of "desk": it mounts S3 as a file system, not a block device.</div></details></div>
 
 
-<p><strong>Going deeper.</strong></p>
-<ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
 <li>The same objects serve model weights.</li>
 <li>One <mark class="kw">PersistentVolume</mark> on NFS or <mark class="kw">EFS</mark> with <code>ReadOnlyMany</code> access, mounted <code>readOnly: true</code> by every replica, stores the model once and lets the OS cache it aggressively.</li>
 <li>It works well for tens of replicas.</li>
 <li>At hundreds, the shared backend becomes the bottleneck.</li>
-</ul></div>
+</ul></div></details>
+</div>
 </section>
 
 <section class="entry post" id="post-serving" aria-labelledby="post-serving-h">

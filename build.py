@@ -263,6 +263,38 @@ def accordionize(h):
                     wrap.append(node)
                     last = None
         i = j
+    # "Going deeper": one collapsible block per section
+    nodes = [n for n in root.children if isinstance(n, Tag)]
+    i = 0
+    while i < len(nodes):
+        if _label(nodes[i]) != "Going deeper.":
+            i += 1
+            continue
+        j = i + 1
+        while j < len(nodes) and nodes[j].name not in ("h2", "h3") and _label(nodes[j]) not in ("Scenario.", "What the picture shows."):
+            j += 1
+        first = nodes[i]
+        det = soup.new_tag("details", attrs={"class": "acc gd"})
+        summ = soup.new_tag("summary")
+        tt = soup.new_tag("span", attrs={"class": "acc-title"}); tt.string = "Going deeper"
+        n_pts = sum(len(u.find_all("li", recursive=False)) for u in nodes[i + 1:j] if u.name == "ul")
+        summ.append(tt)
+        if n_pts:
+            cnt = soup.new_tag("span", attrs={"class": "acc-count"}); cnt.string = f"{n_pts} points"
+            summ.append(cnt)
+        body = soup.new_tag("div", attrs={"class": "acc-body"})
+        det.append(summ); det.append(body)
+        first.insert_before(det)
+        first.find("strong", recursive=False).extract()
+        if first.get_text(strip=True):
+            if first.contents and isinstance(first.contents[0], NavigableString):
+                first.contents[0].replace_with(first.contents[0].lstrip())
+            body.append(first.extract())
+        else:
+            first.extract()
+        for n in nodes[i + 1:j]:
+            body.append(n.extract())
+        i = j
     return root.decode_contents()
 
 
