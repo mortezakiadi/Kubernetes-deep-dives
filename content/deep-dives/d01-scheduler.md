@@ -15,7 +15,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 - **Kubernetes scheduler ("EKS Scheduler" box):** the "brain" that decides where every new pod lives.
 - **Phase 1: Filtering (the "predicate" phase):** the goal is simple, keep only the nodes that can run the pod.
-- **Insufficient resources (the bin-packing rule):** the scheduler takes the node's total capacity and subtracts the *requests* of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper.
+- **Insufficient resources (the fit check):** the scheduler takes the node's total capacity and subtracts the *requests* of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper. This is a yes/no feasibility check (the NodeResourcesFit filter), not bin-packing: it doesn't prefer full or empty nodes. That preference is decided later, in scoring, where the default strategy (LeastAllocated) actually *spreads* pods; bin-packing (MostAllocated) has to be turned on deliberately (see [Phase 2: scoring plugins](#d01-3)).
 
 ```yaml
 spec:

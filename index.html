@@ -197,7 +197,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <ul>
 <li><strong>Kubernetes scheduler ("EKS Scheduler" box):</strong> the "brain" that decides where every new pod lives.</li>
 <li><strong>Phase 1: Filtering (the "predicate" phase):</strong> the goal is simple, keep only the nodes that can run the pod.</li>
-<li><strong>Insufficient resources (the bin-packing rule):</strong> the scheduler takes the node's total capacity and subtracts the <em>requests</em> of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper.</li>
+<li><strong>Insufficient resources (the fit check):</strong> the scheduler takes the node's total capacity and subtracts the <em>requests</em> of the pods already there, then checks that what's left is at least the new pod's request. This is the answer to the scenario: the dashboard shows real usage, but the scheduler only counts requests. A node can be 35% busy and still be fully booked on paper. This is a yes/no feasibility check (the NodeResourcesFit filter), not <mark class="kw-act">bin-packing</mark>: it doesn't prefer full or empty nodes. That preference is decided later, in <mark class="kw-act">scoring</mark>, where the default strategy (LeastAllocated) actually <em>spreads</em> pods; bin-packing (MostAllocated) has to be turned on deliberately (see <a href="#d01-3">Phase 2: scoring plugins</a>).</li>
 </ul>
 <pre><code class="language-yaml">spec:
   containers:
