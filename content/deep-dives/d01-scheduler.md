@@ -177,6 +177,41 @@ spec:
 >     ```
 > - **Why you usually want them together:** a toleration only *allows* a pod onto a tainted node; it doesn't *send* it there, so the pod could still land on any untainted node. Dedicated nodes therefore use three pieces: a **taint** on the nodes (keeps other pods off), a **toleration** on the pod (lets it in), and **node affinity** or `nodeSelector` on the pod (sends it there). Pod anti-affinity is often added to spread replicas across those nodes.
 >
+>     ```yaml
+>     # Toleration only: ALLOWED onto GPU nodes, but nothing sends it there.
+>     # The scheduler may still pick any ordinary node.
+>     apiVersion: v1
+>     kind: Pod
+>     metadata:
+>       name: trainer-loose
+>     spec:
+>       tolerations:                       # lets it in  #!
+>       - key: dedicated
+>         value: gpu
+>         effect: NoSchedule
+>       containers:
+>       - name: trainer
+>         image: my-company/trainer:2.0
+>     ---
+>     # Toleration + nodeSelector: allowed in AND sent there.
+>     apiVersion: v1
+>     kind: Pod
+>     metadata:
+>       name: trainer-pinned
+>     spec:
+>       tolerations:                       # lets it in  #!
+>       - key: dedicated
+>         value: gpu
+>         effect: NoSchedule
+>       nodeSelector:                      # sends it there  #!
+>         node-type: gpu                   #!
+>       containers:
+>       - name: trainer
+>         image: my-company/trainer:2.0
+>     ```
+>
+>     The full version, with node affinity and pod anti-affinity to spread replicas, is the "dedicated GPU nodes" example right below this note.
+>
 > **The long affinity names, decoded.** Each name has two halves: *when scheduling* and *while running*.
 >
 > - **`requiredDuringScheduling…`:** a hard rule, checked in the filter phase. No matching node means the pod stays `Pending`.

@@ -34,7 +34,7 @@ def _bq_fences(md):
                          for l in body.split("\n"))
         key = f"BQCODE{len(blocks)}X"
         blocks[key] = f'<pre><code class="language-{lang}">{html.escape(code, quote=False)}\n</code></pre>'
-        return f"{prefix}{key}"
+        return f"{prefix}{key}\n>"
     md = re.sub(r"^(> *)```(\w+)\n((?:>.*\n)*?)> *```$", rep, md, flags=re.M)
     return md, blocks
 
