@@ -5,7 +5,7 @@ short: "EKS Scheduler"
 ---
 Every pod goes through the same decision: filter out the nodes that can't run it, score the ones that can, and bind it to the best one. This tab follows that decision step by step.
 
-### Phase 1: filtering {#d01-1}
+### Phase 1: filtering
 
 **Scenario.** A pod stays `Pending` with `0/12 nodes are available`. The developer says there's "plenty of room".
 
@@ -15,7 +15,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 > **From the chapter:** filter, score and bind decide placement one pod at a time. That's fine for web apps, but it's the root of the gang problem for training jobs (see [Gang scheduling](#d02-2)).
 
-### Filtering outcomes at a glance {#d01-2}
+### Filtering outcomes at a glance
 
 **Scenario.** On-call needs a quick way to map an event message to a cause.
 
@@ -23,7 +23,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 **What the picture shows.** A cheat sheet linking each kind of constraint (resources, taints, affinity, selector) to its consequence, and a funnel from all nodes to the feasible set that goes on to scoring.
 
-### Phase 2: scoring plugins {#d01-3}
+### Phase 2: scoring plugins
 
 **Scenario.** Three nodes pass filtering. Why does the pod always land on the same one?
 
@@ -33,7 +33,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 > **From the chapter:** for GPU training, switch NodeResourcesFit to **MostAllocated** (bin-packing) and give `nvidia.com/gpu` a higher weight than CPU and memory. Packing frees whole nodes for the autoscaler to remove. Offer it as a separate scheduler profile so critical workloads can still spread.
 
-### Score × weight {#d01-4}
+### Score × weight
 
 **Scenario.** You need to explain on a whiteboard how "points" become a decision.
 
@@ -41,7 +41,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 **What the picture shows.** `final score = Σ (plugin score × plugin weight)`. The score measures *quality* ("how empty is this node?") and the weight measures *importance*. Worked examples: LeastAllocated gives 80 for a node that's 80% free, and ImageLocality rises with how much of the image is cached.
 
-### When affinity loses to ImageLocality {#d01-5}
+### When affinity loses to ImageLocality
 
 **Scenario.** A pod has a soft affinity to run near its cache service, but keeps landing on a node far away that happens to have its big image.
 
@@ -49,7 +49,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 **What the picture shows.** A weak affinity match times weight 2 can still lose to a strong image-cache score. There are two ways to fix it: make the rule *required*, which moves it into filtering, or raise the plugin weight cluster-wide in `KubeSchedulerConfiguration`.
 
-### A worked example {#d01-6}
+### A worked example
 
 **Scenario.** Two candidate nodes and three plugins. Which one wins?
 
@@ -57,7 +57,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 **What the picture shows.** Node 2 wins on the total even though Node 1 wins one plugin. The picture uses equal weights to keep the arithmetic simple. In the real default profile, affinity has weight 2, which only makes Node 2's lead bigger.
 
-### The weight field in your YAML {#d01-7}
+### The weight field in your YAML
 
 **Scenario.** A teammate asks what `weight: 80` in a pod spec actually does.
 
@@ -65,7 +65,7 @@ Every pod goes through the same decision: filter out the nodes that can't run it
 
 **What the picture shows.** `weight` (1–100) only exists on *preferred* rules and tunes scoring. *Required* rules have no weight because they're filters. A high weight means "a strong suggestion", and a low one means "nice to have".
 
-### Scheduler score vs. OOM score {#d01-8}
+### Scheduler score vs. OOM score
 
 **Scenario.** "The scheduler gave this node a low score, so why did my important pod get killed there?"
 

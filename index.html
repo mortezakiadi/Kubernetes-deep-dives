@@ -151,7 +151,6 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><a href="#d-security"><b>13</b> EKS Security</a></li>
 <li><a href="#d-storage-basics"><b>14</b> StorageClass, PV and PVC</a></li></ul>
     </nav>
-    <p class="railnote"><a href="https://github.com/mortezakiadi/Kubernetes-deep-dives">Source on GitHub</a></p>
   </aside>
   <main>
     <header class="hero" id="top">
@@ -160,7 +159,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       
       <div class="prose"><p>I drew these diagrams while working through how Kubernetes and Amazon EKS really behave in production. Every section here starts with a <strong>scenario</strong>, a concrete problem or question, followed by the part of my diagram that explains it and a short note on what to take away.</p>
 <p>The scheduling tabs also include notes from the <em>Job Scheduling Optimization</em> chapter of <strong>Generative AI on Kubernetes</strong>, summarized in my own words and linked to the matching diagrams.</p>
-<p>Click any diagram to open it full screen, then scroll or pinch to zoom and drag to move around. The editable draw.io sources are in this repository's <code>drawio/</code> folder.</p></div>
+<p>Click any diagram to open it full screen, then scroll or pinch to zoom and drag to move around.</p></div>
       <ul class="stats">
         <li>14 tabs</li>
         <li>83 scenario sections</li>
@@ -173,15 +172,15 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Reading notes</span>
     <h2 id="reading-notes-h">Reading notes: job scheduling for AI training on Kubernetes</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#rn-1">1. The default scheduler is built for web apps</a></li><li><a href="#rn-2">2. Placement decays, so something has to re-pack</a></li><li><a href="#rn-3">3. Gang scheduling: all or nothing</a></li><li><a href="#rn-4">4. Topology: the right GPUs, not just enough GPUs</a></li><li><a href="#rn-5">5. Quota as a service, not a wall</a></li><li><a href="#rn-6">6. How the pieces fit</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this tab"><ol><li><a href="#reading-notes-1-the-default-scheduler-is-built-for-web-apps">1. The default scheduler is built for web apps</a></li><li><a href="#reading-notes-2-placement-decays-so-something-has-to-re-pack">2. Placement decays, so something has to re-pack</a></li><li><a href="#reading-notes-3-gang-scheduling-all-or-nothing">3. Gang scheduling: all or nothing</a></li><li><a href="#reading-notes-4-topology-the-right-gpus-not-just-enough-gpus">4. Topology: the right GPUs, not just enough GPUs</a></li><li><a href="#reading-notes-5-quota-as-a-service-not-a-wall">5. Quota as a service, not a wall</a></li><li><a href="#reading-notes-6-how-the-pieces-fit">6. How the pieces fit</a></li></ol></nav>
   <div class="prose"><p>These are my notes on the "Job Scheduling Optimization" chapter of <em>Generative AI on Kubernetes</em>, in my own words, with links to the sections of my diagrams where each idea shows up. The chapter's starting point is that a distributed training job is not a normal Kubernetes app: it holds scarce GPUs for days, its pods only work as a group, it moves huge amounts of data between nodes, and many teams want the same hardware. Each of those facts needs its own scheduling answer.</p>
-<h3 id="rn-1">1. The default scheduler is built for web apps</h3>
+<h3 id="reading-notes-1-the-default-scheduler-is-built-for-web-apps">1. The default scheduler is built for web apps</h3>
 <p>kube-scheduler decides one pod at a time: filter out nodes that can't run the pod, score the rest, bind to the winner, and hand off to the kubelet. Its default scoring <strong>spreads</strong> pods out for availability. For GPU training, the chapter argues for the opposite: <strong>bin-packing</strong> with the <code>MostAllocated</code> strategy of the NodeResourcesFit plugin, with GPUs weighted more heavily than CPU and memory. Packing leaves whole nodes empty, so the autoscaler can remove them. The trade-off is that one node failure hits more jobs, so a common setup offers two scheduler profiles: bin-packing for experiments and spreading for critical work.
 → See <a href="#d01-1">Phase 1: filtering</a>, <a href="#d01-3">Phase 2: scoring</a> and <a href="#d01-4">Score × weight</a>.</p>
-<h3 id="rn-2">2. Placement decays, so something has to re-pack</h3>
+<h3 id="reading-notes-2-placement-decays-so-something-has-to-re-pack">2. Placement decays, so something has to re-pack</h3>
 <p>Good initial placement doesn't last: jobs finish at different times and the cluster fragments. The <strong>descheduler</strong> periodically evicts pods so the scheduler can place them again. Its strategy must match the scheduler's: <code>HighNodeUtilization</code> goes with <code>MostAllocated</code>, and <code>LowNodeUtilization</code> goes with <code>LeastAllocated</code>. Mixing them up creates an eviction loop. For training, every eviction costs a checkpoint and restart, so PodDisruptionBudgets, quiet maintenance windows and namespace exclusions matter.
 → See <a href="#d05-9">Scheduler thrashing</a>, which is the same kind of feedback loop between controllers.</p>
-<h3 id="rn-3">3. Gang scheduling: all or nothing</h3>
+<h3 id="reading-notes-3-gang-scheduling-all-or-nothing">3. Gang scheduling: all or nothing</h3>
 <p>PyTorch workers meet at a <strong>rendezvous barrier</strong> before training starts. If 7 of 8 workers are placed and the 8th can't be, the 7 sit on GPUs doing nothing, and that capacity is wasted. Gang scheduling (coscheduling) keeps the whole group pending until all of it fits. The options sit at different layers:</p>
 <ul>
 <li>the <strong>coscheduling plugin</strong> (PodGroup with <code>minMember</code> and a timeout) inside kube-scheduler,</li>
@@ -190,7 +189,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </ul>
 <p>A native Workload API for gang scheduling is also being worked on upstream (KEP-4671).
 → See <a href="#d02-2">Gang scheduling</a> and <a href="#d02-6">Volcano vs. Kueue</a>.</p>
-<h3 id="rn-4">4. Topology: the right GPUs, not just enough GPUs</h3>
+<h3 id="reading-notes-4-topology-the-right-gpus-not-just-enough-gpus">4. Topology: the right GPUs, not just enough GPUs</h3>
 <p>Where the GPUs sit matters as much as how many there are. NVLink inside a node is far faster than InfiniBand between nodes, which is far faster than plain Ethernet. Tensor parallelism and FSDP talk on every forward and backward pass, so they suffer most from a bad placement. The approaches differ:</p>
 <ul>
 <li><strong>Kueue</strong> models topology as ResourceFlavors (node labels such as interconnect and fabric) and lists the premium flavor first, with a fallback.</li>
@@ -199,7 +198,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </ul>
 <p>Inside a node, the kubelet's <strong>Topology Manager</strong> keeps a pod's CPUs and GPUs on the same NUMA node.
 → See <a href="#d02-3">Topology bin-packing</a>, <a href="#d02-5">Hardware-aware scheduling</a> and <a href="#d08-5">NUMA and CPU pinning</a>.</p>
-<h3 id="rn-5">5. Quota as a service, not a wall</h3>
+<h3 id="reading-notes-5-quota-as-a-service-not-a-wall">5. Quota as a service, not a wall</h3>
 <p>Plain ResourceQuotas are hard walls per namespace: one team's idle GPUs can't help another team's queue. The chapter's "GPU as a Service" model uses Kueue in two tiers:</p>
 <ul>
 <li><strong>ClusterQueues</strong> hold nominal quota and borrowing limits.</li>
@@ -208,7 +207,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </ul>
 <p><strong>WorkloadPriorityClasses</strong> decide admission order, and fair sharing favors teams that have used less recently. Flavor order and fungibility (<code>TryNextFlavor</code>) decide <em>which hardware</em> a job gets. Priority decides <em>who goes first</em>. These are separate decisions.
 → See <a href="#d02-4">Queueing and fair sharing</a> and <a href="#d03-2">Priority, preemption and QoS</a>.</p>
-<h3 id="rn-6">6. How the pieces fit</h3>
+<h3 id="reading-notes-6-how-the-pieces-fit">6. How the pieces fit</h3>
 <p>The recommended stack layers the tools by job: Kueue for admission and quota on top, a gang-aware or topology-aware scheduler underneath (kube-scheduler with plugins, KAI or Volcano), and a workload API such as PyTorchJob/TrainJob, JobSet or LeaderWorkerSet that groups the pods. That is also the stack I would start from on EKS.</p></div>
 </section>
 
@@ -760,8 +759,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p>The YAML examples show dynamic provisioning end to end. Mountpoint for S3 gives you a file-system view of a bucket; it is still object storage.</p></div>
 </section>
     <footer>
-      <p>Diagram sources: <a href="https://github.com/mortezakiadi/Kubernetes-deep-dives/tree/main/drawio">.drawio files on GitHub</a>. Open them in <a href="https://app.diagrams.net">diagrams.net</a>. Corrections made to the original diagrams are listed in <a href="https://github.com/mortezakiadi/Kubernetes-deep-dives/blob/main/CORRECTIONS.md">CORRECTIONS.md</a>.</p>
-      <p>Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing. Book notes are my own summary of <em>Generative AI on Kubernetes</em>, chapter "Job Scheduling Optimization".</p>
+      <p>Book notes are my own summary of the "Job Scheduling Optimization" chapter of <em>Generative AI on Kubernetes</em>. Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing.</p>
     </footer>
   </main>
 </div>

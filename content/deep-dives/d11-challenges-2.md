@@ -5,7 +5,7 @@ short: "Challenges 2"
 ---
 Three tickets arrive in one morning: "pods stuck Pending", "service unreachable" and "everything is slow when calling external APIs". This tab is the runbook for all three.
 
-### IP exhaustion {#d11-1}
+### IP exhaustion
 
 **Scenario.** New pods stay `Pending` or `ContainerCreating` with "failed to assign an IP address".
 
@@ -13,7 +13,7 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 
 **What the picture shows.** Start with the `aws-node` logs. Then pick a fix: a bigger subnet (the hard way), prefix delegation (17 → 110 pods on a t3.medium), or custom networking on a secondary CIDR such as 100.64.0.0/16 through ENIConfig.
 
-### Service connectivity drops {#d11-2}
+### Service connectivity drops
 
 **Scenario.** One service can't reach another by its Service IP.
 
@@ -21,7 +21,7 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 
 **What the picture shows.** Step A: does the Service have endpoints? An empty list usually means a selector typo. Step B: are the iptables or IPVS rules there? Also check readiness probes, NetworkPolicies, and whether kube-proxy is healthy.
 
-### DNS issues {#d11-3}
+### DNS issues
 
 **Scenario.** Calls to external APIs are slow, and CoreDNS CPU usage is high.
 
@@ -29,7 +29,7 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 
 **What the picture shows.** Corefile mistakes and forward loops, CoreDNS running out of memory, Services with no endpoints, and **ndots:5**: one external lookup becomes several queries through the search domains. Fix it with fully qualified names (a trailing dot) or a lower `ndots` in `dnsConfig`.
 
-### Latency by distance {#d11-4}
+### Latency by distance
 
 **Scenario.** Why does the same call take 0.1 ms, 1 ms or 5 ms?
 
@@ -37,7 +37,7 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 
 **What the picture shows.** Same node: memory copy only. Same AZ: the top-of-rack switch (0.2–1 ms). Across AZs: the inter-AZ backbone (1–5 ms), plus a data transfer charge.
 
-### Bandwidth and MTU {#d11-5}
+### Bandwidth and MTU
 
 **Scenario.** Three pods on one node want 12 Gbps together through a 10 Gbps ENI.
 

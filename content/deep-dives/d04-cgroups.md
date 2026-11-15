@@ -5,7 +5,7 @@ short: "cgroups"
 ---
 This tab follows how `resources.requests` and `resources.limits` turn into cgroup settings that the Linux CFS scheduler enforces.
 
-### Policy maker, translator, enforcer {#d04-1}
+### Policy maker, translator, enforcer
 
 **Scenario.** A web pod (request 1 core, limit 2) and a batch pod (request 250m, limit 500m) share a busy node. How much CPU does each get?
 
@@ -13,7 +13,7 @@ This tab follows how `resources.requests` and `resources.limits` turn into cgrou
 
 **What the picture shows.** The kubelet writes shares (1024 vs. 256) and quotas into each pod's cgroup. Under contention, CFS splits the CPU 80/20 by shares. When the batch pod hits its quota, it is throttled even if the CPU is otherwise idle.
 
-### From a limit to a quota {#d04-2}
+### From a limit to a quota
 
 **Scenario.** "How can a pod use 200 ms of CPU inside a 100 ms window?"
 

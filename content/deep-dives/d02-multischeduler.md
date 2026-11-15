@@ -5,7 +5,7 @@ short: "EKS Multi-Scheduler"
 ---
 The default scheduler places pods one at a time and knows nothing about jobs, teams or GPU topology. This tab covers the problems that pushed the ecosystem toward Kueue, Volcano, KAI and YuniKorn, and how to choose between them.
 
-### How a Pod finds its scheduler {#d02-1}
+### How a Pod finds its scheduler
 
 **Scenario.** On EKS, some pods run on Fargate and others on EC2 nodes, and nobody set `schedulerName` by hand.
 
@@ -13,7 +13,7 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 
 **What the picture shows.** Every scheduler watches for unscheduled pods whose `schedulerName` matches its own. For Fargate, a mutating webhook sets `fargate-scheduler` on pods that match a Fargate profile. The table compares the default scheduler with an ML-oriented one.
 
-### Gang scheduling {#d02-2}
+### Gang scheduling
 
 **Scenario.** An 8-worker PyTorch job only fits 6 workers. Six GPUs sit allocated, and nothing trains.
 
@@ -23,7 +23,7 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 
 > **From the chapter:** the reason is PyTorch's **rendezvous barrier**: no worker starts until all of them have joined. The chapter's options: the coscheduling plugin (a PodGroup with `minMember` and a timeout), Kueue's job-level admission, or a replacement scheduler (KAI, Volcano). Upstream Kubernetes is also designing a native Workload API for this.
 
-### Topology bin-packing {#d02-3}
+### Topology bin-packing
 
 **Scenario.** Two pods that exchange tensors constantly end up on different nodes, and step time doubles.
 
@@ -33,7 +33,7 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 
 > **From the chapter:** NVLink inside a node is far faster than InfiniBand across nodes, and Ethernet is slower still. Tensor parallelism and FSDP talk on every forward and backward pass, so placement matters most for them. A job may rightly wait in the queue rather than start on badly connected GPUs.
 
-### Queueing and fair sharing {#d02-4}
+### Queueing and fair sharing
 
 **Scenario.** One researcher submits 100 jobs on Friday night, and nobody else gets a GPU all weekend.
 
@@ -43,7 +43,7 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 
 > **From the chapter:** this is the "GPU as a Service" model. In Kueue, a ClusterQueue holds nominal quota and borrowing limits, teams submit to LocalQueues, and a cohort lends idle quota and takes it back by preemption. Fair sharing favors teams that have used less recently.
 
-### Hardware-aware scheduling {#d02-5}
+### Hardware-aware scheduling
 
 **Scenario.** An FP8 training job lands on older GPUs and runs at a fraction of the expected speed.
 
@@ -53,7 +53,7 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 
 > **From the chapter:** Kueue expresses this as **ResourceFlavors** chosen by node labels (interconnect, fabric, GPU type). The premium flavor is listed first, with a fallback flavor and `TryNextFlavor`. KAI reads GPU topology directly from the NVIDIA stack.
 
-### Volcano vs. Kueue {#d02-6}
+### Volcano vs. Kueue
 
 **Scenario.** The team has to pick one, and the debate keeps going in circles.
 
@@ -63,7 +63,7 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 
 > **From the chapter:** the common production answer is "both layers": Kueue for admission and quota on top of a gang- or topology-aware scheduler, with a workload API (PyTorchJob/TrainJob, JobSet, LeaderWorkerSet) that groups the pods.
 
-### The landscape {#d02-7}
+### The landscape
 
 **Scenario.** Leadership asks for one page that compares the options.
 
@@ -71,7 +71,7 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 
 **What the picture shows.** KAI, Volcano and YuniKorn compared on gang scheduling, GPU bin-packing, fair sharing and hardware awareness, plus a market matrix that includes Kueue and Armada.
 
-### What every scheduler relies on {#d02-8}
+### What every scheduler relies on
 
 **Scenario.** Whichever scheduler we choose, how does it know what hardware a node has?
 

@@ -5,7 +5,7 @@ short: "EKS Optimization"
 ---
 Finance asks why the EKS bill grows faster than traffic. This tab is my checklist, split into compute, network and storage.
 
-### Compute {#d12-1}
+### Compute
 
 **Scenario.** Half the nodes average 20% CPU, and the GPU bill keeps growing.
 
@@ -15,7 +15,7 @@ Finance asks why the EKS bill grows faster than traffic. This tab is my checklis
 
 > **From the chapter:** for GPU nodes, packing (MostAllocated with GPUs weighted highest) plus a matching descheduler policy creates empty nodes that the autoscaler can remove. At $10–30 per GPU node-hour, that matters. Weigh it against the cost of the checkpoint-and-restart that every eviction triggers.
 
-### Networking {#d12-2}
+### Networking
 
 **Scenario.** The data-transfer line on the bill is surprisingly large.
 
@@ -23,7 +23,7 @@ Finance asks why the EKS bill grows faster than traffic. This tab is my checklis
 
 **What the picture shows.** Cross-AZ pod traffic costs money, so use topology-aware routing (EndpointSlice hints) and same-AZ provisioning with Karpenter. Use ALB IP mode, VPC endpoints instead of NAT for AWS services, and an ECR endpoint plus pre-cached images in a custom AMI.
 
-### Storage {#d12-3}
+### Storage
 
 **Scenario.** Old volumes and logs keep growing after the workloads that wrote them are gone.
 

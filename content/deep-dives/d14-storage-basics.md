@@ -3,7 +3,7 @@ id: d-storage-basics
 title: "StorageClass, PV and PVC in one analogy"
 short: "StorageClass, PV and PVC"
 ---
-### The furniture-shop analogy {#d14-1}
+### The furniture-shop analogy
 
 **Scenario.** A new engineer asks why a pod needs a PVC, a PV *and* a StorageClass just to get a disk.
 

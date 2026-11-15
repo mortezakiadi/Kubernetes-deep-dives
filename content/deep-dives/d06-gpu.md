@@ -3,7 +3,7 @@ id: d-gpu
 title: "How GPUs become schedulable"
 short: "EKS and GPU"
 ---
-### The NVIDIA device plugin {#d06-1}
+### The NVIDIA device plugin
 
 **Scenario.** A new GPU node group joins the cluster, but pods that request `nvidia.com/gpu: 1` stay `Pending`.
 

@@ -8,4 +8,4 @@ I drew these diagrams while working through how Kubernetes and Amazon EKS really
 
 The scheduling tabs also include notes from the *Job Scheduling Optimization* chapter of **Generative AI on Kubernetes**, summarized in my own words and linked to the matching diagrams.
 
-Click any diagram to open it full screen, then scroll or pinch to zoom and drag to move around. The editable draw.io sources are in this repository's `drawio/` folder.
+Click any diagram to open it full screen, then scroll or pinch to zoom and drag to move around.

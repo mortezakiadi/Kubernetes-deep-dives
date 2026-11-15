@@ -5,7 +5,7 @@ short: "EKS Security"
 ---
 Security asks for one picture of how a model-serving platform is protected before launch. This tab answers it layer by layer.
 
-### What we protect {#d13-1}
+### What we protect
 
 **Scenario.** Kickoff with the security team: what is in scope?
 
@@ -13,7 +13,7 @@ Security asks for one picture of how a model-serving platform is protected befor
 
 **What the picture shows.** The stack from host to containers, dependencies, code, configuration and data, and the two places container risk enters: the build pipeline and the runtime environment.
 
-### The build pipeline {#d13-2}
+### The build pipeline
 
 **Scenario.** A base image with a critical CVE almost reaches production.
 
@@ -21,7 +21,7 @@ Security asks for one picture of how a model-serving platform is protected befor
 
 **What the picture shows.** Build (minimal or distroless base images, multi-stage builds, immutable tags) → test (Snyk in CI) → store (signing with Cosign or AWS Signer, OPA Gatekeeper) → encrypt (KMS, Vault, Secrets Store CSI) → scan (Inspector, Trivy) → deploy (private subnets, no SSH, IMDS blocked, hardened AMI) → monitor.
 
-### Runtime security {#d13-3}
+### Runtime security
 
 **Scenario.** A container is found running as root with `CAP_SYS_ADMIN`.
 
@@ -29,7 +29,7 @@ Security asks for one picture of how a model-serving platform is protected befor
 
 **What the picture shows.** Least privilege, no root or privileged containers, dropped capabilities in the security context, Pod Security Standards enforced through namespace labels, and runtime detection deployed as a DaemonSet.
 
-### Network security {#d13-4}
+### Network security
 
 **Scenario.** A compromised pod tries to scan the rest of the cluster.
 
@@ -37,7 +37,7 @@ Security asks for one picture of how a model-serving platform is protected befor
 
 **What the picture shows.** Namespaces plus NetworkPolicies, zero-trust pod-to-pod traffic with a service mesh, WAF and OIDC at ingress and egress, secure DNS, and traffic visibility through Cilium, Calico or Datadog.
 
-### Secret management {#d13-5}
+### Secret management
 
 **Scenario.** Someone base64-decodes a Kubernetes Secret and asks, "is that all it takes?"
 
@@ -45,7 +45,7 @@ Security asks for one picture of how a model-serving platform is protected befor
 
 **What the picture shows.** Secrets are only base64-encoded. Encrypt etcd with KMS envelope encryption, restrict access with RBAC, consider external managers (Vault, AWS Secrets Manager), rotate secrets, and monitor through a SIEM.
 
-### Identity and model endpoints {#d13-6}
+### Identity and model endpoints
 
 **Scenario.** The inference service needs S3 access and a public HTTPS endpoint.
 

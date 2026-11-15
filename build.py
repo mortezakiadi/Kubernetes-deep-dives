@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
-"""Build index.html from content/*.md (scenario -> picture -> takeaway, per section).
-
-Usage:
-    pip install markdown
-    python3 build.py
-
-Each file in content/deep-dives/ is one tab. Inside it, every `### Title {#id}` heading
-starts a section; a Markdown image line becomes a zoomable diagram.
-Set `author` and `links` in content/00-intro.md to show them in the header.
-"""
+"""Builds index.html from the posts in content/."""
 import html
 import pathlib
 import re
@@ -16,7 +7,6 @@ import re
 import markdown
 
 ROOT = pathlib.Path(__file__).resolve().parent
-REPO_URL = "https://github.com/mortezakiadi/Kubernetes-deep-dives"
 
 
 def read_md(path):
@@ -38,7 +28,22 @@ def read_md(path):
                 f'aria-label="Open diagram full screen: {a}"><img src="{src}" alt="Diagram: {a}" loading="lazy" '
                 f'decoding="async"><span class="hint">Open full screen</span></button></figure>')
     out = re.sub(r'<p><img alt="([^"]*)" src="([^"]+)"\s*/?></p>', fig, out)
-    return meta, out
+    # Give every section heading an anchor: the id of its diagram (e.g. d01-3),
+    # or a slug of the heading text when the section has no diagram.
+    parts = re.split(r'(<h3>.*?</h3>)', out)
+    for i, p in enumerate(parts):
+        mh = re.fullmatch(r'<h3>(.*?)</h3>', p)
+        if not mh:
+            continue
+        nxt = parts[i + 1] if i + 1 < len(parts) else ""
+        ms = re.search(r'data-src="diagrams/sections/([^"/]+)\.svg"', nxt)
+        if ms:
+            hid = ms.group(1)
+        else:
+            text = re.sub(r"<[^>]+>", "", mh.group(1))
+            hid = meta.get("id", "s") + "-" + re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+        parts[i] = f'<h3 id="{hid}">{mh.group(1)}</h3>'
+    return meta, "".join(parts)
 
 
 def toc(body_html):
@@ -91,7 +96,6 @@ def main():
         body="\n".join(body),
         n_tabs=len(tabs) - 1,
         n_sections=n_sections,
-        repo=REPO_URL,
     )
     page = (ROOT / "template.html").read_text(encoding="utf-8")
     for k, v in values.items():

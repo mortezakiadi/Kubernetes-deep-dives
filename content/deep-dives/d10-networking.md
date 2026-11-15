@@ -5,7 +5,7 @@ short: "EKS Networking"
 ---
 This tab covers what happens on a worker node when a pod starts, and the path that large training jobs need: SR-IOV, RDMA and EFA.
 
-### What runs on a worker node {#d10-1}
+### What runs on a worker node
 
 **Scenario.** A new engineer asks what actually happens between "pod scheduled" and "pod has an IP".
 
@@ -18,7 +18,7 @@ This tab covers what happens on a worker node when a pod starts, and the path th
 3. The CNI plugin gets an IP from IPAM and programs iptables.
 4. kube-proxy keeps the Service rules in iptables.
 
-### Network policy limits {#d10-2}
+### Network policy limits
 
 **Scenario.** Pods must be allowed to call `api.anthropic.com` and nothing else on the internet.
 
@@ -26,7 +26,7 @@ This tab covers what happens on a worker node when a pod starts, and the path th
 
 **What the picture shows.** Native NetworkPolicies only match IPs, ports, protocols, pods and namespaces. DNS-based rules and cluster-wide policies need Cilium or Calico.
 
-### Network optimization levers {#d10-3}
+### Network optimization levers
 
 **Scenario.** DNS timeouts and Service latency grow with the size of the cluster.
 
@@ -34,7 +34,7 @@ This tab covers what happens on a worker node when a pod starts, and the path th
 
 **What the picture shows.** SR-IOV (one NIC split into virtual functions), eBPF for observability and policy, IPVS instead of iptables at scale, and CoreDNS with a proportional autoscaler plus a node-local DNS cache.
 
-### Standard vs. SR-IOV vs. RDMA {#d10-4}
+### Standard vs. SR-IOV vs. RDMA
 
 **Scenario.** GPUs sit idle waiting on the network during gradient synchronization.
 
@@ -44,7 +44,7 @@ This tab covers what happens on a worker node when a pod starts, and the path th
 
 > **From the chapter:** all-reduce, all-gather and FSDP traffic grow with model size, so on a large job the network decides the step time. That's why the scheduling side (topology-aware placement) and the network side (RDMA fabrics) have to be designed together.
 
-### Latency and EFA {#d10-5}
+### Latency and EFA
 
 **Scenario.** Scaling a training job from 2 to 16 nodes makes each step slower.
 
