@@ -331,7 +331,85 @@ spec:
 >         ```
 >
 >         Add the `NoExecute` taint to a running node with `kubectl taint nodes gpu-node-1 maintenance=true:NoExecute`: pods *without* that toleration are evicted at once, and this pod is evicted after 600 seconds. Without `tolerationSeconds`, a pod with the toleration would stay forever.
->   - **The descheduler:** an add-on that periodically evicts running pods that no longer satisfy their node affinity or pod anti-affinity (its `RemovePodsViolatingNodeAffinity` and `RemovePodsViolatingInterPodAntiAffinity` plugins), so the scheduler can place them again.
+>
+>         <table class="mini"><thead><tr><th>The running pod has…</th><th>When the <code>NoExecute</code> taint is added</th></tr></thead><tbody><tr><td>no matching toleration</td><td class="no">evicted right away</td></tr><tr><td>a matching toleration with <code>tolerationSeconds: 600</code></td><td>stays 600 seconds, then evicted (unless the taint is removed first)</td></tr><tr><td>a matching toleration without <code>tolerationSeconds</code></td><td class="yes">never evicted by this taint</td></tr></tbody></table>
+>
+>         **Note: doesn't that defeat `NoExecute`?** Yes, if the pod's author wants it to. A toleration is an opt-out that whoever writes the pod controls: a toleration for `maintenance` with no `tolerationSeconds` means this taint never evicts that pod. Worse, a toleration with **no key** and `operator: Exists` matches **every** taint:
+>
+>         ```yaml
+>         tolerations:
+>         - operator: Exists      # no key, no effect: tolerates ALL taints, forever  #!
+>         ```
+>
+>         This is by design: taints and tolerations are a *placement* tool, not a *security* tool, and some pods legitimately must stay put (node agents run as DaemonSets, such as the CNI, log shippers and the GPU device plugin, get indefinite tolerations from Kubernetes itself). If you need to enforce it, put the control where the pod's author can't change it:
+>
+>         **1. An admission policy that rejects such pods.** The built-in `ValidatingAdmissionPolicy` (stable since Kubernetes 1.30), or Kyverno or OPA Gatekeeper. This one rejects any pod outside `kube-system` that tolerates the `maintenance` taint, or every taint, without a time limit:
+>
+>         ```yaml
+>         apiVersion: admissionregistration.k8s.io/v1
+>         kind: ValidatingAdmissionPolicy
+>         metadata:
+>           name: noexecute-needs-time-limit
+>         spec:
+>           failurePolicy: Fail
+>           matchConstraints:
+>             resourceRules:
+>             - apiGroups: [""]
+>               apiVersions: ["v1"]
+>               operations: ["CREATE", "UPDATE"]
+>               resources: ["pods"]
+>           validations:
+>           - expression: >-                     #!
+>               !has(object.spec.tolerations) ||
+>               object.spec.tolerations.all(t,
+>                 has(t.tolerationSeconds) ||
+>                 !((!has(t.effect) || t.effect == 'NoExecute') &&
+>                   (!has(t.key) || t.key == '' || t.key == 'maintenance')))
+>             message: "Tolerations for the maintenance NoExecute taint (or for all taints) must set tolerationSeconds."
+>         ---
+>         apiVersion: admissionregistration.k8s.io/v1
+>         kind: ValidatingAdmissionPolicyBinding
+>         metadata:
+>           name: noexecute-needs-time-limit
+>         spec:
+>           policyName: noexecute-needs-time-limit
+>           validationActions: ["Deny"]          #!
+>           matchResources:
+>             namespaceSelector:
+>               matchExpressions:
+>               - key: kubernetes.io/metadata.name
+>                 operator: NotIn
+>                 values: ["kube-system"]        # node agents there legitimately tolerate forever  #!
+>         ```
+>
+>         **2. Use `kubectl drain` for maintenance, not just the taint.** Drain cordons the node and evicts its pods through the eviction API whatever their tolerations (except DaemonSet pods), while still respecting PodDisruptionBudgets. In practice the taint *signals* that a node is going away, and drain actually empties it.
+>
+>         **3. RBAC and review:** limit who can create pods in sensitive namespaces, and check tolerations in CI before manifests reach the cluster.
+>
+>   - **The descheduler:** a separate add-on (a Kubernetes SIG project, installed with Helm) that runs every few minutes, usually as a CronJob. It looks for running pods that are now in the "wrong" place and **evicts** them, so their controller creates replacements and the normal scheduler places those again, this time following the rules. It never chooses nodes itself. Its `RemovePodsViolatingNodeAffinity` plugin catches pods whose node no longer has the labels their required node affinity asks for, and `RemovePodsViolatingInterPodAntiAffinity` catches pods that now sit next to pods they should avoid. Evictions respect PodDisruptionBudgets.
+>
+>         ```yaml
+>         # Helm values: helm install descheduler descheduler/descheduler -n kube-system -f values.yaml
+>         kind: CronJob
+>         schedule: "*/10 * * * *"                 # check every 10 minutes  #!
+>         deschedulerPolicy:
+>           profiles:
+>           - name: fix-affinity
+>             pluginConfig:
+>             - name: DefaultEvictor
+>               args:
+>                 nodeFit: true                    # only evict if another node could take the pod  #!
+>             - name: RemovePodsViolatingNodeAffinity
+>               args:
+>                 nodeAffinityType:
+>                 - requiredDuringSchedulingIgnoredDuringExecution
+>             - name: RemovePodsViolatingInterPodAntiAffinity
+>             plugins:
+>               deschedule:
+>                 enabled:
+>                 - RemovePodsViolatingNodeAffinity          #!
+>                 - RemovePodsViolatingInterPodAntiAffinity  #!
+>         ```
 > - **The full "dedicated GPU nodes" example is in the YAML right below this note.**
 
 ```yaml
