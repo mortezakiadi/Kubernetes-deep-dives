@@ -545,6 +545,8 @@ spec:
 
 - A `nodeSelector` on GPU labels pins an exact model, node affinity can say "at least 40 GB, prefer Hopper", and a taint on GPU nodes keeps everything else off them.
 
+<div id="gpu-labels-yaml" class="anchor"></div>
+
 ```yaml
 # The GPU NODE: labels (added automatically by NVIDIA GPU Feature Discovery,
 # part of the GPU Operator) and a taint (set in the node group / NodePool).
@@ -654,7 +656,7 @@ spec:
 
 > **Note: what this example does, line by line**
 >
-> Together, the two manifests ask for "any NVIDIA GPU with at least 40 GiB of memory". Notice there is no `nvidia.com/gpu: 1` anywhere in this YAML: that line belongs to the older device-plugin way used in the previous bullet (Option 1 and Option 2), not to DRA.
+> Together, the two manifests ask for "any NVIDIA GPU with at least 40 GiB of memory". Notice there is no `nvidia.com/gpu: 1` anywhere in this YAML: that line belongs to the older device-plugin way used in the [previous bullet's example](#gpu-labels-yaml) (Option 1 and Option 2), not to DRA.
 >
 > **Part 1: the `ResourceClaimTemplate` describes the GPU you want**
 >
@@ -677,7 +679,7 @@ spec:
 > 3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container.
 > 4. **The server starts:** vLLM starts and sees exactly one GPU that's big enough.
 >
-> **How this compares with the previous bullet:** Option 2 there gets the same "at least 40 GB" result without DRA. It labels the **node** with its GPU memory, filters nodes with node affinity, then asks the device plugin for `nvidia.com/gpu: 1`, which only counts GPUs. DRA instead describes the **device** itself, so the scheduler checks each GPU's own properties. For one big GPU both work. The examples below show where DRA goes further.
+> **How this compares with the previous bullet:** [Option 2 in the previous example](#gpu-labels-yaml) gets the same "at least 40 GB" result without DRA. It works in three steps: the **node** carries a label with its per-GPU memory (`nvidia.com/gpu.memory: "81920"` in the GPU node manifest at the top of that example, added automatically by GPU Feature Discovery); Option 2 filters on that label with node affinity (`Gt 40000`); then it asks the device plugin for `nvidia.com/gpu: 1`, which only counts GPUs. DRA instead describes the **device** itself, so the scheduler checks each GPU's own properties. For one big GPU both work. The examples below show where DRA goes further.
 >
 > - **When GPUs on a node differ:** a node label describes the node as one thing, so a node with one 80 GB and one 24 GB GPU can't be described honestly. DRA checks every GPU separately, so asking for two big GPUs only matches if *both* are big:
 >
