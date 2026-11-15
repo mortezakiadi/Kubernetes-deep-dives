@@ -343,7 +343,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">7 points</span></summary><div class="acc-body"><ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">8 points</span></summary><div class="acc-body"><ul>
 <li>For GPUs, these same <mark class="kw-act">filters</mark> do the steering.</li>
 <li><code>nvidia.com/gpu: 1</code> is purely resource-based, so every GPU counts the same: a 16 GB T4 and an 80 GB A100 are both "1".</li>
 </ul><pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: server</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln kl">        <span class="tk">nvidia.com/gpu</span>: 1      <span class="tc"># "any one GPU": a 16 GB T4 and an 80 GB A100 both count as 1</span></span></code></pre><ul>
@@ -393,6 +393,9 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </table><ul>
 <li>
 <p>A few things follow from that table. <mark class="kw-tool">GPU Feature Discovery</mark> builds on <mark class="kw-tool">Node Feature Discovery</mark>, adding GPU details to its generic "there's an NVIDIA card" label. <mark class="kw-tool">Karpenter</mark>'s labels are known <em>before</em> a node exists, so they can make Karpenter launch the right instance; GPU Feature Discovery can only label a node once it's running. DRA doesn't need any of these labels, though they can still be used alongside it (for example to keep a node pool for one GPU model). And NVIDIA's <mark class="kw-tool">DCGM exporter</mark>, often seen next to these, only reports GPU usage and health for monitoring; the scheduler never reads it.</p>
+</li>
+<li>
+<p>In Option 2, node affinity only picks a node with big GPUs; <code>nvidia.com/gpu: 1</code> is what actually reserves a GPU there. Leave it out and the scheduler counts no GPU for the pod, so the container gets none, or, on nodes that trust the image's <code>NVIDIA_VISIBLE_DEVICES=all</code> setting, quietly uses GPUs other pods have reserved.</p>
 </li>
 <li>
 <p><mark class="kw">Dynamic Resource Allocation</mark> (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.</p>

@@ -633,6 +633,8 @@ spec:
 
 - A few things follow from that table. GPU Feature Discovery builds on Node Feature Discovery, adding GPU details to its generic "there's an NVIDIA card" label. Karpenter's labels are known *before* a node exists, so they can make Karpenter launch the right instance; GPU Feature Discovery can only label a node once it's running. DRA doesn't need any of these labels, though they can still be used alongside it (for example to keep a node pool for one GPU model). And NVIDIA's DCGM exporter, often seen next to these, only reports GPU usage and health for monitoring; the scheduler never reads it.
 
+- In Option 2, node affinity only picks a node with big GPUs; `nvidia.com/gpu: 1` is what actually reserves a GPU there. Leave it out and the scheduler counts no GPU for the pod, so the container gets none, or, on nodes that trust the image's `NVIDIA_VISIBLE_DEVICES=all` setting, quietly uses GPUs other pods have reserved.
+
 - Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.
 
 ```yaml
