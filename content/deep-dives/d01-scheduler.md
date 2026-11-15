@@ -270,7 +270,22 @@ spec:
 > - **`preferredDuringScheduling…`:** a **<mark class="kw">soft rule</mark>**, checked in the **<mark class="kw-act">scoring phase</mark>** with a `weight` from 1 to 100. The pod still runs if nothing matches.
 > - **`…IgnoredDuringExecution`:** the rule is checked only when the pod is placed. If a node's labels, or the other pods around it, change later, the running pod is **not** moved.
 > - **`requiredDuringSchedulingRequiredDuringExecution`:** described in the Kubernetes docs as a possible future variant that would evict running pods when the rule stops matching. It has never been implemented, so you can't use it.
-> - **Both versions (`required…` and `preferred…`) are available for all three kinds of affinity:** `nodeAffinity` (which *nodes* to run on, by node label), `podAffinity` (run *near* certain pods) and `podAntiAffinity` (run *away from* certain pods). The pod kinds need one extra field, `topologyKey`, because "near" and "away" need a distance: it names a node label, and two pods count as *together* when their nodes have the same value for it. `kubernetes.io/hostname` is different on every node, so *together* means the same node; `topology.kubernetes.io/zone` is shared by all nodes in a zone, so *together* means the same Availability Zone.
+> - **Both versions (`required…` and `preferred…`) exist for all three kinds of affinity:** ("both" in the table means you can write either version)
+>
+>     <table class="mini"><thead><tr><th>Kind</th><th>What it controls</th><th>Versions</th><th>Needs <code>topologyKey</code>?</th></tr></thead><tbody><tr><td><code>nodeAffinity</code></td><td>which <b>nodes</b> to run on, by node label</td><td>both</td><td>no</td></tr><tr><td><code>podAffinity</code></td><td>run <b>near</b> certain other pods</td><td>both</td><td>yes</td></tr><tr><td><code>podAntiAffinity</code></td><td>run <b>away from</b> certain other pods</td><td>both</td><td>yes</td></tr></tbody></table>
+>
+>     **What `topologyKey` does.** "Run near" or "run away from" another pod raises a question: how close is near? On the same node? In the same zone? `topologyKey` answers it. You give it the name of a node label, and the scheduler treats two nodes as the *same place* when they have the same value for that label.
+>
+>     **Example:** a pod with anti-affinity "stay away from `app: api` pods" is being placed, and an `api` pod already runs on node A.
+>
+>     <table class="mini"><thead><tr><th>Node</th><th>hostname label</th><th>zone label</th><th>topologyKey: hostname</th><th>topologyKey: zone</th></tr></thead><tbody><tr><td>A (already runs an <code>api</code> pod)</td><td><code>node-a</code></td><td><code>us-east-1a</code></td><td>together</td><td>together</td></tr><tr><td>B</td><td><code>node-b</code></td><td><code>us-east-1a</code></td><td class="yes">apart: allowed</td><td class="no">together: avoided</td></tr><tr><td>C</td><td><code>node-c</code></td><td><code>us-east-1b</code></td><td class="yes">apart: allowed</td><td class="yes">apart: allowed</td></tr></tbody></table>
+>
+>     **With `topologyKey: kubernetes.io/hostname`:** every node has its own value, so only node A counts as "the same place". Node B is fine, even though it's in the same zone.
+>
+>     **With `topologyKey: topology.kubernetes.io/zone`:** nodes A and B both say `us-east-1a`, so they count as the same place. The pod avoids both and goes to node C in another zone.
+>
+>     So the same anti-affinity rule spreads pods across **nodes** or across **zones**, depending only on which label you name.
+>
 > - **Taints are where "during execution" does exist today,** through the taint's `effect`: `NoSchedule` (hard rule for new pods), `PreferNoSchedule` (soft, scoring only) and `NoExecute` (also evicts pods that are already running without a matching toleration; `tolerationSeconds` lets a pod stay for a set time first).
 > - **The full "dedicated GPU nodes" example is in the YAML right below this note.**
 

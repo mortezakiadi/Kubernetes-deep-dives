@@ -118,6 +118,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose pre.snippet .kl .tk { color: #fde68a; font-weight: 600; }
 .prose pre.snippet .kl .tc { color: #e5c76b; }
 .legend mark { margin-right: 2px; }
+.prose table code { white-space: nowrap; }
 .prose table { border-collapse: collapse; margin: 10px 0 14px; font-size: 14.5px; max-width: 100%; }
 .prose th, .prose td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
 .prose thead th { background: var(--accent-soft); font-weight: 600; }
@@ -282,8 +283,19 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong><code>preferredDuringScheduling…</code>:</strong> a <strong><mark class="kw">soft rule</mark></strong>, checked in the <strong><mark class="kw-act">scoring phase</mark></strong> with a <code>weight</code> from 1 to 100. The pod still runs if nothing matches.</li>
 <li><strong><code>…IgnoredDuringExecution</code>:</strong> the rule is checked only when the pod is placed. If a node's labels, or the other pods around it, change later, the running pod is <strong>not</strong> moved.</li>
 <li><strong><code>requiredDuringSchedulingRequiredDuringExecution</code>:</strong> described in the Kubernetes docs as a possible future variant that would evict running pods when the rule stops matching. It has never been implemented, so you can't use it.</li>
-<li><strong>Both versions (<code>required…</code> and <code>preferred…</code>) are available for all three kinds of affinity:</strong> <code>nodeAffinity</code> (which <em>nodes</em> to run on, by node label), <code>podAffinity</code> (run <em>near</em> certain pods) and <code>podAntiAffinity</code> (run <em>away from</em> certain pods). The pod kinds need one extra field, <code>topologyKey</code>, because "near" and "away" need a distance: it names a node label, and two pods count as <em>together</em> when their nodes have the same value for it. <code>kubernetes.io/hostname</code> is different on every node, so <em>together</em> means the same node; <code>topology.kubernetes.io/zone</code> is shared by all nodes in a zone, so <em>together</em> means the same Availability Zone.</li>
-<li><strong>Taints are where "during execution" does exist today,</strong> through the taint's <code>effect</code>: <code>NoSchedule</code> (hard rule for new pods), <code>PreferNoSchedule</code> (soft, scoring only) and <code>NoExecute</code> (also evicts pods that are already running without a matching toleration; <code>tolerationSeconds</code> lets a pod stay for a set time first).</li>
+<li>
+<p><strong>Both versions (<code>required…</code> and <code>preferred…</code>) exist for all three kinds of affinity:</strong> ("both" in the table means you can write either version)</p>
+<p><table class="mini"><thead><tr><th>Kind</th><th>What it controls</th><th>Versions</th><th>Needs <code>topologyKey</code>?</th></tr></thead><tbody><tr><td><code>nodeAffinity</code></td><td>which <b>nodes</b> to run on, by node label</td><td>both</td><td>no</td></tr><tr><td><code>podAffinity</code></td><td>run <b>near</b> certain other pods</td><td>both</td><td>yes</td></tr><tr><td><code>podAntiAffinity</code></td><td>run <b>away from</b> certain other pods</td><td>both</td><td>yes</td></tr></tbody></table></p>
+<p><strong>What <code>topologyKey</code> does.</strong> "Run near" or "run away from" another pod raises a question: how close is near? On the same node? In the same zone? <code>topologyKey</code> answers it. You give it the name of a node label, and the scheduler treats two nodes as the <em>same place</em> when they have the same value for that label.</p>
+<p><strong>Example:</strong> a pod with <mark class="kw">anti-affinity</mark> "stay away from <code>app: api</code> pods" is being placed, and an <code>api</code> pod already runs on node A.</p>
+<p><table class="mini"><thead><tr><th>Node</th><th>hostname label</th><th>zone label</th><th>topologyKey: hostname</th><th>topologyKey: zone</th></tr></thead><tbody><tr><td>A (already runs an <code>api</code> pod)</td><td><code>node-a</code></td><td><code>us-east-1a</code></td><td>together</td><td>together</td></tr><tr><td>B</td><td><code>node-b</code></td><td><code>us-east-1a</code></td><td class="yes">apart: allowed</td><td class="no">together: avoided</td></tr><tr><td>C</td><td><code>node-c</code></td><td><code>us-east-1b</code></td><td class="yes">apart: allowed</td><td class="yes">apart: allowed</td></tr></tbody></table></p>
+<p><strong>With <code>topologyKey: kubernetes.io/hostname</code>:</strong> every node has its own value, so only node A counts as "the same place". Node B is fine, even though it's in the same zone.</p>
+<p><strong>With <code>topologyKey: topology.kubernetes.io/zone</code>:</strong> nodes A and B both say <code>us-east-1a</code>, so they count as the same place. The pod avoids both and goes to node C in another zone.</p>
+<p>So the same anti-affinity rule spreads pods across <strong>nodes</strong> or across <strong>zones</strong>, depending only on which label you name.</p>
+</li>
+<li>
+<p><strong>Taints are where "during execution" does exist today,</strong> through the taint's <code>effect</code>: <code>NoSchedule</code> (hard rule for new pods), <code>PreferNoSchedule</code> (soft, scoring only) and <code>NoExecute</code> (also evicts pods that are already running without a matching toleration; <code>tolerationSeconds</code> lets a pod stay for a set time first).</p>
+</li>
 <li><strong>The full "dedicated GPU nodes" example is in the YAML right below this note.</strong></li>
 </ul>
 </blockquote>
