@@ -266,8 +266,8 @@ spec:
 >
 > **The long affinity names, decoded.** Each name has two halves: *when scheduling* and *while running*.
 >
-> - **`requiredDuringScheduling…`:** a hard rule, checked in the filter phase. No matching node means the pod stays `Pending`.
-> - **`preferredDuringScheduling…`:** a soft rule, checked in the scoring phase with a `weight` from 1 to 100. The pod still runs if nothing matches.
+> - **`requiredDuringScheduling…`:** a **<mark class="kw">hard rule</mark>**, checked in the **<mark class="kw-act">filter phase</mark>**. No matching node means the pod stays `Pending`.
+> - **`preferredDuringScheduling…`:** a **<mark class="kw">soft rule</mark>**, checked in the **<mark class="kw-act">scoring phase</mark>** with a `weight` from 1 to 100. The pod still runs if nothing matches.
 > - **`…IgnoredDuringExecution`:** the rule is checked only when the pod is placed. If a node's labels, or the other pods around it, change later, the running pod is **not** moved.
 > - **`requiredDuringSchedulingRequiredDuringExecution`:** described in the Kubernetes docs as a possible future variant that would evict running pods when the rule stops matching. It has never been implemented, so you can't use it.
 > - **The same two names exist for `nodeAffinity`, `podAffinity` and `podAntiAffinity`.** Pod (anti-)affinity terms also need a `topologyKey`, such as `kubernetes.io/hostname` (same node) or `topology.kubernetes.io/zone` (same zone).

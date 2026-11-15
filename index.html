@@ -278,8 +278,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </ul>
 <p><strong>The long affinity names, decoded.</strong> Each name has two halves: <em>when scheduling</em> and <em>while running</em>.</p>
 <ul>
-<li><strong><code>requiredDuringScheduling…</code>:</strong> a hard rule, checked in the filter phase. No matching node means the pod stays <code>Pending</code>.</li>
-<li><strong><code>preferredDuringScheduling…</code>:</strong> a soft rule, checked in the scoring phase with a <code>weight</code> from 1 to 100. The pod still runs if nothing matches.</li>
+<li><strong><code>requiredDuringScheduling…</code>:</strong> a <strong><mark class="kw">hard rule</mark></strong>, checked in the <strong><mark class="kw-act">filter phase</mark></strong>. No matching node means the pod stays <code>Pending</code>.</li>
+<li><strong><code>preferredDuringScheduling…</code>:</strong> a <strong><mark class="kw">soft rule</mark></strong>, checked in the <strong><mark class="kw-act">scoring phase</mark></strong> with a <code>weight</code> from 1 to 100. The pod still runs if nothing matches.</li>
 <li><strong><code>…IgnoredDuringExecution</code>:</strong> the rule is checked only when the pod is placed. If a node's labels, or the other pods around it, change later, the running pod is <strong>not</strong> moved.</li>
 <li><strong><code>requiredDuringSchedulingRequiredDuringExecution</code>:</strong> described in the Kubernetes docs as a possible future variant that would evict running pods when the rule stops matching. It has never been implemented, so you can't use it.</li>
 <li><strong>The same two names exist for <code>nodeAffinity</code>, <code>podAffinity</code> and <code>podAntiAffinity</code>.</strong> Pod (anti-)<mark class="kw">affinity</mark> terms also need a <code>topologyKey</code>, such as <code>kubernetes.io/hostname</code> (same node) or <code>topology.kubernetes.io/zone</code> (same zone).</li>
