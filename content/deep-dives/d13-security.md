@@ -59,13 +59,23 @@ Security asks for one picture of how a model-serving platform is protected befor
 - **Drop all unnecessary Linux capabilities.**
 
 ```yaml
-securityContext:
-  runAsNonRoot: true
-  allowPrivilegeEscalation: false
-  privileged: false
-  readOnlyRootFilesystem: true
-  capabilities:
-    drop: ["ALL"]
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+  containers:
+  - name: api
+    image: my-company/api:1.4
+    securityContext:
+      allowPrivilegeEscalation: false
+      privileged: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop: ["ALL"]
 ```
 
 - **Follow the Pod Security Standards:** enforce them with Pod Security Admission, and isolate workloads in namespaces with different levels (privileged, baseline, restricted).
@@ -96,7 +106,7 @@ securityContext:
 **What the picture shows.** Secret management, from the built-in object to external tools.
 
 - **The Kubernetes Secret resource:** stores sensitive data **Base64-encoded** (not encrypted). Secrets are mounted into pods as environment variables or files, so applications get them without baking them into images.
-- **Encrypting Secrets at rest:** Secrets are stored in etcd; enable etcd encryption at rest on EKS, and use **envelope encryption** (with KMS) to encrypt values before they're written.
+- **Encrypting Secrets at rest:** Secrets are stored in etcd. Use **envelope encryption** (with KMS) so values are encrypted before they're written. On EKS 1.28+ this is now on by default for all API data with an AWS-owned key; you can switch to your own KMS key.
 - **Access control with RBAC:** apply least privilege so users, pods and services can read only the Secrets they need. This closes the scenario's gap.
 - **External secret management tools:** many organizations use HashiCorp Vault or AWS Secrets Manager instead of plain Kubernetes Secrets.
 - **Automating secret rotation:** rotating regularly limits the damage of a long-term compromise.
@@ -121,6 +131,17 @@ metadata:
   namespace: serving
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/model-s3-read
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: model-server
+  namespace: serving
+spec:
+  serviceAccountName: model-loader   # gets short-lived AWS credentials
+  containers:
+  - name: server
+    image: my-company/model-server:1.0
 ```
 
 - **EKS Pod Identity:** the evolution of IRSA that makes setting up IAM permissions for pods simpler. It requires the `eks-pod-identity-agent` DaemonSet.
@@ -143,6 +164,6 @@ Agents add an identity question: when an agent calls a tool (an MCP server) on a
 - **Pass the user's token through:** full per-user audit, but long-running tasks outlive the token and the token needs very broad scopes.
 - **Kubernetes ServiceAccounts:** validated with `TokenReview` and authorized with `SubjectAccessReview`. Simple inside one cluster, but you lose the user.
 - **OAuth2 token exchange (RFC 8693):** one token carries both the user (`sub`) and the agent (`act`).
-- **SPIFFE/SPIRE mTLS:** short-lived workload certificates that can't be stolen like a token.
+- **SPIFFE/SPIRE mTLS:** short-lived, automatically rotated workload certificates, so there's no long-lived token to steal.
 
 In practice teams layer them: workload mTLS plus user identity in the request, with a policy engine checking both. More in [Running agents in production](#post-agents-prod).

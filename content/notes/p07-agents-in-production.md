@@ -32,10 +32,10 @@ Production setups combine them: SPIFFE mTLS between workloads, the user's identi
 MCP connects an agent to *tools*. The **Agent-to-Agent (A2A)** protocol connects an agent to other *agents*, which can reason and take time. It has three building blocks:
 
 - an **agent card** that advertises skills and formats, like an OpenAPI spec;
-- a **task lifecycle** (created → in progress → completed / failed / cancelled) that outlives any single HTTP call;
+- a **task lifecycle** (submitted → working, possibly pausing at input-required → completed, failed or canceled) that outlives any single HTTP call;
 - **streamed artifacts** for partial results.
 
-Each agent is its own Deployment, with NetworkPolicies between them and circuit breakers in the mesh. Treat the agent card as a contract you check in CI, and alert on tasks stuck in progress.
+Each agent is its own Deployment, with NetworkPolicies between them and circuit breakers in the mesh. Treat the agent card as a contract you check in CI, and alert on tasks stuck in the working state.
 
 ### 4. Memory and long-running work
 

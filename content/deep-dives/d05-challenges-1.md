@@ -14,24 +14,46 @@ These are real incidents written as *problem → why → fix*, one per section.
 **What the picture shows.** A hardware limit that the CPU and memory numbers don't show.
 
 - **Volume attachment limit:** every EC2 instance can physically attach only a limited number of EBS volumes.
-- **The number:** on modern Nitro instances (m5, c5, r6i and similar) the limit is typically **28 attachments**.
-- **The symptom:** with 30 database pods each needing its own volume, pods 29 and 30 stay `Pending` with `Volume node affinity conflict` or `MaxVolumeCountExceeded`.
+- **The number:** on many Nitro instances (m5, c5, r5 and similar) there are **28 attachment slots**, shared between EBS volumes, network interfaces and NVMe instance-store disks, so the real number of volumes is lower. Some newer instance types have a separate, higher EBS volume limit.
+- **The symptom:** the EBS CSI driver reports how many volumes the node can still take, so the extra pods stay `Pending` with an event like `node(s) exceed max volume count`.
 - **The fix:** use pod anti-affinity or topology spread constraints to spread the database pods across more nodes, even though each node has spare CPU and RAM.
 
 ```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
 spec:
-  topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: DoNotSchedule
-    labelSelector:
-      matchLabels:
-        app: postgres
+  serviceName: postgres
+  replicas: 30
+  selector:
+    matchLabels: {app: postgres}
+  template:
+    metadata:
+      labels: {app: postgres}
+    spec:
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels: {app: postgres}
+      containers:
+      - name: postgres
+        image: postgres:17
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 20Gi
 ```
 
 ### The stuck volume
 
-**Scenario.** A worker node running a database crashes suddenly. Kubernetes reschedules the database pod onto a healthy node, but the pod keeps crashing because it can't mount its data. The EBS console still shows the volume as attached to a node that no longer exists.
+**Scenario.** A worker node running a database crashes suddenly. Kubernetes reschedules the database pod onto a healthy node, but the pod is stuck in `ContainerCreating` because its volume won't attach. The EBS console still shows the volume as attached to a node that no longer exists.
 
 ![The stuck volume](diagrams/sections/d05-2.svg)
 
@@ -39,8 +61,8 @@ spec:
 
 - **Why it happens:** when a node dies suddenly, AWS doesn't always notice that its EBS volume is free.
 - **The problem:** the volume stays `Attached` to the dead node. When Kubernetes tries to start the pod elsewhere, AWS refuses to move the disk because it thinks it's still in use.
-- **The symptom:** the pod goes into `CrashLoopBackOff` because it can't find its data.
-- **The fix:** often you have to find the volume in the AWS console and choose **Force detach**.
+- **The symptom:** the new pod sits in `ContainerCreating` with a `FailedAttachVolume` / `Multi-Attach error` event.
+- **The fix:** once you're sure the old node is really gone, delete its Node object or add the `node.kubernetes.io/out-of-service` taint, so Kubernetes force-detaches the volume. Force-detaching in the AWS console is the last resort.
 - **Prevention:** keep the EBS CSI driver up to date; newer versions handle multi-attach and node-unstage timeouts more gracefully.
 
 ### Snapshot restored in the wrong AZ
@@ -64,6 +86,21 @@ provisioner: ebs.csi.aws.com
 volumeBindingMode: WaitForFirstConsumer
 parameters:
   type: gp3
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: restored-data
+spec:
+  storageClassName: gp3-wffc
+  accessModes: ["ReadWriteOnce"]
+  dataSource:                      # restore from a VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+    kind: VolumeSnapshot
+    name: db-snap-2026-11-01
+  resources:
+    requests:
+      storage: 100Gi
 ```
 
 ### Force delete and filesystem corruption
@@ -74,7 +111,7 @@ parameters:
 
 **What the picture shows.** Filesystem corruption after a forced delete.
 
-- **The problem:** `--force --grace-period=0` tells Linux to kill the process immediately, without letting it close files or flush its cache. If the database was in the middle of a write, the filesystem metadata can be left garbled.
+- **The problem:** `--force --grace-period=0` deletes the pod from the API immediately, without waiting for the kubelet to confirm the container has stopped. If the node is still alive, the old database process may keep running and writing, or be killed without a clean shutdown, while a replacement starts. Two writers, or an unclean stop in the middle of a write, can corrupt the data.
 - **The fix:** never force-delete a database pod unless the node is already physically gone.
 - **Recovery:** if corruption happens, restore from the last known good snapshot and let the database replay its write-ahead log (WAL) to catch up to the last valid transaction.
 
@@ -96,6 +133,7 @@ kind: StorageClass
 metadata:
   name: gp3-db
 provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
 parameters:
   type: gp3
   iops: "10000"
@@ -127,14 +165,22 @@ parameters:
 - **The confusion:** to the kernel, cache counts as "available" because it can be dropped instantly. To Kubernetes, part of that cache is charged against the container's limit.
 - **Kubernetes' point of view:** it doesn't look at "used RAM"; it looks at the **working set size**, and that's the number that triggers OOM kills.
 - **The trap in ML:** training loops read the same data many times. The first read is *inactive* cache, which Kubernetes ignores. The second read promotes it to *active* cache, the working set jumps, and the pod hits its limit, even though that memory is just a copy of a file on disk.
-- **Why does the kernel kill the pod if cache can be dropped?** A memory limit creates a cgroup "box". When the memory charged to the box reaches the limit, the kernel must reclaim memory inside it before granting more. If active cache plus the process's own memory can't be reclaimed fast enough, the kernel gives up and OOM-kills.
+- **Why do pods die if cache can be dropped?** A memory limit creates a cgroup "box". When the memory charged to the box reaches the limit, the kernel must reclaim memory inside it before granting more. Clean cache can usually be dropped, so the real killers are: dirty pages that can't be written out fast enough, files on a memory-backed `emptyDir` (tmpfs), which can't be dropped at all, and node-level eviction by the kubelet, which looks at a working set that includes active cache.
 - **The solutions:**
   - **Don't set a memory limit:** with only a request, the pod can use the node's free cache and is killed only if the node itself runs out.
 
 ```yaml
-resources:
-  requests:
-    memory: 8Gi        # no limit: only node-level pressure can kill it
+apiVersion: v1
+kind: Pod
+metadata:
+  name: etl-worker
+spec:
+  containers:
+  - name: etl
+    image: my-company/etl:1.0
+    resources:
+      requests:
+        memory: 8Gi     # no limit: killed only if the node itself runs out
 ```
 
   - **Widen the gap:** set the limit well above the request to pay the "page cache tax".
@@ -145,9 +191,17 @@ resources:
   - **Request = limit:** give batch jobs Guaranteed QoS so the kubelet can't over-schedule the node.
 
 ```yaml
-resources:
-  requests: {cpu: "4", memory: 16Gi}
-  limits:   {cpu: "4", memory: 16Gi}   # Guaranteed QoS
+apiVersion: v1
+kind: Pod
+metadata:
+  name: etl-worker
+spec:
+  containers:
+  - name: etl
+    image: my-company/etl:1.0
+    resources:
+      requests: {cpu: "4", memory: 16Gi}
+      limits:   {cpu: "4", memory: 16Gi}   # Guaranteed QoS
 ```
 
 ### Thundering herd
@@ -179,9 +233,9 @@ resources:
 - **The loop, step by step:**
   - **The trigger:** the high-priority web service gets a traffic spike and the HPA adds 50 pods.
   - **The conflict:** the cluster is full, so the scheduler finds 50 low-priority batch pods and preempts them to make room.
-  - **The loop:** the Job (or CronJob) controller sees its pods are gone ("I should have 50 workers but I have 0") and creates them again, and the scheduler preempts them again. Create → evict → create → evict.
+  - **The loop:** the Job (or CronJob) controller sees its pods are gone ("I should have 50 workers but I have 0") and creates them again. They grab any capacity that frees up (or make the autoscaler add nodes), and the next scale-up preempts them again. Create → evict → create → evict.
 - **Why `restartPolicy` isn't the fix:** Jobs use `Never` or `OnFailure`, but either way the Job controller immediately creates a replacement when a pod is preempted, so `restartPolicy` alone doesn't stop the loop.
-- **The solution, queue instead of retry:** admit Jobs through Kueue only when capacity actually exists, set `preemptionPolicy: Never` on batch, and add a `podFailurePolicy` so preemption doesn't trigger endless replacements.
+- **The solution, queue instead of retry:** admit Jobs through Kueue only when capacity actually exists; when a Kueue job is preempted it is suspended and requeued as a whole, instead of being recreated pod by pod. Add `preemptionPolicy: Never` on batch so it never pushes others out, and a `podFailurePolicy` so preempted pods don't use up the Job's retry budget (`backoffLimit`).
 
 ```yaml
 apiVersion: batch/v1
@@ -189,20 +243,23 @@ kind: Job
 metadata:
   name: nightly-batch
   labels:
-    kueue.x-k8s.io/queue-name: batch     # wait for capacity instead of thrashing
+    kueue.x-k8s.io/queue-name: batch   # admitted only when capacity exists
 spec:
   parallelism: 50
+  completions: 50
   backoffLimit: 6
   podFailurePolicy:
     rules:
-    - action: Ignore                    # preemption doesn't count as a failure
+    - action: Ignore                  # preemption doesn't burn the retry budget
       onPodConditions:
       - type: DisruptionTarget
   template:
     spec:
-      priorityClassName: batch-low      # preemptionPolicy: Never
+      priorityClassName: batch-low    # preemptionPolicy: Never
       restartPolicy: Never
-      containers: []                    # omitted
+      containers:
+      - name: worker
+        image: my-company/batch:1.0
 ```
 
 **Going deeper.** The same kind of loop appears when a descheduler's strategy disagrees with the scheduler's scoring: pods get evicted, land back on the same node, and get evicted again. A steadily rising eviction count with no consolidation is the signal.
@@ -223,8 +280,19 @@ spec:
 - **The solution:** for CPU-heavy batch jobs, set requests close to limits. That tells Kubernetes "this pod is heavy, don't pack too much else here", and the batch job gets a steady share instead of violent bursts. For I/O-bound batch work (mostly waiting on network or disk), low requests are fine.
 
 ```yaml
-resources:
-  requests: {cpu: "6"}
-  limits:   {cpu: "8"}   # small gap: steady share, no 7-core surprise
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: feature-builder
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: builder
+        image: my-company/feature-builder:1.0
+        resources:
+          requests: {cpu: "6"}
+          limits:   {cpu: "8"}   # small gap: a steady share, no 7-core surprise
 ```
 

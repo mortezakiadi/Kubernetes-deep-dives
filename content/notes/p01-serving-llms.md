@@ -7,7 +7,7 @@ Before the deep dives, here's the workload most of them end up hosting: a large 
 
 ### From a Python script to a model server
 
-Loading a model with the Transformers library and calling it works for a demo, but it is one process, one hard-coded prompt and no API. Wrapping it in FastAPI is the next step, and at that point you are rebuilding a **model server**: a runtime that loads the model, exposes it over REST or gRPC, and is tuned for throughput and latency. Memory is the first constraint: as a rule of thumb, a 7B model needs a GPU with about 15 GB, and a 70B model needs about 140 GB.
+Loading a model with the Transformers library and calling it works for a demo, but it is one process, one hard-coded prompt and no API. Wrapping it in FastAPI is the next step, and at that point you are rebuilding a **model server**: a runtime that loads the model, exposes it over REST or gRPC, and is tuned for throughput and latency. Memory is the first constraint: at 16-bit precision, a 7B model's weights alone take about 14–15 GB and a 70B model's about 140 GB, plus room for the KV cache.
 
 ### The serving runtimes worth knowing
 

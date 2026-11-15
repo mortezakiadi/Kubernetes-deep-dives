@@ -18,10 +18,14 @@ short: "StorageClass, PV and PVC"
 - **Pod, with `volumes` and `volumeMounts`:** now that the desk is reserved, you want to use it. The student shows the reservation slip to the librarian (`volumes` names the PVC), is directed to the desk, and sets up there (`volumeMounts` says where in the container the disk appears).
 
 ```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
 spec:
   containers:
   - name: app
-    image: my-app:1.0
+    image: my-company/app:1.0
     volumeMounts:
     - name: data
       mountPath: /var/lib/data    # where the "desk" appears in the container

@@ -18,13 +18,17 @@ short: "Kubernetes and GPU"
 - **Step 5:** the kubelet on that node tells the plugin how many GPUs the pod needs, and the plugin assigns specific GPU devices to the container.
 
 ```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: inference
 spec:
   containers:
   - name: inference
     image: vllm/vllm-openai:latest
     resources:
       limits:
-        nvidia.com/gpu: 1    # visible only after the device plugin registers
+        nvidia.com/gpu: 1    # schedulable only after the device plugin registers GPUs
 ```
 
 **Going deeper.**

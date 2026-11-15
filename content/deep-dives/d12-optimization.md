@@ -50,7 +50,9 @@ metadata:
   name: backend
 spec:
   selector: {app: backend}
-  ports: [{port: 80, targetPort: 8080}]
+  ports:
+  - port: 80
+    targetPort: 8080
   trafficDistribution: PreferClose     # stay in the caller's zone when possible
 ```
 
@@ -58,15 +60,24 @@ spec:
 - **Load balancer configuration, IP mode:** pods are registered directly as ELB targets, skipping the extra hop (and possible cross-AZ hop) through a node.
 
 ```yaml
+apiVersion: v1
+kind: Service
 metadata:
+  name: web
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: external
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+spec:
+  type: LoadBalancer
+  selector: {app: web}
+  ports:
+  - port: 443
+    targetPort: 8443
 ```
 
 - **Data transfer:**
   - **VPC endpoints:** reach AWS services (S3, ECR, DynamoDB and others) directly, without the public internet or a NAT gateway.
-  - **VPC peering and Transit Gateway:** connect VPCs more cheaply than routing through the internet.
+  - **VPC peering and Transit Gateway:** connect VPCs privately. Peering has no per-GB processing charge; Transit Gateway adds one but scales better across many VPCs.
 - **Image pull:**
   - **ECR endpoint:** pull images over a VPC endpoint.
   - **Pre-cache images in a custom AMI:** large images are already on the node at boot, saving transfer cost and start-up time.

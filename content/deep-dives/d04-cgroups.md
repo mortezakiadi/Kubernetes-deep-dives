@@ -18,25 +18,40 @@ This deep dive follows how `resources.requests` and `resources.limits` turn into
   - **Batch job pod (low priority):** requests `cpu: 250m`, limit `cpu: 500m`.
 
 ```yaml
-# web service pod
-resources:
-  requests: {cpu: 1000m}
-  limits:   {cpu: 2000m}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-service
+spec:
+  containers:
+  - name: web
+    image: my-company/web:1.0
+    resources:
+      requests: {cpu: 1000m}
+      limits:   {cpu: 2000m}
 ---
-# batch job pod
-resources:
-  requests: {cpu: 250m}
-  limits:   {cpu: 500m}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: batch-job
+spec:
+  containers:
+  - name: batch
+    image: my-company/batch:1.0
+    resources:
+      requests: {cpu: 250m}
+      limits:   {cpu: 500m}
 ```
 
   - **Kubelet (the translator):** reads these specs and writes them into cgroups.
-- **2. Linux cgroups (the translator's output):** one cgroup per pod, each with two files.
+- **2. Linux cgroups (the translator's output):** a cgroup per pod (with one per container inside it), each with two files.
   - **Web service cgroup:** `cpu.shares = 1024` and `cpu.cfs_quota_us = 200000` per 100 ms period.
   - **Batch job cgroup:** `cpu.shares = 256` and `cpu.cfs_quota_us = 50000`.
   - **The rule:** the request becomes **shares** (a weight); the limit becomes a **quota** (a speed limit).
 - **3. Linux kernel CFS (the enforcer):** the CPU cores and the CFS scheduler, shown over one 100 ms period.
   - **A. Contention (CPU busy):** the web service (1024 shares) gets about 80% of the time and the batch job (256 shares) about 20%. Shares keep the split proportional under heavy load.
   - **B. Idle / throttling (CPU free):** the web service runs, then the batch job runs for its 50 ms, then is **throttled** for the remaining 50 ms because it reached its quota, even though the CPU is idle. Limits cap a process even when there's spare capacity.
+- **A note on cgroup versions:** the picture uses the cgroup v1 file names. Kubernetes 1.35+ requires cgroup v2, where the same settings live in `cpu.weight` (the shares, on a 1–10000 scale) and `cpu.max` (for example `200000 100000`, quota then period). The behaviour is the same.
 - **Summary banner:** Kubernetes sets the policy (weights and limits), the kubelet translates it into cgroups, and the kernel enforces it with shares (for contention) and quotas (for capping).
 
 ### From a limit to a quota
@@ -53,4 +68,5 @@ resources:
 - **The formula Kubernetes uses:** quota = limit in cores × period.
 - **Worked example, a 2000m limit:** 2000m ÷ 1000 = 2.0 cores; 2.0 × 100,000 µs = **200,000 µs** (200 ms).
 - **How can 200 ms fit in a 100 ms window?** Quotas add up across all CPU cores. A node with 4 cores has 400 ms of CPU time available in every 100 ms of real time.
+- **cgroup v2:** on current nodes the same two numbers sit in one file, `cpu.max`, as `200000 100000`.
 - **What the kernel is really saying:** "your pod may do 200 ms of work per window, for example by running at 100% on two cores for the whole 100 ms."

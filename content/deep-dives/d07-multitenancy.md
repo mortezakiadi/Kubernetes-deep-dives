@@ -40,7 +40,7 @@ metadata:
     pod-security.kubernetes.io/enforce: restricted
 ```
 
-  - **RBAC-scoped service accounts:** the identity each pod runs as, scoped to its namespace rather than the cluster.
+  - **RBAC-scoped service accounts:** the identity each pod runs as. Service accounts always live in a namespace; the point is to grant them namespace `Role`s and `RoleBinding`s, never cluster-wide `ClusterRoleBinding`s.
 - **Hard isolation (node / cluster):**
   - **Dedicated node groups:** different instance families per workload type.
   - **Taints and tolerations:** make sure a tenant's pods run only on its designated nodes.
@@ -52,7 +52,7 @@ metadata:
 
 - GPUs need the same soft vs. hard choice.
 - **Time slicing** advertises several virtual GPUs per physical GPU, with no memory or fault isolation: one pod can exhaust the memory or crash the GPU for everyone.
-- **MIG** (Ampere and newer) carves a GPU into hardware-isolated slices with their own memory, for example up to 7 on an A100-40GB.
+- **MIG** (on data-center GPUs such as A100, H100 and newer) carves a GPU into hardware-isolated slices with their own memory, for example up to 7 on an A100-40GB.
 - That's the right choice for strict multi-tenancy.
 - Quota *between* tenants (who gets how many GPUs) is a separate problem, handled by Kueue's ClusterQueues and cohorts.
 
@@ -69,7 +69,7 @@ metadata:
   - **Fine-grained AWS permissions:** per-tenant roles shrink the blast radius and enforce tenant isolation at the AWS level.
 - **Data layer:**
   - **RDS (Proxy, IAM auth, RLS):** RDS Proxy prevents connection-storm crashes. The app uses IAM to get a short-lived database token, and row-level security inside the database maps IAM role → DB role → RLS policy.
-  - **S3 (bucket policies, VPC endpoints):** a bucket per tenant, with policies and VPC endpoints that block cross-tenant access even if credentials leak.
+  - **S3 (bucket policies, VPC endpoints):** a bucket per tenant, with bucket policies that allow only that tenant's role and only through your VPC endpoint, so leaked credentials are useless outside your network.
   - **ElastiCache (dedicated or logical):** separate clusters per tier, with logical databases per tenant in shared tiers.
 - **Network architecture:**
   - **Shared ALB vs. dedicated NLB:** a shared ALB with host-based routing for the standard tier; dedicated NLBs for the premium tier, with client IP preservation and no noisy neighbours.
@@ -101,7 +101,7 @@ metadata:
   - **Premium tier:** **gVisor** for multi-tenant SaaS apps, which intercepts system calls in a user-space kernel so a kernel bug can't be reached directly.
   - **Ultra-secure / regulated tier:** **Kata Containers** for customers with strict compliance (PCI-DSS, HIPAA) who need the hardware isolation of a VM. Kata works much like Fargate: each pod gets its own lightweight VM.
 - **How you switch it on, step 1, a `RuntimeClass`:** named `gvisor`, with `handler: runsc`, which tells the container engine to use gVisor.
-- **Step 2, the Deployment:** a premium tenant's Deployment adds one line, `runtimeClassName: gvisor`. Kubernetes then runs those containers on a node that has gVisor, using the same standard image, with no rebuild.
+- **Step 2, the Deployment:** a premium tenant's Deployment adds one line, `runtimeClassName: gvisor`. Kubernetes runs those containers with gVisor, using the same standard image, with no rebuild. If only some nodes have gVisor installed, add a `scheduling.nodeSelector` to the RuntimeClass so these pods land on them.
 
 ```yaml
 apiVersion: node.k8s.io/v1
@@ -109,6 +109,9 @@ kind: RuntimeClass
 metadata:
   name: gvisor
 handler: runsc
+scheduling:
+  nodeSelector:
+    sandbox.gvisor: "true"         # only nodes where gVisor is installed
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -132,7 +135,7 @@ spec:
 **Going deeper.**
 
 - AI agents that run generated code or untrusted tools need the same isolation.
-- The Kubernetes community's **agent sandbox** project adds a pod-shaped, VM-isolated, single-instance runtime with a stable identity that can be paused and resumed.
+- The Kubernetes community's **agent sandbox** project adds a pod-shaped, single-instance `Sandbox` with a stable identity that can be paused and resumed, isolated with gVisor or Kata.
 - It's designed for interactive or untrusted agent workloads.
 
 ### Hardening runC: seccomp, AppArmor, user namespaces
@@ -148,13 +151,20 @@ spec:
 - **User namespace remapping:** the kernel maps UID 0 (root) inside the container to a high, unprivileged UID on the host. If an attacker breaks out, they find themselves as a powerless user on the host, unable to do damage.
 
 ```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tenant-app
 spec:
-  hostUsers: false               # user namespaces: root in the pod is nobody on the host
+  hostUsers: false               # root in the pod maps to an unprivileged host UID
   securityContext:
     seccompProfile:
       type: RuntimeDefault
     appArmorProfile:
       type: RuntimeDefault
+  containers:
+  - name: app
+    image: my-company/tenant-app:1.0
 ```
 
 ### Control plane security
@@ -166,7 +176,7 @@ spec:
 **What the picture shows.** Hardening access to the EKS control plane.
 
 - **The starting point:** AWS runs the EKS control plane, but you are responsible for who can reach the API server and what they can do.
-- **Private endpoint only:** for production clusters, allow only private API access, with VPC endpoint policies that restrict source IPs.
+- **Private endpoint only:** for production clusters, turn off the public API endpoint (or restrict it to known CIDR ranges). Who can reach the private endpoint is controlled by the cluster security group.
 - **Admission webhooks (OPA Gatekeeper or Kyverno):** enforce rules the built-in admission controllers can't, such as allowed image registries, required labels and resource ratios.
 - **Audit logging:** send API audit logs to CloudWatch with tenant context, and look for anomalies with CloudWatch Logs Insights or EventBridge patterns.
 
@@ -178,8 +188,8 @@ spec:
 
 **What the picture shows.** Network-level isolation between tenants: overlays, eBPF, encryption and egress.
 
-- **Overlay isolation with Calico (VXLAN):** Calico's VXLAN overlay gives tenant isolation at the overlay level, independent of how the VPC subnets are laid out.
-- **Cilium with eBPF:** a CNI that replaces kube-proxy and iptables. Instead of a huge rulebook, it uses eBPF programs to reprogram the kernel's network path on the fly. That gives fast packet filtering plus L7 policies (filtering on HTTP method and path) and DNS-aware policies.
+- **Overlay networking with Calico (VXLAN):** Calico can run its own VXLAN overlay, so pod addresses no longer depend on how the VPC subnets are laid out. The isolation itself still comes from Calico's network policies; an overlay alone doesn't separate tenants.
+- **Cilium with eBPF:** a CNI that can replace kube-proxy and iptables. Instead of a huge rulebook, it uses eBPF programs to reprogram the kernel's network path on the fly. That gives fast packet filtering plus L7 policies (filtering on HTTP method and path) and DNS-aware policies.
 - **Transparent encryption (WireGuard or IPsec):** for regulated workloads, the CNI intercepts each packet just before it leaves the node, wraps it in an encrypted tunnel, decrypts it on the receiving node and hands it to the target pod. This gives pod-to-pod encryption at L3, in the kernel, without a service mesh.
   - **Cilium** is the most popular choice on EKS, using eBPF for fast WireGuard or IPsec.
   - **Even better on Nitro:** AWS encrypts traffic in transit automatically, in hardware, between certain Nitro instance types.

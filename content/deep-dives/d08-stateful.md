@@ -24,15 +24,30 @@ A team moves PostgreSQL, Kafka and Cassandra onto Kubernetes next to stateless s
   - **Taints and tolerations:** the stateful nodes carry `stateful=true:NoSchedule` to repel stateless pods.
 
 ```yaml
-# node: stateful=true:NoSchedule
+# node group taint: stateful=true:NoSchedule, label: workload=stateful
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cassandra
 spec:
-  tolerations:
-  - key: stateful
-    operator: Equal
-    value: "true"
-    effect: NoSchedule
-  nodeSelector:
-    workload: stateful
+  serviceName: cassandra
+  replicas: 3
+  selector:
+    matchLabels: {app: cassandra}
+  template:
+    metadata:
+      labels: {app: cassandra}
+    spec:
+      tolerations:
+      - key: stateful
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      nodeSelector:
+        workload: stateful
+      containers:
+      - name: cassandra
+        image: cassandra:5.0
 ```
 
   - **Affinity:** steers stateful pods onto the stateful group.
@@ -41,7 +56,7 @@ spec:
   - **Stable identity, networking:** a headless Service gives each pod a stable DNS name for peer discovery.
   - **Stable identity, storage:** predictable PVC names (for example `data-db-0`) that survive pod restarts.
   - **Update strategy:** rolling updates with partitions, or `OnDelete` for manual control.
-  - **PodDisruptionBudget:** stops AWS maintenance or node drains from taking down enough pods to lose quorum.
+  - **PodDisruptionBudget:** stops *voluntary* disruptions (node drains, upgrades, Karpenter consolidation) from taking down enough pods to lose quorum. It can't prevent hardware failures or Spot reclaims.
 
 ```yaml
 apiVersion: policy/v1
@@ -100,7 +115,7 @@ parameters:
 - **`O_DIRECT`:** lets the database bypass the kernel page cache (see [Direct I/O](#d08-10)).
 - **Faster provisioning:**
   - **EBS Fast Snapshot Restore (FSR):** pre-warms volumes created from a snapshot, removing the lazy-loading delay on first read.
-  - **Volume cloning:** makes a fast copy of an EBS volume; good for pre-seeded data such as ML models or reference databases.
+  - **Volume cloning:** EBS Volume Clones (supported by the EBS CSI driver) make an instant copy of a volume in the same AZ; good for pre-seeded data such as ML models or reference databases.
 
 **Going deeper.**
 
@@ -127,7 +142,7 @@ parameters:
 - **Network layer:**
   - **Cluster placement groups:** put "chatty" replicas physically close to cut latency.
   - **ENA support:** the Elastic Network Adapter uses SR-IOV for higher throughput; ENA Express adds the SRD (Scalable Reliable Delivery) protocol.
-  - **ENI trunking:** fixes the pod-density limit that comes from the number of network interfaces per instance.
+  - **Pod density:** the per-instance ENI limit caps pods per node; **prefix delegation** is what raises it. (ENI trunking, which the diagram lists here, is for giving pods their own security groups, see [Security groups for pods](#d09-5).)
 
 **Going deeper.** Local NVMe also speeds up model servers. A node-local model cache on NVMe (KServe has one, keyed by the model's storage URI) makes downloads from Hugging Face or S3 behave like a local volume after the first pull, and GPUDirect Storage can feed weights from NVMe straight into GPU memory.
 
@@ -145,15 +160,31 @@ parameters:
   - **Across nodes:** `maxSkew: 2` as a **soft** preference, so replicas spread across nodes when possible but can still be scheduled if not.
 
 ```yaml
-topologySpreadConstraints:
-- maxSkew: 1
-  topologyKey: topology.kubernetes.io/zone
-  whenUnsatisfiable: DoNotSchedule      # hard
-  labelSelector: {matchLabels: {app: cassandra}}
-- maxSkew: 2
-  topologyKey: kubernetes.io/hostname
-  whenUnsatisfiable: ScheduleAnyway     # soft
-  labelSelector: {matchLabels: {app: cassandra}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cassandra
+spec:
+  serviceName: cassandra
+  replicas: 6
+  selector:
+    matchLabels: {app: cassandra}
+  template:
+    metadata:
+      labels: {app: cassandra}
+    spec:
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule      # hard
+        labelSelector: {matchLabels: {app: cassandra}}
+      - maxSkew: 2
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway     # soft
+        labelSelector: {matchLabels: {app: cassandra}}
+      containers:
+      - name: cassandra
+        image: cassandra:5.0
 ```
 
 ### NUMA and CPU pinning
@@ -164,12 +195,12 @@ topologySpreadConstraints:
 
 **What the picture shows.** CPU pinning and NUMA awareness on large multi-socket servers.
 
-- **NUMA nodes:** a large server (such as an `r6i.8xlarge`) is split into NUMA nodes, each with its own CPU cores and its own bank of local RAM.
+- **NUMA nodes:** a large two-socket server (such as an `r6i.32xlarge` or a metal instance) is split into NUMA nodes, each with its own CPU cores and its own bank of local RAM.
 - **Local access:** a core reading RAM attached to its own socket is very fast.
 - **Remote access:** if the data is in RAM on the other socket, the request must cross a bridge (Intel UPI or AMD Infinity Fabric), which adds latency and cuts bandwidth.
 - **Without awareness:** Kubernetes treats all CPUs and RAM as one pool. If a database's vCPUs are on socket 0 but its data is in socket 1's RAM, every query pays a remote-memory tax.
 - **Context switching and cache thrashing:** the kernel also moves the database process between cores to balance load, and each move throws away warm CPU caches.
-- **The solution, kubelet configuration:** enable the static CPU manager and topology manager policies, so Guaranteed pods get exclusive cores and their CPU and memory come from the same NUMA node.
+- **The solution, kubelet configuration:** enable the static CPU manager and topology manager policies, so Guaranteed pods with whole-number CPU requests get exclusive cores, and their CPU and memory come from the same NUMA node.
 
 ```yaml
 apiVersion: kubelet.config.k8s.io/v1beta1
@@ -178,6 +209,10 @@ cpuManagerPolicy: static
 topologyManagerPolicy: single-numa-node
 memoryManagerPolicy: Static
 reservedSystemCPUs: "0,1"
+reservedMemory:                 # required by the Static memory manager
+- numaNode: 0
+  limits:
+    memory: 1Gi
 ```
 
 **Going deeper.**
@@ -195,7 +230,7 @@ reservedSystemCPUs: "0,1"
 
 **What the picture shows.** Choosing the Linux I/O scheduler for each kind of disk.
 
-- **`none` (the pass-through):** best for NVMe SSDs, which is what EBS uses on Nitro. Their own controllers are smarter and faster than the kernel, so `none` removes CPU overhead. If you see high I/O wait in database metrics, switching to `none` is one of the quickest ways to gain 5–10%.
+- **`none` (the pass-through):** best for NVMe devices; on Nitro instances EBS volumes also appear as NVMe. The device does its own queueing, so `none` avoids extra kernel work. Most distributions already default to `none` for NVMe; check `/sys/block/nvme1n1/queue/scheduler` before tuning.
 - **`mq-deadline` (the read prioritizer):** best for mixed workloads on SATA SSDs or older EBS volumes, where you want consistent latency.
 - **`bfq` (Budget Fair Queueing):** gives every process a budget of disk time; best on multi-tenant nodes where one noisy pod shouldn't hog the disk.
 
@@ -226,7 +261,18 @@ spec:
     spec:
       nodeSelector:
         topology.kubernetes.io/zone: us-east-1a
-      containers: []        # omitted
+      containers:
+      - name: postgres
+        image: postgres:17
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      storageClassName: db-gp3
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 200Gi
 ```
 
   - **Mechanism:** the database replicates across zones itself (Postgres streaming, Cassandra multi-DC, Kafka replication), and each zone's volumes stay in that zone.
@@ -236,7 +282,7 @@ spec:
   - **Cons:** if the AZ fails, the pod is stuck. It can't move to a healthy AZ because its data is trapped in the dead one.
 - **Strategy 3, active-passive HA (manual or automated failover):**
   - **Scenario:** single-instance databases (such as a Postgres primary) that don't support multi-master.
-  - **Workflow:** in steady state, run one replica in AZ-A, and protect the data with a CronJob that writes a logical dump (`pg_dump` or `mysqldump`) to S3. The failover steps continue in the next picture.
+  - **Workflow:** in steady state, run one replica in AZ-A, and protect the data with regular EBS snapshots (which are regional) and a CronJob that writes a logical dump (`pg_dump` or `mysqldump`) to S3. The failover steps continue in the next picture.
 
 ### How EBS really behaves
 
@@ -253,7 +299,7 @@ spec:
 - **gp2 burst credits vs. gp3:**
   - **gp3:** a flat 3,000 IOPS baseline with no burst credits; provision more explicitly if needed.
   - **gp2 burst:** idle gp2 volumes earn credits and spend them to burst to 3,000 IOPS (for example a quick index rebuild).
-  - **The cliff:** if load stays high for hours, the gp2 "fuel tank" empties and AWS drops you to the baseline of 3 IOPS per GiB. That's the scenario.
+  - **The cliff:** if load stays high for hours, the gp2 "fuel tank" empties and AWS drops you to the baseline of 3 IOPS per GiB (minimum 100). That's the scenario.
 - **The metrics:** for gp2/st1/sc1 watch `BurstBalance` (0% means you've hit the cliff). For gp3 watch actual vs. provisioned IOPS and `VolumeQueueLength`.
 
 ### File system, mount options and O_DIRECT
@@ -271,10 +317,10 @@ spec:
   - **ext4:** very reliable and efficient with directories of millions of small files; great for web servers with many small images or logs.
   - **XFS:** built for performance and large files; excels at parallel I/O, with several CPU cores writing to the same disk without locking up.
 - **Filesystem block size:**
-  - **Default 4 KB:** a 1 KB file still uses 4 KB. Fine for small files, but a lot of metadata ("paperwork") for large ones.
-  - **Large blocks (16 or 64 KB):** less paperwork for the CPU. 64 KB is faster for large sequential workloads like a data warehouse, but if the database writes 4 KB pages (like standard PostgreSQL), a 16 KB block size causes **write amplification** (WAF, write amplification factor): the disk does more work than needed.
+  - **Default 4 KB:** a 1 KB file still uses 4 KB. Fine for small files, but a lot of metadata ("paperwork") for large ones. On x86 Linux, ext4 and XFS blocks are normally limited to the 4 KB memory page size (XFS supports larger blocks only on recent kernels), so in practice you tune the database's page size and the filesystem's extent or stripe settings instead.
+  - **Large I/O units (16 or 64 KB):** less paperwork for the CPU. 64 KB is faster for large sequential workloads like a data warehouse, but if the database writes 4 KB pages (like standard PostgreSQL), a 16 KB block size causes **write amplification** (WAF, write amplification factor): the disk does more work than needed.
 - **Mount options:**
-  - **`noatime`:** Linux normally records an access time on every read; for a database reading thousands of blocks per second that's thousands of useless writes. `noatime` turns it off.
+  - **`noatime`:** Linux records file access times. The default, `relatime`, already limits this to about once a day per file; `noatime` removes the remaining access-time writes, which is a small but free saving for databases.
 
 ```yaml
 apiVersion: storage.k8s.io/v1
@@ -282,6 +328,7 @@ kind: StorageClass
 metadata:
   name: db-xfs
 provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
 mountOptions:
 - noatime
 parameters:
@@ -301,8 +348,8 @@ parameters:
 
 - **Direct I/O (`O_DIRECT`):**
   - **The normal path:** app → Linux page cache (RAM) → filesystem → disk.
-  - **The problem:** Oracle, MySQL and Postgres already keep their own RAM cache (the buffer pool), so caching the same data again in the page cache wastes memory and CPU.
-  - **The solution:** `O_DIRECT` lets the database talk to the filesystem and disk directly.
+  - **The problem:** databases already keep their own RAM cache (the buffer pool), so caching the same data again in the page cache wastes memory and CPU.
+  - **The solution:** `O_DIRECT` lets the database talk to the filesystem and disk directly. MySQL/InnoDB (`innodb_flush_method=O_DIRECT`) and Oracle use it; PostgreSQL still relies on the page cache by default (direct I/O is only experimental there).
 - **The CSI driver:** the EBS CSI driver translates between Kubernetes and AWS, turning a YAML request (a PVC) into real disk operations. It has two parts that live in different places.
   - **Controller pods:** a Deployment on worker nodes (on EKS the control plane is AWS-managed). They call the AWS API: `CreateVolume` for new disks, plus attaching volumes to EC2 instances and taking snapshots.
   - **Node pods:** a DaemonSet with one pod per worker node. Once AWS has attached a disk, the node pod formats it (XFS or ext4) and mounts it so the pod can see it.

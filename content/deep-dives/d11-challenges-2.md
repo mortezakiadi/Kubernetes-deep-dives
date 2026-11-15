@@ -22,9 +22,9 @@ Three tickets arrive in one morning: "pods stuck Pending", "service unreachable"
 apiVersion: crd.k8s.amazonaws.com/v1alpha1
 kind: ENIConfig
 metadata:
-  name: us-east-1a             # one per AZ
+  name: us-east-1a             # one per AZ, named after the zone
 spec:
-  subnet: subnet-0abc1234def567890     # subnet from the 100.64.0.0/16 range
+  subnet: subnet-0abc1234def567890     # a subnet in the 100.64.0.0/16 range
   securityGroups: ["sg-0123456789abcdef0"]
 ```
 
@@ -59,17 +59,31 @@ spec:
   - **Upstream failure:** that `forward` line normally sends external names to the VPC DNS (`169.254.169.253`). If the node's `resolv.conf` is broken, nothing outside the cluster resolves.
   - **Memory limits:** in large clusters CoreDNS can run out of RAM indexing every Service, get OOM-killed, and all DNS stops.
 - **Troubleshooting 2, Service selector mismatch:** a "DNS" problem that's really a labelling problem. `nslookup my-service` returns a valid ClusterIP, but connecting gives "connection refused", because the Service's selector (for example `app: web`) matches no running pods. The DNS record exists but leads to a dead end.
-- **Troubleshooting 3, the `ndots` problem (the performance killer):** every pod's `/etc/resolv.conf` has `ndots:5` by default, which says "a name with fewer than 5 dots might be a local service, so try the cluster search paths first". Resolving `google.com` tries `google.com.default.svc.cluster.local`, `google.com.svc.cluster.local`, `google.com.cluster.local` (all fail) and finally `google.com`. One lookup becomes 5 queries, which hammers CoreDNS and adds latency to every call to S3, RDS or an LLM API. That's the slow AI service in the scenario.
+- **Troubleshooting 3, the `ndots` problem (the performance killer):** every pod's `/etc/resolv.conf` has `ndots:5` by default, which says "a name with fewer than 5 dots might be a local service, so try the cluster search paths first". Resolving `google.com` tries `google.com.default.svc.cluster.local`, `google.com.svc.cluster.local`, `google.com.cluster.local` (all fail) and finally `google.com`. One lookup becomes at least 4 queries (more with the node's own search domains, and doubled when IPv6 AAAA lookups are made too), which hammers CoreDNS and adds latency to every call to S3, RDS or an LLM API. That's the slow AI service in the scenario.
 - **How to fix `ndots`:**
   - **Method A, the fully qualified trick:** write `google.com.` with a trailing dot.
   - **Method B, change the pod spec:** lower `ndots` in `dnsConfig` for deployments that talk to the outside world a lot.
 
 ```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-client
 spec:
-  dnsConfig:
-    options:
-    - name: ndots
-      value: "2"
+  replicas: 3
+  selector:
+    matchLabels: {app: llm-client}
+  template:
+    metadata:
+      labels: {app: llm-client}
+    spec:
+      dnsConfig:
+        options:
+        - name: ndots
+          value: "2"
+      containers:
+      - name: client
+        image: my-company/llm-client:1.0
 ```
 
 ### Latency by distance
@@ -86,20 +100,20 @@ spec:
 
 ### Bandwidth and MTU
 
-**Scenario.** A data-processing pod on a `t3.medium` is far slower than expected, even though its CPU is barely used. Separately, a team that set its pod MTU to 9001 for faster ML traffic finds that calls to internet APIs now hang.
+**Scenario.** A data-processing pod on a `t3.medium` is far slower than expected, even though its CPU is barely used. Separately, a team that moved to an overlay CNI kept the pod MTU at 9001, and now large responses hang while small requests work.
 
 ![Bandwidth and MTU](diagrams/sections/d11-5.svg)
 
 **What the picture shows.** Two hidden network ceilings: instance bandwidth and MTU.
 
-- **Throughput is capped by the instance type:** however strong your CPUs are, the node can only move as much data as its virtual hardware allows. Examples: `t3.medium` up to 5 Gbps, `m5.large` up to 10 Gbps, `m5.4xlarge` up to 10 Gbps, `m5.12xlarge` a steady 25 Gbps.
+- **Throughput is capped by the instance type:** however strong your CPUs are, the node can only move as much data as its virtual hardware allows. Examples: `t3.medium` up to 5 Gbps, `m5.large` up to 10 Gbps, `m5.4xlarge` up to 10 Gbps, `m5.12xlarge` a steady 12 Gbps and `m5.24xlarge` 25 Gbps. (The diagram lists 25 Gbps for `m5.12xlarge`; that figure belongs to `m5.24xlarge`.)
 - **Burstable vs. guaranteed:** "up to" means burstable; sustained transfers fall back to a much lower baseline. That explains the slow `t3.medium` in the scenario.
 - **MTU, how data is chopped up:**
-  - **VPC default, 9001 bytes (jumbo frames):** works only inside AWS (VPC to VPC, or over Direct Connect). Set for pods with `AWS_VPC_ENI_MTU` in the VPC CNI.
+  - **VPC default, 9001 bytes (jumbo frames):** works inside a VPC (and over Direct Connect if configured). The VPC CNI already gives pods MTU 9001 by default; `AWS_VPC_ENI_MTU` changes it.
 
 ```bash
 kubectl set env daemonset aws-node -n kube-system AWS_VPC_ENI_MTU=9001
 ```
 
-  - **Container default, 1500 bytes:** the standard Ethernet size for the public internet, which most pods use.
-  - **The mismatch:** for high-performance ML, some teams set the CNI MTU to 8951 or 9001 for pod-to-pod traffic. But if those pods talk to the internet without translation, oversized packets get dropped and connections hang, which is the second part of the scenario.
+  - **Internet, 1500 bytes:** the standard Ethernet size. Traffic leaving the VPC through an internet or NAT gateway is limited to 1500, and path-MTU discovery normally shrinks packets automatically, unless something blocks the ICMP "fragmentation needed" messages.
+  - **The mismatch:** an overlay (VXLAN) adds about 50 bytes of headers, so on a 9001 network the pod MTU must be about 8951. Leave it at 9001 and full-size packets no longer fit: small requests work, large responses hang. That's the second part of the scenario.

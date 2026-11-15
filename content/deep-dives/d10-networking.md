@@ -15,7 +15,7 @@ This deep dive covers what happens on a worker node when a pod starts, and the p
 
 - **Step 1, kubelet → container runtime:** the kubelet talks to the runtime through the **CRI** (Container Runtime Interface), a standard API that hides which runtime is underneath (containerd or CRI-O). It uses it to start, stop and monitor containers.
 - **Step 2, CRI → container runtime:** the runtime creates the containers.
-- **Step 3, kubelet → CNI:** the **CNI** (Container Network Interface) is an open API that lets Kubernetes use any compatible plug-in, such as Cilium, Calico or the Amazon VPC CNI. The kubelet asks the plug-in to create the pod's network namespace. A failure here is exactly the scenario's error.
+- **Step 3, runtime → CNI:** the **CNI** (Container Network Interface) is an open API that lets Kubernetes use any compatible plug-in, such as Cilium, Calico or the Amazon VPC CNI. When the kubelet asks the runtime for a pod sandbox, the runtime creates the network namespace and calls the CNI plug-in to wire it up (the diagram draws this arrow from the kubelet). A failure here is exactly the scenario's error.
 - **Step 4, CNI → IPAM:** the plug-in asks IP address management (IPAM) for the pod's IP.
 - **Step 5, CNI → kernel:** the plug-in programs the Linux kernel, through iptables or eBPF, for packet filtering and traffic handling.
 - **Step 6, kube-proxy → kernel:** kube-proxy also uses iptables to manage Service traffic on the node.
@@ -37,12 +37,15 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-llm-apis
+  namespace: ai
 spec:
   endpointSelector:
     matchLabels: {app: ai-gateway}
   egress:
-  - toEndpoints:              # let DNS through so names can be seen
-    - matchLabels: {k8s:io.kubernetes.pod.namespace: kube-system, k8s-app: kube-dns}
+  - toEndpoints:              # allow DNS so Cilium can learn the names
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: kube-system
+        k8s-app: kube-dns
     toPorts:
     - ports: [{port: "53", protocol: ANY}]
       rules:
@@ -107,10 +110,20 @@ spec:
 - **Step 2:** in the EKS Terraform module, advertise the EFA resource so training pods can request it. Without these two steps, NCCL silently falls back to TCP, which is the scenario.
 
 ```yaml
-resources:
-  limits:
-    nvidia.com/gpu: 8
-    vpc.amazonaws.com/efa: 4     # advertised by the EFA device plugin
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer-0
+spec:
+  containers:
+  - name: trainer
+    image: my-company/trainer:2.0
+    resources:
+      limits:
+        nvidia.com/gpu: 8
+        vpc.amazonaws.com/efa: 4     # advertised by the EFA device plugin
+        hugepages-2Mi: 5120Mi
+        memory: 64Gi
 ```
 
 **Going deeper.**

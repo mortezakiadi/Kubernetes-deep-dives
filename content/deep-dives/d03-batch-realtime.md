@@ -55,7 +55,8 @@ apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: placeholder
-value: -10                   # any real pod can evict these
+value: -10                   # any real pod can preempt these
+preemptionPolicy: Never
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -72,12 +73,12 @@ spec:
       priorityClassName: placeholder
       containers:
       - name: pause
-        image: registry.k8s.io/pause:3.9
+        image: registry.k8s.io/pause:3.10
         resources:
           requests: {cpu: "1", memory: 2Gi}
 ```
 
-- **A note on CPU fairness:** Kubernetes doesn't hand out CPU cycles itself; it delegates that to the Linux kernel, whose Completely Fair Scheduler (CFS) tries to give every process a fair slice (see [CPU: shares and throttling](#d03-4)).
+- **A note on CPU fairness:** Kubernetes doesn't hand out CPU cycles itself; it delegates that to the Linux kernel, whose fair scheduler (CFS, replaced by the similar EEVDF scheduler in Linux 6.6) tries to give every process a fair slice (see [CPU: shares and throttling](#d03-4)).
 
 **Going deeper.** For LLMs, the latency-critical tier is the **model server**: vLLM, TGI, SGLang or NVIDIA NIM, each exposing an OpenAI-compatible API behind a Service. Large models need whole, dedicated GPUs and minutes to load, so I run them as plain Deployments (KServe's *Standard* mode) on tainted GPU nodes with warm capacity, rather than relying on scale-to-zero.
 
@@ -110,32 +111,52 @@ kind: PriorityClass
 metadata:
   name: batch-low
 value: 100
-preemptionPolicy: Never
+preemptionPolicy: Never      # batch never pushes other pods out
 ---
-# in the pod spec
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
 spec:
   priorityClassName: web-critical
+  containers:
+  - name: web
+    image: my-company/web:1.0
 ```
 
   - **The effect:** when a node is full, high-priority web pods evict lower-priority batch pods, so web traffic never waits for a new node.
 - **QoS controls (for the kubelet at runtime), tool used: eviction, scope: per node.** The QoS class comes from the requests and limits in the manifest.
-  - **Guaranteed (web):** requests equal limits. Gets a dedicated CPU quota and is the last to be OOM-killed.
+  - **Guaranteed (web):** requests equal limits. The most protected class and the last to be OOM-killed; with the static CPU manager and whole-number CPU requests it can even get exclusive cores.
   - **Burstable (batch):** requests lower than limits. Can scavenge spare capacity, but is evicted before Guaranteed pods.
   - **BestEffort:** no resources set. The first to be terminated under pressure.
 
 ```yaml
-# Guaranteed: requests == limits for every container
-resources:
-  requests: {cpu: "1", memory: 2Gi}
-  limits:   {cpu: "1", memory: 2Gi}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web                  # Guaranteed: requests == limits
+spec:
+  containers:
+  - name: web
+    image: my-company/web:1.0
+    resources:
+      requests: {cpu: "1", memory: 2Gi}
+      limits:   {cpu: "1", memory: 2Gi}
 ---
-# Burstable: requests < limits
-resources:
-  requests: {cpu: 250m, memory: 512Mi}
-  limits:   {cpu: "2",  memory: 2Gi}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: batch                # Burstable: requests < limits
+spec:
+  containers:
+  - name: batch
+    image: my-company/batch:1.0
+    resources:
+      requests: {cpu: 250m, memory: 512Mi}
+      limits:   {cpu: "2",  memory: 2Gi}
 ```
 
-  - **The effect:** when a node runs out of RAM, the kubelet kills pods in the order BestEffort → Burstable → Guaranteed.
+  - **The effect:** when a node runs out of RAM, the order usually works out as BestEffort → Burstable → Guaranteed. Strictly, the kubelet ranks by "using more than requested", then priority, then how far over the request; QoS follows from that.
 - **Shared tier:** a mixed-lifecycle pool with no taints, where these two mechanisms do the arbitration.
 
 **Going deeper.**
@@ -167,7 +188,10 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: web
 spec:
-  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: web}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web
   minReplicas: 4
   maxReplicas: 100
   metrics:
@@ -178,13 +202,14 @@ spec:
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 0
-      policies: [{type: Percent, value: 100, periodSeconds: 15}]
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15}
     scaleDown:
       stabilizationWindowSeconds: 300
 ```
 
   - **Karpenter (batch):** intent-based scale-up; it removes empty nodes within about 30 s to cut waste. If one instance type isn't available at provisioning time, Karpenter picks whatever is available to get the job started. At runtime, as jobs finish and nodes are left half-used, it consolidates them.
-  - **Spot interruption:** the AWS Node Termination Handler catches the 2-minute warning so batch jobs can checkpoint and drain gracefully.
+  - **Spot interruption:** catch the 2-minute warning so batch jobs can checkpoint and drain gracefully. With Karpenter, use its built-in interruption handling (an SQS queue); the AWS Node Termination Handler is for nodes Karpenter doesn't manage. Don't run both on the same nodes.
 - **Cost and monitoring:**
   - **Optimization tactics:** Spot diversification across several families (m5, m5a, m6i) in 3+ AZs for availability, and bin-packing pods tightly to reduce node count.
   - **Metrics:** p99 latency for web (typically under 100 ms), queue depth for batch, and the pending-pod count for capacity.
@@ -213,28 +238,50 @@ spec:
 **What the picture shows.** Layer 1, CPU, a *compressible* resource: when CPU is short, pods slow down rather than die. Two kernel mechanisms are at work.
 
 - **CPU shares, who wins under contention:** in a noisy-neighbour situation, Kubernetes relies on CPU shares, which come from your requests.
-  - **Requests become priority:** a `cpu: 1000m` request becomes 1024 shares, and a 500m request becomes 512 shares.
+  - **Requests become priority:** a `cpu: 1000m` request becomes 1024 shares, and a 500m request becomes 512 shares. (On cgroup v2, which Kubernetes 1.35+ requires, the file is `cpu.weight` on a different scale, but the ratio is the same.)
 
 ```yaml
-# web: 1000m request -> 1024 shares
-resources:
-  requests: {cpu: 1000m}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+spec:
+  containers:
+  - name: web
+    image: my-company/web:1.0
+    resources:
+      requests: {cpu: 1000m}   # -> 1024 shares
 ---
-# batch: 500m request -> 512 shares
-resources:
-  requests: {cpu: 500m}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: batch
+spec:
+  containers:
+  - name: batch
+    image: my-company/batch:1.0
+    resources:
+      requests: {cpu: 500m}    # -> 512 shares
 ```
 
-  - **The CFS logic:** the kernel's Completely Fair Scheduler tracks how much CPU time each process has had and favours the ones that have had less.
+  - **The CFS logic:** the kernel's fair scheduler (CFS, or EEVDF on Linux 6.6+) tracks how much CPU time each process has had and favours the ones that have had less.
   - **When the CPU is 100% busy:** the web service (1024 shares) is guaranteed 2/3 of the time and the batch job (512 shares) 1/3.
   - **When the web service is idle:** the batch job can use the spare CPU, but the moment the web service wakes up, batch is squeezed back to its 1/3.
 - **Throttling, the 100 ms quota window:** a CPU *limit* is a speed limit the kernel enforces per 100 ms period.
   - **Example:** a limit of 0.5 CPU (500m) gives 50 ms of run time every 100 ms.
 
 ```yaml
-resources:
-  limits:
-    cpu: 500m    # 50 ms of CPU time per 100 ms window
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api
+spec:
+  containers:
+  - name: api
+    image: my-company/api:1.4
+    resources:
+      requests: {cpu: 250m}
+      limits:   {cpu: 500m}    # 50 ms of CPU time per 100 ms window
 ```
 
   - **The sprint:** a multi-threaded app can use all 50 ms in the first 10 ms of the window, and is then frozen for the remaining 90 ms.
@@ -254,7 +301,7 @@ resources:
 - **The handshake, in three steps:**
   - **Kubernetes (the policy maker):** you write `cpu: 250m` in your YAML.
   - **The kubelet (the translator):** it converts that number into something the kernel understands.
-  - **The Linux kernel (the enforcer):** it writes the value into `cpu.shares`; by default 1000m (one core) equals 1024 shares.
+  - **The Linux kernel (the enforcer):** the kubelet and container runtime write the value into the pod's cgroup (`cpu.shares` on cgroup v1, `cpu.weight` on cgroup v2), and the kernel enforces it; 1000m (one core) equals 1024 shares.
 - **When the node is idle:** a pod that requests 100m but is the only thing running may use 100% of the CPU. The request isn't a cage.
 - **When the node is under contention:** if five pods all want 100%, the kernel divides time by shares. A pod with 1000m (1024 shares) gets 10 times more time than one with 100m (102 shares).
 - **Admission control, Kubernetes' real job:** the one thing the kernel can't do is stop a node from getting too crowded. The scheduler treats requests as reservations: on a 4-core node that already has 3.8 cores requested, it refuses to add more pods.
@@ -275,9 +322,9 @@ resources:
 - **QoS classes set the eviction risk:** Kubernetes gives every pod a QoS class from its requests and limits: BestEffort (highest risk), Burstable (medium), Guaranteed (lowest).
 - **The scoreboard, `oom_score_adj`:** the kubelet tags every process with an OOM score adjustment so the kernel knows who matters. A higher score means more likely to be killed.
   - **BestEffort:** 1000, "kill me first".
-  - **Burstable:** 1000 − 1000 × (memory request ÷ node memory), so a bigger request makes the pod safer.
+  - **Burstable:** 1000 − 1000 × (memory request ÷ node memory), kept between 2 and 999, so a bigger request makes the pod safer.
   - **Guaranteed:** −997, "don't kill me".
-- **The worked example (two Burstable pods):** pod A requested 100 Mi and uses 150 Mi (50 Mi over). Pod B requested 500 Mi and uses 510 Mi (10 Mi over). Within the same class, kubelet eviction picks the pod furthest over its *request*, so **pod A dies first**, even though it uses far less memory than pod B. That's the scenario's answer.
+- **The worked example (two Burstable pods):** pod A requested 100 Mi and uses 150 Mi (50 Mi over). Pod B requested 500 Mi and uses 510 Mi (10 Mi over). Both use more than they requested and (here) have the same priority, so the kubelet evicts the pod furthest over its *request*: **pod A goes first**, even though it uses far less memory than pod B. That's the scenario's answer.
 - **Not the scheduling score:** this score is about killing a pod, not about choosing a node (see [Scheduler score vs. OOM score](#d01-8)).
 
 ### Network: the unmanaged resource
@@ -296,16 +343,23 @@ resources:
   - **Silent failures:** most monitoring is per pod, so you see your app failing without realizing an unrelated pod in another namespace is hogging the bandwidth.
 - **Solutions, taming the traffic:**
   - **A. Linux `tc` (traffic control):** shape traffic on the node at the kernel level.
-  - **B. CNI bandwidth plugins:** most modern CNIs (Calico, Cilium, or the standard bandwidth plugin) let you set ingress and egress limits with annotations in the pod YAML.
+  - **B. CNI bandwidth plugins:** most modern CNIs (Calico, or the standard bandwidth plugin) let you set ingress and egress limits with annotations in the pod YAML; Cilium's bandwidth manager supports the egress annotation.
 
 ```yaml
+apiVersion: v1
+kind: Pod
 metadata:
+  name: backup-sync
   annotations:
-    kubernetes.io/ingress-bandwidth: 1G
+    kubernetes.io/ingress-bandwidth: 1G   # needs a CNI with the bandwidth plugin
     kubernetes.io/egress-bandwidth: 1G
+spec:
+  containers:
+  - name: sync
+    image: my-company/backup-sync:1.0
 ```
 
-- **Architecture tip, the EKS benefit:** some instance types (such as the `m5n` and `c5n` variants) have separate network paths for EBS and normal traffic, so database disk I/O doesn't compete with user traffic for bandwidth.
+- **Architecture tip, the EKS benefit:** current Nitro instances are EBS-optimized by default, so EBS traffic has its own dedicated bandwidth and doesn't compete with user traffic. The `n` variants (such as `m5n` and `c5n`) add much higher network bandwidth on top. (The diagram's wording, that only `m5n`/`c5n` separate the two, is outdated.)
 
 ### Storage I/O: the other unmanaged resource
 
@@ -317,14 +371,14 @@ metadata:
 
 - **Per-volume vs. per-container mismatch:**
   - **AWS's view:** you pay for performance per volume (for example 3,000 IOPS on gp3). AWS only sees the volume; when it hits 3,000 IOPS, the whole disk is throttled, no matter which pod caused it.
-  - **Kubernetes' view:** several pods may share that volume (ReadWriteMany or local disks) or share the node's throughput to EBS.
+  - **Kubernetes' view:** several pods on the same node can share one `ReadWriteOnce` volume, a node's local disk, or the node's bandwidth to EBS.
   - **The example:** a background log archiver uses all 3,000 IOPS, and the production database on the same disk goes from 1 ms to 200 ms latency.
-- **The missing controller, `blkio`:** the Linux kernel has a block I/O cgroup controller that can set weights or byte-per-second limits per process. Kubernetes exposes CPU and memory in the pod spec but not `blkio`; there is no `resources.limits.iops` field.
+- **The missing controller, `blkio`:** the Linux kernel has a block I/O cgroup controller (`blkio` on cgroup v1, `io` with `io.max` and `io.weight` on cgroup v2) that can set weights or byte-per-second limits. Kubernetes exposes CPU and memory in the pod spec but not `blkio`; there is no `resources.limits.iops` field.
 - **The consequences of unmanaged I/O:** a saturated disk causes a blocking ripple effect.
   - **I/O wait:** the CPU sits idle waiting for the disk, so CPU graphs look low while the app feels very slow.
   - **Stuck processes:** a process writing to a saturated disk enters uninterruptible sleep (the `D` state in `top`) and can't be killed until the I/O finishes.
   - **Liveness probe failures:** if the health check writes a small file and the disk is too slow, the probe fails and Kubernetes restarts the pod, making things worse. That's the scenario.
 - **How to fix it (the hard way):**
   - **Dedicated volumes:** give every critical pod its own EBS volume through its own PVC, so pod A's disk use physically can't affect pod B.
-  - **Static guardrails:** configure the `blkio` cgroup on worker nodes through a DaemonSet or the kubelet configuration (reserved system resources). It works, but it's hard to maintain.
+  - **Static guardrails:** set the cgroup I/O limits on worker nodes yourself, for example with a privileged DaemonSet or a node agent. The kubelet has no setting for it. It works, but it's hard to maintain.
   - **Instance selection:** EBS-optimized instances keep disk and network traffic off the same physical pipe on the EC2 host.

@@ -82,7 +82,7 @@ kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true
 - **IPVS mode:**
   - **Hash-table based:** Services are stored in a hash table, so lookup is nearly instant whether there are 10 or 10,000 (O(1)). High performance beyond about 1,000 Services.
   - **Real load-balancing algorithms:** Round Robin (RR), Least Connection (LC), Destination Hashing (DH) and more.
-  - **Use it when:** you run LLM serving, high-frequency APIs, or large clusters where network latency is a critical bottleneck.
+  - **Use it when:** you have thousands of Services and rule updates are slow. Note that IPVS mode was deprecated in Kubernetes 1.35; the recommended replacement is the **nftables** mode (stable since 1.33), which also scales well.
 
 **Going deeper.** For LLM backends, round-robin is the wrong algorithm, whichever kube-proxy mode delivers it:
 
@@ -103,14 +103,17 @@ The **Gateway API Inference Extension** adds an `InferencePool` and an *endpoint
 - **What it is:** the stateful memory of the Linux networking stack. Without it, the network would be "forgetful" and most modern traffic would break.
 - **How it works:** it keeps a notebook entry such as "I just sent a packet from pod A to database X; if a packet comes back from X, give it to pod A."
 - **Timeouts:** every entry has a time-to-live. Each packet on the connection resets the timer; if no packets arrive, it counts down and the entry is deleted.
-- **Why the table fills:** an established TCP connection's default timeout is 5 days, so a busy node with many long-lived or abandoned connections can fill the table. That's the scenario.
-- **Solution:** lower `nf_conntrack_tcp_timeout_established` (and size `nf_conntrack_max` for the node) so stale entries are cleared sooner.
+- **Why the table fills:** the table has a fixed size (`nf_conntrack_max`, which kube-proxy sets from the CPU count). Every connection holds an entry until it times out; the kernel default for an idle established TCP connection is 5 days, which kube-proxy lowers to 1 day. A node with very many short-lived or abandoned connections can still fill the table. That's the scenario.
+- **Solution:** raise `nf_conntrack_max` (through kube-proxy's `conntrack.maxPerCore` setting) and shorten timeouts for idle and closing connections, so stale entries are cleared sooner.
 
 ```bash
-# check usage vs. the limit
+# how full is the table?
 cat /proc/sys/net/netfilter/nf_conntrack_count /proc/sys/net/netfilter/nf_conntrack_max
-# shorten idle established connections from 5 days to 1 day
-sysctl -w net.netfilter.nf_conntrack_tcp_timeout_established=86400
+# kube-proxy owns these settings; raise the size in its config (KubeProxyConfiguration):
+#   conntrack:
+#     maxPerCore: 131072
+#     tcpEstablishedTimeout: 24h
+#     tcpCloseWaitTimeout: 1h
 ```
 
 ### Security groups for pods and network policies
@@ -183,9 +186,11 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: backend-from-frontend
+  namespace: shop
 spec:
   podSelector:
     matchLabels: {role: backend}
+  policyTypes: ["Ingress"]
   ingress:
   - from:
     - podSelector:
@@ -215,14 +220,15 @@ spec:
 - **Three ways to process packets, compared:** iptables walks a long list of if/then rules; IPVS uses a hash table but fixed kernel logic; Cilium runs custom compiled code at the network card's front door, with its own eBPF hash maps. It can even catch packets at the **XDP** layer, before the kernel allocates a packet buffer (`sk_buff`), much earlier than IPVS.
 - **Cilium's three modes (Helm setting `kubeProxyReplacement`):**
   - **Disabled (`false`):** Cilium acts as a traditional CNI, giving pods IPs and enforcing policies, while kube-proxy keeps handling Services with iptables or IPVS. You still pay the "iptables tax" on Service traffic.
-  - **Partial / hybrid (`partial`):** Cilium might handle ClusterIP (internal pod-to-pod) traffic with eBPF but leave NodePort or LoadBalancer traffic to kube-proxy.
-  - **Full / strict (`true` / `strict`):** Cilium takes over every Service type (ClusterIP, NodePort, LoadBalancer, ExternalIPs) with eBPF hash tables, and you can delete the kube-proxy DaemonSet. It also enables **Direct Server Return (DSR)**: replies go straight from the pod to the client instead of back through the load-balancing node, saving a hop and keeping the client's IP.
+  - **Partial / hybrid (`partial`, older releases):** Cilium handles ClusterIP (internal pod-to-pod) traffic with eBPF but leaves NodePort or LoadBalancer traffic to kube-proxy. Current Cilium versions accept only `true` or `false` and switch these pieces with individual settings instead.
+  - **Full (`true`, formerly `strict`):** Cilium takes over every Service type (ClusterIP, NodePort, LoadBalancer, ExternalIPs) with eBPF hash tables, and you can delete the kube-proxy DaemonSet. It also enables **Direct Server Return (DSR)**: replies go straight from the pod to the client instead of back through the load-balancing node, saving a hop and keeping the client's IP.
 
 ```yaml
-# Cilium Helm values
+# Helm values for the cilium chart (helm install cilium cilium/cilium -f values.yaml)
 kubeProxyReplacement: true
 k8sServiceHost: <API server endpoint>
 k8sServicePort: 443
+routingMode: native
 loadBalancer:
   mode: dsr
 ```

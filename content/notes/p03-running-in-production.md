@@ -11,7 +11,7 @@ Two models of the same size can behave very differently on your task. Use public
 
 ### 2. Compress, then evaluate again
 
-An 8B model at 16 bits needs about 16 GB for its weights alone. **Quantization** to FP8 or INT8 roughly halves that and can double or triple throughput on the same GPU, often keeping 99% or more of the accuracy. Two conditions apply: the runtime must have native kernels for the quantized format (vLLM does), and the result must be re-evaluated, because a bad quantization can quietly ruin quality. Pre-quantized, validated models are the low-risk option.
+An 8B model at 16 bits needs about 16 GB for its weights alone. **Quantization** to FP8 or INT8 roughly halves that and can raise throughput substantially on the same GPU (up to about 2× on GPUs with native FP8), often keeping 99% or more of the accuracy. Two conditions apply: the runtime must have native kernels for the quantized format (vLLM does), and the result must be re-evaluated, because a bad quantization can quietly ruin quality. Pre-quantized, validated models are the low-risk option.
 
 ### 3. Do the memory math
 
@@ -23,7 +23,7 @@ A rough GPU memory budget for one replica:
 - the output tensor;
 - everything left goes to the **KV cache**.
 
-Example: an 8B fp16 model with a 2k context and batch size 1 needs about 17 GB. At batch size 10 it needs about 28 GB. vLLM prints this breakdown at startup, and warns when it has to evict KV-cache blocks because it ran out of room.
+Example: an 8B fp16 model without grouped-query attention, with a 2k context and batch size 1, needs about 17 GB; at batch size 10 it needs about 28 GB. Models with grouped-query attention (like Llama 3) need several times less KV cache. vLLM prints this breakdown at startup, and warns when it has to evict KV-cache blocks because it ran out of room.
 
 ### 4. Tune the runtime for the workload
 

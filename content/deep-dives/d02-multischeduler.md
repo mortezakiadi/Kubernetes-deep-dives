@@ -16,7 +16,11 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 - **Workflow, step 1 (user submission and Fargate profile):** you create a Fargate profile in AWS that says "any pod in the `staging` namespace with the label `type: serverless` runs on Fargate". Then you submit an ordinary pod YAML to the API server.
 
 ```yaml
-# eksctl ClusterConfig
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: prod
+  region: us-east-1
 fargateProfiles:
 - name: staging-serverless
   selectors:
@@ -28,9 +32,19 @@ fargateProfiles:
 - **Step 2 (EKS control plane, mutating webhook):** the EKS mutating webhook sees the pod, checks it against your profiles, and on a match injects `schedulerName: fargate-scheduler` into the pod spec, before scheduling starts. Pods that don't match keep the standard spec.
 
 ```yaml
-# what the webhook adds to a matching pod
+# the pod as stored after the webhook mutates it
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+  namespace: staging
+  labels:
+    type: serverless
 spec:
-  schedulerName: fargate-scheduler
+  schedulerName: fargate-scheduler   # injected by EKS, not written by you
+  containers:
+  - name: web
+    image: my-company/web:1.0
 ```
 
 - **Step 3 (scheduling phase, the result):** the modified pod is picked up by the AWS Fargate scheduler.
@@ -65,7 +79,7 @@ spec:
 - **Kueue**: decides at the job level whether a job may start;
 - **KAI** or **Volcano**: replace the scheduler.
 
-Upstream is also designing a native Workload API for this. Model-parallel *inference* has the same property: if one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
+Upstream Kubernetes added a native **Workload API** with gang scheduling as an alpha feature in 1.35 (off by default), and extended it in 1.36. Model-parallel *inference* has the same property: if one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
 
 ### Topology bin-packing
 
@@ -77,23 +91,36 @@ Upstream is also designing a native Workload API for this. Model-parallel *infer
 
 - **The problem:** the default LeastAllocated scoring spreads pods across nodes. In ML that's bad for performance, because pod-to-pod traffic then goes over the much slower network.
 - **The goal:** a scheduler that uses MostAllocated (bin-packing) to put the pods on the same physical GPU node.
-- **The benefit:** pods can talk over NVLink, which can be 10–50 times faster than standard Ethernet, cutting training time sharply.
+- **The benefit:** pods can talk over NVLink, which has an order of magnitude or more bandwidth than the node's network, cutting training time sharply.
 - **Topology-aware bin-packing:** goes further and looks at how the GPUs are wired. On an NVIDIA HGX system, it places pods that talk to each other on GPUs linked by NVLink (fast) rather than only PCIe (slow).
 - **Can the standard scheduler do it?** Partly.
   - **The workaround:** a required `podAffinity` with `matchLabels: job: my-training-run` and `topologyKey: kubernetes.io/hostname`, which forces pod 2 onto the node where pod 1 landed.
 
 ```yaml
-affinity:
-  podAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-    - labelSelector:
-        matchLabels:
-          job: my-training-run
-      topologyKey: kubernetes.io/hostname
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer-2
+  labels:
+    job: my-training-run
+spec:
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            job: my-training-run
+        topologyKey: kubernetes.io/hostname   # same node as the other trainers
+  containers:
+  - name: trainer
+    image: my-company/trainer:2.0
+    resources:
+      limits:
+        nvidia.com/gpu: 1
 ```
 
   - **The failure point:** it only works if pod 1 finds a home first, and writing these rules for 100 pods is a management nightmare. A custom scheduler does it automatically for the whole batch.
-- **Best at this:** the KAI Scheduler, which uses NVIDIA's GPU Operator to see the exact NVLink fabric.
+- **Best at this:** the KAI Scheduler, NVIDIA's open-source scheduler with topology-aware placement for GPU fabrics.
 
 **Going deeper.** Placement depends on how the model is split:
 
@@ -112,8 +139,8 @@ Even inside one server, not every GPU pair may share the same NVLink group. `nvi
 **What the picture shows.** Queueing and fair sharing, and where namespace quotas fall short.
 
 - **The problem:** one greedy user can lock everyone else out of a shared cluster.
-- **Priority queues:** custom schedulers such as Kueue let you define resource flavors and workload priorities, so jobs wait in line instead of failing.
-- **Preemption:** a high-priority inference pod serving a live model can evict a low-priority research training pod when GPUs run short.
+- **Priority queues:** queueing systems such as Kueue (a queue controller in front of the scheduler, not a scheduler itself) let you define resource flavors and workload priorities, so jobs wait in line instead of failing.
+- **Preemption:** a high-priority inference pod serving a live model can evict a low-priority research training pod when GPUs run short. The default scheduler can already do this with PriorityClasses; what the custom tools add is preemption that understands quotas and whole jobs.
 - **Fair sharing:** when the cluster is idle one team can use all of it, but as soon as another team submits work, the first team's over-quota pods are preempted to give the second team its fair share.
 - **Can the standard scheduler do it?** Only with static quotas.
   - **The workaround:** a `ResourceQuota` per namespace, for example 10 GPUs for the marketing team.
@@ -126,11 +153,11 @@ metadata:
   namespace: marketing
 spec:
   hard:
-    requests.nvidia.com/gpu: "10"   # static: idle GPUs can't be borrowed
+    requests.nvidia.com/gpu: "10"   # static: idle GPUs can't be lent to others
 ```
 
   - **The failure point:** these quotas are static. If marketing isn't using its 10 GPUs, no one else can borrow them. And a team that hits its limit gets an immediate error; the pod doesn't queue and start later when space opens up.
-- **Best at this:** Apache YuniKorn and Run:ai (via KAI).
+- **Best at this:** Apache YuniKorn and Run:ai (via KAI), and Kueue, covered below.
 
 **Going deeper.** In Kueue terms:
 
@@ -150,11 +177,15 @@ WorkloadPriorityClasses decide admission order, and fair sharing favors teams th
 
 - **What custom schedulers can look for:** hardware features Kubernetes doesn't track well on its own.
   - **RDMA / InfiniBand:** placing pods on nodes that share the same high-speed InfiniBand switch.
-  - **Low-precision support:** sending a workload only to GPUs that support the number formats it needs, such as FP8 (Hopper and newer) or FP4 (Blackwell).
+  - **Low-precision support:** sending a workload only to GPUs that support the number formats it needs, such as FP8 (Ada and Hopper and newer) or FP4 (Blackwell).
 - **Can the standard scheduler do it?** Yes, to a point.
   - **The workaround:** label nodes by hand (`gpu-gen=blackwell`, `network=infiniband`) and add matching `nodeSelector`s to the AI pods, together with taints and tolerations.
 
 ```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fp4-inference
 spec:
   nodeSelector:
     gpu-gen: blackwell
@@ -163,10 +194,16 @@ spec:
   - key: nvidia.com/gpu
     operator: Exists
     effect: NoSchedule
+  containers:
+  - name: server
+    image: my-company/llm-server:1.0
+    resources:
+      limits:
+        nvidia.com/gpu: 1
 ```
 
   - **The failure point:** this actually works well, and it's how most teams start. A custom scheduler only becomes necessary with thousands of nodes, when hand-managing labels for every hardware variation (FP8, HBM3, NVLink v4 and so on) becomes impractical.
-- **Leading example:** NVIDIA's KAI Scheduler, which is being extended to manage rack-scale Vera Rubin NVL72 systems, where the whole rack behaves like one giant GPU.
+- **Leading example:** NVIDIA's KAI Scheduler, aimed at rack-scale NVLink systems (GB200 NVL72 today, Vera Rubin racks next), where a whole rack behaves like one giant GPU.
 
 **Going deeper.**
 
@@ -182,7 +219,7 @@ spec:
 
 **What the picture shows.** A side-by-side of the two most common choices, with a scenario for each.
 
-- **Volcano, the batch specialist:** a full standalone batch scheduling system on Kubernetes, donated by Huawei and now a CNCF incubating project. Best for long training jobs, big data (Spark, Flink) and HPC. Its key feature is **gang scheduling**: it treats a group of pods as one job and starts none until there's room for all. You submit a `VolcanoJob` custom resource instead of individual pods.
+- **Volcano, the batch specialist:** a full standalone batch scheduling system on Kubernetes, donated by Huawei and now a CNCF incubating project. Best for long training jobs, big data (Spark, Flink) and HPC. Its key feature is **gang scheduling**: it treats a group of pods as one job and starts none until there's room for all. You submit a Volcano `Job` custom resource (often called a vcjob) instead of individual pods.
 
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
@@ -191,28 +228,46 @@ metadata:
   name: pytorch-train
 spec:
   schedulerName: volcano
-  minAvailable: 9            # gang: start nothing until all 9 fit
+  minAvailable: 9            # gang: start nothing until all 9 pods fit
   tasks:
   - name: master
     replicas: 1
-    template: {}             # pod template omitted
+    template:
+      spec:
+        restartPolicy: OnFailure
+        containers:
+        - name: master
+          image: my-company/trainer:2.0
   - name: worker
     replicas: 8
-    template: {}
+    template:
+      spec:
+        restartPolicy: OnFailure
+        containers:
+        - name: worker
+          image: my-company/trainer:2.0
+          resources:
+            limits:
+              nvidia.com/gpu: 1
 ```
 
 - **Kueue, the resource quota manager:** a newer, cloud-native job queueing controller. Instead of replacing the scheduler, it is a gatekeeper in front of the default one. Best for shared clusters with many teams, multi-cloud and cloud bursting. It manages a global pool (say 100 A100s), holds jobs in a waitlist (a `ClusterQueue`), and **admits** a job when its quota allows; the standard scheduler then places the pods.
 - **The shared scenario:** teams A and B each need 4 GPUs and the cluster has 4. The default scheduler might give each team 2, and both jobs wait forever. Volcano or Kueue gives all 4 to team A, which finishes, and then team B gets the cluster. Utilization goes up.
-- **Volcano's strength, task dependencies:** in a PyTorch job with one master and many workers, if the master fails filtering (for example a port conflict), the workers would sit idle forever. Volcano can say "start the 100 workers only if the master is placed." Kueue relies on the default scheduler, which doesn't understand relationships between pod types in a job.
-- **Kueue's strength, fair sharing and borrowing:** marketing has a 10-GPU quota, data science has 50. On Friday night marketing is idle and data science needs 60. Kueue sees that marketing's cohort is empty and lends its 10 GPUs. If someone in marketing submits a job on Saturday morning, Kueue preempts the borrowed work and returns the guaranteed GPUs. Volcano focuses on the performance of each job, not on sharing a budget between departments.
+- **Volcano's strength, task dependencies:** in a PyTorch job with one master and many workers, if the master fails filtering (for example a port conflict), the workers would sit idle forever. Volcano can say "start the 100 workers only if the master is placed." Kueue admits a whole job's quota as one unit (and with `waitForPodsReady` it can requeue a job whose pods don't all start), but placement is left to the default scheduler, which doesn't order the pod types within a job.
+- **Kueue's strength, fair sharing and borrowing:** marketing has a 10-GPU quota, data science has 50. On Friday night marketing is idle and data science needs 60. Both teams' ClusterQueues sit in the same cohort, so Kueue sees marketing's unused quota and lends its 10 GPUs. If someone in marketing submits a job on Saturday morning, Kueue preempts the borrowed work and returns the guaranteed GPUs. Volcano focuses on the performance of each job, not on sharing a budget between departments.
 
 ```yaml
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: a100
+---
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: ClusterQueue
 metadata:
   name: data-science
 spec:
-  cohort: gpu-pool           # queues in a cohort can lend to each other
+  cohort: gpu-pool             # queues in one cohort can lend to each other
   namespaceSelector: {}
   resourceGroups:
   - coveredResources: ["nvidia.com/gpu"]
@@ -223,12 +278,34 @@ spec:
         nominalQuota: 50
         borrowingLimit: 10
   preemption:
-    reclaimWithinCohort: Any # lender can take its GPUs back
+    reclaimWithinCohort: Any   # a lender can take its GPUs back
 ---
-# a job joins the queue with one label
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
 metadata:
+  name: ds-queue
+  namespace: data-science
+spec:
+  clusterQueue: data-science
+---
+# a Job joins the queue with one label
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fine-tune
+  namespace: data-science
   labels:
-    kueue.x-k8s.io/queue-name: data-science
+    kueue.x-k8s.io/queue-name: ds-queue
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: train
+        image: my-company/trainer:2.0
+        resources:
+          limits:
+            nvidia.com/gpu: 4
 ```
 
 **Going deeper.**
@@ -273,7 +350,7 @@ metadata:
 - **YuniKorn:** originally built to bring the scheduling power of Hadoop YARN to Kubernetes. It runs as a replacement (or shim) for the default scheduler.
 - **The common foundation:** whatever scheduler you choose, you'll almost certainly run the NVIDIA GPU Operator or the NVIDIA device plugin. These components tell the scheduler what hardware is in each node.
   - **NVIDIA device plugin:** advertises `nvidia.com/gpu` to the API server, so GPUs become a countable resource.
-  - **Network topology operator:** advertises InfiniBand or RDMA status, so the scheduler can group pods on the same high-speed switch.
+  - **Network side:** the NVIDIA Network Operator exposes RDMA / InfiniBand devices to pods, and switch-topology labels (from tools such as NVIDIA's Topograph) tell the scheduler which nodes share a switch, so it can group pods under one.
 
 **Going deeper.** On NVIDIA nodes, one **GPU Operator** (configured through a `ClusterPolicy`) installs and maintains everything a scheduler depends on:
 
