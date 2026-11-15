@@ -524,7 +524,6 @@ spec:
       hostPort: 80       # only one pod per node can claim host port 80 #!
 ```
 
-The `0/12 nodes are available` event lists how many nodes each of these rules removed, which tells you where to look.
 
 **Going deeper.**
 
