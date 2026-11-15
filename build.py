@@ -9,6 +9,20 @@ import markdown
 ROOT = pathlib.Path(__file__).resolve().parent
 
 
+
+def _indent_lists(md):
+    """Python-Markdown needs 4 spaces for nested lists; content uses 2. Double list indents outside code fences."""
+    out, fence = [], False
+    for line in md.split("\n"):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        elif not fence:
+            m = re.match(r"^((?:> )?)( +)(- |\d+\. )", line)
+            if m:
+                line = m.group(1) + m.group(2) * 2 + line[m.end(2):]
+        out.append(line)
+    return "\n".join(out)
+
 def read_md(path):
     text = path.read_text(encoding="utf-8")
     meta, body = {}, text
@@ -19,7 +33,7 @@ def read_md(path):
                 k, v = line.split(":", 1)
                 meta[k.strip()] = v.strip().strip('"')
         body = m.group(2)
-    out = markdown.markdown(body, extensions=["extra", "sane_lists"])
+    out = markdown.markdown(_indent_lists(body), extensions=["extra", "sane_lists"])
     # Turn standalone images into zoomable diagram figures.
     def fig(mm):
         alt, src = html.unescape(mm.group(1)), mm.group(2)
