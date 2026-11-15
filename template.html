@@ -55,7 +55,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outlin
 .rail a b { font: 500 12px var(--font-mono); color: var(--accent); margin-right: 6px; }
 .rail a:hover, .rail a.current { background: var(--accent-soft); }
 
-main { padding: 48px clamp(16px, 4vw, 56px) 80px; max-width: 1180px; }
+main { padding: 48px clamp(16px, 4vw, 56px) 80px; max-width: 1560px; min-width: 0; }
 .hero h1 { font: 700 clamp(32px, 4.4vw, 52px)/1.05 var(--font-display); margin: 0 0 14px; text-wrap: balance; }
 .hero .sub { font-size: 19px; color: var(--muted); max-width: 62ch; margin: 0 0 22px; }
 .hero .prose { max-width: 70ch; }
@@ -76,10 +76,12 @@ main { padding: 48px clamp(16px, 4vw, 56px) 80px; max-width: 1180px; }
 .chip { font: 500 12px var(--font-mono); background: var(--accent-soft); color: var(--accent);
   padding: 3px 8px; border-radius: 4px; }
 
-.diagram { margin: 0 0 22px; }
+.diagram { margin: 0 0 22px; position: relative; }
 .diagram .open { position: relative; display: block; width: 100%; padding: 14px; border: 1px solid var(--line);
   background: var(--sheet); border-radius: 10px; cursor: zoom-in; }
-.diagram img { display: block; width: 100%; height: auto; max-height: 78vh; object-fit: contain; }
+.diagram .open { overflow-x: auto; overflow-y: hidden; }
+.diagram img { display: block; height: auto; max-width: none; }
+.diagram .scrollnote { display: block; margin-top: 6px; font: 500 12px var(--font-mono); color: var(--muted); }
 .diagram .hint { position: absolute; right: 12px; bottom: 12px; font: 500 12px var(--font-mono);
   background: #141a22; color: #fff; padding: 5px 9px; border-radius: 5px; opacity: .85; }
 
@@ -118,7 +120,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .vbar button:hover, .vbar a:hover { background: #3a4656; }
 .stage { position: relative; flex: 1; overflow: hidden; cursor: grab; touch-action: none; background: #fff; margin: 0 14px 14px; border-radius: 8px; }
 .stage.drag { cursor: grabbing; }
-.stage img { position: absolute; left: 0; top: 0; transform-origin: 0 0; user-select: none; -webkit-user-drag: none; max-width: none; }
+.stage img { position: absolute; left: 0; top: 0; user-select: none; -webkit-user-drag: none; max-width: none; max-height: none; }
 .vhelp { color: #c9d1db; font: 12px var(--font-mono); padding: 0 14px 10px; }
 
 @media (max-width: 900px) {
@@ -177,8 +179,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       img = document.getElementById('vimg'), vt = document.getElementById('vt'), raw = document.getElementById('vraw');
   var s = 1, x = 0, y = 0, lastFocus = null, pts = new Map(), pinch = null;
 
-  function apply() { img.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')'; }
-  function natural() { return { w: img.naturalWidth || 1600, h: img.naturalHeight || 900 }; }
+  function apply() {
+    var n = natural();
+    img.style.width = (n.w * s) + 'px'; img.style.height = (n.h * s) + 'px';
+    img.style.left = x + 'px'; img.style.top = y + 'px';
+  }
+  var nat = null;
+  function natural() { return nat || { w: img.naturalWidth || 1600, h: img.naturalHeight || 900 }; }
   function fit() {
     var n = natural(), r = stage.getBoundingClientRect();
     s = Math.min(r.width / n.w, r.height / n.h) * 0.98;
@@ -193,7 +200,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
   function open(src, title, btn) {
     lastFocus = btn; vt.textContent = title; raw.href = src;
     viewer.classList.add('on'); document.body.style.overflow = 'hidden';
-    img.onload = fit; img.src = src; if (img.complete) fit();
+    nat = null; img.style.width = ''; img.style.height = '';
+    img.onload = function () {
+      nat = { w: img.naturalWidth || 1600, h: img.naturalHeight || 900 };
+      fit();
+      if (s < 1) { var r = stage.getBoundingClientRect(); s = 1; x = 16; y = Math.max(16, (r.height - nat.h) / 2); apply(); }
+    };
+    img.src = src; if (img.complete && img.naturalWidth) img.onload();
     document.getElementById('vclose').focus();
   }
   function close() {
@@ -242,6 +255,23 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
   function up(e) { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) stage.classList.remove('drag'); }
   stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
   window.addEventListener('resize', function () { if (viewer.classList.contains('on')) fit(); });
+
+
+  // Inline diagrams: real size (readable 12px text) unless the diagram is narrower than the column.
+  function sizeInline(im) {
+    var w = im.naturalWidth, box = im.parentElement.clientWidth - 28;
+    if (!w) return;
+    im.style.width = (w > box ? w : Math.min(w * 1.25, box)) + 'px';
+    var note = im.parentElement.parentElement.querySelector('.scrollnote');
+    if (w > box && !note) {
+      note = document.createElement('span'); note.className = 'scrollnote';
+      note.textContent = 'Wide diagram: scroll sideways, or open full screen to zoom.';
+      im.parentElement.parentElement.appendChild(note);
+    }
+  }
+  document.querySelectorAll('.diagram img').forEach(function (im) {
+    if (im.complete) sizeInline(im); else im.addEventListener('load', function () { sizeInline(im); });
+  });
 
   // Highlight the current entry in the index rail.
   var links = {}; document.querySelectorAll('.rail a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
