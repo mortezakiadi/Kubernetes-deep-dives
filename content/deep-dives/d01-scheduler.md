@@ -673,7 +673,7 @@ spec:
 
 > **Note: what this example does, line by line**
 >
-> Together, the two manifests ask for "any NVIDIA GPU with at least 40 GiB of memory". Notice there is no `nvidia.com/gpu: 1` anywhere in this YAML: that line belongs to the older device-plugin way used in the [previous bullet's example](#gpu-labels-yaml) (Option 1 and Option 2), not to DRA.
+> Together, the two manifests ask for "any NVIDIA GPU with at least 40 GiB of memory". Notice there is no `nvidia.com/gpu: 1` anywhere in this YAML: that line belongs to the older device-plugin way used in the [GPU labels example](#gpu-labels-yaml) (Option 1 and Option 2), not to DRA.
 >
 > **Part 1: the `ResourceClaimTemplate` describes the GPU you want**
 >
@@ -696,7 +696,36 @@ spec:
 > 3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container.
 > 4. **The server starts:** vLLM starts and sees exactly one GPU that's big enough.
 >
-> **How this compares with the previous bullet:** [Option 2 in the previous example](#gpu-labels-yaml) gets the same "at least 40 GB" result without DRA. It works in three steps: the **node** carries a label with its per-GPU memory (`nvidia.com/gpu.memory: "81920"` in the GPU node manifest at the top of that example, added automatically by GPU Feature Discovery); Option 2 filters on that label with node affinity (`Gt 40000`); then it asks the device plugin for `nvidia.com/gpu: 1`, which only counts GPUs. DRA instead describes the **device** itself, so the scheduler checks each GPU's own properties. For one big GPU both work. The examples below show where DRA goes further.
+> **Note: how do you install DRA?**
+>
+> You don't install DRA itself. The API (`ResourceClaim`, `ResourceClaimTemplate`, `DeviceClass`) is built into Kubernetes 1.34 and later. What you install is a **DRA driver** for your hardware: it advertises the devices on each node and allocates the one a claim asks for. For NVIDIA GPUs that's the NVIDIA DRA driver, installed with Helm:
+>
+> ```bash
+> helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+> helm repo update
+> helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
+>   --create-namespace --namespace nvidia-dra-driver-gpu \
+>   --set resources.computeDomains.enabled=false \
+>   --set gpuResourcesEnabledOverride=true    # turn on GPU allocation
+>
+> # check that the driver pods are running
+> kubectl get pods -n nvidia-dra-driver-gpu
+>
+> # the driver creates the DeviceClass the claim above refers to
+> kubectl get deviceclass gpu.nvidia.com
+> ```
+>
+> Things to check before you rely on it:
+>
+> - **Kubernetes version:** NVIDIA asks for 1.34.2 or later.
+> - **Chart name:** from v0.4.0 the driver moved to `kubernetes-sigs` and the chart is called `dra-driver-nvidia-gpu`; use the name that matches your version.
+> - **Don't run two allocators:** if the NVIDIA GPU Operator is installed, use v25.10.0 or later with its device plugin turned off, and label the GPU nodes (for example `nvidia.com/dra-kubelet-plugin=true`) so the driver runs only there.
+> - **Old-style requests aren't DRA:** a pod that asks for `nvidia.com/gpu: 1` under `resources.limits` still goes through the device plugin path, even with a DRA driver installed.
+> - **On EKS:** Bottlerocket nodes aren't supported by the NVIDIA DRA driver; Karpenter needs `settings.enableDRA: true` (alpha); and support for EKS Auto Mode was announced in November 2026 for Kubernetes 1.36+, so check the current AWS docs.
+
+- **DRA compared with node labels and the device plugin.** [Option 2 in the GPU labels example](#gpu-labels-yaml) gets the same "at least 40 GB" result without DRA. It works in three steps: the **node** carries a label with its per-GPU memory (`nvidia.com/gpu.memory: "81920"` in the GPU node manifest at the top of that example, added automatically by GPU Feature Discovery); Option 2 filters on that label with node affinity (`Gt 40000`); then it asks the device plugin for `nvidia.com/gpu: 1`, which only counts GPUs. DRA instead describes the **device** itself, so the scheduler checks each GPU's own properties. For one big GPU both work. The four cases below are where DRA goes further.
+
+> **Where DRA goes further: four cases**
 >
 > - **When GPUs on a node differ:** a node label describes the node as one thing, so a node with one 80 GB and one 24 GB GPU can't be described honestly. DRA checks every GPU separately, so asking for two big GPUs only matches if *both* are big:
 >
@@ -808,33 +837,6 @@ spec:
 >     ```
 >
 >     The application has to cope with either result (one GPU or two), for example by reading how many GPUs it was given at startup.
-
-> **Note: how do you install DRA?**
->
-> You don't install DRA itself. The API (`ResourceClaim`, `ResourceClaimTemplate`, `DeviceClass`) is built into Kubernetes 1.34 and later. What you install is a **DRA driver** for your hardware: it advertises the devices on each node and allocates the one a claim asks for. For NVIDIA GPUs that's the NVIDIA DRA driver, installed with Helm:
->
-> ```bash
-> helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
-> helm repo update
-> helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
->   --create-namespace --namespace nvidia-dra-driver-gpu \
->   --set resources.computeDomains.enabled=false \
->   --set gpuResourcesEnabledOverride=true    # turn on GPU allocation
->
-> # check that the driver pods are running
-> kubectl get pods -n nvidia-dra-driver-gpu
->
-> # the driver creates the DeviceClass the claim above refers to
-> kubectl get deviceclass gpu.nvidia.com
-> ```
->
-> Things to check before you rely on it:
->
-> - **Kubernetes version:** NVIDIA asks for 1.34.2 or later.
-> - **Chart name:** from v0.4.0 the driver moved to `kubernetes-sigs` and the chart is called `dra-driver-nvidia-gpu`; use the name that matches your version.
-> - **Don't run two allocators:** if the NVIDIA GPU Operator is installed, use v25.10.0 or later with its device plugin turned off, and label the GPU nodes (for example `nvidia.com/dra-kubelet-plugin=true`) so the driver runs only there.
-> - **Old-style requests aren't DRA:** a pod that asks for `nvidia.com/gpu: 1` under `resources.limits` still goes through the device plugin path, even with a DRA driver installed.
-> - **On EKS:** Bottlerocket nodes aren't supported by the NVIDIA DRA driver; Karpenter needs `settings.enableDRA: true` (alpha); and support for EKS Auto Mode was announced in November 2026 for Kubernetes 1.36+, so check the current AWS docs.
 
 - Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the [gang problem](#d02-2). Setting `parallelism` doesn't fix this; it only creates the pods together. "All 8 or none" needs something that knows the pods belong together:
   - a queue in front of the scheduler, such as **Kueue**, which admits the whole job only when there's room for all of it ([Volcano vs. Kueue](#d02-6));
