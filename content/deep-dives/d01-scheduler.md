@@ -548,8 +548,24 @@ spec:
 - A `nodeSelector` on GPU labels pins an exact model, node affinity can say "at least 40 GB, prefer Hopper", and a taint on GPU nodes keeps everything else off them.
 
 ```yaml
-# GPU labels like these are added to nodes by NVIDIA GPU Feature Discovery
-# (part of the GPU Operator); gpu.memory is in MiB.
+# The GPU NODE: labels (added automatically by NVIDIA GPU Feature Discovery,
+# part of the GPU Operator) and a taint (set in the node group / NodePool).
+# Shown trimmed: a real node has many more labels.
+apiVersion: v1
+kind: Node
+metadata:
+  name: gpu-node-1
+  labels:
+    nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB   # the exact model #!
+    nvidia.com/gpu.memory: "81920"                  # per-GPU memory, in MiB #!
+    nvidia.com/gpu.family: ampere                   # GPU generation #!
+    nvidia.com/gpu.count: "8"
+spec:
+  taints:
+  - key: nvidia.com/gpu
+    value: present
+    effect: NoSchedule                              # keeps non-GPU pods off #!
+---
 # Option 1: pin an exact GPU model with nodeSelector
 apiVersion: v1
 kind: Pod
