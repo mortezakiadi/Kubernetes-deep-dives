@@ -654,6 +654,33 @@ spec:
       - name: gpu                    # no nvidia.com/gpu count: the claim is the request
 ```
 
+> **Note: what this example does, line by line**
+>
+> Together, the two manifests ask for "any NVIDIA GPU with at least 40 GiB of memory". With `nvidia.com/gpu: 1` you could only ask for "one GPU, whichever one".
+>
+> **Part 1: the `ResourceClaimTemplate` describes the GPU you want**
+>
+> - **`name: gpu-40gb-plus`:** the name the pod uses to point at this request.
+> - **`requests: - name: gpu`:** "I need one device, and I'll call it `gpu`."
+> - **`exactly:`:** allocate exactly one device that matches. DRA can also list alternatives ("this, or else that"); here there's only one option.
+> - **`deviceClassName: gpu.nvidia.com`:** only look at NVIDIA GPUs. The NVIDIA DRA driver creates this class when you install it.
+> - **The `cel` selector:** a small filter in CEL (Common Expression Language) that reads "this device's memory compared with 40Gi is 0 or more", that is, at least 40 GiB. An A10G (24 GB) is filtered out; an A100 (40 or 80 GB) or an H100 (80 GB) qualifies. The `memory` attribute is published by NVIDIA's driver, which is why the names depend on the driver.
+>
+> **Part 2: the Pod uses it**
+>
+> - **`spec.resourceClaims`:** create a claim for this pod from the `gpu-40gb-plus` template. Each pod gets its own ResourceClaim (named something like `inference-dra-gpu-x7k2p`), which is deleted with the pod. That's why it's a *template*: ten replicas get ten separate claims instead of fighting over one GPU.
+> - **`containers[].resources.claims: - name: gpu`:** give the `server` container access to that device. In a pod with several containers, you choose which ones see the GPU.
+> - **No `nvidia.com/gpu: 1` limit:** the claim *is* the request.
+>
+> **What happens when you apply it**
+>
+> 1. **The claim is created:** Kubernetes makes the pod's ResourceClaim from the template.
+> 2. **The scheduler filters and allocates:** its DynamicResources plugin checks the devices each node publishes (as ResourceSlices, written by the driver) and filters out nodes with no free NVIDIA GPU of 40 GiB or more. Then it picks a node and records the exact GPU it chose in the claim.
+> 3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container.
+> 4. **The server starts:** vLLM starts and sees exactly one GPU that's big enough.
+>
+> **Why this is better than the old way:** `nvidia.com/gpu: 1` only counts GPUs, so getting a big one needed node labels plus a `nodeSelector` or affinity (the example above). With DRA the pod describes the *device itself*, and the scheduler matches on the GPU's properties whatever the node is called or labeled.
+
 > **Note: how do you install DRA?**
 >
 > You don't install DRA itself. The API (`ResourceClaim`, `ResourceClaimTemplate`, `DeviceClass`) is built into Kubernetes 1.34 and later. What you install is a **DRA driver** for your hardware: it advertises the devices on each node and allocates the one a claim asks for. For NVIDIA GPUs that's the NVIDIA DRA driver, installed with Helm:
