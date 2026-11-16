@@ -118,6 +118,35 @@ spec:
     image: my-company/trainer:2.0
 ```
 
+- **Affinity and anti-affinity violations:** a required node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-1
+  labels:
+    app: api
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution: #!
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["us-east-1a"] #!
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution: #!
+      - labelSelector:
+          matchLabels:
+            app: api
+        topologyKey: kubernetes.io/hostname   # never two api pods on one node #!
+  containers:
+  - name: api
+    image: my-company/api:1.4
+```
+
 > **Note: can one pod use taints, tolerations, affinity and anti-affinity together? Does the order matter?**
 >
 > Yes, one pod can use all of them at once, and no, the order doesn't matter.
@@ -481,35 +510,6 @@ spec:
 > - **Entry 2, a built-in taint (`node.kubernetes.io/unreachable`, `NoExecute`):** nobody adds this one by hand. Kubernetes adds it automatically when a node stops talking to the control plane (a crash, a lost network). A `NoExecute` taint doesn't only block new pods; it evicts pods already running there. `operator: Exists` matches any taint with that key, whatever its value.
 > - **What `tolerationSeconds: 60` changes:** Kubernetes already gives every pod this toleration automatically, with a default of 300 seconds. Writing it yourself only changes the timing: the pod stays on an unreachable node for 60 seconds, then is evicted and recreated on a healthy node. For a GPU inference service, 5 minutes on a dead node is a long outage. The trade-off is that a short network blip could move the pod unnecessarily.
 > - **In short:** entry 1 controls *where the pod may go*; entry 2 controls *how quickly it leaves* when its node fails.
-
-- **Affinity and anti-affinity violations:** a required node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: api-1
-  labels:
-    app: api
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution: #!
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: ["us-east-1a"] #!
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution: #!
-      - labelSelector:
-          matchLabels:
-            app: api
-        topologyKey: kubernetes.io/hostname   # never two api pods on one node #!
-  containers:
-  - name: api
-    image: my-company/api:1.4
-```
 
 - **Port conflicts:** if the pod asks for a `hostPort` (say port 80 on the EC2 instance) and another pod on that node already uses it, the node is out. Two tenants can't share one mailbox.
 
