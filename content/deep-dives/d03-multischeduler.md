@@ -106,6 +106,31 @@ spec:
   - **Bucket A (`default-scheduler`):** the standard kube-scheduler on the control plane places these on EC2 nodes.
   - **Bucket B (`fargate-scheduler`):** the Fargate scheduler takes only these, ignores bucket A, and starts a dedicated micro-VM for each pod.
 
+> **Note: what sets each scheduler's behavior?**
+>
+> - **kube-scheduler reads a `KubeSchedulerConfiguration`:** the default scheduler, and any second scheduler that is just another copy of kube-scheduler (like the one in the [appendix](#appendix-second-scheduler)), reads this file at startup through `--config`. It decides which plugins run, their weights and their settings. Without a file, the built-in defaults apply.
+> - **One file can define several schedulers:** the file holds a list of **profiles**, each with its own `schedulerName` and plugin setup, all served by one kube-scheduler process. A pod chooses a profile with `schedulerName`, exactly as it would choose a separate scheduler:
+>
+> ```yaml
+> apiVersion: kubescheduler.config.k8s.io/v1
+> kind: KubeSchedulerConfiguration
+> profiles:
+> - schedulerName: default-scheduler        # normal behavior #!
+> - schedulerName: bin-packing-scheduler    # same process, different scoring #!
+>   pluginConfig:
+>   - name: NodeResourcesFit
+>     args:
+>       scoringStrategy:
+>         type: MostAllocated               # pack nodes full instead of spreading #!
+> ```
+>
+> - **So a "second scheduler" can be a second profile:** no second program is needed, as long as you control the scheduler's configuration. On EKS you don't control the default scheduler's, which is why the appendix runs a separate copy.
+> - **Other schedulers have their own formats:** the idea is the same, but the files differ.
+>   - **Volcano:** a ConfigMap (`volcano-scheduler.conf`) listing the scheduling *actions* to run (such as enqueue, allocate, backfill) and the *plugins* in priority tiers (gang, drf, proportion and others).
+>   - **YuniKorn:** a ConfigMap (`yunikorn-configs`) that mainly describes the **queue** hierarchy, with quotas and policies per queue.
+>   - **KAI:** settings through its Helm values and its own custom resources (queues, scheduling shards).
+>   - **Kueue** (a queue in front of a scheduler, not a scheduler): its own configuration file plus custom resources such as `ClusterQueue` and `LocalQueue`.
+
 **Going deeper.**
 
 - Ray (through KubeRay) is another two-scheduler setup.

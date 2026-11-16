@@ -877,7 +877,25 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Bucket A (<code>default-scheduler</code>):</strong> the standard <mark class="kw-tool">kube-scheduler</mark> on the control plane places these on EC2 nodes.</li>
 <li><strong>Bucket B (<code>fargate-scheduler</code>):</strong> the Fargate scheduler takes only these, ignores bucket A, and starts a dedicated micro-VM for each pod.</li>
 </ul>
-</div></details></div>
+<blockquote>
+<p><strong>Note: what sets each scheduler's behavior?</strong></p>
+<ul>
+<li><strong>kube-scheduler reads a <code>KubeSchedulerConfiguration</code>:</strong> the default scheduler, and any second scheduler that is just another copy of kube-scheduler (like the one in the <a href="#appendix-second-scheduler">appendix</a>), reads this file at startup through <code>--config</code>. It decides which plugins run, their weights and their settings. Without a file, the built-in defaults apply.</li>
+<li><strong>One file can define several schedulers:</strong> the file holds a list of <strong>profiles</strong>, each with its own <code>schedulerName</code> and plugin setup, all served by one kube-scheduler process. A pod chooses a profile with <code>schedulerName</code>, exactly as it would choose a separate scheduler:</li>
+</ul>
+<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: kubescheduler.config.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: KubeSchedulerConfiguration</span><span class="ln"><span class="tk">profiles</span>:</span><span class="ln kl">- <span class="tk">schedulerName</span>: default-scheduler        <span class="tc"># normal behavior</span></span><span class="ln kl">- <span class="tk">schedulerName</span>: bin-packing-scheduler    <span class="tc"># same process, different scoring</span></span><span class="ln">  <span class="tk">pluginConfig</span>:</span><span class="ln">  - <span class="tk">name</span>: NodeResourcesFit</span><span class="ln">    <span class="tk">args</span>:</span><span class="ln">      <span class="tk">scoringStrategy</span>:</span><span class="ln kl">        <span class="tk">type</span>: MostAllocated               <span class="tc"># pack nodes full instead of spreading</span></span></code></pre>
+<ul>
+<li><strong>So a "second scheduler" can be a second profile:</strong> no second program is needed, as long as you control the scheduler's configuration. On EKS you don't control the default scheduler's, which is why the appendix runs a separate copy.</li>
+<li><strong>Other schedulers have their own formats:</strong> the idea is the same, but the files differ.<ul>
+<li><strong>Volcano:</strong> a ConfigMap (<code>volcano-scheduler.conf</code>) listing the scheduling <em>actions</em> to run (such as enqueue, allocate, backfill) and the <em>plugins</em> in priority tiers (gang, drf, proportion and others).</li>
+<li><strong>YuniKorn:</strong> a ConfigMap (<code>yunikorn-configs</code>) that mainly describes the <strong>queue</strong> hierarchy, with <mark class="kw">quotas</mark> and policies per queue.</li>
+<li><strong>KAI:</strong> settings through its Helm values and its own custom resources (queues, scheduling shards).</li>
+<li><strong>Kueue</strong> (a queue in front of a scheduler, not a scheduler): its own configuration file plus custom resources such as <code>ClusterQueue</code> and <code>LocalQueue</code>.</li>
+</ul>
+</li>
+</ul>
+</blockquote></div></details></div>
+
 
 
 
