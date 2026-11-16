@@ -734,6 +734,51 @@ spec:
 > So an image cached on only a few nodes gives very little advantage, and the pod is placed mostly on other grounds. An image already present almost everywhere counts fully.
 
 - **Node / inter-pod affinity (the "socialite"):** handles your *preferred* (soft) rules, such as "I'd like to run near my database". Nodes in the same rack or zone as the database score higher. It's the main score you steer from the pod spec (along with soft topology spread and `PreferNoSchedule` taints); the others are computed by Kubernetes.
+
+```yaml
+# Three soft preferences a pod (or a node) can express. None of them can
+# block scheduling; they only add or remove scoring points.
+apiVersion: v1
+kind: Node
+metadata:
+  name: node-old-1
+spec:
+  taints:
+  - key: hardware
+    value: old
+    effect: PreferNoSchedule         # 3. "avoid me if you can" (TaintToleration score) #!
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reports-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: reports-api}
+  template:
+    metadata:
+      labels: {app: reports-api}
+    spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:   # 1. soft: scored, never filtered #!
+          - weight: 80                                      # how much this wish counts (1-100) #!
+            podAffinityTerm:
+              labelSelector:
+                matchLabels: {app: postgres}                # "near my database"
+              topologyKey: topology.kubernetes.io/zone      # "near" = same zone #!
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway                   # 2. soft spread: scored, not filtered #!
+        labelSelector:
+          matchLabels: {app: reports-api}
+      containers:
+      - name: api
+        image: my-company/reports-api:1.4
+```
+
 - **The default-weights trap:** most of these plugins have the same small weight (1 or 2). In a large cluster that can lead to poor choices, and this is the scenario: the full node won because it already had the image cached, and the CPU contention showed up later.
 
 **Going deeper.**
