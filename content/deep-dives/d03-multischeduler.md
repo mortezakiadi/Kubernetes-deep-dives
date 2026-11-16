@@ -23,7 +23,7 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
   - **Bind:** writes the chosen node into the pod (`spec.nodeName`).
 - **Blue lane, `default-scheduler`:** the built-in kube-scheduler. On EKS it runs on the AWS-managed control plane, and every plugin shown is built in and on by default. The Score box lists the default weights (×1, ×2, ×3).
 - **Amber lane, a second kube-scheduler with your own profile:** the same program and the same plugins, run as your own Deployment (the full example is in [Appendix A](#appendix-second-scheduler)). Only the highlighted Score box differs: InterPodAffinity weighted ×100, and NodeResourcesFit switched to MostAllocated (bin-packing).
-- **Teal lane, a replacement scheduler (Volcano, KAI, YuniKorn):** a different program with its own plugins (Volcano calls them "actions"): queues and PodGroups for gang scheduling, queue-based reclaim instead of plain preemption, GPU and network topology scoring, and binding a whole job together. It re-implements the basic fit checks, but the built-in plugins and weights above don't apply to its pods.
+- **Teal lane, a replacement scheduler (Volcano, KAI, YuniKorn):** a different program that works in sessions, with its own actions (steps such as allocate or reclaim) and plugins: queues and PodGroups for gang scheduling, queue-based reclaim instead of plain preemption, GPU and network topology scoring, and binding a whole job together. It reuses kube-scheduler's filter checks (through its predicates plugin), so taints and affinity still mean the same thing, but the scoring plugins and weights above don't apply to its pods.
 - **Grey bar, shared by all three:** the same nodes and the same API server. The schedulers don't coordinate with each other.
 
 **The built-in plugins** (all on by default; "–" means the plugin doesn't take part in that stage):
@@ -35,7 +35,7 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 | NodeUnschedulable | Skips cordoned nodes (`spec.unschedulable`) | ✓ | – |
 | NodeName | Honours a pod that already names its node | ✓ | – |
 | NodeResourcesFit | CPU, memory, GPU and other resources: does it fit? Then LeastAllocated scoring | ✓ | 1 |
-| NodeResourcesBalancedAllocation | Prefers nodes where CPU and memory use stay balanced | – | 1 |
+| BalancedResourceAllocation | Prefers nodes where CPU and memory use stay balanced | – | 1 |
 | ImageLocality | Prefers nodes that already have the pod's images | – | 1 |
 | NodeAffinity | `nodeSelector` and required node affinity (filter); preferred node affinity (score) | ✓ | 2 |
 | InterPodAffinity | Required pod affinity / anti-affinity (filter); preferred (score) | ✓ | 2 |

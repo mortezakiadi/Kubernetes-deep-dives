@@ -868,7 +868,7 @@ profiles:
 - **Preferred rules need a weight:** the YAML is fine, but the API server rejects a preferred affinity term without a `weight` (it must be 1–100), which is why the developer's apply failed.
 - **Built-in plugins still score every node:** the plugins you never see in your YAML (like LeastAllocated or ImageLocality) run anyway, with these default weights:
   - NodeResourcesFit (LeastAllocated): **1**
-  - BalancedAllocation: **1**
+  - BalancedResourceAllocation: **1**
   - ImageLocality: **1**
   - InterPodAffinity / NodeAffinity / TopologySpread: **2**
   - TaintToleration: **3**
