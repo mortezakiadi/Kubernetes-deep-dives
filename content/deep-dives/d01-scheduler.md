@@ -511,6 +511,37 @@ spec:
 > - **What `tolerationSeconds: 60` changes:** Kubernetes already gives every pod this toleration automatically, with a default of 300 seconds. Writing it yourself only changes the timing: the pod stays on an unreachable node for 60 seconds, then is evicted and recreated on a healthy node. For a GPU inference service, 5 minutes on a dead node is a long outage. The trade-off is that a short network blip could move the pod unnecessarily.
 > - **In short:** entry 1 controls *where the pod may go*; entry 2 controls *how quickly it leaves* when its node fails.
 
+- **Topology spread constraints (keep replicas balanced):** A `topologySpreadConstraints` rule spreads a group of pods evenly across places, such as zones or nodes. It isn't a box in the picture, but with `whenUnsatisfiable: DoNotSchedule` it's another filter: a node is removed if placing the pod there would make the busiest place exceed the emptiest by more than `maxSkew`.
+  - **What counts as a "place":** the `topologyKey`, the same field used in pod affinity. `topology.kubernetes.io/zone` means zones, `kubernetes.io/hostname` means nodes.
+  - **Hard or soft:** `DoNotSchedule` filters nodes out; `ScheduleAnyway` only lowers their score.
+  - **How it differs from pod anti-affinity:** anti-affinity says "not where a pod like me already runs", so a hard rule allows only one per place: 6 replicas in 3 zones means 3 stay `Pending`. A spread constraint allows several per place as long as they stay balanced, so all 6 run, 2 per zone.
+  - **When to use which:** anti-affinity for "never two on one node" (say, one database replica per node); spread constraints for "balance across zones" (most web services). Even without either, the scheduler applies a soft default spread across nodes and zones.
+
+```yaml
+# 6 replicas spread evenly across 3 zones: 2 per zone.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 6
+  selector:
+    matchLabels: {app: web}
+  template:
+    metadata:
+      labels: {app: web}
+    spec:
+      topologySpreadConstraints: #!
+      - maxSkew: 1                                # zones may differ by at most 1 pod #!
+        topologyKey: topology.kubernetes.io/zone  # a "place" is a zone #!
+        whenUnsatisfiable: DoNotSchedule          # hard rule; ScheduleAnyway = soft #!
+        labelSelector:
+          matchLabels: {app: web}                 # which pods to count
+      containers:
+      - name: web
+        image: nginx:1.27
+```
+
 - **Port conflicts:** if the pod asks for a `hostPort` (say port 80 on the EC2 instance) and another pod on that node already uses it, the node is out. Two tenants can't share one mailbox.
 
 ```yaml
