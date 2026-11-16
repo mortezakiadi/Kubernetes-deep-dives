@@ -647,8 +647,8 @@ spec:
 | Mechanism | Kind | What it publishes | How a pod uses it |
 |---|---|---|---|
 | **Device plugin** (NVIDIA; also AMD `amd.com/gpu`, AWS Neuron `aws.amazon.com/neuron`) | **Count** | A count in the node's capacity, e.g. `nvidia.com/gpu: 8` | `resources.limits` |
-| **GPU Feature Discovery** (NVIDIA, installed with the GPU Operator; needs NFD running) | **Label** | Node labels with GPU details: model, memory, count | `nodeSelector` / node affinity |
 | **Node Feature Discovery** | **Label** | Generic hardware labels, e.g. `feature.node.kubernetes.io/pci-10de.present` (10de = NVIDIA) | `nodeSelector` / node affinity |
+| **GPU Feature Discovery** (NVIDIA, installed with the GPU Operator; needs NFD running) | **Label** | Node labels with GPU details: model, memory, count | `nodeSelector` / node affinity |
 | **Cloud and Karpenter labels** | **Label** | Labels from the instance type: `node.kubernetes.io/instance-type`, `karpenter.k8s.aws/instance-gpu-name`, `instance-gpu-memory`, `instance-gpu-count` | Node affinity, or NodePool requirements |
 | **DRA driver** | **DRA** (per device) | One ResourceSlice entry per device, with its attributes | A `ResourceClaim` with CEL selectors |
 
@@ -684,7 +684,40 @@ spec:
         nvidia.com/gpu: 1            # "any one free GPU on the node" #!
 ```
 
-![2. GPU Feature Discovery: GPU details as node labels](diagrams/extra/adv-gfd.svg)
+![2. Node Feature Discovery: generic hardware labels](diagrams/extra/adv-nfd.svg)
+
+```yaml
+# What the NODE shows (labels written by the NFD master)
+apiVersion: v1
+kind: Node
+metadata:
+  name: gpu-node-1
+  labels:
+    # The GPU Operator configures NFD to label by vendor only:
+    feature.node.kubernetes.io/pci-10de.present: "true" #!
+    # NFD's own default labels by class + vendor (0302 = 3D controller):
+    # feature.node.kubernetes.io/pci-0302_10de.present: "true"
+---
+# What the POD writes: "any node with an NVIDIA card"
+apiVersion: apps/v1
+kind: DaemonSet                      # a typical user: per-GPU-node agents
+metadata:
+  name: gpu-monitor
+spec:
+  selector:
+    matchLabels: {app: gpu-monitor}
+  template:
+    metadata:
+      labels: {app: gpu-monitor}
+    spec:
+      nodeSelector: #!
+        feature.node.kubernetes.io/pci-10de.present: "true" #!
+      containers:
+      - name: exporter
+        image: my-company/gpu-monitor:1.0
+```
+
+![3. GPU Feature Discovery: GPU details as node labels](diagrams/extra/adv-gfd.svg)
 
 ```yaml
 # What the NODE shows (labels written by GPU Feature Discovery via NFD)
@@ -718,39 +751,6 @@ spec:
     resources:
       limits:
         nvidia.com/gpu: 1            # the device plugin still allocates the GPU
-```
-
-![3. Node Feature Discovery: generic hardware labels](diagrams/extra/adv-nfd.svg)
-
-```yaml
-# What the NODE shows (labels written by the NFD master)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    # The GPU Operator configures NFD to label by vendor only:
-    feature.node.kubernetes.io/pci-10de.present: "true" #!
-    # NFD's own default labels by class + vendor (0302 = 3D controller):
-    # feature.node.kubernetes.io/pci-0302_10de.present: "true"
----
-# What the POD writes: "any node with an NVIDIA card"
-apiVersion: apps/v1
-kind: DaemonSet                      # a typical user: per-GPU-node agents
-metadata:
-  name: gpu-monitor
-spec:
-  selector:
-    matchLabels: {app: gpu-monitor}
-  template:
-    metadata:
-      labels: {app: gpu-monitor}
-    spec:
-      nodeSelector: #!
-        feature.node.kubernetes.io/pci-10de.present: "true" #!
-      containers:
-      - name: exporter
-        image: my-company/gpu-monitor:1.0
 ```
 
 ![4. Cloud and Karpenter labels: known before the node exists](diagrams/extra/adv-karpenter.svg)
