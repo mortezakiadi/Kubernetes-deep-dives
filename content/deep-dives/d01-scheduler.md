@@ -118,7 +118,7 @@ spec:
     image: my-company/trainer:2.0
 ```
 
-- **Affinity and anti-affinity violations:** a required node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
+- **Affinity and anti-affinity violations:** A <mark class="kw">required</mark> node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
 
 ```yaml
 apiVersion: v1
