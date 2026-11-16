@@ -59,6 +59,96 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 - **Preemption crosses the boundary:** the default scheduler's DefaultPreemption can evict pods placed by your scheduler if they have lower priority, and the other way round. Use PriorityClasses consistently across both.
 - **Autoscalers:** Cluster Autoscaler and Karpenter decide whether to add nodes by simulating the *default* scheduler's rules. Check whether yours acts on pods with a custom `schedulerName` at all, and remember that custom filters it doesn't know about can lead to nodes being added that your scheduler then won't use.
 
+### Configuring a scheduler: stages, plugins and profiles
+
+**Scenario.** The platform team wants pods packed onto fewer nodes so idle nodes can be removed, and a gang plugin for training jobs. They open a `KubeSchedulerConfiguration` and find `profiles`, `plugins`, `pluginConfig`, a dozen stage names and two different `weight` fields. Before changing anything, they need to know what each part controls.
+
+![Configuring a scheduler: stages, plugins and profiles](diagrams/sections/d02-9.svg)
+
+**What the picture shows.** The stages every pod passes through inside kube-scheduler, the plugins the default scheduler puts at each one, and the three parts of the configuration file that control them.
+
+- **The stages (extension points):** kube-scheduler is a pipeline of fixed stages, numbered 1 to 10 in the picture. Each stage is filled with **plugins**, and filtering, scoring and binding are just the best-known stages.
+- **preEnqueue and queueSort (1, 2):** decide whether a pod may enter the queue at all (SchedulingGates holds it back until its gates are removed) and in what order waiting pods are taken (PrioritySort: higher priority first).
+- **preFilter and filter (3):** filtering. Each plugin removes nodes that break one rule: resources, ports, taints, affinity, topology spread, volumes, devices.
+- **postFilter (4):** runs only when no node passed. DefaultPreemption looks for lower-priority pods to evict to make room.
+- **preScore and score (5):** scoring. The only stage where plugins have a **weight**, which says how much each plugin counts in the total.
+- **One plugin, several stages:** NodeResourcesFit filters ("does it fit?") and scores ("how full would the node be?"). NodeAffinity, TaintToleration, InterPodAffinity and PodTopologySpread do both too: their required or hard rules filter, their preferred or soft rules score.
+- **reserve and permit (6, 7):** reserve holds the chosen node's resources (volumes, devices) while binding is in progress. Permit can approve, deny or make a pod **wait**; nothing runs there by default, but gang plugins use it to hold each pod until its whole group has a place.
+- **The binding cycle (8 to 10):** preBind prepares what the pod needs (for example provisioning its volume), bind writes the chosen node into the pod, postBind cleans up. This part runs in the background, so the scheduler can start on the next pod.
+- **profiles[]:** one entry per scheduler name. A pod picks one with `schedulerName`, and one kube-scheduler process can serve several.
+- **plugins:** per stage, which plugins are enabled or disabled, and under `score`, each plugin's weight.
+- **pluginConfig:** per plugin, its own settings (`args`), which change how it calculates rather than whether it runs.
+
+**Going deeper.**
+
+- **Reading a real configuration:** in this example, `plugins` says BalancedResourceAllocation's score counts double, and `pluginConfig` says which resources it compares when it measures balance. BalancedResourceAllocation is already on by default, so listing it under `enabled` only changes its weight; it doesn't add a second copy.
+
+```yaml
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+- schedulerName: default-scheduler     # profiles[]: one scheduler
+  plugins:                             # plugins: which run, per stage #!
+    score:
+      enabled:
+      - name: BalancedResourceAllocation
+        weight: 2                      # counts double vs. other scoring plugins (default 1) #!
+  pluginConfig:                        # pluginConfig: how a plugin calculates #!
+  - name: BalancedResourceAllocation
+    args:
+      resources:                       # which resources to keep in balance #!
+      - name: cpu
+        weight: 1
+      - name: memory
+        weight: 1
+      - name: nvidia.com/gpu           # e.g. also balance GPUs
+        weight: 1
+```
+
+| The `weight` in… | What it weighs |
+|---|---|
+| `plugins.score.enabled[].weight` | This **plugin** against the other scoring plugins |
+| `pluginConfig[].args.resources[].weight` | One **resource** against the others, inside this plugin's own calculation |
+
+- **There isn't an entry for every plugin:**
+  - you only list what you change; everything else keeps its default (on, with its default weight and settings);
+  - only about half the plugins have settings at all, for example NodeResourcesFit (`scoringStrategy`), BalancedResourceAllocation (`resources`), InterPodAffinity, PodTopologySpread (default spread rules), NodeAffinity (an extra node filter for every pod), VolumeBinding and DefaultPreemption; others, like TaintToleration or ImageLocality, can only be switched on or off and weighted;
+  - there's at most one `pluginConfig` entry per plugin in each profile, and each profile can have its own.
+- **Turning off a filter is rarely a good idea:** without TaintToleration, for example, pods would ignore every taint. Custom setups usually *add* plugins, such as a gang plugin at `permit`.
+
+> **Note: one file, several schedulers, and other schedulers' formats**
+>
+> - **kube-scheduler reads a `KubeSchedulerConfiguration`:** the default scheduler, and any second scheduler that is just another copy of kube-scheduler (like the one in the [appendix](#appendix-second-scheduler)), reads this file at startup through `--config`. It decides which plugins run, their weights and their settings. Without a file, the built-in defaults apply.
+> - **One file can define several schedulers:** the file holds a list of **profiles**, each with its own `schedulerName` and plugin setup, all served by one kube-scheduler process. A pod chooses a profile with `schedulerName`, exactly as it would choose a separate scheduler:
+>
+> ```yaml
+> apiVersion: kubescheduler.config.k8s.io/v1
+> kind: KubeSchedulerConfiguration
+> profiles:
+> - schedulerName: default-scheduler        # normal behavior #!
+> - schedulerName: bin-packing-scheduler    # same process, different scoring #!
+>   pluginConfig:
+>   - name: NodeResourcesFit
+>     args:
+>       scoringStrategy:
+>         type: MostAllocated               # pack nodes full instead of spreading #!
+> ```
+>
+> - **So a "second scheduler" can be a second profile:** no second program is needed, as long as you control the scheduler's configuration. On EKS you don't control the default scheduler's, which is why the appendix runs a separate copy.
+> - **Other schedulers have their own formats:** the idea is the same, but the files differ.
+>   - **Volcano:** a ConfigMap (`volcano-scheduler.conf`) listing the scheduling *actions* to run (such as enqueue, allocate, backfill) and the *plugins* in priority tiers (gang, drf, proportion and others).
+>   - **YuniKorn:** a ConfigMap (`yunikorn-configs`) that mainly describes the **queue** hierarchy, with quotas and policies per queue.
+>   - **KAI:** settings through its Helm values and its own custom resources (queues, scheduling shards).
+>   - **Kueue** (a queue in front of a scheduler, not a scheduler): its own configuration file plus custom resources such as `ClusterQueue` and `LocalQueue`.
+
+- **Do other schedulers use these stages?** Only schedulers built on kube-scheduler's framework:
+  - **the same stages:** the default scheduler, any second copy or profile of kube-scheduler, and schedulers built from the scheduler-plugins project (such as coscheduling, which hooks into `permit`);
+  - **Volcano and KAI** (both descend from kube-batch) work in sessions: on each cycle they snapshot the cluster and run a list of **actions** in order (for example enqueue, allocate, preempt, reclaim, backfill; KAI adds consolidation), and their plugins plug decision functions into those actions, which is how they place a whole job at once;
+  - **YuniKorn** runs allocation cycles over a hierarchy of queues, connected to Kubernetes through a "shim";
+  - **the Fargate scheduler** is run by AWS and can't be inspected or configured;
+  - **Kueue** isn't a scheduler: it decides *when* a job may start, and its pods are then placed by a normal scheduler.
+- **What every scheduler shares anyway:** most reuse kube-scheduler's node checks (resources, taints, affinity), so a taint or a `nodeSelector` means the same thing whoever places the pod, and every scheduler ends by binding the pod to a node through the API server, after which the kubelet takes over.
+
 ### How a Pod finds its scheduler
 
 **Scenario.** A team runs one EKS cluster where some pods run on EC2 nodes and others on Fargate. Nobody on the team ever sets `schedulerName` by hand, yet the staging pods always end up on Fargate and everything else on EC2. A new engineer asks how Kubernetes knows which scheduler should handle each pod.
@@ -102,34 +192,9 @@ spec:
 ```
 
 - **Step 3 (scheduling phase, the result):** the modified pod is picked up by the AWS Fargate scheduler.
-- **How pods reach the right scheduler:** the API server doesn't route pods; it only stores them. Every scheduler watches for unscheduled pods (no `nodeName` yet) and takes only the ones whose `schedulerName` matches its own name, like separate buckets.
+- **How pods reach the right scheduler:** the API server doesn't route pods; it only stores them. Every scheduler watches for unscheduled pods (no `nodeName` yet) and takes only the ones whose `schedulerName` matches its own name, like separate buckets. What each scheduler then does with a pod is set by its own configuration; see [Configuring a scheduler](#d02-9).
   - **Bucket A (`default-scheduler`):** the standard kube-scheduler on the control plane places these on EC2 nodes.
   - **Bucket B (`fargate-scheduler`):** the Fargate scheduler takes only these, ignores bucket A, and starts a dedicated micro-VM for each pod.
-
-> **Note: what sets each scheduler's behavior?**
->
-> - **kube-scheduler reads a `KubeSchedulerConfiguration`:** the default scheduler, and any second scheduler that is just another copy of kube-scheduler (like the one in the [appendix](#appendix-second-scheduler)), reads this file at startup through `--config`. It decides which plugins run, their weights and their settings. Without a file, the built-in defaults apply.
-> - **One file can define several schedulers:** the file holds a list of **profiles**, each with its own `schedulerName` and plugin setup, all served by one kube-scheduler process. A pod chooses a profile with `schedulerName`, exactly as it would choose a separate scheduler:
->
-> ```yaml
-> apiVersion: kubescheduler.config.k8s.io/v1
-> kind: KubeSchedulerConfiguration
-> profiles:
-> - schedulerName: default-scheduler        # normal behavior #!
-> - schedulerName: bin-packing-scheduler    # same process, different scoring #!
->   pluginConfig:
->   - name: NodeResourcesFit
->     args:
->       scoringStrategy:
->         type: MostAllocated               # pack nodes full instead of spreading #!
-> ```
->
-> - **So a "second scheduler" can be a second profile:** no second program is needed, as long as you control the scheduler's configuration. On EKS you don't control the default scheduler's, which is why the appendix runs a separate copy.
-> - **Other schedulers have their own formats:** the idea is the same, but the files differ.
->   - **Volcano:** a ConfigMap (`volcano-scheduler.conf`) listing the scheduling *actions* to run (such as enqueue, allocate, backfill) and the *plugins* in priority tiers (gang, drf, proportion and others).
->   - **YuniKorn:** a ConfigMap (`yunikorn-configs`) that mainly describes the **queue** hierarchy, with quotas and policies per queue.
->   - **KAI:** settings through its Helm values and its own custom resources (queues, scheduling shards).
->   - **Kueue** (a queue in front of a scheduler, not a scheduler): its own configuration file plus custom resources such as `ClusterQueue` and `LocalQueue`.
 
 **Going deeper.**
 
