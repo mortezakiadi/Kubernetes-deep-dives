@@ -670,22 +670,6 @@ spec:
             nvidia.com/gpu: 1 #!
 ```
 
-### Filtering outcomes at a glance
-
-**Scenario.** It's 3 a.m. and the on-call engineer has a pod stuck in `Pending` with a long event message. They need a one-glance reference that turns "which rule failed" into "what to change", without re-reading the scheduler docs.
-
-![Filtering outcomes](diagrams/sections/d01-2.svg)
-
-**What the picture shows.** A cheat sheet for the filtering phase, in two parts.
-
-- **Summary table (top):** each constraint, what kind of rule it is, and what happens when a node fails it.
-  - **Resources** (physical): node ignored for insufficient CPU or memory.
-  - **Taints** (policy): node ignored unless the pod tolerates the taint.
-  - **Affinity** (logical): node ignored because it violates a placement rule.
-  - **Selector** (label-based): node ignored because a label doesn't match.
-- **The funnel (bottom):** the Kubernetes scheduler starts with a pending pod and all 100+ cluster nodes. They pour through five filters in turn: **resource filter** (CPU/memory over capacity), **node selector filter** (label mismatch), **taint filter** (no toleration), **affinity/anti-affinity filter** (placement violation) and **port conflict filter** (hostPort in use). Nodes rejected at each layer drop out to the sides.
-- **Feasible nodes:** whatever reaches the bottom of the funnel is the candidate list handed to the **scoring phase**. If nothing reaches the bottom, the pod stays `Pending`.
-
 ### Phase 2: scoring plugins
 
 **Scenario.** Three nodes pass filtering, yet a team notices the scheduler keeps putting their pods on the same node, even though another node is nearly empty. One day it places a critical API pod on a node that is already 90% full and the API slows down. Why did the scheduler prefer that node?
