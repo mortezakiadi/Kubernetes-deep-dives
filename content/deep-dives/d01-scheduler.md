@@ -208,7 +208,7 @@ spec:
 >         image: my-company/report-builder:3.1
 >     ```
 >
->     **What if these were *required* instead?** The story changes. Required rules are pass/fail filters, not scores: there's no `weight` or `preference`, a node either passes or is removed, and if no node passes the pod stays `Pending` instead of running somewhere less ideal.
+>     **What if these were *required* instead?** The story changes. Required rules are pass/fail <mark class="kw-act">filters</mark>, not <mark class="kw-act">scores</mark>: there's no `weight` or `preference`, a node either passes or is removed, and if no node passes the pod stays `Pending` instead of running somewhere less ideal.
 >
 >     **One term or two: AND vs. OR.** A required rule lists its conditions under `nodeSelectorTerms`, and how you group them decides the logic. Conditions inside the *same* term must all match (AND); separate terms are alternatives, and matching any one is enough (OR). So you have to decide whether you mean "SSD **and** zone a" or "SSD **or** zone a":
 >
