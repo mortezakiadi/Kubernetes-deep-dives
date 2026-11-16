@@ -588,6 +588,38 @@ spec:
 > **Where they can collide:** say zone c has only one node. Anti-affinity lets zone c hold just one replica. The spread rule then caps the other zones at 2 each (at most 1 more than zone c), so only 5 replicas can run and the 6th stays `Pending`, even though zones a and b have empty nodes. The fixes are to add a node to zone c, set `whenUnsatisfiable: ScheduleAnyway` so the zone spread becomes a preference, or make the anti-affinity `preferred`.
 >
 > **Could topology spread do both jobs?** Yes: list two constraints, one with `topologyKey: kubernetes.io/hostname` and one with the zone key, each `maxSkew: 1`. The difference is that a per-node spread allows a second replica on a node once every node has one, while required anti-affinity never does.
+>
+> ```yaml
+> # Topology spread doing both jobs: one constraint per node, one per zone.
+> apiVersion: apps/v1
+> kind: Deployment
+> metadata:
+>   name: api
+> spec:
+>   replicas: 6
+>   selector:
+>     matchLabels: {app: api}
+>   template:
+>     metadata:
+>       labels: {app: api}
+>     spec:
+>       topologySpreadConstraints:                       # no podAntiAffinity needed
+>       - maxSkew: 1
+>         topologyKey: kubernetes.io/hostname            # balanced across NODES #!
+>         whenUnsatisfiable: DoNotSchedule
+>         labelSelector:
+>           matchLabels: {app: api}
+>       - maxSkew: 1
+>         topologyKey: topology.kubernetes.io/zone       # balanced across ZONES #!
+>         whenUnsatisfiable: DoNotSchedule
+>         labelSelector:
+>           matchLabels: {app: api}
+>       containers:
+>       - name: api
+>         image: my-company/api:4.2
+> ```
+>
+> With 9 nodes this gives the same result as before: one replica per node, 2 per zone. Scale to 12 replicas and the two versions differ: here replicas 10 to 12 can double up on nodes (as long as nodes and zones stay within 1 of each other), while the anti-affinity version leaves them `Pending` because every node already has one.
 
 - **Port conflicts:** if the pod asks for a `hostPort` (say port 80 on the EC2 instance) and another pod on that node already uses it, the node is out. Two tenants can't share one mailbox.
 
