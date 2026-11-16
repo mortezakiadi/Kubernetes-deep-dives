@@ -654,6 +654,18 @@ spec:
 
 - A few things follow from that table. GPU Feature Discovery's `nvidia.com/gpu.count` label is still only a label: the scheduler reserves against the device plugin's `nvidia.com/gpu` count, never against it. GPU Feature Discovery builds on Node Feature Discovery, adding GPU details to its generic "there's an NVIDIA card" label. Karpenter's labels are known *before* a node exists, so they can make Karpenter launch the right instance; GPU Feature Discovery can only label a node once it's running. DRA doesn't need any of these labels, though they can still be used alongside it (for example to keep a node pool for one GPU model). And NVIDIA's DCGM exporter, often seen next to these, only reports GPU usage and health for monitoring; the scheduler never reads it.
 
+**How each mechanism works, step by step.** The same cluster in each picture: a control plane on the left, a GPU node on the right, numbered arrows explained underneath.
+
+![1. Device plugin: a GPU count](diagrams/extra/adv-device-plugin.svg)
+
+![2. GPU Feature Discovery: GPU details as node labels](diagrams/extra/adv-gfd.svg)
+
+![3. Node Feature Discovery: generic hardware labels](diagrams/extra/adv-nfd.svg)
+
+![4. Cloud and Karpenter labels: known before the node exists](diagrams/extra/adv-karpenter.svg)
+
+![5. DRA: one entry per device](diagrams/extra/adv-dra.svg)
+
 - For GPUs, these same filters do the steering.
 - `nvidia.com/gpu: 1` is purely resource-based, so every GPU counts the same: a 16 GB T4 and an 80 GB A100 are both "1".
 

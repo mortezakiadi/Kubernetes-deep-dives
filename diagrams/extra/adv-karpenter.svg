@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 835" width="1180" height="835" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0" font-weight="700" fill="#1f2933">4. Cloud and Karpenter labels</tspan></text>
+<rect x="24" y="50" width="71" height="22" rx="11" fill="#1e4fb8"/>
+<text x="59.5" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="59.5" dy="0" font-weight="700" fill="#ffffff">LABEL</tspan></text>
+<text x="107" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="107" dy="0" font-weight="400" fill="#5b6675">GPU facts come from the instance type, so they are known BEFORE the node exists.</tspan></text>
+<rect x="24" y="86" width="1132" height="78" rx="14" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="38" y="108" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#e08a1e" text-anchor="start"><tspan x="38" dy="0" font-weight="700" fill="#e08a1e">AWS cloud</tspan></text>
+<rect x="275" y="98" width="320" height="54" rx="8" fill="#f8fafc" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="435.0" y="121.28" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="435.0" dy="0" font-weight="700" fill="#1f2933">EC2 instance types</tspan><tspan x="435.0" dy="16.080000000000002" font-weight="400" fill="#1f2933">p5: 8 × H100 · p4d: 8 × A100 · g5: A10G …</tspan></text>
+<rect x="800" y="98" width="340" height="54" rx="8" fill="#fff3d6" stroke="#d48a1c" stroke-width="1.6"/>
+<text x="970.0" y="121.125" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="970.0" dy="0" font-weight="700" fill="#1f2933">New EC2 GPU instance</tspan><tspan x="970.0" dy="16.75" font-weight="400" fill="#1f2933">launched by Karpenter</tspan></text>
+<rect x="24" y="180" width="1132" height="340" rx="14" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.6"/>
+<text x="38" y="202" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7b8794" text-anchor="start"><tspan x="38" dy="0" font-weight="700" fill="#7b8794">Kubernetes cluster (EKS)</tspan></text>
+<rect x="250" y="210" width="370" height="294" rx="14" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="264" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start"><tspan x="264" dy="0" font-weight="700" fill="#3b6fd8">Control plane</tspan></text>
+<rect x="640" y="210" width="516" height="294" rx="14" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="654" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start"><tspan x="654" dy="0" font-weight="700" fill="#2f9e5b">Inside the cluster</tspan></text>
+<rect x="275" y="244" width="320" height="96" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="435.0" y="279.75" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="435.0" dy="0" font-weight="700" fill="#1f2933">API server</tspan><tspan x="435.0" dy="16.75" font-weight="400" fill="#1f2933">pod is Pending:</tspan><tspan x="435.0" dy="16.75" font-weight="400" fill="#1f2933">no node matches</tspan></text>
+<rect x="275" y="420" width="320" height="60" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="435.0" y="454.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="435.0" dy="0" font-weight="700" fill="#1f2933">kube-scheduler</tspan></text>
+<circle cx="128" cy="286" r="11" fill="#ffffff" stroke="#1f2933" stroke-width="1.8"/><path d="M110,324 Q110,301 128,301 Q146,301 146,324" fill="#ffffff" stroke="#1f2933" stroke-width="1.8"/>
+<text x="128" y="342" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="128" dy="0" font-weight="700" fill="#1f2933">User / CI</tspan></text>
+<rect x="44" y="380" width="190" height="100" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="139.0" y="418.72999999999996" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="139.0" dy="0" font-weight="700" fill="#1f2933">Pod</tspan><tspan x="139.0" dy="15.41" font-weight="400" fill="#1f2933">affinity on karpenter.k8s.aws/</tspan><tspan x="139.0" dy="15.41" font-weight="400" fill="#1f2933">instance-gpu-memory</tspan></text>
+<rect x="664" y="244" width="230" height="64" rx="8" fill="#fff3d6" stroke="#d48a1c" stroke-width="1.6"/>
+<text x="779.0" y="272.125" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="779.0" dy="0" font-weight="700" fill="#1f2933">Karpenter</tspan><tspan x="779.0" dy="16.75" font-weight="400" fill="#1f2933">Deployment</tspan></text>
+<rect x="664" y="400" width="466" height="88" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="897.0" y="432.24" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="897.0" dy="0" font-weight="700" fill="#1f2933">New node, labels set at launch</tspan><tspan x="897.0" dy="16.080000000000002" font-weight="400" fill="#1f2933">node.kubernetes.io/instance-type=p4d.24xlarge</tspan><tspan x="897.0" dy="16.080000000000002" font-weight="400" fill="#1f2933">karpenter.k8s.aws/instance-gpu-name=a100 · …/instance-gpu-memory=81920</tspan></text>
+<path d="M234,430 L275,450" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<circle cx="254.5" cy="440.0" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="254.5" y="444.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="254.5" dy="0" font-weight="700" fill="#ffffff">1</tspan></text>
+<path d="M435,420 L435,340" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<circle cx="435.0" cy="380.0" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="435.0" y="384.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="435.0" dy="0" font-weight="700" fill="#ffffff">2</tspan></text>
+<path d="M595,270 L664,270" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<circle cx="629.5" cy="270.0" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="629.5" y="274.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="629.5" dy="0" font-weight="700" fill="#ffffff">3</tspan></text>
+<path d="M720,244 L720,200 L435,200 L435,152" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<circle cx="577.5" cy="200.0" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="577.5" y="204.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="577.5" dy="0" font-weight="700" fill="#ffffff">4</tspan></text>
+<path d="M860,244 L860,196 L970,196 L970,152" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<circle cx="915.0" cy="196.0" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="915.0" y="200.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="915.0" dy="0" font-weight="700" fill="#ffffff">5</tspan></text>
+<path d="M1050,152 L1050,400" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<circle cx="1050.0" cy="288.4" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="1050.0" y="292.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="1050.0" dy="0" font-weight="700" fill="#ffffff">6</tspan></text>
+<path d="M664,470 L595,456" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<circle cx="629.5" cy="463.0" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="629.5" y="467.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="629.5" dy="0" font-weight="700" fill="#ffffff">7</tspan></text>
+<rect x="24" y="536" width="1132" height="279" rx="12" fill="#fbfbfc" stroke="#d5dbe1" stroke-width="1.6"/>
+<text x="40" y="562" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start"><tspan x="40" dy="0" font-weight="700" fill="#5b6675">Step by step</tspan></text>
+<circle cx="52" cy="586" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="52" y="590.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="52" dy="0" font-weight="700" fill="#ffffff">1</tspan></text>
+<text x="74" y="590" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="74" dy="0" font-weight="400" fill="#1f2933">A pod asks for a GPU with more than 40 GB of memory.</tspan></text>
+<circle cx="52" cy="630" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="52" y="634.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="52" dy="0" font-weight="700" fill="#ffffff">2</tspan></text>
+<text x="74" y="634" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="74" dy="0" font-weight="400" fill="#1f2933">The scheduler finds no matching node; the pod stays Pending.</tspan></text>
+<circle cx="52" cy="674" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="52" y="678.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="52" dy="0" font-weight="700" fill="#ffffff">3</tspan></text>
+<text x="74" y="678" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="74" dy="0" font-weight="400" fill="#1f2933">Karpenter notices the pending pod.</tspan></text>
+<circle cx="52" cy="718" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="52" y="722.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="52" dy="0" font-weight="700" fill="#ffffff">4</tspan></text>
+<text x="74" y="722" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="74" dy="0" font-weight="400" fill="#1f2933">Karpenter checks which instance types match</tspan><tspan x="74" dy="17" font-weight="400" fill="#1f2933">(it knows each type's GPU model, memory, count).</tspan></text>
+<circle cx="612" cy="586" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="612" y="590.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="612" dy="0" font-weight="700" fill="#ffffff">5</tspan></text>
+<text x="634" y="590" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="634" dy="0" font-weight="400" fill="#1f2933">Karpenter launches a matching instance.</tspan></text>
+<circle cx="612" cy="630" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="612" y="634.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="612" dy="0" font-weight="700" fill="#ffffff">6</tspan></text>
+<text x="634" y="634" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="634" dy="0" font-weight="400" fill="#1f2933">The node joins with those labels already set.</tspan></text>
+<circle cx="612" cy="674" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
+<text x="612" y="678.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="612" dy="0" font-weight="700" fill="#ffffff">7</tspan></text>
+<text x="634" y="678" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="634" dy="0" font-weight="400" fill="#1f2933">The scheduler places the pod on the new node.</tspan></text>
+<text x="40" y="791" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#9a5b06" text-anchor="start"><tspan x="40" dy="0" font-weight="700" fill="#9a5b06">GPU Feature Discovery can only label a node once it's running; these labels exist before launch.</tspan></text>
+</svg>
