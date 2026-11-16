@@ -375,7 +375,7 @@ spec:
 >         - operator: Exists      # no key, no effect: tolerates ALL taints, forever  #!
 >         ```
 >
->         This is by design: taints and tolerations are a *placement* tool, not a *security* tool, and some pods legitimately must stay put (node agents run as DaemonSets, such as the CNI, log shippers and the GPU device plugin, get indefinite tolerations from Kubernetes itself). If you need to enforce it, put the control where the pod's author can't change it:
+>         This is by design: <mark class="kw">taints</mark> and tolerations are a *placement* tool, not a *security* tool, and some pods legitimately must stay put (node agents run as DaemonSets, such as the CNI, log shippers and the GPU device plugin, get indefinite tolerations from Kubernetes itself). If you need to enforce it, put the control where the pod's author can't change it:
 >
 >         **1. An admission policy that rejects such pods.** The built-in `ValidatingAdmissionPolicy` (stable since Kubernetes 1.30), or Kyverno or OPA Gatekeeper. This one rejects any pod outside `kube-system` that tolerates the `maintenance` taint, or every taint, without a time limit:
 >
