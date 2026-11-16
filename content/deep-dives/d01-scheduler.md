@@ -296,7 +296,7 @@ spec:
 >         image: my-company/trainer:2.0
 >     ```
 >
->     The full version, with node affinity and pod anti-affinity to spread replicas, is the "dedicated GPU nodes" example right below this note.
+>     The full version, with node affinity and pod anti-affinity to spread replicas, is the ["dedicated GPU nodes" example](#dedicated-gpu-yaml) right below this note.
 >
 > **The long affinity names, decoded.** Each name has two halves: *when scheduling* and *while running*.
 >
@@ -445,6 +445,8 @@ spec:
 >                 - RemovePodsViolatingInterPodAntiAffinity  #!
 >         ```
 > - **The full "dedicated GPU nodes" example is in the YAML right below this note.**
+
+<div id="dedicated-gpu-yaml" class="anchor"></div>
 
 ```yaml
 # 1. The GPU nodes: a label (to be found) and a taint (to keep others out)
