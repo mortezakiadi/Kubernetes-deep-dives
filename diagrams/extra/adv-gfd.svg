@@ -8,7 +8,7 @@
 <rect x="24" y="86" width="1132" height="78" rx="14" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
 <text x="38" y="108" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#e08a1e" text-anchor="start"><tspan x="38" dy="0" font-weight="700" fill="#e08a1e">AWS cloud</tspan></text>
 <rect x="800" y="98" width="340" height="54" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6"/>
-<text x="970.0" y="121.125" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="970.0" dy="0" font-weight="700" fill="#1f2933">EC2 GPU instance (e.g. p4d.24xlarge)</tspan><tspan x="970.0" dy="16.75" font-weight="400" fill="#1f2933">8 × NVIDIA A100 80 GB</tspan></text>
+<text x="970.0" y="121.125" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="970.0" dy="0" font-weight="700" fill="#1f2933">EC2 GPU instance (e.g. p4de.24xlarge)</tspan><tspan x="970.0" dy="16.75" font-weight="400" fill="#1f2933">8 × NVIDIA A100 80 GB</tspan></text>
 <rect x="24" y="180" width="1132" height="340" rx="14" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.6"/>
 <text x="38" y="202" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7b8794" text-anchor="start"><tspan x="38" dy="0" font-weight="700" fill="#7b8794">Kubernetes cluster (EKS)</tspan></text>
 <rect x="250" y="210" width="370" height="294" rx="14" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
