@@ -647,7 +647,7 @@ spec:
 | Mechanism | Kind | What it publishes | How a pod uses it |
 |---|---|---|---|
 | **Device plugin** (NVIDIA; also AMD `amd.com/gpu`, AWS Neuron `aws.amazon.com/neuron`) | **Count** | A count in the node's capacity, e.g. `nvidia.com/gpu: 8` | `resources.limits` |
-| **GPU Feature Discovery** (NVIDIA, installed with the GPU Operator) | **Label** | Node labels with GPU details: model, memory, count | `nodeSelector` / node affinity |
+| **GPU Feature Discovery** (NVIDIA, installed with the GPU Operator; needs NFD running) | **Label** | Node labels with GPU details: model, memory, count | `nodeSelector` / node affinity |
 | **Node Feature Discovery** | **Label** | Generic hardware labels, e.g. `feature.node.kubernetes.io/pci-10de.present` (10de = NVIDIA) | `nodeSelector` / node affinity |
 | **Cloud and Karpenter labels** | **Label** | Labels from the instance type: `node.kubernetes.io/instance-type`, `karpenter.k8s.aws/instance-gpu-name`, `instance-gpu-memory`, `instance-gpu-count` | Node affinity, or NodePool requirements |
 | **DRA driver** | **DRA** (per device) | One ResourceSlice entry per device, with its attributes | A `ResourceClaim` with CEL selectors |

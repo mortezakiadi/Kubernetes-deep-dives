@@ -28,9 +28,9 @@
 <rect x="664" y="244" width="230" height="64" rx="8" fill="#fff3d6" stroke="#d48a1c" stroke-width="1.6"/>
 <text x="779.0" y="272.125" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="779.0" dy="0" font-weight="700" fill="#1f2933">GPU Feature Discovery</tspan><tspan x="779.0" dy="16.75" font-weight="400" fill="#1f2933">DaemonSet pod</tspan></text>
 <rect x="664" y="420" width="230" height="60" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6"/>
-<text x="779.0" y="446.125" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="779.0" dy="0" font-weight="700" fill="#1f2933">NFD worker</tspan><tspan x="779.0" dy="16.75" font-weight="400" fill="#1f2933">DaemonSet pod</tspan></text>
+<text x="779.0" y="446.125" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="779.0" dy="0" font-weight="700" fill="#1f2933">NFD worker</tspan><tspan x="779.0" dy="16.75" font-weight="400" fill="#1f2933">DaemonSet pod · required</tspan></text>
 <rect x="930" y="420" width="200" height="60" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6"/>
-<text x="1030.0" y="446.125" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="1030.0" dy="0" font-weight="700" fill="#1f2933">NFD master</tspan><tspan x="1030.0" dy="16.75" font-weight="400" fill="#1f2933">Deployment</tspan></text>
+<text x="1030.0" y="446.125" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="1030.0" dy="0" font-weight="700" fill="#1f2933">NFD master</tspan><tspan x="1030.0" dy="16.75" font-weight="400" fill="#1f2933">Deployment · required</tspan></text>
 <path d="M779,308 L779,420" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
 <circle cx="779.0" cy="364.0" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
 <text x="779.0" y="368.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="779.0" dy="0" font-weight="700" fill="#ffffff">1</tspan></text>
@@ -48,6 +48,7 @@
 <text x="435.0" y="384.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="435.0" dy="0" font-weight="700" fill="#ffffff">5</tspan></text>
 <rect x="24" y="536" width="1132" height="218" rx="12" fill="#fbfbfc" stroke="#d5dbe1" stroke-width="1.6"/>
 <text x="40" y="562" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start"><tspan x="40" dy="0" font-weight="700" fill="#5b6675">Step by step</tspan></text>
+<text x="150" y="562" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b42318" text-anchor="start"><tspan x="150" dy="0" font-weight="700" fill="#b42318">Prerequisite: NFD (worker + master) must already run. GFD only hands its findings to NFD; NFD writes the labels.</tspan></text>
 <circle cx="52" cy="586" r="12" fill="#1e4fb8" stroke="#ffffff" stroke-width="2"/>
 <text x="52" y="590.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle"><tspan x="52" dy="0" font-weight="700" fill="#ffffff">1</tspan></text>
 <text x="74" y="590" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="74" dy="0" font-weight="400" fill="#1f2933">GFD reads the GPUs (model, memory, count) and writes a features file.</tspan></text>
