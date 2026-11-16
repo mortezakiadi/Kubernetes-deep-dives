@@ -62,6 +62,40 @@ profiles:
           weight: 1
 ```
 
+<div id="fit-check-yaml" class="anchor"></div>
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api
+spec:
+  containers:
+  - name: api
+    image: my-company/api:1.4
+    resources:
+      requests:          # the scheduler adds up requests, not real usage #!
+        cpu: "500m" #!
+        memory: "1Gi" #!
+---
+# kube-scheduler's own config file, passed with --config. NOT applied with kubectl.
+# Without it, the scheduler uses these same built-in defaults.
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+- schedulerName: default-scheduler
+  pluginConfig:
+  - name: NodeResourcesFit     # filter: does the pod fit? + score: which node is best? #!
+    args:
+      scoringStrategy:
+        type: LeastAllocated   # the default (spread); MostAllocated = bin-pack #!
+        resources:
+        - name: cpu
+          weight: 1
+        - name: memory
+          weight: 1
+```
+
 > **Note: when would you actually write a `KubeSchedulerConfiguration`?**
 >
 > Only when you want to *change* the scheduler's built-in settings. Two things to know first:
@@ -72,6 +106,19 @@ profiles:
 >   - **Managed clusters** (EKS, GKE, AKS): the provider runs the default scheduler, so you can't change its file. Instead, run a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete, ready-to-apply example is in [Appendix A: Running a second scheduler](#appendix-second-scheduler). For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see [Built-in plugins, and what a second scheduler changes](#d01-9).
 
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api
+spec:
+  nodeSelector: #!
+    disktype: ssd        # only nodes labelled disktype=ssd pass the filter #!
+  containers:
+  - name: api
+    image: my-company/api:1.4
+```
 
 ```yaml
 apiVersion: v1
@@ -118,7 +165,64 @@ spec:
     image: my-company/trainer:2.0
 ```
 
+```yaml
+# 1. The taint lives on the NODE. You add it with a command:
+#      kubectl taint nodes gpu-node-1 dedicated=gpu:NoSchedule #!
+#    (or in the node group / Karpenter NodePool config). The node then looks like this:
+apiVersion: v1
+kind: Node
+metadata:
+  name: gpu-node-1
+spec:
+  taints: #!
+  - key: dedicated #!
+    value: gpu #!
+    effect: NoSchedule        # pods without a matching toleration are filtered out #!
+---
+# 2. The toleration lives on the POD that is allowed in
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer
+spec:
+  tolerations: #!
+  - key: dedicated #!
+    operator: Equal
+    value: gpu #!
+    effect: NoSchedule #!
+  containers:
+  - name: trainer
+    image: my-company/trainer:2.0
+```
+
 - **Affinity and anti-affinity violations:** A <mark class="kw">required</mark> node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-1
+  labels:
+    app: api
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution: #!
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["us-east-1a"] #!
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution: #!
+      - labelSelector:
+          matchLabels:
+            app: api
+        topologyKey: kubernetes.io/hostname   # never two api pods on one node #!
+  containers:
+  - name: api
+    image: my-company/api:1.4
+```
 
 ```yaml
 apiVersion: v1
@@ -546,6 +650,31 @@ spec:
         image: nginx:1.27
 ```
 
+```yaml
+# 6 replicas spread evenly across 3 zones: 2 per zone.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 6
+  selector:
+    matchLabels: {app: web}
+  template:
+    metadata:
+      labels: {app: web}
+    spec:
+      topologySpreadConstraints: #!
+      - maxSkew: 1                                # zones may differ by at most 1 pod #!
+        topologyKey: topology.kubernetes.io/zone  # a "place" is a zone #!
+        whenUnsatisfiable: DoNotSchedule          # hard rule; ScheduleAnyway = soft #!
+        labelSelector:
+          matchLabels: {app: web}                 # which pods to count
+      containers:
+      - name: web
+        image: nginx:1.27
+```
+
 > **Note: using pod anti-affinity and topology spread together**
 >
 > A common case is a service that must survive both a **node** failure and a **zone** outage, say 6 replicas of an API. Each rule covers one level:
@@ -637,578 +766,23 @@ spec:
       hostPort: 80       # only one pod per node can claim host port 80 #!
 ```
 
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: edge-proxy
+spec:
+  containers:
+  - name: proxy
+    image: nginx:1.27
+    ports:
+    - containerPort: 8080
+      hostPort: 80       # only one pod per node can claim host port 80 #!
+```
+
 **Going deeper.**
 
-- How a node tells Kubernetes about its GPUs is the main thing that sets DRA apart. There are two kinds of advertising, and before DRA they came from different tools:
-  - **Labels** are information about the node ("this node has A100s with 80 GB"). They only help you *choose a node*, with a `nodeSelector` or node affinity.
-  - **A count** is something the scheduler reserves ("this node has 8 GPUs, 3 are free"). The **device plugin** publishes it, and a pod asks for it with `nvidia.com/gpu: 1`. The scheduler only picks the node; the device plugin then hands over *any* free GPU on it.
-  - **DRA** replaces both with one entry per **device** (a ResourceSlice) that carries that device's own attributes. The scheduler matches a claim against individual GPUs and records exactly which one the pod gets.
-
-| Mechanism | Kind | What it publishes | How a pod uses it |
-|---|---|---|---|
-| **Device plugin** (NVIDIA; also AMD `amd.com/gpu`, AWS Neuron `aws.amazon.com/neuron`) | **Count** | A count in the node's capacity, e.g. `nvidia.com/gpu: 8` | `resources.limits` |
-| **Node Feature Discovery** | **Label** | Generic hardware labels, e.g. `feature.node.kubernetes.io/pci-10de.present` (10de = NVIDIA) | `nodeSelector` / node affinity |
-| **GPU Feature Discovery** (NVIDIA, installed with the GPU Operator; needs NFD running) | **Label** | Node labels with GPU details: model, memory, count | `nodeSelector` / node affinity |
-| **Cloud and Karpenter labels** | **Label** | Labels from the instance type: `node.kubernetes.io/instance-type`, `karpenter.k8s.aws/instance-gpu-name`, `instance-gpu-memory`, `instance-gpu-count` | Node affinity, or NodePool requirements |
-| **DRA driver** | **DRA** (per device) | One ResourceSlice entry per device, with its attributes | A `ResourceClaim` with CEL selectors |
-
-- A few things follow from that table. GPU Feature Discovery's `nvidia.com/gpu.count` label is still only a label: the scheduler reserves against the device plugin's `nvidia.com/gpu` count, never against it. GPU Feature Discovery builds on Node Feature Discovery, adding GPU details to its generic "there's an NVIDIA card" label. Karpenter's labels are known *before* a node exists, so they can make Karpenter launch the right instance; GPU Feature Discovery can only label a node once it's running. DRA doesn't need any of these labels, though they can still be used alongside it (for example to keep a node pool for one GPU model). And NVIDIA's DCGM exporter, often seen next to these, only reports GPU usage and health for monitoring; the scheduler never reads it.
-
-**How each mechanism works, step by step.** The same cluster in each picture: a control plane on the left, a GPU node on the right, numbered arrows explained underneath.
-
-![1. Device plugin: a GPU count](diagrams/extra/adv-device-plugin.svg)
-
-> **Installing it.** Each GPU node first needs the NVIDIA driver and container toolkit; the EKS-optimized accelerated AMIs already include them. Then install the plugin with Helm:
->
-> ```bash
-> helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
-> helm repo update
-> helm upgrade -i nvdp nvdp/nvidia-device-plugin \
->   --namespace nvidia-device-plugin --create-namespace
-> ```
->
-> On EKS Auto Mode the plugin is already built in. The NVIDIA GPU Operator is the all-in-one alternative: it installs the driver, toolkit, device plugin, NFD and GPU Feature Discovery together.
->
-> **Check (device plugin):** `kubectl get nodes -o custom-columns=NAME:.metadata.name,GPUS:.status.allocatable.nvidia\.com/gpu`
-
-```yaml
-# What the NODE shows (written by the kubelet; see it with kubectl get node -o yaml)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-status:
-  capacity:
-    nvidia.com/gpu: "8"              # reported by the device plugin #!
-  allocatable:
-    nvidia.com/gpu: "8"              # what the scheduler counts against
----
-# What the POD writes: just a number
-apiVersion: v1
-kind: Pod
-metadata:
-  name: train
-spec:
-  containers:
-  - name: trainer
-    image: my-company/trainer:2.0
-    resources:
-      limits:
-        nvidia.com/gpu: 1            # "any one free GPU on the node" #!
-```
-
-![2. Node Feature Discovery: generic hardware labels](diagrams/extra/adv-nfd.svg)
-
-> **Installing it.** NFD has its own Helm chart:
->
-> ```bash
-> helm install nfd oci://registry.k8s.io/nfd/charts/node-feature-discovery \
->   --namespace node-feature-discovery --create-namespace
-> ```
->
-> Skip this if you use the GPU Operator, or the device plugin chart with `gfd.enabled=true`: both install NFD for you.
->
-> **Check (NFD):** `kubectl get node gpu-node-1 --show-labels | tr ',' '\n' | grep feature.node`
-
-```yaml
-# What the NODE shows (labels written by the NFD master)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    # The GPU Operator configures NFD to label by vendor only:
-    feature.node.kubernetes.io/pci-10de.present: "true" #!
-    # NFD's own default labels by class + vendor (0302 = 3D controller):
-    # feature.node.kubernetes.io/pci-0302_10de.present: "true"
----
-# What the POD writes: "any node with an NVIDIA card"
-apiVersion: apps/v1
-kind: DaemonSet                      # a typical user: per-GPU-node agents
-metadata:
-  name: gpu-monitor
-spec:
-  selector:
-    matchLabels: {app: gpu-monitor}
-  template:
-    metadata:
-      labels: {app: gpu-monitor}
-    spec:
-      nodeSelector: #!
-        feature.node.kubernetes.io/pci-10de.present: "true" #!
-      containers:
-      - name: exporter
-        image: my-company/gpu-monitor:1.0
-```
-
-![3. GPU Feature Discovery: GPU details as node labels](diagrams/extra/adv-gfd.svg)
-
-> **Installing it.** GPU Feature Discovery now ships in the same repository and Helm chart as the device plugin, so you turn it on there. The chart also installs NFD for you unless you say you already have it:
->
-> ```bash
-> helm upgrade -i nvdp nvdp/nvidia-device-plugin \
->   --namespace nvidia-device-plugin --create-namespace \
->   --set gfd.enabled=true
-> # NFD already installed separately? add: --set nfd.enabled=false
-> ```
->
-> With the GPU Operator, GPU Feature Discovery is on by default.
->
-> **Check (GFD):** `kubectl get node gpu-node-1 --show-labels | tr ',' '\n' | grep nvidia.com/gpu`
-
-```yaml
-# What the NODE shows (labels written by GPU Feature Discovery via NFD)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB
-    nvidia.com/gpu.memory: "81920"   # per-GPU memory, in MiB #!
-    nvidia.com/gpu.family: ampere
-    nvidia.com/gpu.count: "8"        # only a label: nothing counts against it
----
-# What the POD writes: pick a node by label, then still ask for a GPU
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: nvidia.com/gpu.memory #!
-            operator: Gt #!
-            values: ["40000"]
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1            # the device plugin still allocates the GPU
-```
-
-![4. Cloud and Karpenter labels: known before the node exists](diagrams/extra/adv-karpenter.svg)
-
-> **Installing it.** `node.kubernetes.io/instance-type` needs nothing: the kubelet sets it on every node. The `karpenter.k8s.aws/...` labels come from Karpenter, which you install with Helm once its IAM role and interruption queue exist (Karpenter's getting-started guide creates them):
->
-> ```bash
-> helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
->   --version "${KARPENTER_VERSION}" --namespace kube-system \
->   --set settings.clusterName="${CLUSTER_NAME}" \
->   --set settings.interruptionQueue="${CLUSTER_NAME}" \
->   --wait
-> ```
->
-> Then apply an `EC2NodeClass` and a `NodePool` like the one below. On EKS Auto Mode, Karpenter is built in and run by AWS, and the same labels use the `eks.amazonaws.com/` prefix instead (for example `eks.amazonaws.com/instance-gpu-name`).
->
-> **Check (Karpenter):** `kubectl get nodes -L karpenter.k8s.aws/instance-gpu-name,karpenter.k8s.aws/instance-gpu-memory`
-
-```yaml
-# A Karpenter NodePool that may launch big-GPU instances
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu
-spec:
-  template:
-    spec:
-      nodeClassRef:
-        group: karpenter.k8s.aws
-        kind: EC2NodeClass
-        name: default
-      requirements:
-      - key: karpenter.k8s.aws/instance-gpu-name #!
-        operator: In
-        values: ["a100", "h100"]
-      - key: karpenter.k8s.aws/instance-gpu-memory   # per GPU, in MiB #!
-        operator: Gt
-        values: ["40000"]
-      taints:
-      - key: nvidia.com/gpu
-        effect: NoSchedule
----
-# What the POD writes: affinity on the same labels Karpenter will set
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: karpenter.k8s.aws/instance-gpu-memory #!
-            operator: Gt
-            values: ["40000"]
-  tolerations:
-  - key: nvidia.com/gpu
-    operator: Exists
-    effect: NoSchedule
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-```
-
-![5. DRA: one entry per device](diagrams/extra/adv-dra.svg)
-
-> **Installing it.** DRA itself is built into Kubernetes 1.34 and later; you install a DRA driver for your hardware. For NVIDIA GPUs:
->
-> ```bash
-> helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
-> helm repo update
-> helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
->   --create-namespace --namespace nvidia-dra-driver-gpu \
->   --set resources.computeDomains.enabled=false \
->   --set gpuResourcesEnabledOverride=true
-> ```
->
-> Don't run the classic device plugin on the same nodes. Version requirements, the chart's new name and EKS caveats are in "How do you install DRA?" under the DRA example further down.
->
-> **Check (DRA):** `kubectl get deviceclass` and `kubectl get resourceslices`
-
-```yaml
-# What the DRIVER publishes (one ResourceSlice per node, one entry per GPU)
-apiVersion: resource.k8s.io/v1
-kind: ResourceSlice
-metadata:
-  name: gpu-node-1-gpu.nvidia.com-x8k2p   # generated name
-spec:
-  driver: gpu.nvidia.com
-  nodeName: gpu-node-1
-  pool:
-    name: gpu-node-1
-    generation: 1
-    resourceSliceCount: 1
-  devices:
-  - name: gpu-0 #!
-    attributes:
-      productName: {string: NVIDIA A100-SXM4-80GB}
-      architecture: {string: Ampere} #!
-    capacity:
-      memory: {value: 80Gi} #!
-  - name: gpu-1
-    # ... one entry for each of the 8 GPUs
----
-# What the POD writes: a claim that describes the device (full example below)
-apiVersion: resource.k8s.io/v1
-kind: ResourceClaimTemplate
-metadata:
-  name: gpu-40gb-plus
-spec:
-  spec:
-    devices:
-      requests:
-      - name: gpu
-        exactly:
-          deviceClassName: gpu.nvidia.com #!
-          selectors:
-          - cel:
-              expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
-```
-
-- For GPUs, these same filters do the steering.
-- `nvidia.com/gpu: 1` is purely resource-based, so every GPU counts the same: a 16 GB T4 and an 80 GB A100 are both "1".
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference
-spec:
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1      # "any one GPU": a 16 GB T4 and an 80 GB A100 both count as 1 #!
-```
-
-- A `nodeSelector` on GPU labels pins an exact model, node affinity can say "at least 40 GB, prefer Hopper", and a taint on GPU nodes keeps everything else off them.
-
-<div id="gpu-labels-yaml" class="anchor"></div>
-
-```yaml
-# The GPU NODE: labels (added automatically by NVIDIA GPU Feature Discovery,
-# part of the GPU Operator) and a taint (set in the node group / NodePool).
-# Shown trimmed: a real node has many more labels.
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB   # the exact model #!
-    nvidia.com/gpu.memory: "81920"                  # per-GPU memory, in MiB #!
-    nvidia.com/gpu.family: ampere                   # GPU generation #!
-    nvidia.com/gpu.count: "8"
-spec:
-  taints:
-  - key: nvidia.com/gpu
-    value: present
-    effect: NoSchedule                              # keeps non-GPU pods off #!
----
-# Option 1: pin an exact GPU model with nodeSelector
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference-a100
-spec:
-  nodeSelector:
-    nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB #!
-  tolerations:                       # GPU nodes are usually tainted
-  - key: nvidia.com/gpu
-    operator: Exists
-    effect: NoSchedule
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1
----
-# Option 2: "at least 40 GB, prefer Hopper" with node affinity
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference-big-gpu
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: nvidia.com/gpu.memory #!
-            operator: Gt #!
-            values: ["40000"]        # more than ~40 GB #!
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 50
-        preference:
-          matchExpressions:
-          - key: nvidia.com/gpu.family #!
-            operator: In
-            values: ["hopper"] #!
-  tolerations:
-  - key: nvidia.com/gpu
-    operator: Exists
-    effect: NoSchedule
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-```
-
-- In Option 2, node affinity only picks a node with big GPUs; `nvidia.com/gpu: 1` is what actually reserves a GPU there. Leave it out and the scheduler counts no GPU for the pod, so the container gets none, or, on nodes that trust the image's `NVIDIA_VISIBLE_DEVICES=all` setting, quietly uses GPUs other pods have reserved.
-
-- Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.
-
-```yaml
-# DRA: describe the GPU you need; the DRA driver finds a match.
-# The device class and attribute names come from the driver (here NVIDIA's).
-apiVersion: resource.k8s.io/v1
-kind: ResourceClaimTemplate
-metadata:
-  name: gpu-40gb-plus
-spec:
-  spec:
-    devices:
-      requests:
-      - name: gpu
-        exactly:
-          deviceClassName: gpu.nvidia.com #!
-          selectors:
-          - cel:
-              expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference-dra
-spec:
-  resourceClaims:
-  - name: gpu
-    resourceClaimTemplateName: gpu-40gb-plus #!
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      claims: #!
-      - name: gpu                    # no nvidia.com/gpu count: the claim is the request
-```
-
-> **Note: what this example does, line by line**
->
-> Together, the two manifests ask for "any NVIDIA GPU with at least 40 GiB of memory". Notice there is no `nvidia.com/gpu: 1` anywhere in this YAML: that line belongs to the older device-plugin way used in the [GPU labels example](#gpu-labels-yaml) (Option 1 and Option 2), not to DRA.
->
-> **Part 1: the `ResourceClaimTemplate` describes the GPU you want**
->
-> - **`name: gpu-40gb-plus`:** the name the pod uses to point at this request.
-> - **`requests: - name: gpu`:** "I need one device, and I'll call it `gpu`."
-> - **`exactly:`:** allocate exactly one device that matches. DRA can also list alternatives ("this, or else that"); here there's only one option.
-> - **`deviceClassName: gpu.nvidia.com`:** only look at NVIDIA GPUs. The NVIDIA DRA driver creates this class when you install it.
-> - **The `cel` selector:** a small filter in CEL (Common Expression Language) that reads "this device's memory compared with 40Gi is 0 or more", that is, at least 40 GiB. An A10G (24 GB) is filtered out; an A100 (40 or 80 GB) or an H100 (80 GB) qualifies. The `memory` attribute is published by NVIDIA's driver, which is why the names depend on the driver.
->
-> **Part 2: the Pod uses it**
->
-> - **`spec.resourceClaims`:** create a claim for this pod from the `gpu-40gb-plus` template. Each pod gets its own ResourceClaim (named something like `inference-dra-gpu-x7k2p`), which is deleted with the pod. That's why it's a *template*: ten replicas get ten separate claims instead of fighting over one GPU.
-> - **`containers[].resources.claims: - name: gpu`:** give the `server` container access to that device. In a pod with several containers, you choose which ones see the GPU.
-> - **No GPU count under `resources.limits`:** the container lists `claims` instead. The claim *is* the request, so there is nothing to count.
->
-> **What happens when you apply it**
->
-> 1. **The claim is created:** Kubernetes makes the pod's ResourceClaim from the template.
-> 2. **The scheduler filters and allocates:** its DynamicResources plugin checks the devices each node publishes (as ResourceSlices, written by the driver) and filters out nodes with no free NVIDIA GPU of 40 GiB or more. Then it picks a node and records the exact GPU it chose in the claim.
-> 3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container.
-> 4. **The server starts:** vLLM starts and sees exactly one GPU that's big enough.
->
-> **Note: how do you install DRA?**
->
-> You don't install DRA itself. The API (`ResourceClaim`, `ResourceClaimTemplate`, `DeviceClass`) is built into Kubernetes 1.34 and later. What you install is a **DRA driver** for your hardware: it advertises the devices on each node and allocates the one a claim asks for. For NVIDIA GPUs that's the NVIDIA DRA driver, installed with Helm:
->
-> ```bash
-> helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
-> helm repo update
-> helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
->   --create-namespace --namespace nvidia-dra-driver-gpu \
->   --set resources.computeDomains.enabled=false \
->   --set gpuResourcesEnabledOverride=true    # turn on GPU allocation
->
-> # check that the driver pods are running
-> kubectl get pods -n nvidia-dra-driver-gpu
->
-> # the driver creates the DeviceClass the claim above refers to
-> kubectl get deviceclass gpu.nvidia.com
-> ```
->
-> Things to check before you rely on it:
->
-> - **Kubernetes version:** NVIDIA asks for 1.34.2 or later.
-> - **Chart name:** from v0.4.0 the driver moved to `kubernetes-sigs` and the chart is called `dra-driver-nvidia-gpu`; use the name that matches your version.
-> - **Don't run two allocators:** if the NVIDIA GPU Operator is installed, use v25.10.0 or later with its device plugin turned off, and label the GPU nodes (for example `nvidia.com/dra-kubelet-plugin=true`) so the driver runs only there.
-> - **Old-style requests aren't DRA:** a pod that asks for `nvidia.com/gpu: 1` under `resources.limits` still goes through the device plugin path, even with a DRA driver installed.
-> - **On EKS:** Bottlerocket nodes aren't supported by the NVIDIA DRA driver; Karpenter needs `settings.enableDRA: true` (alpha); and support for EKS Auto Mode was announced in November 2026 for Kubernetes 1.36+, so check the current AWS docs.
-
-- **DRA compared with node labels and the device plugin.** [Option 2 in the GPU labels example](#gpu-labels-yaml) gets the same "at least 40 GB" result without DRA. It works in three steps: the **node** carries a label with its per-GPU memory (`nvidia.com/gpu.memory: "81920"` in the GPU node manifest at the top of that example, added automatically by GPU Feature Discovery); Option 2 filters on that label with node affinity (`Gt 40000`); then it asks the device plugin for `nvidia.com/gpu: 1`, which only counts GPUs. DRA instead describes the **device** itself, so the scheduler checks each GPU's own properties. For one big GPU both work. The four cases below are where DRA goes further.
-
-> **Where DRA goes further: four cases**
->
-> - **When GPUs on a node differ:** a node label describes the node as one thing, so a node with one 80 GB and one 24 GB GPU can't be described honestly. DRA checks every GPU separately, so asking for two big GPUs only matches if *both* are big:
->
->     ```yaml
->     apiVersion: resource.k8s.io/v1
->     kind: ResourceClaimTemplate
->     metadata:
->       name: two-big-gpus
->     spec:
->       spec:
->         devices:
->           requests:
->           - name: gpus
->             exactly:
->               deviceClassName: gpu.nvidia.com
->               count: 2                          # two devices... #!
->               selectors:
->               - cel:                            # ...and each one must pass this check
->                   expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
->     ```
->
-> - **When several devices must fit together:** a GPU and the network card it sends data through should sit on the same PCIe root, so traffic doesn't cross the CPU. Both drivers publish the standard attribute `resource.kubernetes.io/pcieRoot`, and `matchAttribute` requires the two devices to share it. On EKS the network card is an EFA device, offered by the dranet driver:
->
->     ```yaml
->     apiVersion: resource.k8s.io/v1
->     kind: ResourceClaimTemplate
->     metadata:
->       name: gpu-plus-efa
->     spec:
->       spec:
->         devices:
->           requests:
->           - name: gpu
->             exactly:
->               deviceClassName: gpu.nvidia.com
->           - name: efa
->             exactly:
->               deviceClassName: efa.networking.k8s.aws   # from the dranet driver
->           constraints:
->           - requests: ["gpu", "efa"]                   # these two devices... #!
->             matchAttribute: resource.kubernetes.io/pcieRoot   # ...must share a PCIe root #!
->     ```
->
->     The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root.
->
-> - **When pods share a GPU:** create one `ResourceClaim` by name (not a template) and point several pods at it, so they all get the same GPU. How they share it is a driver setting; here NVIDIA's time-slicing (it may need to be turned on in the driver):
->
->     ```yaml
->     apiVersion: resource.k8s.io/v1
->     kind: ResourceClaim                # one claim, not a template
->     metadata:
->       name: shared-gpu
->     spec:
->       devices:
->         requests:
->         - name: gpu
->           exactly:
->             deviceClassName: gpu.nvidia.com
->         config:
->         - requests: ["gpu"]
->           opaque:                      # passed to the driver as-is
->             driver: gpu.nvidia.com
->             parameters:
->               apiVersion: resource.nvidia.com/v1beta1
->               kind: GpuConfig
->               sharing:
->                 strategy: TimeSlicing #!
->     ---
->     apiVersion: v1
->     kind: Pod
->     metadata:
->       name: notebook-a                 # notebook-b is the same, with its own name
->     spec:
->       resourceClaims:
->       - name: gpu
->         resourceClaimName: shared-gpu  # by name, so every pod gets the same GPU #!
->       containers:
->       - name: jupyter
->         image: jupyter/base-notebook:latest
->         resources:
->           claims:
->           - name: gpu
->     ```
->
-> - **When you want a fallback:** `firstAvailable` lists options in order of preference, and the scheduler uses the first one it can satisfy. Here: one Hopper GPU, or else two Ampere GPUs:
->
->     ```yaml
->     apiVersion: resource.k8s.io/v1
->     kind: ResourceClaimTemplate
->     metadata:
->       name: h100-or-two-a100
->     spec:
->       spec:
->         devices:
->           requests:
->           - name: gpu
->             firstAvailable:                 # try these in order #!
->             - name: one-hopper
->               deviceClassName: gpu.nvidia.com
->               selectors:
->               - cel:
->                   expression: device.attributes["gpu.nvidia.com"].architecture == "Hopper"
->             - name: two-ampere              # only if no Hopper GPU is free
->               deviceClassName: gpu.nvidia.com
->               count: 2
->               selectors:
->               - cel:
->                   expression: device.attributes["gpu.nvidia.com"].architecture == "Ampere"
->     ```
->
->     The application has to cope with either result (one GPU or two), for example by reading how many GPUs it was given at startup.
+- For GPUs, these same filters do the steering: node labels pick the GPU model, a taint keeps other pods off GPU nodes, and the GPU count is checked just like CPU and memory. How GPUs get advertised to the scheduler, how to steer pods to the right one, and Dynamic Resource Allocation are covered in the next deep dive, [Kubernetes and GPU](#d-gpu).
 
 - Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the [gang problem](#d02-2). Setting `parallelism` doesn't fix this; it only creates the pods together. "All 8 or none" needs something that knows the pods belong together:
   - a queue in front of the scheduler, such as **Kueue**, which admits the whole job only when there's room for all of it ([Volcano vs. Kueue](#d02-6));
@@ -1327,7 +901,46 @@ spec:
         image: my-company/api:1.4
 ```
 
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: api}
+  template:
+    metadata:
+      labels: {app: api}
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:   # now a filter, not a score #!
+          - labelSelector:
+              matchLabels: {app: cache} #!
+            topologyKey: kubernetes.io/hostname #!
+      containers:
+      - name: api
+        image: my-company/api:1.4
+```
+
 - **Choice B, scheduler configuration (advanced):** write a `KubeSchedulerConfiguration` profile with different weights, for example InterPodAffinity 100 and ImageLocality 1, so even a weak affinity match beats an image cache. On a managed control plane like EKS you can't change the default scheduler, so you run this as a second scheduler and point pods at it with `schedulerName`.
+
+```yaml
+# config file passed to a kube-scheduler you run yourself (--config)
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+- schedulerName: affinity-first-scheduler #!
+  plugins:
+    score:
+      enabled:
+      - name: InterPodAffinity #!
+        weight: 100 #!
+      - name: ImageLocality #!
+        weight: 1 #!
+```
 
 ```yaml
 # config file passed to a kube-scheduler you run yourself (--config)
@@ -1391,10 +1004,55 @@ spec:
     image: my-company/report-builder:3.1
 ```
 
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: report-builder
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:   # no weight: pass or fail #!
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node.kubernetes.io/instance-type
+            operator: In
+            values: ["m5.2xlarge"]
+  containers:
+  - name: builder
+    image: my-company/report-builder:3.1
+```
+
 - **Weight tunes scoring from the outside:** whenever you see a `weight` in Kubernetes YAML, you are adjusting the scoring phase (never the filtering phase). You're telling the scheduler how much your rule matters compared to its built-in rules.
 - **How it's applied:** for each node, the scheduler adds up the weights (1 to 100) of the preferred terms that node matches. Those sums are then normalized to 0–100 across the candidate nodes and multiplied by the plugin's own weight (2 for NodeAffinity and InterPodAffinity).
 - **Preferred + high weight (a strong suggestion):** weight 100 says "this term matters much more than my other preferred terms". Because of the normalization, a matched preference is worth at most about 200 points in total, so it usually wins but can still be outvoted by several other plugins together. If it must always win, make it `required`.
 - **Preferred + low weight (a nice-to-have):** weight 1 says "this would be nice, but it matters little compared with my other preferences". The weights only rank your preferred terms against each other.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: report-builder
+spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution: #!
+      - weight: 100        # "I really want this" #!
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["us-east-1a"]
+      - weight: 1          # "nice to have" #!
+        preference:
+          matchExpressions:
+          - key: disktype
+            operator: In
+            values: ["ssd"]
+  containers:
+  - name: builder
+    image: my-company/report-builder:3.1
+```
 
 ```yaml
 apiVersion: v1

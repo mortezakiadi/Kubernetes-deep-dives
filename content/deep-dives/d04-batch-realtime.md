@@ -48,7 +48,63 @@ spec:
     consolidateAfter: 30s #!
 ```
 
+```yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: batch-spot
+spec:
+  template:
+    spec:
+      requirements:
+      - key: karpenter.sh/capacity-type
+        operator: In
+        values: ["spot"] #!
+      - key: karpenter.k8s.aws/instance-family
+        operator: In
+        values: ["m5", "m5a", "m6i"]
+      taints:
+      - key: workload #!
+        value: batch
+        effect: NoSchedule
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized #!
+    consolidateAfter: 30s #!
+```
+
   - **Tier 3, shared / burstable (utilization):** a mixed lifecycle pool, overprovisioned with placeholder pods so sudden spikes get capacity instantly.
+
+```yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: placeholder
+value: -10                   # any real pod can preempt these #!
+preemptionPolicy: Never
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capacity-placeholder
+spec:
+  replicas: 5
+  selector:
+    matchLabels: {app: placeholder}
+  template:
+    metadata:
+      labels: {app: placeholder}
+    spec:
+      priorityClassName: placeholder #!
+      containers:
+      - name: pause
+        image: registry.k8s.io/pause:3.10
+        resources:
+          requests: {cpu: "1", memory: 2Gi}
+```
 
 ```yaml
 apiVersion: scheduling.k8s.io/v1
@@ -124,11 +180,62 @@ spec:
     image: my-company/web:1.0
 ```
 
+```yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: web-critical
+value: 10000 #!
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: batch-low
+value: 100 #!
+preemptionPolicy: Never      # batch never pushes other pods out #!
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+spec:
+  priorityClassName: web-critical #!
+  containers:
+  - name: web
+    image: my-company/web:1.0
+```
+
   - **The effect:** when a node is full, high-priority web pods evict lower-priority batch pods, so web traffic never waits for a new node.
 - **QoS controls (for the kubelet at runtime), tool used: eviction, scope: per node.** The QoS class comes from the requests and limits in the manifest.
   - **Guaranteed (web):** requests equal limits. The most protected class and the last to be OOM-killed; with the static CPU manager and whole-number CPU requests it can even get exclusive cores.
   - **Burstable (batch):** requests lower than limits. Can scavenge spare capacity, but is evicted before Guaranteed pods.
   - **BestEffort:** no resources set. The first to be terminated under pressure.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web                  # Guaranteed: requests == limits
+spec:
+  containers:
+  - name: web
+    image: my-company/web:1.0
+    resources:
+      requests: {cpu: "1", memory: 2Gi} #!
+      limits:   {cpu: "1", memory: 2Gi} #!
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: batch                # Burstable: requests < limits
+spec:
+  containers:
+  - name: batch
+    image: my-company/batch:1.0
+    resources:
+      requests: {cpu: 250m, memory: 512Mi} #!
+      limits:   {cpu: "2",  memory: 2Gi} #!
+```
 
 ```yaml
 apiVersion: v1
@@ -181,6 +288,32 @@ spec:
   - **Memory:** memory can't be compressed and running out causes OOM crashes, so web services must be strict (requests equal limits), and batch jobs are sized to each job's needs.
 - **Autoscaling and Spot handling:**
   - **HPA (web):** aggressive scale-up (about 15 s) on CPU or request rate, conservative scale-down (about 5 min).
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web
+  minReplicas: 4
+  maxReplicas: 100
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target: {type: Utilization, averageUtilization: 60} #!
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - {type: Percent, value: 100, periodSeconds: 15} #!
+    scaleDown:
+      stabilizationWindowSeconds: 300 #!
+```
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -264,11 +397,49 @@ spec:
       requests: {cpu: 500m}    # -> 512 shares #!
 ```
 
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+spec:
+  containers:
+  - name: web
+    image: my-company/web:1.0
+    resources:
+      requests: {cpu: 1000m}   # -> 1024 shares #!
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: batch
+spec:
+  containers:
+  - name: batch
+    image: my-company/batch:1.0
+    resources:
+      requests: {cpu: 500m}    # -> 512 shares #!
+```
+
   - **The CFS logic:** the kernel's fair scheduler (CFS, or EEVDF on Linux 6.6+) tracks how much CPU time each process has had and favours the ones that have had less.
   - **When the CPU is 100% busy:** the web service (1024 shares) is guaranteed 2/3 of the time and the batch job (512 shares) 1/3.
   - **When the web service is idle:** the batch job can use the spare CPU, but the moment the web service wakes up, batch is squeezed back to its 1/3.
 - **Throttling, the 100 ms quota window:** a CPU *limit* is a speed limit the kernel enforces per 100 ms period.
   - **Example:** a limit of 0.5 CPU (500m) gives 50 ms of run time every 100 ms.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api
+spec:
+  containers:
+  - name: api
+    image: my-company/api:1.4
+    resources:
+      requests: {cpu: 250m}
+      limits:   {cpu: 500m}    # 50 ms of CPU time per 100 ms window #!
+```
 
 ```yaml
 apiVersion: v1
@@ -344,6 +515,20 @@ spec:
 - **Solutions, taming the traffic:**
   - **A. Linux `tc` (traffic control):** shape traffic on the node at the kernel level.
   - **B. CNI bandwidth plugins:** most modern CNIs (Calico, or the standard bandwidth plugin) let you set ingress and egress limits with annotations in the pod YAML; Cilium's bandwidth manager supports the egress annotation.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backup-sync
+  annotations:
+    kubernetes.io/ingress-bandwidth: 1G   # needs a CNI with the bandwidth plugin #!
+    kubernetes.io/egress-bandwidth: 1G #!
+spec:
+  containers:
+  - name: sync
+    image: my-company/backup-sync:1.0
+```
 
 ```yaml
 apiVersion: v1
