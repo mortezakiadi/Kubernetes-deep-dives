@@ -658,6 +658,19 @@ spec:
 
 ![1. Device plugin: a GPU count](diagrams/extra/adv-device-plugin.svg)
 
+> **Installing it.** Each GPU node first needs the NVIDIA driver and container toolkit; the EKS-optimized accelerated AMIs already include them. Then install the plugin with Helm:
+>
+> ```bash
+> helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
+> helm repo update
+> helm upgrade -i nvdp nvdp/nvidia-device-plugin \
+>   --namespace nvidia-device-plugin --create-namespace
+> ```
+>
+> On EKS Auto Mode the plugin is already built in. The NVIDIA GPU Operator is the all-in-one alternative: it installs the driver, toolkit, device plugin, NFD and GPU Feature Discovery together.
+>
+> **Check (device plugin):** `kubectl get nodes -o custom-columns=NAME:.metadata.name,GPUS:.status.allocatable.nvidia\.com/gpu`
+
 ```yaml
 # What the NODE shows (written by the kubelet; see it with kubectl get node -o yaml)
 apiVersion: v1
@@ -685,6 +698,17 @@ spec:
 ```
 
 ![2. Node Feature Discovery: generic hardware labels](diagrams/extra/adv-nfd.svg)
+
+> **Installing it.** NFD has its own Helm chart:
+>
+> ```bash
+> helm install nfd oci://registry.k8s.io/nfd/charts/node-feature-discovery \
+>   --namespace node-feature-discovery --create-namespace
+> ```
+>
+> Skip this if you use the GPU Operator, or the device plugin chart with `gfd.enabled=true`: both install NFD for you.
+>
+> **Check (NFD):** `kubectl get node gpu-node-1 --show-labels | tr ',' '\n' | grep feature.node`
 
 ```yaml
 # What the NODE shows (labels written by the NFD master)
@@ -718,6 +742,19 @@ spec:
 ```
 
 ![3. GPU Feature Discovery: GPU details as node labels](diagrams/extra/adv-gfd.svg)
+
+> **Installing it.** GPU Feature Discovery now ships in the same repository and Helm chart as the device plugin, so you turn it on there. The chart also installs NFD for you unless you say you already have it:
+>
+> ```bash
+> helm upgrade -i nvdp nvdp/nvidia-device-plugin \
+>   --namespace nvidia-device-plugin --create-namespace \
+>   --set gfd.enabled=true
+> # NFD already installed separately? add: --set nfd.enabled=false
+> ```
+>
+> With the GPU Operator, GPU Feature Discovery is on by default.
+>
+> **Check (GFD):** `kubectl get node gpu-node-1 --show-labels | tr ',' '\n' | grep nvidia.com/gpu`
 
 ```yaml
 # What the NODE shows (labels written by GPU Feature Discovery via NFD)
@@ -754,6 +791,20 @@ spec:
 ```
 
 ![4. Cloud and Karpenter labels: known before the node exists](diagrams/extra/adv-karpenter.svg)
+
+> **Installing it.** `node.kubernetes.io/instance-type` needs nothing: the kubelet sets it on every node. The `karpenter.k8s.aws/...` labels come from Karpenter, which you install with Helm once its IAM role and interruption queue exist (Karpenter's getting-started guide creates them):
+>
+> ```bash
+> helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
+>   --version "${KARPENTER_VERSION}" --namespace kube-system \
+>   --set settings.clusterName="${CLUSTER_NAME}" \
+>   --set settings.interruptionQueue="${CLUSTER_NAME}" \
+>   --wait
+> ```
+>
+> Then apply an `EC2NodeClass` and a `NodePool` like the one below. On EKS Auto Mode, Karpenter is built in and run by AWS, and the same labels use the `eks.amazonaws.com/` prefix instead (for example `eks.amazonaws.com/instance-gpu-name`).
+>
+> **Check (Karpenter):** `kubectl get nodes -L karpenter.k8s.aws/instance-gpu-name,karpenter.k8s.aws/instance-gpu-memory`
 
 ```yaml
 # A Karpenter NodePool that may launch big-GPU instances
@@ -806,6 +857,21 @@ spec:
 ```
 
 ![5. DRA: one entry per device](diagrams/extra/adv-dra.svg)
+
+> **Installing it.** DRA itself is built into Kubernetes 1.34 and later; you install a DRA driver for your hardware. For NVIDIA GPUs:
+>
+> ```bash
+> helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+> helm repo update
+> helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
+>   --create-namespace --namespace nvidia-dra-driver-gpu \
+>   --set resources.computeDomains.enabled=false \
+>   --set gpuResourcesEnabledOverride=true
+> ```
+>
+> Don't run the classic device plugin on the same nodes. Version requirements, the chart's new name and EKS caveats are in "How do you install DRA?" under the DRA example further down.
+>
+> **Check (DRA):** `kubectl get deviceclass` and `kubectl get resourceslices`
 
 ```yaml
 # What the DRIVER publishes (one ResourceSlice per node, one entry per GPU)
