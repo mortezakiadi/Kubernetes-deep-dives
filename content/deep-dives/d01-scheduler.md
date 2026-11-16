@@ -680,7 +680,26 @@ spec:
 
 - **LeastAllocated (the "spreader"):** the default strategy of the NodeResourcesFit plugin. It compares requested CPU and memory to capacity and gives emptier nodes higher scores, which spreads pods out and helps availability.
 - **BalancedResourceAllocation (the "balancer"):** keeps CPU and memory use even on a node. A node with lots of CPU but almost no free RAM scores lower for a memory-heavy pod, so nodes don't become lopsided.
-- **ImageLocality (the "speedster"):** scores nodes higher when the pod's images (say a 2 GB Java image) are already on local disk, so the pod skips the pull and starts faster. Bigger cached images count more. The points are also scaled by how many nodes already have the image (**spread scaling**): an image on 1 of 100 nodes earns almost nothing, one on half the nodes earns half, one on every node earns full points. Without this, the one node that happens to have a new image would attract every new pod that uses it.
+- **ImageLocality (the "speedster"):** scores nodes higher when the pod's images (say a 2 GB Java image) are already on local disk, so the pod skips the pull and starts faster. Bigger cached images count more. The points are also scaled by how many nodes already have the image (**spread scaling**, explained in the note below).
+
+> **Note: how ImageLocality scores, and why it uses spread scaling**
+>
+> - **What it's for:** if a node already has a pod's container image, the pod starts faster there because nothing has to be downloaded. So ImageLocality gives points to nodes that already hold the image, and bigger images earn more points because skipping their download saves more time.
+> - **The catch it guards against:** say a new image exists on only 1 of 100 nodes. If that node got full points, every new pod using that image would pile onto that one node. The cluster ends up unbalanced, and the scheduler never spreads the image to other nodes.
+> - **The fix, spread scaling:** the image's points are multiplied by the share of nodes that already have it:
+>
+> ```text
+> points ≈ image size × (nodes that have the image ÷ all nodes)
+> ```
+>
+> | The image is on… | Scaling factor | Points for a node that has it |
+> |---|---|---|
+> | 1 of 100 nodes | 0.01 | almost nothing |
+> | 50 of 100 nodes | 0.5 | half |
+> | 100 of 100 nodes | 1.0 | full |
+>
+> So an image cached on only a few nodes gives very little advantage, and the pod is placed mostly on other grounds. An image already present almost everywhere counts fully.
+
 - **Node / inter-pod affinity (the "socialite"):** handles your *preferred* (soft) rules, such as "I'd like to run near my database". Nodes in the same rack or zone as the database score higher. It's the main score you steer from the pod spec (along with soft topology spread and `PreferNoSchedule` taints); the others are computed by Kubernetes.
 - **The default-weights trap:** most of these plugins have the same small weight (1 or 2). In a large cluster that can lead to poor choices, and this is the scenario: the full node won because it already had the image cached, and the CPU contention showed up later.
 
