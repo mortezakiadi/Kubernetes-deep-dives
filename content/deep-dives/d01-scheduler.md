@@ -680,6 +680,39 @@ spec:
 
 - **LeastAllocated (the "spreader"):** the default strategy of the NodeResourcesFit plugin. It compares requested CPU and memory to capacity and gives emptier nodes higher scores, which spreads pods out and helps availability.
 - **BalancedResourceAllocation (the "balancer"):** keeps CPU and memory use even on a node. A node with lots of CPU but almost no free RAM scores lower for a memory-heavy pod, so nodes don't become lopsided.
+
+> **Note: how BalancedResourceAllocation works, and how to tune it**
+>
+> - **Nothing to install or enable:** it's one of the scheduler's built-in scoring plugins and is on by default, so every cluster already uses it.
+> - **What it looks at:** for each node, the share of CPU and the share of memory that would be **reserved** if the pod landed there. It uses the pods' *requests*, not real usage, like the fit check.
+> - **How it scores:** the closer those two shares are to each other, the higher the score. A memory-heavy pod (`memory: 8Gi`, `cpu: 250m`) on a node that's already 90% booked on memory and 20% on CPU makes that node even more lopsided, so the node scores low; a node at 50% and 45% scores high.
+> - **What your pods control:** only their requests. Accurate requests are what make this plugin useful.
+> - **What a configuration can change:** its weight compared with the other scoring plugins, and which resources it balances (CPU and memory by default; you can add GPUs, for example). Both live in the scheduler's configuration, not in pod YAML:
+>
+> ```yaml
+> apiVersion: kubescheduler.config.k8s.io/v1
+> kind: KubeSchedulerConfiguration
+> profiles:
+> - schedulerName: default-scheduler
+>   plugins:
+>     score:
+>       enabled:
+>       - name: BalancedResourceAllocation
+>         weight: 2                     # counts double vs. other scoring plugins (default 1) #!
+>   pluginConfig:
+>   - name: BalancedResourceAllocation
+>     args:
+>       resources:                      # which resources to keep in balance #!
+>       - name: cpu
+>         weight: 1
+>       - name: memory
+>         weight: 1
+>       - name: nvidia.com/gpu          # e.g. also balance GPUs against CPU and memory #!
+>         weight: 1
+> ```
+>
+> - **On EKS:** you can't edit the default scheduler's configuration, so changing these needs a [second scheduler](#appendix-second-scheduler) that pods opt into with `schedulerName`.
+
 - **ImageLocality (the "speedster"):** scores nodes higher when the pod's images (say a 2 GB Java image) are already on local disk, so the pod skips the pull and starts faster. Bigger cached images count more. The points are also scaled by how many nodes already have the image (**spread scaling**, explained in the note below).
 
 > **Note: how ImageLocality scores, and why it uses spread scaling**
