@@ -62,40 +62,6 @@ profiles:
           weight: 1
 ```
 
-<div id="fit-check-yaml" class="anchor"></div>
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: api
-spec:
-  containers:
-  - name: api
-    image: my-company/api:1.4
-    resources:
-      requests:          # the scheduler adds up requests, not real usage #!
-        cpu: "500m" #!
-        memory: "1Gi" #!
----
-# kube-scheduler's own config file, passed with --config. NOT applied with kubectl.
-# Without it, the scheduler uses these same built-in defaults.
-apiVersion: kubescheduler.config.k8s.io/v1
-kind: KubeSchedulerConfiguration
-profiles:
-- schedulerName: default-scheduler
-  pluginConfig:
-  - name: NodeResourcesFit     # filter: does the pod fit? + score: which node is best? #!
-    args:
-      scoringStrategy:
-        type: LeastAllocated   # the default (spread); MostAllocated = bin-pack #!
-        resources:
-        - name: cpu
-          weight: 1
-        - name: memory
-          weight: 1
-```
-
 > **Note: when would you actually write a `KubeSchedulerConfiguration`?**
 >
 > Only when you want to *change* the scheduler's built-in settings. Two things to know first:
@@ -103,22 +69,9 @@ profiles:
 > - **It isn't a Kubernetes object.** It has `apiVersion` and `kind`, but you don't `kubectl apply` it (the API would reject it). It's a config file the kube-scheduler program reads at startup, passed with `--config`.
 > - **Where you can use it depends on who runs the scheduler:**
 >   - **Self-managed clusters** (for example kubeadm): point the scheduler's static pod at your own file, for example to switch to MostAllocated bin-packing or change plugin weights.
->   - **Managed clusters** (EKS, GKE, AKS): the provider runs the default scheduler, so you can't change its file. Instead, run a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete, ready-to-apply example is in [Appendix A: Running a second scheduler](#appendix-second-scheduler). For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see [Built-in plugins, and what a second scheduler changes](#d01-9).
+>   - **Managed clusters** (EKS, GKE, AKS): the provider runs the default scheduler, so you can't change its file. Instead, run a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete, ready-to-apply example is in [Appendix A: Running a second scheduler](#appendix-second-scheduler). For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see [Built-in plugins, and what a second scheduler changes](#d01-9) in the Kubernetes Multi-Scheduler deep dive.
 
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: api
-spec:
-  nodeSelector: #!
-    disktype: ssd        # only nodes labelled disktype=ssd pass the filter #!
-  containers:
-  - name: api
-    image: my-company/api:1.4
-```
 
 ```yaml
 apiVersion: v1
@@ -165,64 +118,7 @@ spec:
     image: my-company/trainer:2.0
 ```
 
-```yaml
-# 1. The taint lives on the NODE. You add it with a command:
-#      kubectl taint nodes gpu-node-1 dedicated=gpu:NoSchedule #!
-#    (or in the node group / Karpenter NodePool config). The node then looks like this:
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-spec:
-  taints: #!
-  - key: dedicated #!
-    value: gpu #!
-    effect: NoSchedule        # pods without a matching toleration are filtered out #!
----
-# 2. The toleration lives on the POD that is allowed in
-apiVersion: v1
-kind: Pod
-metadata:
-  name: trainer
-spec:
-  tolerations: #!
-  - key: dedicated #!
-    operator: Equal
-    value: gpu #!
-    effect: NoSchedule #!
-  containers:
-  - name: trainer
-    image: my-company/trainer:2.0
-```
-
 - **Affinity and anti-affinity violations:** A <mark class="kw">required</mark> node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: api-1
-  labels:
-    app: api
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution: #!
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: ["us-east-1a"] #!
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution: #!
-      - labelSelector:
-          matchLabels:
-            app: api
-        topologyKey: kubernetes.io/hostname   # never two api pods on one node #!
-  containers:
-  - name: api
-    image: my-company/api:1.4
-```
 
 ```yaml
 apiVersion: v1
@@ -650,31 +546,6 @@ spec:
         image: nginx:1.27
 ```
 
-```yaml
-# 6 replicas spread evenly across 3 zones: 2 per zone.
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: web
-spec:
-  replicas: 6
-  selector:
-    matchLabels: {app: web}
-  template:
-    metadata:
-      labels: {app: web}
-    spec:
-      topologySpreadConstraints: #!
-      - maxSkew: 1                                # zones may differ by at most 1 pod #!
-        topologyKey: topology.kubernetes.io/zone  # a "place" is a zone #!
-        whenUnsatisfiable: DoNotSchedule          # hard rule; ScheduleAnyway = soft #!
-        labelSelector:
-          matchLabels: {app: web}                 # which pods to count
-      containers:
-      - name: web
-        image: nginx:1.27
-```
-
 > **Note: using pod anti-affinity and topology spread together**
 >
 > A common case is a service that must survive both a **node** failure and a **zone** outage, say 6 replicas of an API. Each rule covers one level:
@@ -766,27 +637,13 @@ spec:
       hostPort: 80       # only one pod per node can claim host port 80 #!
 ```
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: edge-proxy
-spec:
-  containers:
-  - name: proxy
-    image: nginx:1.27
-    ports:
-    - containerPort: 8080
-      hostPort: 80       # only one pod per node can claim host port 80 #!
-```
-
 **Going deeper.**
 
 - For GPUs, these same filters do the steering: node labels pick the GPU model, a taint keeps other pods off GPU nodes, and the GPU count is checked just like CPU and memory. How GPUs get advertised to the scheduler, how to steer pods to the right one, and Dynamic Resource Allocation are covered in the next deep dive, [Kubernetes and GPU](#d-gpu).
 
 - Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the [gang problem](#d02-2). Setting `parallelism` doesn't fix this; it only creates the pods together. "All 8 or none" needs something that knows the pods belong together:
   - a queue in front of the scheduler, such as **Kueue**, which admits the whole job only when there's room for all of it ([Volcano vs. Kueue](#d02-6));
-  - a batch scheduler such as **Volcano**, **KAI** or **YuniKorn**, running as a second scheduler ([what a second scheduler changes](#d01-9), [the landscape](#d02-7));
+  - a batch scheduler such as **Volcano**, **KAI** or **YuniKorn**, running as a second scheduler ([what a second scheduler changes](#d01-9) and [the landscape](#d02-7), both in [Kubernetes Multi-Scheduler](#d-multischeduler));
   - the **coscheduling plugin** (a PodGroup with `minMember`) or, from Kubernetes 1.35, the alpha **Workload API**, both covered in [gang scheduling](#d02-2).
 
 ```yaml
@@ -901,46 +758,7 @@ spec:
         image: my-company/api:1.4
 ```
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api
-spec:
-  replicas: 3
-  selector:
-    matchLabels: {app: api}
-  template:
-    metadata:
-      labels: {app: api}
-    spec:
-      affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:   # now a filter, not a score #!
-          - labelSelector:
-              matchLabels: {app: cache} #!
-            topologyKey: kubernetes.io/hostname #!
-      containers:
-      - name: api
-        image: my-company/api:1.4
-```
-
 - **Choice B, scheduler configuration (advanced):** write a `KubeSchedulerConfiguration` profile with different weights, for example InterPodAffinity 100 and ImageLocality 1, so even a weak affinity match beats an image cache. On a managed control plane like EKS you can't change the default scheduler, so you run this as a second scheduler and point pods at it with `schedulerName`.
-
-```yaml
-# config file passed to a kube-scheduler you run yourself (--config)
-apiVersion: kubescheduler.config.k8s.io/v1
-kind: KubeSchedulerConfiguration
-profiles:
-- schedulerName: affinity-first-scheduler #!
-  plugins:
-    score:
-      enabled:
-      - name: InterPodAffinity #!
-        weight: 100 #!
-      - name: ImageLocality #!
-        weight: 1 #!
-```
 
 ```yaml
 # config file passed to a kube-scheduler you run yourself (--config)
@@ -1004,55 +822,10 @@ spec:
     image: my-company/report-builder:3.1
 ```
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: report-builder
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:   # no weight: pass or fail #!
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: node.kubernetes.io/instance-type
-            operator: In
-            values: ["m5.2xlarge"]
-  containers:
-  - name: builder
-    image: my-company/report-builder:3.1
-```
-
 - **Weight tunes scoring from the outside:** whenever you see a `weight` in Kubernetes YAML, you are adjusting the scoring phase (never the filtering phase). You're telling the scheduler how much your rule matters compared to its built-in rules.
 - **How it's applied:** for each node, the scheduler adds up the weights (1 to 100) of the preferred terms that node matches. Those sums are then normalized to 0–100 across the candidate nodes and multiplied by the plugin's own weight (2 for NodeAffinity and InterPodAffinity).
 - **Preferred + high weight (a strong suggestion):** weight 100 says "this term matters much more than my other preferred terms". Because of the normalization, a matched preference is worth at most about 200 points in total, so it usually wins but can still be outvoted by several other plugins together. If it must always win, make it `required`.
 - **Preferred + low weight (a nice-to-have):** weight 1 says "this would be nice, but it matters little compared with my other preferences". The weights only rank your preferred terms against each other.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: report-builder
-spec:
-  affinity:
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution: #!
-      - weight: 100        # "I really want this" #!
-        preference:
-          matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: ["us-east-1a"]
-      - weight: 1          # "nice to have" #!
-        preference:
-          matchExpressions:
-          - key: disktype
-            operator: In
-            values: ["ssd"]
-  containers:
-  - name: builder
-    image: my-company/report-builder:3.1
-```
 
 ```yaml
 apiVersion: v1
@@ -1091,58 +864,3 @@ spec:
 - **Don't mix them up:** the *scheduling* score is about choosing a node for a pod. The *QoS / OOM* score is about choosing which pod to kill (covered in [Memory: who gets killed](#d03-6)).
 - **The scheduler's choice:** at placement time the scheduler might see a node is 90% full and give it a low score, because it wants to spread the load. Once the pod is placed, that score is forgotten.
 - **The kubelet's reality:** under memory pressure nobody looks at the scheduler's grade. The kubelet first picks pods that use more memory than they *requested*, then ranks them by priority, then by how far over their request they are. If the kernel's OOM killer fires first, it uses `oom_score`, which is memory usage plus a QoS-based `oom_score_adj`. So an "important" pod that uses more than it requested can still be the one that's killed.
-
-### Built-in plugins, and what a second scheduler changes
-
-**Scenario.** After learning that the fit check is done by "a plugin", the team wants the full list: which plugins run by default, what each one does, which ones filter and which ones score, and with what weight. Then the architect asks the follow-up: if we add a second scheduler, do these plugins still apply, and what can go wrong when two schedulers share one cluster?
-
-![Built-in plugins, and what a second scheduler changes](diagrams/sections/d01-9.svg)
-
-**What the picture shows.** Every scheduling decision runs through the same stages, left to right, and each stage is made of plugins.
-
-- **Pending pod:** its `spec.schedulerName` decides which of the three lanes handles it. Exactly one scheduler handles each pod.
-- **The stages (column headers):**
-  - **Queue sort:** decides which pending pod is considered next.
-  - **Filter:** removes nodes that can't run the pod (Phase 1).
-  - **PostFilter:** runs only when *no* node passed; this is where preemption happens.
-  - **Score:** ranks the nodes that passed (Phase 2), each plugin's score multiplied by its weight.
-  - **Reserve / Permit:** holds the chosen node's volumes and devices while the decision is finalized.
-  - **Bind:** writes the chosen node into the pod (`spec.nodeName`).
-- **Blue lane, `default-scheduler`:** the built-in kube-scheduler. On EKS it runs on the AWS-managed control plane, and every plugin shown is built in and on by default. The Score box lists the default weights (×1, ×2, ×3).
-- **Amber lane, a second kube-scheduler with your own profile:** the same program and the same plugins, run as your own Deployment (the full example is in [Appendix A](#appendix-second-scheduler)). Only the highlighted Score box differs: InterPodAffinity weighted ×100, and NodeResourcesFit switched to MostAllocated (bin-packing).
-- **Teal lane, a replacement scheduler (Volcano, KAI, YuniKorn):** a different program with its own plugins (Volcano calls them "actions"): queues and PodGroups for gang scheduling, queue-based reclaim instead of plain preemption, GPU and network topology scoring, and binding a whole job together. It re-implements the basic fit checks, but the built-in plugins and weights above don't apply to its pods.
-- **Grey bar, shared by all three:** the same nodes and the same API server. The schedulers don't coordinate with each other.
-
-**The built-in plugins** (all on by default; "–" means the plugin doesn't take part in that stage):
-
-| Plugin | What it does | Filter | Score weight |
-|---|---|---|---|
-| PrioritySort | Orders the queue: higher-priority pods are scheduled first | – | – |
-| SchedulingGates | Holds back pods that still have `schedulingGates` set | – | – |
-| NodeUnschedulable | Skips cordoned nodes (`spec.unschedulable`) | ✓ | – |
-| NodeName | Honours a pod that already names its node | ✓ | – |
-| NodeResourcesFit | CPU, memory, GPU and other resources: does it fit? Then LeastAllocated scoring | ✓ | 1 |
-| NodeResourcesBalancedAllocation | Prefers nodes where CPU and memory use stay balanced | – | 1 |
-| ImageLocality | Prefers nodes that already have the pod's images | – | 1 |
-| NodeAffinity | `nodeSelector` and required node affinity (filter); preferred node affinity (score) | ✓ | 2 |
-| InterPodAffinity | Required pod affinity / anti-affinity (filter); preferred (score) | ✓ | 2 |
-| PodTopologySpread | `DoNotSchedule` spread constraints (filter); `ScheduleAnyway` (score) | ✓ | 2 |
-| TaintToleration | `NoSchedule` taints (filter); prefers fewer untolerated `PreferNoSchedule` taints (score) | ✓ | 3 |
-| NodePorts | Rejects nodes where the pod's `hostPort` is taken | ✓ | – |
-| VolumeRestrictions | Volume conflicts, such as a `ReadWriteOncePod` volume already in use | ✓ | – |
-| NodeVolumeLimits | The node's limit on attached volumes (for example EBS) | ✓ | – |
-| VolumeZone | The volume's zone must match the node's zone | ✓ | – |
-| VolumeBinding | PVCs can be bound or provisioned on this node; reserves them | ✓ | – |
-| DynamicResources | DRA device claims (GPUs and other devices) can be satisfied; reserves them | ✓ | – |
-| DefaultPreemption | PostFilter: evicts lower-priority pods when nothing fits | – | – |
-| DefaultBinder | Bind: writes `spec.nodeName` | – | – |
-
-**What a second scheduler changes:**
-
-- **One pod, one scheduler:** a pod is handled only by the scheduler named in its `schedulerName`. The other schedulers' plugins never see it.
-- **Same program, different profile (amber lane):** you can change weights, switch the scoring strategy, or disable plugins (for example turn off ImageLocality). One kube-scheduler process can even serve several profiles, each under its own `schedulerName`.
-- **Different program (teal lane):** you get features the built-in plugins don't have, such as gang scheduling, queues and GPU topology. In return, its pods follow its rules, not the table above.
-- **No coordination:** two schedulers can pick the same free space at the same moment, because each one only sees its own decisions in flight. The kubelet then rejects the pod that arrives second (`OutOfcpu` / `OutOfmemory`) and its controller creates a new one. The usual fix is to give each scheduler its own nodes, with taints and node labels, or to send all pods of one kind (for example all GPU pods) to a single scheduler.
-- **Preemption crosses the boundary:** the default scheduler's DefaultPreemption can evict pods placed by your scheduler if they have lower priority, and the other way round. Use PriorityClasses consistently across both.
-- **Autoscalers:** Cluster Autoscaler and Karpenter decide whether to add nodes by simulating the *default* scheduler's rules. Check whether yours acts on pods with a custom `schedulerName` at all, and remember that custom filters it doesn't know about can lead to nodes being added that your scheduler then won't use.
-

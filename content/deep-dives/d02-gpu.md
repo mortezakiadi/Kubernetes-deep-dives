@@ -76,32 +76,6 @@ spec:
         nvidia.com/gpu: 1            # "any one free GPU on the node" #!
 ```
 
-```yaml
-# What the NODE shows (written by the kubelet; see it with kubectl get node -o yaml)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-status:
-  capacity:
-    nvidia.com/gpu: "8"              # reported by the device plugin #!
-  allocatable:
-    nvidia.com/gpu: "8"              # what the scheduler counts against
----
-# What the POD writes: just a number
-apiVersion: v1
-kind: Pod
-metadata:
-  name: train
-spec:
-  containers:
-  - name: trainer
-    image: my-company/trainer:2.0
-    resources:
-      limits:
-        nvidia.com/gpu: 1            # "any one free GPU on the node" #!
-```
-
 - The device plugin does four jobs:
   - it discovers the devices;
   - it advertises them as `nvidia.com/gpu` for scheduling;
@@ -188,37 +162,6 @@ spec:
         image: my-company/gpu-monitor:1.0
 ```
 
-```yaml
-# What the NODE shows (labels written by the NFD master)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    # The GPU Operator configures NFD to label by vendor only:
-    feature.node.kubernetes.io/pci-10de.present: "true" #!
-    # NFD's own default labels by class + vendor (0302 = 3D controller):
-    # feature.node.kubernetes.io/pci-0302_10de.present: "true"
----
-# What the POD writes: "any node with an NVIDIA card"
-apiVersion: apps/v1
-kind: DaemonSet                      # a typical user: per-GPU-node agents
-metadata:
-  name: gpu-monitor
-spec:
-  selector:
-    matchLabels: {app: gpu-monitor}
-  template:
-    metadata:
-      labels: {app: gpu-monitor}
-    spec:
-      nodeSelector: #!
-        feature.node.kubernetes.io/pci-10de.present: "true" #!
-      containers:
-      - name: exporter
-        image: my-company/gpu-monitor:1.0
-```
-
 ![3. GPU Feature Discovery: GPU details as node labels](diagrams/extra/adv-gfd.svg)
 
 > **Installing it.** GPU Feature Discovery now ships in the same repository and Helm chart as the device plugin, so you turn it on there. The chart also installs NFD for you unless you say you already have it:
@@ -233,40 +176,6 @@ spec:
 > With the GPU Operator, GPU Feature Discovery is on by default.
 >
 > **Check (GFD):** `kubectl get node gpu-node-1 --show-labels | tr ',' '\n' | grep nvidia.com/gpu`
-
-```yaml
-# What the NODE shows (labels written by GPU Feature Discovery via NFD)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB
-    nvidia.com/gpu.memory: "81920"   # per-GPU memory, in MiB #!
-    nvidia.com/gpu.family: ampere
-    nvidia.com/gpu.count: "8"        # only a label: nothing counts against it
----
-# What the POD writes: pick a node by label, then still ask for a GPU
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: nvidia.com/gpu.memory #!
-            operator: Gt #!
-            values: ["40000"]
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1            # the device plugin still allocates the GPU
-```
 
 ```yaml
 # What the NODE shows (labels written by GPU Feature Discovery via NFD)
@@ -368,56 +277,6 @@ spec:
         nvidia.com/gpu: 1
 ```
 
-```yaml
-# A Karpenter NodePool that may launch big-GPU instances
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu
-spec:
-  template:
-    spec:
-      nodeClassRef:
-        group: karpenter.k8s.aws
-        kind: EC2NodeClass
-        name: default
-      requirements:
-      - key: karpenter.k8s.aws/instance-gpu-name #!
-        operator: In
-        values: ["a100", "h100"]
-      - key: karpenter.k8s.aws/instance-gpu-memory   # per GPU, in MiB #!
-        operator: Gt
-        values: ["40000"]
-      taints:
-      - key: nvidia.com/gpu
-        effect: NoSchedule
----
-# What the POD writes: affinity on the same labels Karpenter will set
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: karpenter.k8s.aws/instance-gpu-memory #!
-            operator: Gt
-            values: ["40000"]
-  tolerations:
-  - key: nvidia.com/gpu
-    operator: Exists
-    effect: NoSchedule
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-```
-
 ![5. DRA: one entry per device](diagrams/extra/adv-dra.svg)
 
 > **Installing it.** DRA itself is built into Kubernetes 1.34 and later; you install a DRA driver for your hardware. For NVIDIA GPUs:
@@ -434,46 +293,6 @@ spec:
 > Don't run the classic device plugin on the same nodes. Version requirements, the chart's new name and EKS caveats are in "How do you install DRA?" in the [Dynamic Resource Allocation](#d06-4) section.
 >
 > **Check (DRA):** `kubectl get deviceclass` and `kubectl get resourceslices`
-
-```yaml
-# What the DRIVER publishes (one ResourceSlice per node, one entry per GPU)
-apiVersion: resource.k8s.io/v1
-kind: ResourceSlice
-metadata:
-  name: gpu-node-1-gpu.nvidia.com-x8k2p   # generated name
-spec:
-  driver: gpu.nvidia.com
-  nodeName: gpu-node-1
-  pool:
-    name: gpu-node-1
-    generation: 1
-    resourceSliceCount: 1
-  devices:
-  - name: gpu-0 #!
-    attributes:
-      productName: {string: NVIDIA A100-SXM4-80GB}
-      architecture: {string: Ampere} #!
-    capacity:
-      memory: {value: 80Gi} #!
-  - name: gpu-1
-    # ... one entry for each of the 8 GPUs
----
-# What the POD writes: a claim that describes the device (full example below)
-apiVersion: resource.k8s.io/v1
-kind: ResourceClaimTemplate
-metadata:
-  name: gpu-40gb-plus
-spec:
-  spec:
-    devices:
-      requests:
-      - name: gpu
-        exactly:
-          deviceClassName: gpu.nvidia.com #!
-          selectors:
-          - cel:
-              expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
-```
 
 ```yaml
 # What the DRIVER publishes (one ResourceSlice per node, one entry per GPU)
@@ -867,52 +686,6 @@ spec:
 - Changing a MIG layout with the GPU Operator: label the node with the layout you want, for example `nvidia.com/mig.config=all-1g.10gb`, and the operator's MIG manager reconfigures the GPU. Pods using the GPU must be moved off first.
 - Newer versions of NVIDIA's DRA driver can also create MIG slices on demand for a claim and remove them when the claim is released (an alpha feature called DynamicMIG), instead of relying on a fixed layout.
 - Asking for a MIG slice, with the device plugin and with DRA:
-
-```yaml
-# Device plugin, "mixed" MIG strategy: ask for a slice size by resource name
-apiVersion: v1
-kind: Pod
-metadata:
-  name: notebook-small
-spec:
-  containers:
-  - name: jupyter
-    image: jupyter/base-notebook:latest
-    resources:
-      limits:
-        nvidia.com/mig-1g.10gb: 1 #!
----
-# DRA: ask for a MIG slice by profile
-apiVersion: resource.k8s.io/v1
-kind: ResourceClaimTemplate
-metadata:
-  name: small-mig-slice
-spec:
-  spec:
-    devices:
-      requests:
-      - name: mig
-        exactly:
-          deviceClassName: mig.nvidia.com #!
-          selectors:
-          - cel:
-              expression: device.attributes["gpu.nvidia.com"].profile == "1g.10gb" #!
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: notebook-small-dra
-spec:
-  resourceClaims:
-  - name: mig
-    resourceClaimTemplateName: small-mig-slice
-  containers:
-  - name: jupyter
-    image: jupyter/base-notebook:latest
-    resources:
-      claims:
-      - name: mig
-```
 
 ```yaml
 # Device plugin, "mixed" MIG strategy: ask for a slice size by resource name
