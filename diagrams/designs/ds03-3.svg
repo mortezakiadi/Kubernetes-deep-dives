@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1340px" height="470px" viewBox="0 0 1340 470" style="background:#ffffff"><title>Training job lifecycle</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1340" height="470" fill="#ffffff"/><text x="670" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">A training job, from submission to a registered model, with no human in the loop</text>
+<rect x="20" y="70" width="236" height="150" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="32" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Submit</text>
+<text x="32" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">TrainJob → JobSet from the</text>
+<text x="32" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">platform runtime</text>
+<text x="32" y="154" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569">Owner: Kubeflow Trainer</text>
+<path d="M 256 145 L 282 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="282" y="70" width="236" height="150" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="294" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Queue and admit</text>
+<text x="294" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">All 64 GPUs at once, one</text>
+<text x="294" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">network block</text>
+<text x="294" y="154" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569">Owner: Kueue + TAS</text>
+<path d="M 518 145 L 544 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="544" y="70" width="236" height="150" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="556" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Provision and start</text>
+<text x="556" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Nodes, cached images, data</text>
+<text x="556" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">mounted; all pods running or</text>
+<text x="556" y="150" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">requeue</text>
+<text x="556" y="170" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569">Owner: Karpenter,</text>
+<text x="556" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569">waitForPodsReady</text>
+<path d="M 780 145 L 806 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="806" y="70" width="236" height="150" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="818" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Run and checkpoint</text>
+<text x="818" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Async sharded checkpoints every</text>
+<text x="818" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">N steps; metrics per rank</text>
+<text x="818" y="154" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569">Owner: Training runtime</text>
+<path d="M 1042 145 L 1068 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1068" y="70" width="236" height="150" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="1080" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Finish and register</text>
+<text x="1080" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Final checkpoint to the model</text>
+<text x="1080" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">registry; evaluation starts</text>
+<text x="1080" y="154" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569">Owner: Pipeline</text>
+<rect x="560" y="300" width="470" height="110" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="572" y="324" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#991b1b">Fail and resume</text>
+<text x="572" y="348" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">GPU error, node loss, preemption, Capacity Block end. Bad node</text>
+<text x="572" y="364" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">cordoned and replaced; job requeued; resumes from the latest</text>
+<text x="572" y="380" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">checkpoint.</text>
+<path d="M 810 220 L 810 300" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#a-bad)"/>
+<rect x="821.48" y="248" width="57.040000000000006" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="850" y="262" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#dc2626">failure</text>
+<path d="M 560 355 L 400 355 L 400 220" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#a-bad)"/>
+<rect x="441.48" y="361" width="57.040000000000006" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="470" y="375" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#b91c1c">requeue</text>
+<text x="670" y="450.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569" font-style="italic">Every job must accept --resume-from latest: preemption, Spot, Capacity Block expiry and hardware failure all end the same way.</text></svg>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="640px" viewBox="0 0 1300 640" style="background:#ffffff"><title>Inference serving stack</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="640" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">From request to GPU: route to the replica that already has the context</text>
+<rect x="30" y="270" width="140" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="100.0" y="304.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Clients</text>
+<text x="100.0" y="327.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">apps, agents</text>
+<rect x="210" y="240" width="220" height="140" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="222" y="263" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Gateway</text>
+<text x="222" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">TLS, auth, per-tenant rate</text>
+<text x="222" y="301" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">limits and token budgets, model</text>
+<text x="222" y="316" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">by name</text>
+<rect x="470" y="240" width="240" height="140" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="482" y="263" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Inference-aware routing</text>
+<text x="482" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Endpoint picker (Gateway API</text>
+<text x="482" y="301" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Inference Extension, llm-d):</text>
+<text x="482" y="316" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">prefix-cache hits, queue length,</text>
+<text x="482" y="331" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">free KV memory</text>
+<path d="M 170 310 L 210 310" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 430 310 L 470 310" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="760" y="60" width="510" height="170" rx="14" fill="#f8fafc" fill-opacity=".55" stroke="#475569" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="774" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#0f172a">SINGLE-NODE MODEL: DEPLOYMENT</text>
+<rect x="785" y="100" width="145" height="105" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="797" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">vLLM replica 1</text>
+<text x="797" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">1 node, tensor</text>
+<text x="797" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">parallel over NVLink</text>
+<rect x="945" y="100" width="145" height="105" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="957" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">vLLM replica 2</text>
+<text x="957" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">1 node, tensor</text>
+<text x="957" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">parallel over NVLink</text>
+<rect x="1105" y="100" width="145" height="105" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1117" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">vLLM replica 3</text>
+<text x="1117" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">1 node, tensor</text>
+<text x="1117" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">parallel over NVLink</text>
+<rect x="760" y="250" width="510" height="160" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="774" y="274" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">MULTI-NODE MODEL: LEADERWORKERSET</text>
+<rect x="785" y="290" width="140" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="797" y="312" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Leader</text>
+<text x="797" y="334" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">API server, rank 0</text>
+<rect x="945" y="290" width="140" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="957" y="312" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Worker</text>
+<text x="957" y="334" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">pipeline stage 2</text>
+<rect x="1105" y="290" width="140" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1117" y="312" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Group</text>
+<text x="1117" y="334" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">created, scaled,</text>
+<text x="1117" y="348" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">restarted together</text>
+<rect x="760" y="430" width="510" height="180" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="774" y="454" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">DISAGGREGATED: PREFILL AND DECODE POOLS</text>
+<rect x="785" y="475" width="200" height="110" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="797" y="497" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Prefill pool</text>
+<text x="797" y="519" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Processes the prompt</text>
+<text x="797" y="533" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">(compute-bound)</text>
+<rect x="1045" y="475" width="200" height="110" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1057" y="497" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Decode pool</text>
+<text x="1057" y="519" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Generates tokens</text>
+<text x="1057" y="533" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">(memory-bandwidth-bound)</text>
+<path d="M 985 530 L 1045 530" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="983.12" y="498" width="63.760000000000005" height="36" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="1015" y="512" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">KV cache</text>
+<text x="1015" y="527" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">(NIXL)</text>
+<path d="M 710 290 L 760 150" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<path d="M 710 310 L 760 330" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<path d="M 710 330 L 760 520" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="470" y="460" width="240" height="120" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="482" y="482" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">KV-cache tiers</text>
+<text x="482" y="504" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Hot prefixes in GPU memory; warm</text>
+<text x="482" y="518" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">ones offloaded to CPU memory or NVMe</text>
+<text x="482" y="532" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">(LMCache)</text>
+<text x="40" y="625.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569">Scale on waiting requests, KV-cache use or TTFT. Tensor parallel inside a node, pipeline parallel across nodes.</text></svg>

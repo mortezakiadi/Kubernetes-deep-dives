@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280px" height="640px" viewBox="0 0 1280 640" style="background:#ffffff"><title>Platform capability layers</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1280" height="640" fill="#ffffff"/><text x="640" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Golden paths on top of shared building blocks</text>
+<rect x="30" y="60" width="1220" height="96" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="48" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Golden paths</text>
+<rect x="250" y="74" width="232" height="68" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="366.0" y="112.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Notebooks and dev pods</text>
+<rect x="498" y="74" width="232" height="68" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="614.0" y="112.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">TrainJob (train and fine-tune)</text>
+<rect x="746" y="74" width="232" height="68" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="862.0" y="112.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Model deployment template</text>
+<rect x="994" y="74" width="232" height="68" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="1110.0" y="112.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Batch inference and eval jobs</text>
+<rect x="30" y="172" width="1220" height="96" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="48" y="226" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Workload APIs</text>
+<rect x="250" y="186" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="366.0" y="224.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Kubeflow Trainer v2 → JobSet</text>
+<rect x="498" y="186" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="614.0" y="216.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">LeaderWorkerSet (multi-node</text>
+<text x="614.0" y="233.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">replicas)</text>
+<rect x="746" y="186" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="862.0" y="224.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Deployments / KServe</text>
+<rect x="994" y="186" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1110.0" y="224.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Kubernetes Jobs</text>
+<rect x="30" y="284" width="1220" height="96" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="48" y="338" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Scheduling and capacity</text>
+<rect x="250" y="298" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="366.0" y="328.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Kueue queues, priorities,</text>
+<text x="366.0" y="345.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">borrowing</text>
+<rect x="498" y="298" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="614.0" y="336.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Topology-aware placement</text>
+<rect x="746" y="298" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="862.0" y="336.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">DRA: GPUs and MIG slices</text>
+<rect x="994" y="298" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1110.0" y="328.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Karpenter: reserved,</text>
+<text x="1110.0" y="345.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">on-demand, Spot</text>
+<rect x="30" y="396" width="1220" height="96" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="48" y="450" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Data and models</text>
+<rect x="250" y="410" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="366.0" y="448.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">S3 (source of truth)</text>
+<rect x="498" y="410" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="614.0" y="448.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">FSx for Lustre + local NVMe</text>
+<rect x="746" y="410" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="862.0" y="448.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Model registry + promotion</text>
+<rect x="994" y="410" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1110.0" y="448.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Weight cache near GPUs</text>
+<rect x="30" y="508" width="1220" height="96" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="48" y="562" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Observability</text>
+<rect x="250" y="522" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="366.0" y="560.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">DCGM GPU metrics</text>
+<rect x="498" y="522" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="614.0" y="560.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Training goodput, step time</text>
+<rect x="746" y="522" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="862.0" y="560.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">TTFT, TPOT, cost per token</text>
+<rect x="994" y="522" width="232" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1110.0" y="560.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Queue wait, cost per team</text>
+<text x="640" y="628.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569" font-style="italic">Shared layers come from Design 02: the clusters, queues and capacity. This design adds the golden paths, data path and workload metrics.</text></svg>
