@@ -69,7 +69,7 @@ def read_md(path):
         if not mh:
             continue
         nxt = parts[i + 1] if i + 1 < len(parts) else ""
-        ms = re.search(r'data-src="diagrams/sections/([^"/]+)\.svg"', nxt)
+        ms = re.search(r'data-src="diagrams/(?:sections|designs)/([^"/]+)\.svg"', nxt)
         if ms:
             hid = ms.group(1)
         else:
@@ -302,11 +302,13 @@ def main():
     intro_meta, intro_html = read_md(ROOT / "content" / "00-intro.md")
     posts = sorted((ROOT / "content" / "notes").glob("*.md"))
     tabs = sorted((ROOT / "content" / "deep-dives").glob("*.md"))
+    designs = sorted((ROOT / "content" / "designs").glob("*.md"))
     apps = sorted((ROOT / "content" / "appendix").glob("*.md"))
-    nav_posts, nav, nav_app, body = [], [], [], []
+    nav_posts, nav, nav_design, nav_app, body = [], [], [], [], []
     n_sections = 0
-    entries = [("tab", p) for p in tabs] + [("post", p) for p in posts] + [("appendix", p) for p in apps]
-    tabno = 0
+    entries = ([("tab", p) for p in tabs] + [("design", p) for p in designs]
+               + [("post", p) for p in posts] + [("appendix", p) for p in apps])
+    tabno = designno = 0
     for kind, p in entries:
         meta, h = read_md(p)
         sid = meta["id"]
@@ -317,6 +319,11 @@ def main():
             label = f"{tabno:02d}"
             tag = f"Deep dive {label} · {n} section" + ("s" if n != 1 else "")
             nav.append(f'<li><a href="#{sid}"><b>{label}</b> {html.escape(meta["short"])}</a></li>')
+        elif kind == "design":
+            designno += 1
+            label = f"{designno:02d}"
+            tag = f"Design {label} · {n} section" + ("s" if n != 1 else "")
+            nav_design.append(f'<li class="design"><a href="#{sid}"><b>{label}</b> {html.escape(meta["short"])}</a></li>')
         elif kind == "appendix":
             tag = "Appendix"
             nav_app.append(f'<li class="notes"><a href="#{sid}">{html.escape(meta["short"])}</a></li>')
@@ -346,16 +353,18 @@ def main():
         intro=intro_html,
         nav="\n".join(nav),
         nav_posts="\n".join(nav_posts),
+        nav_designs="\n".join(nav_design),
         nav_appendix="\n".join(nav_app),
         body="\n".join(body),
         n_tabs=len(tabs),
+        n_designs=len(designs),
         n_sections=n_sections,
     )
     page = (ROOT / "template.html").read_text(encoding="utf-8")
     for k, v in values.items():
         page = page.replace("{{" + k + "}}", str(v))
     (ROOT / "index.html").write_text(page, encoding="utf-8")
-    print(f"index.html written: {len(posts)} posts, {len(tabs)} tabs, {n_sections} diagram sections")
+    print(f"index.html written: {len(posts)} posts, {len(tabs)} tabs, {len(designs)} designs, {n_sections} diagram sections")
 
 
 if __name__ == "__main__":

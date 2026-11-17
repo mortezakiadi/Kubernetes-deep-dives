@@ -152,6 +152,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .key-legend { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 
 .post .tag { color: var(--mark); }
+.design .tag { color: var(--tool); }
+.rail li.design a b { color: var(--tool); }
 @media (max-width: 700px) { .toc ol { columns: 1; } }
 
 /* Full-screen viewer */
@@ -182,6 +184,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <nav aria-label="Contents">
       <h3>Deep dives</h3>
       <ul>{{nav}}</ul>
+      <h3>Designs</h3>
+      <ul>{{nav_designs}}</ul>
       <h3>Further research</h3>
       <ul>{{nav_posts}}</ul>
       <h3>Appendix</h3>
@@ -196,6 +200,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <div class="prose">{{intro}}</div>
       <ul class="stats">
         <li>{{n_tabs}} deep dives</li>
+        <li>{{n_designs}} designs</li>
         <li>{{n_sections}} scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>

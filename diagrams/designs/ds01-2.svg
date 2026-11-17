@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="720px" viewBox="0 0 1420 720" style="background:#ffffff"><title>Sandbox platform architecture</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="720" fill="#ffffff"/><rect x="160" y="50" width="360" height="650" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="174" y="74" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">TRUSTED CONTROL PLANE</text>
+<rect x="570" y="130" width="300" height="490" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="584" y="154" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">SANDBOX NODE POOL (UNTRUSTED)</text>
+<rect x="915" y="130" width="230" height="490" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="929" y="154" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">GATEWAYS</text>
+<rect x="1180" y="130" width="225" height="490" rx="14" fill="#f8fafc" fill-opacity=".55" stroke="#475569" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="1194" y="154" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#0f172a">OUTSIDE</text>
+<rect x="20" y="93" width="120" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="80.0" y="122.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">User</text>
+<text x="80.0" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">product UI</text>
+<rect x="185" y="90" width="310" height="76" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="197" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Agent orchestrator</text>
+<text x="197" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Agent loop: calls the LLM, decides next step.</text>
+<text x="197" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Never runs generated code.</text>
+<rect x="185" y="205" width="310" height="66" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="197" y="228" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Sandbox Router</text>
+<text x="197" y="251" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Forwards commands and files to a sandbox by</text>
+<text x="197" y="266" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">ID</text>
+<rect x="185" y="316" width="310" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="197" y="339" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Sandbox Manager API</text>
+<text x="197" y="362" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Creates claims, tenant quotas, user to</text>
+<text x="197" y="377" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">sandbox mapping. Only it can create</text>
+<text x="197" y="392" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">sandboxes.</text>
+<rect x="185" y="440" width="310" height="66" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="197" y="463" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">agent sandbox controller</text>
+<text x="197" y="486" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Templates, warm pools, claims (SIG Apps)</text>
+<rect x="185" y="560" width="310" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="197" y="583" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Audit pipeline</text>
+<text x="197" y="606" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Commands, tool calls and egress requests, all</text>
+<text x="197" y="621" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">keyed by session ID, in an append-only store</text>
+<rect x="592" y="175" width="256" height="115" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="604" y="197" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Sandbox pod (session A)</text>
+<text x="604" y="219" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Own kernel (microVM). Exec agent,</text>
+<text x="604" y="233" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">/workspace volume. No tokens, no</text>
+<text x="604" y="247" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">secrets, placeholders only.</text>
+<rect x="592" y="315" width="256" height="115" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="604" y="337" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Sandbox pod (session B)</text>
+<text x="604" y="359" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Own kernel (microVM). Exec agent,</text>
+<text x="604" y="373" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">/workspace volume. No tokens, no</text>
+<text x="604" y="387" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">secrets, placeholders only.</text>
+<rect x="592" y="455" width="256" height="115" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="604" y="477" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Sandbox pod (session C)</text>
+<text x="604" y="499" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Own kernel (microVM). Exec agent,</text>
+<text x="604" y="513" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">/workspace volume. No tokens, no</text>
+<text x="604" y="527" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">secrets, placeholders only.</text>
+<rect x="935" y="175" width="190" height="120" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="947" y="198" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Egress gateway</text>
+<text x="947" y="221" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Only way out. Per-session</text>
+<text x="947" y="236" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">allowlist, injects</text>
+<text x="947" y="251" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">credentials, logs every</text>
+<text x="947" y="266" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">request.</text>
+<rect x="935" y="335" width="190" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="947" y="358" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Credential broker</text>
+<text x="947" y="381" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Short-lived, per-session</text>
+<text x="947" y="396" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">credentials</text>
+<rect x="935" y="445" width="190" height="160" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="947" y="468" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Tool gateway (MCP)</text>
+<text x="947" y="491" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Maps a token to user +</text>
+<text x="947" y="506" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">agent, checks tool</text>
+<text x="947" y="521" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">policy, rate limits,</text>
+<text x="947" y="536" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">approvals. Sandboxes</text>
+<text x="947" y="551" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reach it only via the</text>
+<text x="947" y="566" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">egress gateway.</text>
+<rect x="1198" y="175" width="190" height="150" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1210" y="198" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">External services</text>
+<text x="1210" y="221" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">LLM APIs</text>
+<text x="1210" y="236" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Package registry mirror</text>
+<text x="1210" y="251" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">GitHub</text>
+<text x="1210" y="266" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Approved websites</text>
+<rect x="1198" y="455" width="190" height="130" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1210" y="478" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Internal tools</text>
+<text x="1210" y="501" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Metrics API</text>
+<text x="1210" y="516" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Jira, tickets</text>
+<text x="1210" y="531" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Internal APIs</text>
+<path d="M 140 128 L 185 128" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 340 166 L 340 205" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="339.6" y="176" width="110.80000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="395" y="190" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">commands, files</text>
+<path d="M 185 150 L 175 150 L 175 358 L 185 358" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="193.04" y="286" width="83.92" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="235" y="300" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">new session</text>
+<path d="M 340 406 L 340 440" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="354.68" y="413" width="90.64000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="400" y="427" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">SandboxClaim</text>
+<path d="M 495 238 L 592 232" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="494.32" y="208" width="97.36000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="543" y="222" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">by sandbox ID</text>
+<path d="M 495 473 L 592 512" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="504.04" y="448" width="83.92" height="36" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="546" y="462" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">bind a warm</text>
+<text x="546" y="477" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">sandbox</text>
+<path d="M 848 232 L 935 235" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<path d="M 848 372 L 935 255" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<path d="M 848 512 L 935 275" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<path d="M 1030 295 L 1030 335" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)" marker-start="url(#a-blue-s)"/>
+<path d="M 1125 235 L 1198 245" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="1118.04" y="211" width="83.92" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="1160" y="225" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#2563eb">allowlisted</text>
+<path d="M 1125 520 L 1198 520" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<path d="M 495 115 L 520 115 L 540 70 L 1160 70 L 1160 500 L 1125 500" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="717.4" y="50" width="245.20000000000002" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="840" y="64" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">tool calls with the user's identity</text></svg>
