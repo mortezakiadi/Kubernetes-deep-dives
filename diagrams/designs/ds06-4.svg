@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>GRPO family switches</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Inside 'GRPO': the switches that change training behavior</text>
+<rect x="30" y="70" width="250" height="90" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="155.0" y="109.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Prompt</text>
+<text x="155.0" y="133.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">one question</text>
+<rect x="320" y="60" width="380" height="300" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="334" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">GROUP OF 8 SAMPLED ANSWERS</text>
+<rect x="345" y="100" width="200" height="22" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="355" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">answer 1</text>
+<text x="675" y="116" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">r=1</text>
+<rect x="345" y="130" width="237" height="22" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="355" y="146.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">answer 2</text>
+<text x="675" y="146" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">r=0</text>
+<rect x="345" y="160" width="274" height="22" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="355" y="176.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">answer 3</text>
+<text x="675" y="176" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">r=1</text>
+<rect x="345" y="190" width="311" height="22" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="355" y="206.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">answer 4</text>
+<text x="675" y="206" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">r=1</text>
+<rect x="345" y="220" width="228" height="22" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="355" y="236.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">answer 5</text>
+<text x="675" y="236" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">r=0</text>
+<rect x="345" y="250" width="265" height="22" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="355" y="266.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">answer 6</text>
+<text x="675" y="266" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">r=0</text>
+<rect x="345" y="280" width="302" height="22" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="355" y="296.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">answer 7</text>
+<text x="675" y="296" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">r=1</text>
+<rect x="345" y="310" width="219" height="22" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="355" y="326.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">answer 8</text>
+<text x="675" y="326" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">r=0</text>
+<path d="M 280 115 L 320 115" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="740" y="70" width="520" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="752" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Group-relative advantage</text>
+<text x="752" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">A = (r − mean of group) / std of group. No critic model. All-equal groups</text>
+<text x="752" y="131" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">give A = 0: no signal.</text>
+<path d="M 700 200 L 740 130" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="740" y="196" width="520" height="72" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="752" y="218" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Loss aggregation</text>
+<text x="752" y="240" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">per-answer mean (GRPO) vs token-level over the batch (DAPO, Dr. GRPO): removes</text>
+<text x="752" y="254" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">length bias</text>
+<rect x="740" y="274" width="520" height="72" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="752" y="296" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Clipping</text>
+<text x="752" y="318" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">symmetric 0.2 vs clip-higher [0.2, 0.28]: keeps exploration and entropy alive</text>
+<rect x="740" y="352" width="520" height="72" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="752" y="374" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Ratio level</text>
+<text x="752" y="396" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">per token (GRPO, DAPO) vs per sequence (GSPO): steadier, notably for MoE</text>
+<rect x="740" y="430" width="520" height="72" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="752" y="452" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">KL to reference</text>
+<text x="752" y="474" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">small penalty to preserve behavior, or none to save memory and allow drift</text>
+<rect x="740" y="508" width="520" height="72" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="752" y="530" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Std scaling</text>
+<text x="752" y="552" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">divide by group std, or not (Dr. GRPO): avoids over-weighting easy/hard prompts</text>
+<rect x="30" y="390" width="670" height="140" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="413" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Start simple, then ablate one switch at a time</text>
+<text x="42" y="436" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Token-level loss · clip-higher · no KL · group size 8–16 · low LR (~1e-6). Published rankings change</text>
+<text x="42" y="451" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">with model scale, so treat each switch as a recipe key.</text></svg>

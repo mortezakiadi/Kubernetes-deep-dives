@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1340px" height="640px" viewBox="0 0 1340 640" style="background:#ffffff"><title>Post-training experiment platform</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1340" height="640" fill="#ffffff"/><text x="670" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">From a recipe file to compared results</text>
+<rect x="30" y="80" width="220" height="120" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Recipes in Git</text>
+<text x="42" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reviewed; an ablation = one</text>
+<text x="42" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">changed key + declared variable</text>
+<rect x="290" y="80" width="240" height="120" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="302" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Experiment launcher</text>
+<text x="302" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">expands sweeps; pins data, code,</text>
+<text x="302" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">image, checkpoint; run ID +</text>
+<text x="302" y="156" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">recipe hash</text>
+<rect x="570" y="80" width="220" height="120" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="582" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Kueue</text>
+<text x="582" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">ablations borrow idle GPUs (low</text>
+<text x="582" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">priority); production RL on</text>
+<text x="582" y="156" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reserved capacity</text>
+<path d="M 250 140 L 290 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 530 140 L 570 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="830" y="60" width="480" height="380" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="844" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">RL JOB (RAYJOB)</text>
+<rect x="855" y="100" width="210" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="867" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Trainer</text>
+<text x="867" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">FSDP / Megatron</text>
+<rect x="1080" y="100" width="210" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1092" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Rollout engines</text>
+<text x="1092" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">vLLM / SGLang</text>
+<rect x="855" y="210" width="210" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="867" y="233" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Reference / teacher</text>
+<text x="867" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">when the objective needs it</text>
+<rect x="1080" y="210" width="210" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1092" y="233" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Reward workers</text>
+<text x="1092" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">verifiers, judges</text>
+<rect x="855" y="320" width="435" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="867" y="342.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Weight sync and rollout buffer</text>
+<text x="867" y="365.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">trainer → rollout engines; rollouts → trainer (staleness ≤ k)</text>
+<path d="M 1065 145 L 1080 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)" marker-start="url(#a-flow-s)"/>
+<path d="M 790 140 L 830 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1080" y="470" width="230" height="110" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="1092" y="492.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Sandbox pool</text>
+<text x="1092" y="515.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">runs model-written code for</text>
+<text x="1092" y="529.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">rewards (Design 01)</text>
+<path d="M 1185 300 L 1185 470" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="570" y="470" width="460" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="582" y="493" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Checkpoints + registry</text>
+<text x="582" y="516" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fast shared storage → S3; chosen checkpoints registered with recipe</text>
+<text x="582" y="531" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">and evals</text>
+<path d="M 960 440 L 900 470" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="470" width="500" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="493" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Evaluation + tracking</text>
+<text x="42" y="516" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">same suites on every checkpoint (batch jobs); metrics, health signals,</text>
+<text x="42" y="531" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">samples, cost per experiment in one place</text>
+<path d="M 570 525 L 530 525" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="280" width="500" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="42" y="303" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Health dashboards and alerts</text>
+<text x="42" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reward, entropy, length, KL, clip fraction, IS ratios, grad norm per run</text>
+<path d="M 830 335 L 530 335" fill="none" stroke="#334155" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-flow)"/></svg>

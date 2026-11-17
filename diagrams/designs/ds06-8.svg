@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="520px" viewBox="0 0 1300 520" style="background:#ffffff"><title>Off-policy vs on-policy distillation</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="520" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Off-policy imitates the teacher's path; on-policy grades the student's own path</text>
+<rect x="30" y="60" width="600" height="380" rx="14" fill="#f8fafc" fill-opacity=".55" stroke="#475569" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="44" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#0f172a">OFF-POLICY (SFT ON TEACHER TRACES)</text>
+<rect x="60" y="100" width="240" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="72" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Teacher writes</text>
+<text x="72" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">complete answers</text>
+<rect x="360" y="100" width="240" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="372" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Student imitates</text>
+<text x="372" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">cross-entropy on teacher tokens</text>
+<path d="M 300 135 L 360 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 80 260 C 200 240, 330 250, 580 230" fill="none" stroke="#d97706" stroke-width="3"/>
+<text x="580" y="222" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">teacher's path</text>
+<path d="M 80 260 C 160 270, 220 300, 300 340" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="6 4"/>
+<text x="310" y="360" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">student's own early mistake:</text>
+<text x="310" y="378" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">a state it never trained on</text>
+<text x="60" y="420" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">Cheap; style transfers well; weak recovery</text>
+<rect x="670" y="60" width="600" height="380" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="684" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">ON-POLICY DISTILLATION</text>
+<rect x="700" y="100" width="240" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="712" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Student generates</text>
+<text x="712" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">its own rollouts</text>
+<rect x="1000" y="100" width="240" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="1012" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Teacher scores</text>
+<text x="1012" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">every token: reverse KL</text>
+<path d="M 940 135 L 1000 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 1120 170 L 1120 200 L 820 200 L 820 170" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="860.84" y="208" width="218.32000000000002" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="970" y="222" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">dense per-token signal → update</text>
+<rect x="710" y="270" width="46" height="34" rx="4" fill="#059669" fill-opacity=".8"/>
+<rect x="764" y="270" width="46" height="34" rx="4" fill="#059669" fill-opacity=".8"/>
+<rect x="818" y="270" width="46" height="34" rx="4" fill="#059669" fill-opacity=".8"/>
+<rect x="872" y="270" width="46" height="34" rx="4" fill="#dc2626" fill-opacity=".8"/>
+<rect x="926" y="270" width="46" height="34" rx="4" fill="#dc2626" fill-opacity=".8"/>
+<rect x="980" y="270" width="46" height="34" rx="4" fill="#059669" fill-opacity=".8"/>
+<rect x="1034" y="270" width="46" height="34" rx="4" fill="#059669" fill-opacity=".8"/>
+<rect x="1088" y="270" width="46" height="34" rx="4" fill="#059669" fill-opacity=".8"/>
+<rect x="1142" y="270" width="46" height="34" rx="4" fill="#059669" fill-opacity=".8"/>
+<rect x="1196" y="270" width="46" height="34" rx="4" fill="#059669" fill-opacity=".8"/>
+<text x="710" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">student tokens; red = teacher disagrees (a 'forking' token)</text>
+<text x="700" y="420" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">Learns to recover; much cheaper than RL when a good teacher exists</text>
+<text x="650" y="495" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569" font-style="italic">Same tokenizer required · teacher quirks transfer · off-policy SFT first helps when thinking styles differ</text></svg>

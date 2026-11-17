@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="534px" viewBox="0 0 1260 534" style="background:#ffffff"><title>Choices and outcomes</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="534" fill="#ffffff"/><text x="630.0" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Which choices move which outcome most (darker = stronger effect)</text>
+<rect x="240" y="55" width="250" height="44" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="250" y="82.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Efficiency</text>
+<rect x="490" y="55" width="250" height="44" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="500" y="82.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Stability</text>
+<rect x="740" y="55" width="250" height="44" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="750" y="82.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Capability</text>
+<rect x="990" y="55" width="250" height="44" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1000" y="82.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Behavior</text>
+<rect x="20" y="99" width="220" height="64" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="30" y="136.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Objective</text>
+<rect x="240" y="99" width="250" height="64" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="250" y="135.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="490" y="99" width="250" height="64" fill="#3b82f6" stroke="#cbd5e1"/>
+<text x="500" y="135.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">clipping, loss aggregation, KL</text>
+<rect x="740" y="99" width="250" height="64" fill="#bfdbfe" stroke="#cbd5e1"/>
+<text x="750" y="135.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="990" y="99" width="250" height="64" fill="#bfdbfe" stroke="#cbd5e1"/>
+<text x="1000" y="135.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="20" y="163" width="220" height="64" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="30" y="200.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Data mixture</text>
+<rect x="240" y="163" width="250" height="64" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="250" y="199.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="490" y="163" width="250" height="64" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="500" y="199.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="740" y="163" width="250" height="64" fill="#3b82f6" stroke="#cbd5e1"/>
+<text x="750" y="199.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">you learn what you train on</text>
+<rect x="990" y="163" width="250" height="64" fill="#3b82f6" stroke="#cbd5e1"/>
+<text x="1000" y="199.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">style, length, refusals</text>
+<rect x="20" y="227" width="220" height="64" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="30" y="264.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Hyperparameters</text>
+<rect x="240" y="227" width="250" height="64" fill="#bfdbfe" stroke="#cbd5e1"/>
+<text x="250" y="263.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="490" y="227" width="250" height="64" fill="#3b82f6" stroke="#cbd5e1"/>
+<text x="500" y="263.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">learning rate, staleness</text>
+<rect x="740" y="227" width="250" height="64" fill="#bfdbfe" stroke="#cbd5e1"/>
+<text x="750" y="263.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="990" y="227" width="250" height="64" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1000" y="263.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="20" y="291" width="220" height="64" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="30" y="328.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Rollout generation</text>
+<rect x="240" y="291" width="250" height="64" fill="#3b82f6" stroke="#cbd5e1"/>
+<text x="250" y="327.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">most of an RL step's time</text>
+<rect x="490" y="291" width="250" height="64" fill="#bfdbfe" stroke="#cbd5e1"/>
+<text x="500" y="327.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="740" y="291" width="250" height="64" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="750" y="327.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="990" y="291" width="250" height="64" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1000" y="327.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="20" y="355" width="220" height="64" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="30" y="392.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Filtering</text>
+<rect x="240" y="355" width="250" height="64" fill="#3b82f6" stroke="#cbd5e1"/>
+<text x="250" y="391.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">samples with signal</text>
+<rect x="490" y="355" width="250" height="64" fill="#bfdbfe" stroke="#cbd5e1"/>
+<text x="500" y="391.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="740" y="355" width="250" height="64" fill="#bfdbfe" stroke="#cbd5e1"/>
+<text x="750" y="391.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="990" y="355" width="250" height="64" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1000" y="391.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="20" y="419" width="220" height="64" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="30" y="456.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Reward design</text>
+<rect x="240" y="419" width="250" height="64" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="250" y="455.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="490" y="419" width="250" height="64" fill="#bfdbfe" stroke="#cbd5e1"/>
+<text x="500" y="455.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1e293b"></text>
+<rect x="740" y="419" width="250" height="64" fill="#3b82f6" stroke="#cbd5e1"/>
+<text x="750" y="455.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">you get what you reward</text>
+<rect x="990" y="419" width="250" height="64" fill="#3b82f6" stroke="#cbd5e1"/>
+<text x="1000" y="455.75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">side effects: length, format</text>
+<text x="630.0" y="520.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">Behavior changes are the easiest to miss: benchmarks rarely measure them.</text></svg>
