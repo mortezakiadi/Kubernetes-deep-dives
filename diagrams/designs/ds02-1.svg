@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400px" height="760px" viewBox="0 0 1400 760" style="background:#ffffff"><title>Multi-cluster compute platform architecture</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1400" height="760" fill="#ffffff"/><text x="700" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">One hub for queued work, worker clusters by role, everything from Git</text>
+<rect x="20" y="110" width="160" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="32" y="133" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Teams</text>
+<text x="32" y="156" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Submit batch and</text>
+<text x="32" y="171" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">training jobs to one</text>
+<text x="32" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">place</text>
+<rect x="20" y="480" width="160" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="32" y="503" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Platform team</text>
+<text x="32" y="526" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Cluster definitions,</text>
+<text x="32" y="541" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">add-ons, team queues:</text>
+<text x="32" y="556" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">all in Git</text>
+<rect x="210" y="60" width="330" height="660" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="224" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">HUB CLUSTER (NO USER WORKLOADS)</text>
+<rect x="232" y="100" width="286" height="120" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="244" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Kueue manager + MultiKueue</text>
+<text x="244" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Fleet-wide team quotas. Reserves quota,</text>
+<text x="244" y="161" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">then offers the job to worker clusters</text>
+<rect x="232" y="250" width="286" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="244" y="273" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Argo CD (fleet GitOps)</text>
+<text x="244" y="296" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">ApplicationSets install add-ons and</text>
+<text x="244" y="311" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">queues on every cluster by role label</text>
+<rect x="232" y="390" width="286" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="244" y="413" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Policy</text>
+<text x="244" y="436" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">GPU pods must use a queue; restricted Pod</text>
+<text x="244" y="451" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Security</text>
+<rect x="232" y="500" width="286" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="244" y="523" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Fleet metrics and cost</text>
+<text x="244" y="546" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Kueue, DCGM, Karpenter, OpenCost from</text>
+<text x="244" y="561" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">every cluster</text>
+<rect x="232" y="620" width="286" height="76" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="244" y="643" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Cluster definitions (kro + ACK)</text>
+<text x="244" y="666" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">One template per cluster role</text>
+<rect x="590" y="60" width="440" height="190" rx="14" fill="#f8fafc" fill-opacity=".55" stroke="#475569" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="604" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#0f172a">CPU CLUSTERS</text>
+<rect x="590" y="270" width="440" height="210" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="604" y="294" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">GPU TRAINING CLUSTERS</text>
+<rect x="590" y="500" width="440" height="220" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="604" y="524" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">GPU INFERENCE CLUSTERS</text>
+<rect x="610" y="100" width="195" height="130" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="622" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">cpu-use1</text>
+<text x="622" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Services, data pipelines,</text>
+<text x="622" y="161" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">CI. Kueue worker, Karpenter</text>
+<rect x="820" y="100" width="195" height="130" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="832" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">cpu-euw1</text>
+<text x="832" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Services, data pipelines,</text>
+<text x="832" y="161" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">CI. Kueue worker, Karpenter</text>
+<rect x="610" y="310" width="195" height="150" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="622" y="333" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">train-use1-a</text>
+<text x="622" y="356" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Capacity Blocks, EFA,</text>
+<text x="622" y="371" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">topology-aware. Kueue</text>
+<text x="622" y="386" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">worker, Karpenter, DRA</text>
+<rect x="820" y="310" width="195" height="150" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="832" y="333" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">train-use1-b</text>
+<text x="832" y="356" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">On-demand and Spot</text>
+<text x="832" y="371" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">overflow. Kueue worker,</text>
+<text x="832" y="386" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Karpenter, DRA</text>
+<rect x="610" y="540" width="195" height="160" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="622" y="563" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">infer-use1</text>
+<text x="622" y="586" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Model servers from GitOps,</text>
+<text x="622" y="601" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">HPA/KEDA on serving</text>
+<text x="622" y="616" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">signals, Karpenter</text>
+<rect x="820" y="540" width="195" height="160" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="832" y="563" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">infer-euw1</text>
+<text x="832" y="586" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Same models, second region</text>
+<rect x="1110" y="560" width="260" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="1122" y="583" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Global routing</text>
+<text x="1122" y="606" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Clients reach the nearest healthy</text>
+<text x="1122" y="621" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">region; Gateway API Inference</text>
+<text x="1122" y="636" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Extension inside each cluster</text>
+<rect x="1110" y="300" width="260" height="130" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1122" y="323" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Regional data</text>
+<text x="1122" y="346" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Datasets and model weights in S3 per</text>
+<text x="1122" y="361" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">region. Jobs are sent to clusters</text>
+<text x="1122" y="376" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">near their data.</text>
+<rect x="1110" y="100" width="260" height="120" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1122" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Shared identity</text>
+<text x="1122" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">IAM Identity Center for people, EKS</text>
+<text x="1122" y="161" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Pod Identity per team for workloads</text>
+<path d="M 180 160 L 232 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="179.84" y="136" width="50.32000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="205" y="150" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">submit</text>
+<path d="M 180 530 L 200 530 L 200 305 L 232 305" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="198.92" y="416" width="30.160000000000004" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="214" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#047857">Git</text>
+<path d="M 518 140 L 560 140 L 560 360 L 610 360" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#a-blue)"/>
+<path d="M 560 200 L 560 165 L 610 165" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-blue)"/>
+<rect x="526.4" y="276" width="77.2" height="36" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="565" y="290" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1d4ed8">MultiKueue</text>
+<text x="565" y="305" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1d4ed8">dispatch</text>
+<path d="M 518 330 L 575 330 L 575 735 L 1060 735 L 1060 150 L 1030 150" fill="none" stroke="#059669" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-ok)"/>
+<path d="M 1060 420 L 1030 420" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<path d="M 1060 680 L 1030 680" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="606.76" y="721" width="406.48" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="810" y="735" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#047857">add-ons, namespaces, LocalQueues and ClusterQueues, by role</text>
+<path d="M 1110 615 L 1015 615" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)" marker-start="url(#a-blue-s)"/>
+<path d="M 1110 365 L 1015 365" fill="none" stroke="#334155" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-flow)"/></svg>

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240px" height="650px" viewBox="0 0 1240 650" style="background:#ffffff"><title>Queues, quotas and fair sharing</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1240" height="650" fill="#ffffff"/><text x="620" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">256 reserved H100s, three teams: guaranteed shares that are lent when idle</text>
+<rect x="30" y="55" width="1180" height="340" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="44" y="79" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">COHORT GPU-ORG</text>
+<rect x="60" y="95" width="330" height="270" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="72" y="119" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">ClusterQueue team-llm</text>
+<text x="72" y="143" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">h100-reserved: nominalQuota 128</text>
+<text x="74" y="167" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">GPUs in use</text>
+<rect x="74" y="175" width="204.8" height="26" fill="#e2e8f0" stroke="#94a3b8"/>
+<rect x="74" y="175" width="204.8" height="26" fill="#2563eb" fill-opacity=".75"/>
+<rect x="278.8" y="175" width="51.2" height="26" fill="#d97706" fill-opacity=".85"/>
+<path d="M 278.8 169 L 278.8 207" stroke="#0f172a" stroke-width="2"/>
+<text x="278.8" y="221" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">share 128</text>
+<text x="74" y="253" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">using 160: borrowing 32</text>
+<text x="74" y="277" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">borrowingLimit 64 · lendingLimit 96</text>
+<text x="74" y="299" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">priority: standard</text>
+<rect x="455" y="95" width="330" height="270" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="467" y="119" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">ClusterQueue team-vision</text>
+<text x="467" y="143" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">h100-reserved: nominalQuota 64</text>
+<text x="469" y="167" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">GPUs in use</text>
+<rect x="469" y="175" width="102.4" height="26" fill="#e2e8f0" stroke="#94a3b8"/>
+<rect x="469" y="175" width="64.0" height="26" fill="#2563eb" fill-opacity=".75"/>
+<path d="M 571.4 169 L 571.4 207" stroke="#0f172a" stroke-width="2"/>
+<text x="571.4" y="221" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">share 64</text>
+<text x="469" y="253" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">using 40: lending 24 idle</text>
+<text x="469" y="277" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">lendingLimit 48: keeps 16 always free</text>
+<text x="469" y="299" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">priority: standard</text>
+<rect x="850" y="95" width="330" height="270" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="862" y="119" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">ClusterQueue research</text>
+<text x="862" y="143" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">h100-reserved: nominalQuota 64</text>
+<text x="864" y="167" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">GPUs in use</text>
+<rect x="864" y="175" width="102.4" height="26" fill="#e2e8f0" stroke="#94a3b8"/>
+<rect x="864" y="175" width="89.60000000000001" height="26" fill="#2563eb" fill-opacity=".75"/>
+<path d="M 966.4 169 L 966.4 207" stroke="#0f172a" stroke-width="2"/>
+<text x="966.4" y="221" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">share 64</text>
+<text x="864" y="253" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">using 56: lending 8 idle</text>
+<text x="864" y="277" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">lendingLimit 56</text>
+<text x="864" y="299" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">priority: opportunistic</text>
+<path d="M 455 330 L 390 330" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<path d="M 850 345 L 820 345 L 820 380 L 360 380 L 360 365" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="514.2" y="363" width="211.60000000000002" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="620" y="377" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#047857">idle GPUs borrowed by team-llm</text>
+<path d="M 420 110 L 455 110" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-bad)"/>
+<rect x="344.44" y="68" width="151.12" height="36" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="420" y="82" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#b91c1c">reclaimed when vision</text>
+<text x="420" y="97" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#b91c1c">needs its share</text>
+<rect x="100" y="430" width="250" height="60" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="225.0" y="454.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">LocalQueue training</text>
+<text x="225.0" y="477.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">namespace llm-train</text>
+<path d="M 225 430 L 225 365" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="495" y="430" width="250" height="60" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="620.0" y="454.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">LocalQueue training</text>
+<text x="620.0" y="477.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">namespace vision</text>
+<path d="M 620 430 L 620 365" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="890" y="430" width="250" height="60" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="1015.0" y="454.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">LocalQueue experiments</text>
+<text x="1015.0" y="477.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">namespace research</text>
+<path d="M 1015 430 L 1015 365" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="620" y="520" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">ResourceFlavors map quota to Karpenter NodePools (tried in the order the ClusterQueue lists them)</text>
+<rect x="60" y="540" width="270" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="195.0" y="569.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">h100-reserved</text>
+<text x="195.0" y="592.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Capacity Blocks</text>
+<rect x="350" y="540" width="270" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="485.0" y="569.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">h100-ondemand</text>
+<text x="485.0" y="592.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">capped per queue</text>
+<rect x="640" y="540" width="270" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="775.0" y="569.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">l4-spot</text>
+<text x="775.0" y="592.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">evaluation, batch inference</text>
+<rect x="930" y="540" width="270" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1065.0" y="569.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">cpu-ondemand / cpu-spot</text>
+<text x="1065.0" y="592.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">services / batch</text></svg>

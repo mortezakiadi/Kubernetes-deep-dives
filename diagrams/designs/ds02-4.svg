@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240px" height="590px" viewBox="0 0 1240 590" style="background:#ffffff"><title>MultiKueue dispatch flow</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1240" height="590" fill="#ffffff"/><text x="620" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">MultiKueue: reserve quota in the hub, let the workers compete, run in the winner</text>
+<rect x="15" y="60" width="230" height="44" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="130.0" y="86.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Team</text>
+<path d="M 130 104 L 130 560" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 5"/>
+<rect x="355" y="60" width="230" height="44" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="470.0" y="86.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Hub: Kueue + MultiKueue</text>
+<path d="M 470 104 L 470 560" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 5"/>
+<rect x="695" y="60" width="230" height="44" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="810.0" y="86.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">train-use1-a</text>
+<path d="M 810 104 L 810 560" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 5"/>
+<rect x="985" y="60" width="230" height="44" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="1100.0" y="86.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">train-use1-b</text>
+<path d="M 1100 104 L 1100 560" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 5"/>
+<path d="M 130 160 L 470 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="160.6" y="138" width="278.8" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="300.0" y="152" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">JobSet, queue-name: training (suspended)</text>
+<circle cx="108" cy="160" r="12" fill="#2563eb"/>
+<text x="108" y="164.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#fff">1</text>
+<path d="M 470 260 L 810 260" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="591.3199999999999" y="238" width="97.36000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="640.0" y="252" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#2563eb">Workload copy</text>
+<circle cx="448" cy="260" r="12" fill="#2563eb"/>
+<text x="448" y="264.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#fff">3</text>
+<path d="M 470 300 L 1100 300" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="906.3199999999999" y="278" width="97.36000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="955.0" y="292" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#2563eb">Workload copy</text>
+<path d="M 1100 350 L 470 350" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="822.3199999999999" y="328" width="265.36" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="955.0" y="342" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">admitted: local quota + topology block</text>
+<circle cx="1122" cy="350" r="12" fill="#2563eb"/>
+<text x="1122" y="354.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#fff">4</text>
+<path d="M 470 395 L 810 395" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#a-bad)"/>
+<rect x="598.04" y="373" width="83.92" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="640.0" y="387" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#dc2626">delete copy</text>
+<path d="M 470 440 L 1100 440" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="866.0" y="418" width="178.00000000000003" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="955.0" y="432" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">create JobSet (runs here)</text>
+<path d="M 1100 495 L 470 495" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="859.28" y="473" width="191.44000000000003" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="955.0" y="487" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">status: running … succeeded</text>
+<circle cx="1122" cy="495" r="12" fill="#2563eb"/>
+<text x="1122" y="499.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#fff">5</text>
+<path d="M 470 535 L 130 535" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="207.64" y="513" width="184.72000000000003" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="300.0" y="527" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">status mirrored in the hub</text>
+<rect x="330" y="188" width="280" height="40" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="470.0" y="212.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">quota reserved in team-llm (fleet)</text>
+<circle cx="310" cy="208" r="12" fill="#2563eb"/>
+<text x="310" y="212.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#fff">2</text>
+<text x="620" y="582" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">Incremental dispatch offers the job to a few workers at a time, in MultiKueueConfig order: paid-for capacity first.</text></svg>

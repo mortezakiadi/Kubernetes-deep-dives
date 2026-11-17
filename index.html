@@ -198,7 +198,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><a href="#d-security"><b>13</b> Kubernetes Security</a></li>
 <li><a href="#d-storage-basics"><b>14</b> StorageClass, PV and PVC</a></li></ul>
       <h3>Designs</h3>
-      <ul><li class="design"><a href="#design-sandboxing"><b>01</b> Sandboxing and secure execution</a></li></ul>
+      <ul><li class="design"><a href="#design-sandboxing"><b>01</b> Sandboxing and secure execution</a></li>
+<li class="design"><a href="#design-multicluster"><b>02</b> Multi-cluster CPU and GPU platform</a></li></ul>
       <h3>Further research</h3>
       <ul><li class="notes"><a href="#post-serving">Serving LLMs on Kubernetes</a></li>
 <li class="notes"><a href="#post-model-data">Getting model weights into pods</a></li>
@@ -222,8 +223,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p class="legend">How to read the colours: <mark class="kw-act">actions</mark> the system takes, <mark class="kw">concepts and Kubernetes objects</mark>, and <mark class="kw-tool">tools and projects</mark>. In config snippets, the <span style="background:rgba(250,204,21,.25);box-shadow:inset 3px 0 #facc15;padding:0 6px">highlighted lines</span> are the ones that matter for that point.</p></div>
       <ul class="stats">
         <li>14 deep dives</li>
-        <li>1 designs</li>
-        <li>100 scenario sections</li>
+        <li>2 designs</li>
+        <li>106 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -2526,6 +2527,261 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Snapshots:</strong> restoring a sandbox from a memory snapshot would make starts near-instant and allow "fork this session". GKE offers pod snapshots and the agent sandbox project has examples built on them; on EKS this still needs runtime support we haven't found exposed through Kubernetes.</li>
 <li><strong>Multi-cluster:</strong> whether the Sandbox Manager should place sessions across clusters or regions for capacity and data residency.</li>
 <li><strong>Cost model:</strong> warm capacity per template and per tenant, and how to charge it back.</li>
+</ul></div>
+</section>
+
+<section class="entry design" id="design-multicluster" aria-labelledby="design-multicluster-h">
+  <header class="entry-head">
+    <span class="tag">Design 02 · 12 sections</span>
+    <h2 id="design-multicluster-h">Design 02: Operating CPU and GPU clusters as one compute platform</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#design-multicluster-the-use-case-and-requirements">The use case and requirements</a></li><li><a href="#ds02-1">The architecture at a glance</a></li><li><a href="#design-multicluster-why-several-clusters-and-how-to-cut-them">Why several clusters, and how to cut them</a></li><li><a href="#ds02-2">Four layers of scheduling decisions</a></li><li><a href="#ds02-3">Queues, quotas and fair sharing</a></li><li><a href="#ds02-4">Sending work to the right cluster</a></li><li><a href="#design-multicluster-inside-a-gpu-cluster-placement-devices-and-topology">Inside a GPU cluster: placement, devices and topology</a></li><li><a href="#ds02-5">Autoscaling: where capacity comes from</a></li><li><a href="#ds02-6">Multi-tenant isolation</a></li><li><a href="#design-multicluster-observability-cost-and-chargeback">Observability, cost and chargeback</a></li><li><a href="#design-multicluster-failure-modes-and-operations">Failure modes and operations</a></li><li><a href="#design-multicluster-rollout-plan-trade-offs-and-open-questions">Rollout plan, trade-offs and open questions</a></li></ol></nav>
+  <div class="prose"><p>This design answers one question: <em>how do we run several CPU and GPU clusters, in more than one region, so that teams see one platform with one way to submit work, fair access to scarce GPUs and real isolation from each other?</em> It builds on <a href="#d02-4">Queueing and fair sharing</a>, <a href="#d02-2">Gang scheduling</a>, <a href="#d06-4">Dynamic Resource Allocation</a>, <a href="#d03-3">Placement, autoscaling and cost</a> and <a href="#d07-1">Tenant classes, soft and hard isolation</a>. Everything here targets Amazon EKS.</p>
+<p>The short version: clusters are <em>cattle with roles</em> (CPU, GPU training, GPU inference), created and configured from Git. Batch and training work is submitted to one <em>hub</em> cluster, where <mark class="kw-tool">Kueue</mark>'s MultiKueue decides which worker cluster runs it. Inside each cluster, Kueue handles <mark class="kw">quotas</mark> and <mark class="kw">fair sharing</mark>, <mark class="kw-tool">kube-scheduler</mark> with <mark class="kw">DRA</mark> places the pods, and <mark class="kw-tool">Karpenter</mark> buys the nodes. Long-running services and inference aren't scheduled across clusters at runtime; GitOps places them, and global routing <mark class="kw-act">spreads</mark> their traffic.</p>
+<h3 id="design-multicluster-the-use-case-and-requirements">The use case and requirements</h3>
+<p><strong>Scenario.</strong> The company grew five EKS clusters by accident: two CPU clusters for services and data pipelines, a training cluster with H100 <mark class="kw-tool">Capacity Blocks</mark> in us-east-1, and two inference clusters in us-east-1 and eu-west-1. Each has its own <mark class="kw">quotas</mark> and its own Slack channel for "who is using the GPUs?". Training jobs wait for days in one cluster while reserved H100s idle in another, and two teams have quietly started buying their own capacity. Leadership asks the platform team to make it one platform.</p>
+<p><strong>What the design must do.</strong></p>
+<ul>
+<li><strong>One front door for batch work:</strong> a team submits a training or batch job once, without knowing which cluster will run it.</li>
+<li><strong>Fair, predictable GPU access:</strong> each team has a guaranteed share, can <mark class="kw-act">borrow</mark> what others aren't using, and gets it back when it needs it.</li>
+<li><strong>High utilization of expensive capacity:</strong> reserved GPUs should rarely sit idle; anything idle should be lent out.</li>
+<li><strong>Autoscaling that matches the work:</strong> CPU scales freely; GPUs come from reserved capacity first, then on-demand, then <mark class="kw">Spot</mark>, according to rules, not luck.</li>
+<li><strong>Isolation between tenants:</strong> teams can't see or starve each other, and regulated tenants get stronger walls.</li>
+<li><strong>Operable at scale:</strong> adding a cluster, upgrading one or losing one is routine.</li>
+</ul>
+<p><strong>What it must avoid.</strong></p>
+<ul>
+<li>One giant cluster where one bad upgrade or one control-plane overload stops everything.</li>
+<li>One cluster per team, which multiplies operations work and strands capacity.</li>
+<li>Teams bypassing the queues by creating pods directly on GPU nodes.</li>
+</ul>
+<p><strong>Out of scope for this design:</strong> sandboxing untrusted code (that's <a href="#design-sandboxing">Design 01</a>), and the internals of model serving engines.</p>
+<h3 id="ds02-1">The architecture at a glance</h3>
+<p><strong>Scenario.</strong> The team needs one picture that shows where users submit work, which component decides where it runs, and how the clusters are kept consistent.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: The architecture at a glance" class="open" data-src="diagrams/designs/ds02-1.svg" data-title="The architecture at a glance" type="button"><img alt="Diagram: The architecture at a glance" decoding="async" loading="lazy" src="diagrams/designs/ds02-1.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> A hub cluster that runs no user workloads, worker clusters grouped by role, and the two paths work takes: queued batch jobs through MultiKueue, long-running services through GitOps.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Hub cluster</span></summary><div class="acc-body">a small cluster with no user workloads. It runs the <mark class="kw-tool">Kueue</mark> manager with MultiKueue, Argo CD for the whole fleet, policy and the fleet's dashboards. It's the single place where teams submit batch and training jobs.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">MultiKueue (in the hub)</span></summary><div class="acc-body">when a job is submitted, the hub's Kueue reserves the team's <mark class="kw">quota</mark>, then copies the job's Workload to candidate worker clusters. The first worker whose own Kueue <mark class="kw-act">admits</mark> it wins; the copies elsewhere are deleted, and the job's status is synced back to the hub.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">CPU clusters</span></summary><div class="acc-body">services, data pipelines and CI, one per region. Also MultiKueue workers for CPU-only batch jobs.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">GPU training clusters</span></summary><div class="acc-body">large clusters with <mark class="kw-tool">Capacity Blocks</mark>, <mark class="kw">EFA</mark> networking and <mark class="kw">topology-aware</mark> placement. They receive training and fine-tuning jobs only through MultiKueue.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">GPU inference clusters</span></summary><div class="acc-body">at least two regions. Model servers are deployed by GitOps, scale with demand inside each cluster, and receive traffic from a global entry point.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Fleet GitOps</span></summary><div class="acc-body">Argo CD, with ApplicationSets, installs the same platform add-ons on every cluster according to its role label, and stamps the namespaces, <mark class="kw">LocalQueues</mark> and <mark class="kw">ClusterQueues</mark> that MultiKueue expects on every worker.</div></details><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">Shared services</span></summary><div class="acc-body">identity (IAM Identity Center and <mark class="kw">EKS Pod Identity</mark>), container images, model weights and datasets in S3 per region, metrics and cost data aggregated in one place.</div></details></div>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>Why a hub with no workloads:</strong> the hub holds the queue state for the whole company. Keeping it small, boring and separate means a noisy training job can never take down scheduling for everyone, and the hub can be upgraded on its own schedule. MultiKueue also requires that the manager isn't one of its own workers.</li>
+<li><strong>Only batch work is scheduled across clusters at runtime.</strong> Services and inference need stable endpoints, warm caches and steady capacity. Moving them per request is the job of the traffic layer, not the scheduler.</li>
+<li><strong>The hub is not in the data path.</strong> If it's down, running jobs keep running in their worker clusters and inference keeps serving. Only new batch submissions wait.</li>
+</ul></div></details>
+
+<h3 id="design-multicluster-why-several-clusters-and-how-to-cut-them">Why several clusters, and how to cut them</h3>
+<p><strong>Scenario.</strong> One architect argues for "one big cluster per region, simpler". Another wants "one cluster per team, safer". The team needs a rule for when a new cluster is justified.</p>
+<p><strong>The rule: split clusters by failure domain and workload role, never by team.</strong> Teams are separated inside clusters with namespaces, queues and policies; clusters are separated when the <em>infrastructure</em> needs to be different or fail independently.</p>
+<table>
+<thead>
+<tr>
+<th>Split by</th>
+<th>Why it's worth a separate cluster</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Region</td>
+<td>Data residency, latency, regional failure, where GPU capacity actually exists</td>
+<td>Inference in us-east-1 and eu-west-1</td>
+</tr>
+<tr>
+<td>Workload role</td>
+<td>Different node types, add-ons, upgrade cadence and disruption rules</td>
+<td>Training clusters never consolidate GPU nodes mid-job; CPU clusters do it constantly</td>
+</tr>
+<tr>
+<td>Scale limit</td>
+<td>A cluster's control plane, IP space and etcd have practical limits</td>
+<td>A second training cluster once the first reaches its node or pod ceiling</td>
+</tr>
+<tr>
+<td>Hard isolation</td>
+<td>A regulated tenant that must not share nodes or a control plane</td>
+<td>A dedicated cluster for one customer's data</td>
+</tr>
+<tr>
+<td>Team</td>
+<td>Not a reason on its own</td>
+<td>Use namespaces, Kueue quotas and policy instead</td>
+</tr>
+</tbody>
+</table>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>Every cluster is created from the same definition.</strong> With EKS Capabilities, Argo CD, ACK and kro run as managed services: a <code>ResourceGraphDefinition</code> describes "a GPU training cluster" (VPC, EKS cluster, <mark class="kw-tool">Karpenter</mark> NodePools, add-ons), and a new cluster is one short instance of it in Git.</li>
+<li><strong>Fewer, larger clusters are usually better for GPUs.</strong> Splitting GPUs across many small clusters creates islands that can't lend to each other. MultiKueue reduces that cost, but a gang of 64 GPUs still has to fit inside one cluster.</li>
+<li><strong>Keep Kubernetes versions within one minor version across the fleet,</strong> so a job that runs in one worker runs in all of them, and the queue configuration doesn't need per-cluster exceptions.</li>
+</ul></div></details>
+
+<h3 id="ds02-2">Four layers of scheduling decisions</h3>
+<p><strong>Scenario.</strong> A researcher asks why her 32-GPU job has been "pending" for an hour. Nobody can answer, because nobody can say which component is holding it. The team needs every decision to have one clear owner.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Four layers of scheduling decisions" class="open" data-src="diagrams/designs/ds02-2.svg" data-title="Four layers of scheduling decisions" type="button"><img alt="Diagram: Four layers of scheduling decisions" decoding="async" loading="lazy" src="diagrams/designs/ds02-2.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Every batch job passes through four decisions, each made by a different component, in order.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Layer 1, which cluster (MultiKueue in the hub)</span></summary><div class="acc-body">does the team have <mark class="kw">quota</mark> left in the company-wide queue, and which worker clusters should be offered the job? Pending here means the team is over its global share, or no worker has room.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Layer 2, whether and where in the cluster (Kueue in the worker)</span></summary><div class="acc-body">does the team's <mark class="kw">ClusterQueue</mark> in this cluster have quota, can it <mark class="kw-act">borrow</mark> from the <mark class="kw">cohort</mark>, and, for <mark class="kw">topology-aware</mark> jobs, is there a block of nodes close enough on the network? <mark class="kw-tool">Kueue</mark> <mark class="kw-act">admits</mark> the whole job at once or not at all.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Layer 3, which node and which device (kube-scheduler with DRA)</span></summary><div class="acc-body">places each pod on a node with the right GPUs, using ResourceClaims for whole GPUs or <mark class="kw">MIG</mark> slices, and honours the node assignments Kueue's <mark class="kw">topology-aware scheduling</mark> chose.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Layer 4, buy the node (Karpenter)</span></summary><div class="acc-body">pods that can't be placed trigger new nodes from the right NodePool: reserved first, then on-demand, then <mark class="kw">Spot</mark>, within each pool's limits.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">One status, one place</span></summary><div class="acc-body">the job's Workload object carries the state of layers 1 and 2, including the cluster it was sent to. Platform dashboards show pending time per layer, so "why is it pending?" has a one-line answer.</div></details></div>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
+<li><strong>Admission comes before placement.</strong> <mark class="kw-tool">Kueue</mark> keeps jobs suspended until it <mark class="kw-act">admits</mark> them, so pods never exist for work that has no <mark class="kw">quota</mark>. That's what stops a half-started 32-pod job holding 24 GPUs while waiting for the other 8, which is the core problem <mark class="kw">gang scheduling</mark> solves.</li>
+<li><strong><code>waitForPodsReady</code> is the safety net:</strong> if an <mark class="kw-act">admitted</mark> job's pods aren't all running within a timeout, Kueue <mark class="kw-act">evicts</mark> and <mark class="kw-act">requeues</mark> the whole job rather than letting it sit half-started. It's on by default in recent Kueue releases.</li>
+<li><strong>Native gang scheduling in kube-scheduler is coming.</strong> Kubernetes 1.35 introduced the <mark class="kw">Workload API</mark>, and 1.36 split it into Workload and <mark class="kw">PodGroup</mark> APIs (still alpha). This design keeps Kueue as the gang owner for now and revisits once those APIs are stable.</li>
+<li><strong>Kueue and Karpenter don't talk directly.</strong> Kueue's ProvisioningRequest <mark class="kw-act">admission</mark> check ("get me 8 nodes, then admit") is implemented by <mark class="kw-tool">Cluster Autoscaler</mark>, not by <mark class="kw-tool">Karpenter</mark>. With Karpenter, Kueue admits on quota and Karpenter reacts to the pods. That's why GPU quotas are set close to what reserved capacity can actually deliver.</li>
+</ul></div></details>
+
+<h3 id="ds02-3">Queues, quotas and fair sharing</h3>
+<p><strong>Scenario.</strong> Three teams share 256 reserved H100s. The LLM team needs most of them for a two-week run; the vision team needs bursts; research wants anything idle. Static per-team node pools left 40% of the GPUs idle last quarter. The team needs shares that are guaranteed but not wasted.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Queues, quotas and fair sharing" class="open" data-src="diagrams/designs/ds02-3.svg" data-title="Queues, quotas and fair sharing" type="button"><img alt="Diagram: Queues, quotas and fair sharing" decoding="async" loading="lazy" src="diagrams/designs/ds02-3.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The <mark class="kw">quota</mark> model: what each team is guaranteed, what it can <mark class="kw-act">borrow</mark> and what it can be asked to give back.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">ResourceFlavors</span></summary><div class="acc-body">one per kind of capacity, such as <code>h100-reserved</code>, <code>h100-ondemand</code>, <code>l4-spot</code>, <code>cpu-ondemand</code> and <code>cpu-spot</code>. A flavor maps to a <mark class="kw-tool">Karpenter</mark> NodePool through node labels, so quota and capacity line up.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">ClusterQueue per team</span></summary><div class="acc-body">each team's guaranteed share (<code>nominalQuota</code>) per flavor, in order of preference. A job tries the first flavor with room, so reserved GPUs are used before anyone pays for on-demand.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Cohort</span></summary><div class="acc-body">all team <mark class="kw">ClusterQueues</mark> belong to one <mark class="kw">cohort</mark>, so unused quota in one queue can be borrowed by another.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Borrowing and lending limits</span></summary><div class="acc-body"><code>borrowingLimit</code> caps how much a team can take beyond its share; <code>lendingLimit</code> caps how much of its share it ever lends, so a team keeps a small floor that's always available.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Reclaim</span></summary><div class="acc-body">when a team submits work within its own share, <mark class="kw-tool">Kueue</mark> <mark class="kw-act">preempts</mark> borrowed workloads from other queues to give the share back. Preempted jobs are <mark class="kw-act">requeued</mark>, so they must <mark class="kw-act">checkpoint</mark>.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">LocalQueue per namespace</span></summary><div class="acc-body">the only thing users reference, with the label <code>kueue.x-k8s.io/queue-name</code>. Users never see flavors or ClusterQueues.<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: kueue.x-k8s.io/v1beta2</span><span class="ln"><span class="tk">kind</span>: ClusterQueue</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: team-llm</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln kl">  <span class="tk">cohortName</span>: gpu-org                     <span class="tc"># borrow from and lend to the other teams</span></span><span class="ln">  <span class="tk">namespaceSelector</span>:</span><span class="ln">    <span class="tk">matchLabels</span>: { platform.example.com/team: llm }</span><span class="ln">  <span class="tk">preemption</span>:</span><span class="ln kl">    <span class="tk">reclaimWithinCohort</span>: Any              <span class="tc"># take back our share when we need it</span></span><span class="ln">    <span class="tk">withinClusterQueue</span>: LowerPriority</span><span class="ln">  <span class="tk">resourceGroups</span>:</span><span class="ln">  - <span class="tk">coveredResources</span>: ["nvidia.com/gpu", "cpu", "memory"]</span><span class="ln">    <span class="tk">flavors</span>:</span><span class="ln kl">    - <span class="tk">name</span>: h100-reserved                 <span class="tc"># tried first: already paid for</span></span><span class="ln">      <span class="tk">resources</span>:</span><span class="ln">      - { name: "nvidia.com/gpu", nominalQuota: 128, borrowingLimit: 64, lendingLimit: 96 }</span><span class="ln">      - { name: "cpu", nominalQuota: 2000 }</span><span class="ln">      - { name: "memory", nominalQuota: 16Ti }</span><span class="ln">    - <span class="tk">name</span>: h100-ondemand                 <span class="tc"># only if reserved is full and the team pays</span></span><span class="ln">      <span class="tk">resources</span>:</span><span class="ln">      - { name: "nvidia.com/gpu", nominalQuota: 32 }</span><span class="ln">      - { name: "cpu", nominalQuota: 500 }</span><span class="ln">      - { name: "memory", nominalQuota: 4Ti }</span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: kueue.x-k8s.io/v1beta2</span><span class="ln"><span class="tk">kind</span>: LocalQueue</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: training</span><span class="ln">  <span class="tk">namespace</span>: llm-train</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">clusterQueue</span>: team-llm</span></code></pre></div></details></div>
+
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
+<li><strong>The same queues exist twice.</strong> In the hub, each team's <mark class="kw">ClusterQueue</mark> holds its share of the whole fleet; in each worker, a ClusterQueue with the same name holds its share of that cluster. MultiKueue expects the job's namespace and <mark class="kw">LocalQueue</mark> to exist in every worker, and the hub's <mark class="kw">quota</mark> should equal the sum across workers. GitOps generates both from one table of team shares, so they can't drift.</li>
+<li><strong>Priority is separate from quota.</strong> Three <mark class="kw">PriorityClasses</mark> are enough: <code>production</code> (inference, never <mark class="kw-act">preempted</mark> by batch), <code>standard</code> (scheduled training) and <code>opportunistic</code> (experiments and <mark class="kw-act">borrowed</mark> capacity, preempted first).</li>
+<li><strong>Fair sharing between borrowers:</strong> when several teams want the same idle GPUs, <mark class="kw-tool">Kueue</mark>'s <mark class="kw">fair sharing</mark> divides the spare capacity by weight instead of first-come-first-served.</li>
+<li><strong>Guaranteed shares should match reality.</strong> Kueue doesn't check quotas against actual nodes. If the sum of <code>h100-reserved</code> quotas is larger than the <mark class="kw-tool">Capacity Blocks</mark> you own, <mark class="kw-act">admitted</mark> jobs will wait for nodes that will never come.</li>
+</ul></div></details>
+
+<h3 id="ds02-4">Sending work to the right cluster</h3>
+<p><strong>Scenario.</strong> A fine-tuning job with 16 GPUs is submitted to the hub. Two training clusters have room, one in each region, but the dataset lives in an S3 bucket in us-east-1, and copying 4 TB across regions would cost more than the GPU hours. The dispatch has to be smart about more than free GPUs.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Sending work to the right cluster" class="open" data-src="diagrams/designs/ds02-4.svg" data-title="Sending work to the right cluster" type="button"><img alt="Diagram: Sending work to the right cluster" decoding="async" loading="lazy" src="diagrams/designs/ds02-4.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> One job's path from submission to running in a worker, and back.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Step 1, submit</span></summary><div class="acc-body">the user creates a <mark class="kw-tool">JobSet</mark> (or a Kubeflow <mark class="kw-tool">TrainJob</mark>, RayJob or plain Job) in their namespace in the hub, pointing at their <mark class="kw">LocalQueue</mark>. <mark class="kw-tool">Kueue</mark> keeps it suspended.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Step 2, reserve quota</span></summary><div class="acc-body">the hub's Kueue checks the team's fleet-wide <mark class="kw">ClusterQueue</mark>. If there's <mark class="kw">quota</mark>, the Workload gets a quota reservation; if not, it waits in line.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Step 3, nominate clusters</span></summary><div class="acc-body">the MultiKueue <mark class="kw-act">admission</mark> check picks candidate workers from the queue's <code>MultiKueueConfig</code>. With the <strong>Incremental</strong> dispatcher, it offers the job to a few clusters at a time, in the order listed, so cheaper or closer clusters are tried first.<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: kueue.x-k8s.io/v1beta2</span><span class="ln"><span class="tk">kind</span>: AdmissionCheck</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: dispatch-us-east-1</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">controllerName</span>: kueue.x-k8s.io/multikueue</span><span class="ln">  <span class="tk">parameters</span>:</span><span class="ln">    <span class="tk">apiGroup</span>: kueue.x-k8s.io</span><span class="ln">    <span class="tk">kind</span>: MultiKueueConfig</span><span class="ln">    <span class="tk">name</span>: us-east-1-gpu</span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: kueue.x-k8s.io/v1beta2</span><span class="ln"><span class="tk">kind</span>: MultiKueueConfig</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: us-east-1-gpu</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln kl">  <span class="tk">clusters</span>:                     <span class="tc"># with the Incremental dispatcher, tried in this order</span></span><span class="ln">  - train-use1-a                <span class="tc"># Capacity Blocks: already paid for</span></span><span class="ln">  - train-use1-b                <span class="tc"># on-demand and Spot</span></span></code></pre></div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Step 4, a worker admits</span></summary><div class="acc-body">each candidate's own Kueue decides with local quota and topology. The first to <mark class="kw-act">admit</mark> wins; the hub deletes the copies in the other clusters and creates the job in the winner.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Step 5, run and report</span></summary><div class="acc-body">the job runs entirely inside the worker. The hub mirrors its status, so the user watches it from one place, and cleans up the remote objects when it finishes.</div></details></div>
+
+
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">5 points</span></summary><div class="acc-body"><ul>
+<li><strong>Data locality through queues, not magic.</strong> Each region gets its own <code>MultiKueueConfig</code>, and each team's <mark class="kw">ClusterQueue</mark> in the hub points at the regional <mark class="kw-act">admission</mark> check that matches where its data lives. A team with data in both regions gets one queue per region and chooses at submit time.</li>
+<li><strong>AllAtOnce vs. Incremental:</strong> AllAtOnce offers the job to every worker immediately, giving the fastest start. Incremental offers it to a few at a time and waits between rounds, which keeps expensive or remote clusters as overflow. Use Incremental for GPUs, AllAtOnce for cheap CPU batch.</li>
+<li><strong>Topology-aware jobs work across clusters too:</strong> workers define their topology levels, and the hub delays the topology decision until a worker has been chosen.</li>
+<li><strong>Cluster credentials:</strong> the hub needs to create and watch Workloads and Jobs in each worker. Use the ClusterProfile API or a Secret per worker, with a narrowly scoped identity, never a cluster-admin kubeconfig.</li>
+<li><strong>MultiKueue is beta</strong> (enabled by default in <mark class="kw-tool">Kueue</mark>). It's the right tool here, but pin the Kueue version across the fleet and test upgrades on a staging hub and worker pair first.</li>
+</ul></div></details>
+
+<h3 id="design-multicluster-inside-a-gpu-cluster-placement-devices-and-topology">Inside a GPU cluster: placement, devices and topology</h3>
+<p><strong>Scenario.</strong> A 64-GPU training job is <mark class="kw-act">admitted</mark>, but its step time is 30% slower than last week. The pods landed on nodes in different network blocks, and two of them share a host with a noisy inference pod. Getting the cluster is only half the job; getting the right GPUs inside it is the other half.</p>
+<p><strong>The design.</strong></p>
+<ul>
+<li><strong>Topology-aware scheduling for training:</strong> training nodes carry labels for their place in the network (block, then node), written by a topology labeller such as <mark class="kw-tool">Topograph</mark> from the EC2 instance topology API. A <mark class="kw-tool">Kueue</mark> <code>Topology</code> lists those levels, and jobs ask for <code>kueue.x-k8s.io/podset-required-topology</code> (all pods in one block) or <code>podset-preferred-topology</code> (as close as possible).</li>
+<li><strong>Capacity Blocks for big runs:</strong> <mark class="kw-tool">Capacity Blocks</mark> reserve GPU instances for a fixed window, and instances in a block are placed close together in EC2 UltraClusters. They're the default flavor for multi-node training.</li>
+<li><strong>DRA for devices:</strong> the NVIDIA <mark class="kw">DRA</mark> driver publishes each node's GPUs as ResourceSlices with typed attributes (model, memory, <mark class="kw">MIG</mark> profile). Workloads ask for "one H100 with 80 GB" through a ResourceClaim instead of a bare count.</li>
+<li><strong>Training nodes run training only:</strong> GPU training NodePools are tainted, and only Kueue-admitted training jobs tolerate them. Inference never lands next to a training job.</li>
+<li><strong>Unhealthy GPUs are found before jobs are:</strong> <mark class="kw-tool">DCGM</mark> health checks mark a bad node, Kueue's <mark class="kw">topology-aware scheduling</mark> can replace a failed node in a running job's assignment, and the job resumes from its last <mark class="kw-act">checkpoint</mark>.</li>
+</ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>DRA has been GA since Kubernetes 1.34.</strong> The NVIDIA <mark class="kw">DRA</mark> driver allocates full GPUs and <mark class="kw">MIG</mark> devices; dynamic MIG creation and shared-capacity features are still alpha in the driver, so this design uses pre-configured MIG layouts for now.</li>
+<li><strong>Keep the device plugin where DRA isn't needed yet.</strong> Full-GPU training pods can keep using <code>nvidia.com/gpu</code> counts during the migration; DRA matters most for mixed GPU types and MIG.</li>
+<li><strong>EFA and NCCL settings belong in the platform's job templates,</strong> not in every team's YAML, so a team can't accidentally run a 64-GPU job over the slow network path.</li>
+</ul></div></details>
+
+<h3 id="ds02-5">Autoscaling: where capacity comes from</h3>
+<p><strong>Scenario.</strong> The CFO sees three bills: <mark class="kw-tool">Capacity Blocks</mark> that idled overnight, on-demand H100s bought on a Saturday by an experiment, and a Spot-based inference fleet that dropped 30% of its replicas during an interruption wave. The team needs rules that decide where each workload's capacity comes from.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Autoscaling: where capacity comes from" class="open" data-src="diagrams/designs/ds02-5.svg" data-title="Autoscaling: where capacity comes from" type="button"><img alt="Diagram: Autoscaling: where capacity comes from" decoding="async" loading="lazy" src="diagrams/designs/ds02-5.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> <mark class="kw-tool">Karpenter</mark> NodePools ordered by cost and reliability, and which workloads may use each.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Reserved GPUs (Capacity Blocks and capacity reservations)</span></summary><div class="acc-body">the highest Karpenter weight, so they fill first. Nodes launched into a reservation carry <code>karpenter.sh/capacity-type: reserved</code>. Used by scheduled training and the inference baseline.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">On-demand GPUs</span></summary><div class="acc-body">used only when reserved is full, and only by queues whose <mark class="kw">ClusterQueue</mark> lists the on-demand flavor, with a NodePool <code>limits</code> cap per cluster. Weekend experiments can't reach it because their queue doesn't include it.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Spot GPUs</span></summary><div class="acc-body">for <mark class="kw-act">checkpointing</mark> training, batch inference and evaluation. Interruptions <mark class="kw-act">requeue</mark> the job, which resumes from its checkpoint.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">CPU on-demand and Spot</span></summary><div class="acc-body">services keep a floor on on-demand; batch, CI and data pipelines prefer <mark class="kw">Spot</mark>. <mark class="kw-act">Consolidation</mark> runs continuously on CPU pools.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Inference scaling</span></summary><div class="acc-body">model servers scale with <mark class="kw-tool">HPA</mark> or <mark class="kw-tool">KEDA</mark> on serving signals (queue depth, <mark class="kw">KV-cache</mark> use, time to first token), not CPU. Replicas above the reserved baseline land on on-demand, never Spot, for latency-critical models.</div></details></div>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
+<li><strong>Capacity Blocks end on a fixed date.</strong> EKS Auto Mode and <mark class="kw-tool">Karpenter</mark> start <mark class="kw-act">draining</mark> nodes in a Capacity Block 10 minutes before EC2 begins terminating them, so jobs on a block must <mark class="kw-act">checkpoint</mark>, and the <mark class="kw-tool">Kueue</mark> <mark class="kw">quota</mark> for that flavor should be lowered before the block expires.</li>
+<li><strong>Never consolidate a running training job.</strong> Training pods carry <code>karpenter.sh/do-not-disrupt: "true"</code>; GPU NodePools use <code>consolidateAfter</code> with a long delay and disruption budgets that only allow empty nodes to be removed.</li>
+<li><strong>Scale inference out across regions before up within one.</strong> When one region's GPUs are exhausted, the global router sends more traffic to the other region, which is faster than waiting for new GPU nodes.</li>
+<li><strong>Cold starts are dominated by images and weights.</strong> Keep model weights in a regional cache (see <a href="#post-model-data">Getting model weights into pods</a>) and pre-pull serving images on GPU nodes, or <mark class="kw-act">autoscaling</mark> will be too slow to help.</li>
+</ul></div></details>
+
+<h3 id="ds02-6">Multi-tenant isolation</h3>
+<p><strong>Scenario.</strong> A bank-owned subsidiary joins the platform with a rule: its training data must never be on a node shared with another tenant. At the same time, a dozen small internal teams just want a few GPUs each without waiting for a whole node. One isolation model doesn't fit both.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Multi-tenant isolation" class="open" data-src="diagrams/designs/ds02-6.svg" data-title="Multi-tenant isolation" type="button"><img alt="Diagram: Multi-tenant isolation" decoding="async" loading="lazy" src="diagrams/designs/ds02-6.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Three tenant classes, each with stronger walls and a higher cost, and three ways to share a GPU.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Shared (default)</span></summary><div class="acc-body">a namespace per team per cluster, <mark class="kw">RBAC</mark>, <mark class="kw-tool">Kueue</mark> <mark class="kw">quotas</mark> through a <mark class="kw">LocalQueue</mark>, default-deny <mark class="kw">NetworkPolicy</mark>, Pod Security "restricted" and per-team cost reporting. Nodes are shared.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Dedicated nodes</span></summary><div class="acc-body">the tenant's own <mark class="kw-tool">Karpenter</mark> NodePools, tainted for that tenant only, plus its own <mark class="kw">ClusterQueue</mark> and flavor. The control plane is shared, the nodes aren't.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Dedicated cluster</span></summary><div class="acc-body">a separate worker cluster, still joined to the hub through MultiKueue and to the fleet through GitOps, so the tenant gets the same platform with no shared nodes or control plane.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Whole GPU</span></summary><div class="acc-body">the default for training and large models. No sharing, no interference.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">MIG slice</span></summary><div class="acc-body">hardware partitions with their own memory and compute, requested through <mark class="kw">DRA</mark>. Safe between tenants, good for small models and development.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Time-slicing</span></summary><div class="acc-body">several pods take turns on one GPU, with no memory isolation. Only within one team, for notebooks and development, never across tenants.</div></details></div>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
+<li><strong>Close the side doors to GPUs.</strong> A policy (<mark class="kw-tool">Kyverno</mark> or a ValidatingAdmissionPolicy) rejects any pod that requests a GPU without a <mark class="kw-tool">Kueue</mark> queue label, and GPU nodes are tainted so only <mark class="kw-act">admitted</mark> workloads tolerate them. Otherwise one <code>kubectl run</code> bypasses every <mark class="kw">quota</mark>.</li>
+<li><strong>Namespaces are created by the platform, not by teams.</strong> A team's namespace, <mark class="kw">LocalQueue</mark>, network policy, quotas and cost labels are one Git entry, applied to every cluster where the team has a share.</li>
+<li><strong>Identity per team:</strong> each team's workloads use <mark class="kw">EKS Pod Identity</mark> roles scoped to their own S3 prefixes and model registry paths. A training job in one namespace can't read another team's dataset.</li>
+<li><strong>Running untrusted code</strong> (evaluation harnesses, agent tools) goes to the sandbox platform from <a href="#design-sandboxing">Design 01</a>, not to the shared GPU clusters.</li>
+</ul></div></details>
+
+<h3 id="design-multicluster-observability-cost-and-chargeback">Observability, cost and chargeback</h3>
+<p><strong>Scenario.</strong> At the quarterly review, every team claims it's GPU-starved, and finance says GPU utilization is 45%. Both can be true, and the platform needs the data to prove which.</p>
+<p><strong>What's measured.</strong></p>
+<ul>
+<li><strong>Queue health (Kueue metrics):</strong> pending workloads and wait time per <mark class="kw">ClusterQueue</mark>, <mark class="kw">quota</mark> used vs. nominal, <mark class="kw-act">borrowed</mark> and lent capacity, and preemptions. This is the "who is starved" view.</li>
+<li><strong>Dispatch health (MultiKueue):</strong> which worker each job went to, time from submission to <mark class="kw-act">admission</mark> in a worker, and how often jobs spill over to on-demand clusters.</li>
+<li><strong>GPU health and use (DCGM exporter):</strong> GPU utilization, memory, power, XID errors and <mark class="kw">NVLink</mark> errors per node, per pod and per team. Low utilization on <mark class="kw-act">admitted</mark> jobs is a code problem, not a capacity problem, and should go back to the team.</li>
+<li><strong>Capacity:</strong> reserved vs. used per Capacity Block, nodes per NodePool, <mark class="kw">Spot</mark> interruptions.</li>
+<li><strong>Cost:</strong> OpenCost or <mark class="kw-tool">Kubecost</mark> per namespace and team, with reserved capacity charged to the team that owns the share and borrowed capacity charged to the borrower.</li>
+</ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">2 points</span></summary><div class="acc-body"><ul>
+<li>Aggregate metrics from every cluster into one store (Amazon Managed Service for <mark class="kw-tool">Prometheus</mark> or <mark class="kw-tool">Thanos</mark>), labelled with cluster, region and role, so fleet-wide dashboards are one query.</li>
+<li>Publish a weekly "idle reserved GPU hours" number per team. It changes behaviour faster than any <mark class="kw">quota</mark>.</li>
+</ul></div></details>
+
+<h3 id="design-multicluster-failure-modes-and-operations">Failure modes and operations</h3>
+<p><strong>Scenario.</strong> Before launch, the on-call team walks through "what happens when each box fails", so the runbook exists before the incident.</p>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>What users see</th>
+<th>What the design does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hub cluster down</td>
+<td>New batch jobs can't be submitted; status in the hub goes stale</td>
+<td>Running jobs keep running in workers; inference unaffected; hub restored from Git; queue objects are declarative</td>
+</tr>
+<tr>
+<td>Worker cluster lost</td>
+<td>Jobs on it stop</td>
+<td>After a timeout, MultiKueue treats the worker as lost; jobs are requeued and dispatched elsewhere, resuming from checkpoints</td>
+</tr>
+<tr>
+<td>Capacity Block expires</td>
+<td>Jobs on it are drained</td>
+<td>Nodes drain 10 minutes before termination; quota for that flavor lowered beforehand; jobs checkpoint and requeue</td>
+</tr>
+<tr>
+<td>Spot interruption wave</td>
+<td>Spot jobs requeue</td>
+<td>Checkpoint-and-requeue; inference never on Spot above its floor</td>
+</tr>
+<tr>
+<td>Bad GPU or node</td>
+<td>One job slows or fails</td>
+<td>DCGM health checks cordon the node; topology-aware scheduling replaces it; job resumes from its checkpoint</td>
+</tr>
+<tr>
+<td>Kueue config drift between hub and workers</td>
+<td>Jobs dispatched but never admitted</td>
+<td>Both generated from one source in Git; a CI check compares hub and worker queues</td>
+</tr>
+<tr>
+<td>Region outage</td>
+<td>Inference in that region down</td>
+<td>Global routing shifts traffic to the other region; training queues for that region wait or use the other region's queue</td>
+</tr>
+</tbody>
+</table>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">2 points</span></summary><div class="acc-body"><ul>
+<li><strong>Upgrades go cluster by cluster:</strong> a staging hub and worker first, then one worker per role, then the rest. Because workers are interchangeable for MultiKueue, a worker can be <mark class="kw-act">drained</mark> of new work during its upgrade by removing it from the <code>MultiKueueConfig</code>.</li>
+<li><strong>Every long job checkpoints.</strong> <mark class="kw-act">Preemption</mark>, <mark class="kw">Spot</mark>, Capacity Block expiry and node failure all end the same way: <mark class="kw-act">requeue</mark> and resume. A job that can't resume should run only on reserved capacity at <code>standard</code> priority, and its owner should know that's a risk.</li>
+</ul></div></details>
+
+<h3 id="design-multicluster-rollout-plan-trade-offs-and-open-questions">Rollout plan, trade-offs and open questions</h3>
+<p><strong>Scenario.</strong> Leadership asks for a plan that delivers value in weeks, not after a year of migration.</p>
+<p><strong>Rollout.</strong></p>
+<ul>
+<li><strong>Phase 1, one cluster done right:</strong> <mark class="kw-tool">Kueue</mark> with <mark class="kw">cohorts</mark>, flavors and team queues in the existing training cluster; GPU <mark class="kw-act">admission</mark> policy; Kueue and <mark class="kw-tool">DCGM</mark> dashboards. This alone recovers most idle GPUs.</li>
+<li><strong>Phase 2, the fleet from Git:</strong> Argo CD with ApplicationSets by role, cluster definitions in kro, team onboarding as one Git entry.</li>
+<li><strong>Phase 3, the hub:</strong> hub cluster with MultiKueue, the two training clusters as workers, Incremental dispatch with reserved clusters first. Teams switch their <mark class="kw">LocalQueue</mark> to the hub.</li>
+<li><strong>Phase 4, CPU batch and isolation tiers:</strong> CPU clusters as workers for batch, dedicated-node and dedicated-cluster tenants, chargeback.</li>
+</ul>
+<p><strong>Trade-offs we accepted.</strong></p>
+<ul>
+<li><strong>Kueue over Volcano or a commercial scheduler:</strong> native Kubernetes APIs, MultiKueue for multi-cluster, and a large community, at the cost of some features (such as advanced GPU sharing) that other schedulers have built in. See <a href="#d02-6">Volcano vs. Kueue</a>.</li>
+<li><strong>A hub cluster:</strong> one more cluster to run, but one queue for the company and a clear owner for every decision.</li>
+<li><strong>Quota-based admission with Karpenter</strong> instead of capacity-guaranteed admission with <mark class="kw-tool">Cluster Autoscaler</mark>'s ProvisioningRequest: <mark class="kw-tool">Karpenter</mark>'s flexibility and speed for the whole fleet, at the cost of occasionally <mark class="kw-act">admitted</mark> jobs waiting for nodes.</li>
+<li><strong>Static placement for inference:</strong> simpler and predictable, at the cost of not moving models automatically to wherever GPUs are free.</li>
+</ul>
+<p><strong>Open questions for the next review.</strong></p>
+<ul>
+<li><strong>Native gang and topology scheduling</strong> in <mark class="kw-tool">kube-scheduler</mark> (Workload and <mark class="kw">PodGroup</mark> APIs): when they're stable, can Kueue hand placement to them?</li>
+<li><strong>Cross-cluster inference routing:</strong> model-aware routing across clusters with the <mark class="kw-tool">Gateway API Inference Extension</mark>, instead of plain regional load balancing.</li>
+<li><strong>Bursting beyond AWS:</strong> whether on-premises or other-cloud GPU clusters should join as MultiKueue workers for overflow.</li>
+<li><strong>Quota from budgets:</strong> generating each team's GPU <mark class="kw">quota</mark> from its budget and the reserved capacity calendar, instead of by hand.</li>
 </ul></div>
 </section>
 
