@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="600px" viewBox="0 0 1260 600" style="background:#ffffff"><title>Idempotent side effects</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="600" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">A retry of the same step carries the same key, so the effect happens once</text>
+<rect x="30" y="60" width="220" height="44" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="140.0" y="86.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Agent worker</text>
+<path d="M 140 104 L 140 575" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 5"/>
+<rect x="370" y="60" width="220" height="44" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="480.0" y="86.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Tool gateway</text>
+<path d="M 480 104 L 480 575" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 5"/>
+<rect x="690" y="60" width="220" height="44" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="800.0" y="86.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Side-effect ledger</text>
+<path d="M 800 104 L 800 575" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 5"/>
+<rect x="1000" y="60" width="220" height="44" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1110.0" y="86.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">GitHub API</text>
+<path d="M 1110 104 L 1110 575" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 5"/>
+<path d="M 140 150 L 480 150" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="197.48" y="128" width="225.04000000000002" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="310.0" y="142" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">open_pr, key = sess-7f3a/step-41</text>
+<path d="M 480 190 L 800 190" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="561.08" y="168" width="157.84" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="640.0" y="182" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#2563eb">key seen before?  → no</text>
+<path d="M 480 230 L 1110 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="622.0" y="208" width="346.00000000000006" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="795.0" y="222" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">create PR (Idempotency-Key header where supported)</text>
+<path d="M 1110 270 L 480 270" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="739.6" y="248" width="110.80000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="795.0" y="262" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">PR #812 created</text>
+<circle cx="140" cy="300" r="13" fill="#fff" stroke="#dc2626" stroke-width="2.5"/>
+<path d="M 134 294 L 146 306 M 146 294 L 134 306" stroke="#dc2626" stroke-width="2.6"/>
+<text x="162" y="305.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">worker dies before the result is recorded</text>
+<path d="M 480 335 L 800 335" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="534.2" y="313" width="211.60000000000002" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="640.0" y="327" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#047857">gateway records: key → PR #812</text>
+<path d="M 20 365 L 1240 365" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 6"/>
+<text x="30" y="390" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Retry on another worker</text>
+<path d="M 140 430 L 480 430" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="157.16" y="408" width="305.68" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="310.0" y="422" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">open_pr, key = sess-7f3a/step-41  (same key)</text>
+<path d="M 480 470 L 800 470" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="527.48" y="448" width="225.04000000000002" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="640.0" y="462" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#2563eb">key seen before?  → yes: PR #812</text>
+<path d="M 480 515 L 140 515" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="163.88" y="493" width="292.24" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="310.0" y="507" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">PR #812 (stored result; GitHub not called)</text>
+<text x="630" y="585.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569">Tools without idempotency keys get a lookup instead: 'is there already an open PR from branch agent/sess-7f3a-41?'</text></svg>

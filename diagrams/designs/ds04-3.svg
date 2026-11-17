@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Steps, history and replay</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16.5" font-weight="700" fill="#0f172a">Recovery is replay: recorded steps return their saved results, the first unfinished step runs for real</text>
+<text x="30" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Worker A</text>
+<text x="30" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#475569">before the failure</text>
+<rect x="260" y="80" width="150" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="272" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Step 1: model</text>
+<text x="272" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">plan</text>
+<text x="272" y="145" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">recorded</text>
+<rect x="430" y="80" width="150" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="442" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Step 2: tool</text>
+<text x="442" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">read files</text>
+<text x="442" y="145" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">recorded</text>
+<rect x="600" y="80" width="150" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="612" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Step 3: model</text>
+<text x="612" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">edit plan</text>
+<text x="612" y="145" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">recorded</text>
+<rect x="770" y="80" width="150" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="782" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Step 4: tool</text>
+<text x="782" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">write file</text>
+<text x="782" y="145" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">recorded</text>
+<rect x="940" y="80" width="150" height="80" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="952" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Step 5: tool</text>
+<text x="952" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">run tests</text>
+<text x="952" y="145" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">worker died</text>
+<rect x="1110" y="80" width="150" height="80" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1122" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Step 6: model</text>
+<text x="1122" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">…</text>
+<text x="1122" y="145" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">not started</text>
+<text x="30" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Worker B</text>
+<text x="30" y="304" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#475569">after the failure</text>
+<rect x="260" y="250" width="150" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="272" y="273" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Step 1: model</text>
+<text x="272" y="296" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">plan</text>
+<text x="272" y="315" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">result from history</text>
+<rect x="430" y="250" width="150" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="442" y="273" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Step 2: tool</text>
+<text x="442" y="296" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">read files</text>
+<text x="442" y="315" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">result from history</text>
+<rect x="600" y="250" width="150" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="612" y="273" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Step 3: model</text>
+<text x="612" y="296" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">edit plan</text>
+<text x="612" y="315" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">result from history</text>
+<rect x="770" y="250" width="150" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="782" y="273" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Step 4: tool</text>
+<text x="782" y="296" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">write file</text>
+<text x="782" y="315" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">result from history</text>
+<rect x="940" y="250" width="150" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="952" y="273" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Step 5: tool</text>
+<text x="952" y="296" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">run tests</text>
+<text x="952" y="315" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">executes for real</text>
+<rect x="1110" y="250" width="150" height="80" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1122" y="273" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Step 6: model</text>
+<text x="1122" y="296" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">…</text>
+<text x="1122" y="315" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">not started</text>
+<path d="M 1010 160 L 1010 250" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#a-bad)"/>
+<rect x="1044.52" y="191" width="130.96" height="36" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="1110" y="205" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#dc2626">heartbeat timeout:</text>
+<text x="1110" y="220" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#dc2626">step 5 rescheduled</text>
+<rect x="250" y="370" width="690" height="34" rx="6" fill="#eff6ff" stroke="#2563eb"/>
+<text x="595" y="392" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">Replay of steps 1–4: no model calls, no tool calls, no cost, in milliseconds</text>
+<rect x="40" y="440" width="600" height="96" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="52" y="463" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Workflow code: decides</text>
+<text x="52" y="486" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">The agent loop. Must make the same decisions given the same recorded results: no direct</text>
+<text x="52" y="501" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">model calls, clocks, random numbers or file reads.</text>
+<rect x="660" y="440" width="600" height="96" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="672" y="463" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Activities: do</text>
+<text x="672" y="486" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Model calls, tool calls, sandbox commands, snapshots. Inputs and results recorded; retried</text>
+<text x="672" y="501" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">with backoff; long ones heartbeat.</text></svg>

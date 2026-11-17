@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Run lifecycle</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Run states and the actions that move between them</text>
+<rect x="470" y="230" width="220" height="90" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="482" y="254" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Running</text>
+<text x="482" y="278" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">a worker executes a step</text>
+<rect x="470" y="70" width="220" height="90" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="482" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Waiting</text>
+<text x="482" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">approval, timer or event;</text>
+<text x="482" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">holds no pod or sandbox</text>
+<rect x="120" y="230" width="220" height="90" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="132" y="254" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Retrying</text>
+<text x="132" y="278" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">backoff; new worker or</text>
+<text x="132" y="294" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">sandbox</text>
+<rect x="120" y="420" width="220" height="100" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="132" y="444" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#991b1b">Needs attention</text>
+<text x="132" y="468" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">retries exhausted, budget</text>
+<text x="132" y="484" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">hit, loop detected</text>
+<rect x="820" y="70" width="220" height="90" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="832" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Paused</text>
+<text x="832" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">by a person or an operator</text>
+<rect x="820" y="230" width="220" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="832" y="254" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Completed / cancelled</text>
+<text x="832" y="278" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">cancel runs compensation</text>
+<rect x="820" y="420" width="280" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="832" y="444" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Rewind / fork</text>
+<text x="832" y="468" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">new run from step N's history and</text>
+<text x="832" y="484" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">snapshot, optionally with a hint</text>
+<path d="M 580 230 L 580 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="467.96" y="186" width="104.08000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="520" y="200" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">needs approval</text>
+<path d="M 610 160 L 610 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 470 260 L 340 260" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="363.04" y="236" width="83.92" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="405" y="250" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">step failed</text>
+<path d="M 340 295 L 470 295" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="369.76" y="304" width="70.48" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="405" y="318" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">succeeded</text>
+<path d="M 230 320 L 230 420" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#a-bad)"/>
+<rect x="236.4" y="361" width="77.2" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="275" y="375" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#dc2626">limits hit</text>
+<path d="M 340 470 L 580 470 L 580 320" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="407.96" y="448" width="104.08000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="460" y="462" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">fix and resume</text>
+<path d="M 690 250 L 820 250" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="736.56" y="226" width="36.88" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="755" y="240" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">done</text>
+<path d="M 690 100 L 820 100" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="733.2" y="76" width="43.6" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="755" y="90" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">pause</text>
+<path d="M 930 160 L 930 195 L 660 195 L 660 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="774.84" y="176" width="50.32000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="800" y="190" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">resume</text>
+<path d="M 340 500 L 820 500" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="531.3199999999999" y="501" width="97.36000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="580" y="515" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">rewind / fork</text>
+<text x="650" y="580.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569" font-style="italic">Budgets (steps, tokens, time, cost) are checked before every model call; reaching one never lets a run continue silently.</text></svg>
