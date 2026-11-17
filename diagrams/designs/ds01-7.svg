@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240px" height="560px" viewBox="0 0 1240 560" style="background:#ffffff"><title>Tools and external services</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1240" height="560" fill="#ffffff"/><text x="620" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Two ways to call a tool; both go through the tool gateway</text>
+<rect x="40" y="80" width="250" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="52" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Agent orchestrator</text>
+<text x="52" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Holds the user's identity and the</text>
+<text x="52" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">LLM conversation</text>
+<rect x="40" y="330" width="250" height="110" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="52" y="353" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Sandbox</text>
+<text x="52" y="376" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Script that must call a tool</text>
+<text x="52" y="391" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">itself. Holds only a session token:</text>
+<text x="52" y="406" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">short-lived, bound to its claim.</text>
+<rect x="360" y="330" width="180" height="90" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="372" y="353" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Egress gateway</text>
+<text x="372" y="376" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">same single way out</text>
+<rect x="620" y="120" width="290" height="300" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="632" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Tool gateway (MCP)</text>
+<rect x="635" y="160" width="260" height="56" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="647" y="182" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Who is asking?</text>
+<text x="647" y="204" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">token → user, agent, task</text>
+<rect x="635" y="224" width="260" height="56" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="647" y="246" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">May they call this tool?</text>
+<text x="647" y="268" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">read metrics: yes; delete project: no</text>
+<rect x="635" y="288" width="260" height="56" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="647" y="310" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Rate limit</text>
+<text x="647" y="332" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">per session and per tenant</text>
+<rect x="635" y="352" width="260" height="56" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="647" y="374" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">High-risk?</text>
+<text x="647" y="396" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">writes, spending, external messages</text>
+<rect x="980" y="110" width="230" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="992" y="133" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Metrics API</text>
+<text x="992" y="156" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">read-only, allowed</text>
+<rect x="980" y="230" width="230" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="992" y="253" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Jira</text>
+<text x="992" y="276" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">write: needs approval</text>
+<rect x="980" y="370" width="230" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="992" y="393" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">User approves in the product</text>
+<text x="992" y="410" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">UI</text>
+<path d="M 290 120 L 620 170" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="333.96" y="104" width="272.08000000000004" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="470" y="118" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">preferred: tool call with user identity</text>
+<path d="M 165 170 L 165 330" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="39.03999999999999" y="241" width="251.92000000000002" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="165" y="255" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">result written to /workspace as data</text>
+<path d="M 290 380 L 360 380" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<path d="M 540 380 L 620 380" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="302.15999999999997" y="446" width="305.68" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="455" y="460" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1d4ed8">only when the code itself must call the tool</text>
+<path d="M 910 165 L 980 150" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<path d="M 910 270 L 980 270" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<path d="M 910 380 L 980 410" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)" marker-start="url(#a-flow-s)"/>
+<text x="620" y="520" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569" font-style="italic">Tool results are untrusted input: they go back to the model as data, never as commands.</text></svg>

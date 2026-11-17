@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220px" height="450px" viewBox="0 0 1220 450" style="background:#ffffff"><title>Isolation tiers</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1220" height="450" fill="#ffffff"/><text x="610" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Four runtime tiers, selected per template with runtimeClassName</text>
+<rect x="30" y="60" width="275" height="300" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="42" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Tier 0: hardened runc</text>
+<text x="42" y="105" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">BOUNDARY</text>
+<text x="42" y="122.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">Shared host kernel, restricted Pod</text>
+<text x="42" y="137.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">Security, seccomp, no capabilities</text>
+<text x="42" y="174.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">SELECT WITH</text>
+<text x="42" y="191.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">runtimeClassName: (default)</text>
+<text x="42" y="227.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">START / COST</text>
+<text x="42" y="244.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">Fastest start</text>
+<text x="42" y="281.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">USE FOR</text>
+<text x="42" y="298.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#92400e">First-party, reviewed code only. Never</text>
+<text x="42" y="313.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#92400e">model-generated code.</text>
+<rect x="325" y="60" width="275" height="300" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="337" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Tier 1: gVisor (runsc)</text>
+<text x="337" y="105" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">BOUNDARY</text>
+<text x="337" y="122.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">User-space kernel (Sentry) intercepts</text>
+<text x="337" y="137.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">syscalls</text>
+<text x="337" y="174.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">SELECT WITH</text>
+<text x="337" y="191.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">runtimeClassName: gvisor</text>
+<text x="337" y="227.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">START / COST</text>
+<text x="337" y="244.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">Fast start; I/O-heavy work slower. Not</text>
+<text x="337" y="260.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">on EKS Auto Mode.</text>
+<text x="337" y="296.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">USE FOR</text>
+<text x="337" y="313.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">Untrusted code where microVMs aren't</text>
+<text x="337" y="329.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">available.</text>
+<rect x="620" y="60" width="275" height="300" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="632" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Tier 2: microVM per pod</text>
+<text x="632" y="105" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">BOUNDARY</text>
+<text x="632" y="122.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">Own guest kernel behind hardware</text>
+<text x="632" y="137.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">virtualization: Nitro Sandbox</text>
+<text x="632" y="153.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">(Firecracker) or Kata</text>
+<text x="632" y="189.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">SELECT WITH</text>
+<text x="632" y="206.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">runtimeClassName: isolated-sandbox</text>
+<text x="632" y="243.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">START / COST</text>
+<text x="632" y="260.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">Seconds to boot, hidden by the warm</text>
+<text x="632" y="275.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">pool. EKS 1.36+.</text>
+<text x="632" y="312.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">USE FOR</text>
+<text x="632" y="329.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#047857">DEFAULT for all agent sandboxes.</text>
+<rect x="915" y="60" width="275" height="300" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="927" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Tier 3: microVM, no network</text>
+<text x="927" y="105" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">BOUNDARY</text>
+<text x="927" y="122.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">Same microVM, booted with no network</text>
+<text x="927" y="137.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">device at all</text>
+<text x="927" y="174.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">SELECT WITH</text>
+<text x="927" y="191.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">annotation: sandbox.amazonaws.com/</text>
+<text x="927" y="206.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">network-isolated: "true"</text>
+<text x="927" y="243.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">START / COST</text>
+<text x="927" y="260.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">Same as Tier 2</text>
+<text x="927" y="296.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">USE FOR</text>
+<text x="927" y="313.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#047857">Pure computation on uploaded data.</text>
+<path d="M 40 395 L 1180 395" fill="none" stroke="#059669" stroke-width="3" marker-end="url(#a-ok)"/>
+<text x="610" y="425" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">Stronger isolation: smaller shared attack surface, less visibility from the node</text></svg>

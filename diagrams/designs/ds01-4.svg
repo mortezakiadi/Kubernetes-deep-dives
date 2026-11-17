@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1340px" height="440px" viewBox="0 0 1340 440" style="background:#ffffff"><title>Sandbox lifecycle</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1340" height="440" fill="#ffffff"/><text x="670" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">One sandbox's life: pay the boot cost before anyone asks</text>
+<rect x="20" y="90" width="190" height="150" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="32" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">SandboxTemplate</text>
+<text x="32" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Image, runtime class,</text>
+<text x="32" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">limits, network policy</text>
+<text x="32" y="170" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">Owner: platform team</text>
+<path d="M 210 165 L 240 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="240" y="90" width="190" height="150" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="252" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">SandboxWarmPool</text>
+<text x="252" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">N sandboxes booted and</text>
+<text x="252" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">ready: image pulled,</text>
+<text x="252" y="166" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">volume made, probe green</text>
+<text x="252" y="185" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">Owner: HPA on claim rate</text>
+<path d="M 430 165 L 460 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="460" y="90" width="190" height="150" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="472" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">SandboxClaim</text>
+<text x="472" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">One per session. Binds a</text>
+<text x="472" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">ready sandbox in about a</text>
+<text x="472" y="166" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">second</text>
+<text x="472" y="185" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">Owner: Sandbox Manager</text>
+<path d="M 650 165 L 680 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="680" y="90" width="190" height="150" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="692" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Active</text>
+<text x="692" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Commands and files via</text>
+<text x="692" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the Sandbox Router.</text>
+<text x="692" y="166" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">do-not-disrupt set.</text>
+<text x="692" y="185" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">Owner: orchestrator</text>
+<rect x="900" y="90" width="190" height="150" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="912" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Paused</text>
+<text x="912" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Compute released,</text>
+<text x="912" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">/workspace kept. Resumes</text>
+<text x="912" y="166" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">on next request.</text>
+<text x="912" y="185" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">Optional, for idle</text>
+<text x="912" y="200" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">sessions</text>
+<path d="M 1090 165 L 1120 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1120" y="90" width="190" height="150" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1132" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Deleted</text>
+<text x="1132" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">shutdownPolicy: Delete</text>
+<text x="1132" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">removes pod and volume.</text>
+<text x="1132" y="166" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Never reused.</text>
+<text x="1132" y="185" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">At session end or</text>
+<text x="1132" y="200" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">shutdownTime</text>
+<path d="M 870 140 L 900 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 900 200 L 870 200" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 775 240 L 775 300 L 1215 300 L 1215 240" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="869.04" y="282" width="251.92000000000002" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="995" y="296" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">session ends, or shutdownTime passes</text>
+<path d="M 500 260 L 500 340 L 260 340 L 260 240" fill="none" stroke="#059669" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-ok)"/>
+<rect x="294.36" y="322" width="171.28000000000003" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="380" y="336" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#047857">pool boots a replacement</text>
+<text x="130" y="385" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569">Paid ahead of time: image pull, microVM boot, volume provisioning (seconds)</text>
+<text x="130" y="405" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">Paid by the user: claim binding (about a second)</text></svg>
