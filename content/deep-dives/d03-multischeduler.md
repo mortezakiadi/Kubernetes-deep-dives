@@ -110,6 +110,57 @@ profiles:
 | `plugins.score.enabled[].weight` | This **plugin** against the other scoring plugins |
 | `pluginConfig[].args.resources[].weight` | One **resource** against the others, inside this plugin's own calculation |
 
+> **Note: two plugins tuned in one file**
+>
+> The fit check section shows NodeResourcesFit's settings, and the BalancedResourceAllocation section shows that plugin's. They're pieces of the same kind of file, each showing only the plugin it's about. A real file that tunes both has **one profile** (one scheduler) with **one `pluginConfig` list holding two entries**, one per plugin:
+>
+> ```text
+> KubeSchedulerConfiguration
+> └── profiles                      ← list of schedulers (here only ONE)
+>     └── default-scheduler         ← the one profile
+>         ├── plugins               ← which plugins run, and score weights
+>         │   └── score
+>         │       └── BalancedResourceAllocation: weight 2
+>         └── pluginConfig          ← ONE list...
+>             ├── NodeResourcesFit           ← ...entry 1: its settings
+>             └── BalancedResourceAllocation ← ...entry 2: its settings
+> ```
+>
+> ```yaml
+> apiVersion: kubescheduler.config.k8s.io/v1
+> kind: KubeSchedulerConfiguration
+> profiles:
+> - schedulerName: default-scheduler   # the only profile #!
+>   plugins:
+>     score:
+>       enabled:
+>       - name: BalancedResourceAllocation
+>         weight: 2                    # this plugin's vote counts double
+>   pluginConfig:
+>   - name: NodeResourcesFit           # entry 1: how the fit plugin scores #!
+>     args:
+>       scoringStrategy:
+>         type: LeastAllocated         # spread (default); MostAllocated = bin-pack
+>         resources:                   # what counts when judging how full a node is
+>         - name: cpu
+>           weight: 1
+>         - name: memory
+>           weight: 1
+>   - name: BalancedResourceAllocation # entry 2: what the balancer compares #!
+>     args:
+>       resources:                     # what it tries to keep even with each other
+>       - name: cpu
+>         weight: 1
+>       - name: memory
+>         weight: 1
+>       - name: nvidia.com/gpu
+>         weight: 1
+> ```
+>
+> - **How to read it:** `profiles:` is a list, and each `- schedulerName:` item is one scheduler. Under it sit that scheduler's `plugins` and `pluginConfig`. `pluginConfig` is a list too, and each `- name:` is one plugin's settings.
+> - **Both plugins have a `resources` list, but they mean different things:** for NodeResourcesFit it's what counts when judging how full or empty a node is; for BalancedResourceAllocation it's what it tries to keep even.
+> - **A second scheduler** would be a second `- schedulerName:` item under `profiles`, with its own `plugins` and `pluginConfig`.
+
 - **There isn't an entry for every plugin:**
   - you only list what you change; everything else keeps its default (on, with its default weight and settings);
   - only about half the plugins have settings at all, for example NodeResourcesFit (`scoringStrategy`), BalancedResourceAllocation (`resources`), InterPodAffinity, PodTopologySpread (default spread rules), NodeAffinity (an extra node filter for every pod), VolumeBinding and DefaultPreemption; others, like TaintToleration or ImageLocality, can only be switched on or off and weighted;
