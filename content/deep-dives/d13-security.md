@@ -78,6 +78,26 @@ spec:
         drop: ["ALL"] #!
 ```
 
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api
+spec:
+  securityContext:
+    runAsNonRoot: true #!
+    runAsUser: 10001
+  containers:
+  - name: api
+    image: my-company/api:1.4
+    securityContext:
+      allowPrivilegeEscalation: false #!
+      privileged: false
+      readOnlyRootFilesystem: true #!
+      capabilities:
+        drop: ["ALL"] #!
+```
+
 - **Follow the Pod Security Standards:** enforce them with Pod Security Admission, and isolate workloads in namespaces with different levels (privileged, baseline, restricted).
 - **Monitor the runtime:** the goal is to detect and prevent malicious activity inside containers and on worker nodes. Tools include Falco (deployed as a DaemonSet to watch containers) and Prisma Cloud container security.
 
@@ -122,6 +142,27 @@ spec:
 **What the picture shows.** Data privacy and compliance: pod identity for AWS access, and securing the model endpoint.
 
 - **IRSA (IAM Roles for Service Accounts):** associates a fine-grained IAM role with a Kubernetes service account. Pods assume the role through their service account identity and access AWS services with that role's permissions, with no stored keys.
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: model-loader
+  namespace: serving
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/model-s3-read #!
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: model-server
+  namespace: serving
+spec:
+  serviceAccountName: model-loader   # gets short-lived AWS credentials #!
+  containers:
+  - name: server
+    image: my-company/model-server:1.0
+```
 
 ```yaml
 apiVersion: v1

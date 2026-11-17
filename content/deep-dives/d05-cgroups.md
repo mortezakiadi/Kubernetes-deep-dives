@@ -43,6 +43,32 @@ spec:
       limits:   {cpu: 500m} #!
 ```
 
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-service
+spec:
+  containers:
+  - name: web
+    image: my-company/web:1.0
+    resources:
+      requests: {cpu: 1000m} #!
+      limits:   {cpu: 2000m} #!
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: batch-job
+spec:
+  containers:
+  - name: batch
+    image: my-company/batch:1.0
+    resources:
+      requests: {cpu: 250m} #!
+      limits:   {cpu: 500m} #!
+```
+
   - **Kubelet (the translator):** reads these specs and writes them into cgroups.
 - **2. Linux cgroups (the translator's output):** a cgroup per pod (with one per container inside it), each with two files.
   - **Web service cgroup:** `cpu.shares = 1024` and `cpu.cfs_quota_us = 200000` per 100 ms period.

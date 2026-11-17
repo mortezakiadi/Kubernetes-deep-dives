@@ -105,6 +105,28 @@ profiles:
         weight: 1
 ```
 
+```yaml
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+- schedulerName: default-scheduler     # profiles[]: one scheduler
+  plugins:                             # plugins: which run, per stage #!
+    score:
+      enabled:
+      - name: BalancedResourceAllocation
+        weight: 2                      # counts double vs. other scoring plugins (default 1) #!
+  pluginConfig:                        # pluginConfig: how a plugin calculates #!
+  - name: BalancedResourceAllocation
+    args:
+      resources:                       # which resources to keep in balance #!
+      - name: cpu
+        weight: 1
+      - name: memory
+        weight: 1
+      - name: nvidia.com/gpu           # e.g. also balance GPUs
+        weight: 1
+```
+
 | The `weight` in… | What it weighs |
 |---|---|
 | `plugins.score.enabled[].weight` | This **plugin** against the other scoring plugins |
@@ -114,17 +136,7 @@ profiles:
 >
 > The fit check section shows NodeResourcesFit's settings, and the BalancedResourceAllocation section shows that plugin's. They're pieces of the same kind of file, each showing only the plugin it's about. A real file that tunes both has **one profile** (one scheduler) with **one `pluginConfig` list holding two entries**, one per plugin:
 >
-> ```text
-> KubeSchedulerConfiguration
-> └── profiles                      ← list of schedulers (here only ONE)
->     └── default-scheduler         ← the one profile
->         ├── plugins               ← which plugins run, and score weights
->         │   └── score
->         │       └── BalancedResourceAllocation: weight 2
->         └── pluginConfig          ← ONE list...
->             ├── NodeResourcesFit           ← ...entry 1: its settings
->             └── BalancedResourceAllocation ← ...entry 2: its settings
-> ```
+> ![One KubeSchedulerConfiguration file, box by box](diagrams/extra/cfg-structure.svg)
 >
 > ```yaml
 > apiVersion: kubescheduler.config.k8s.io/v1
@@ -224,7 +236,37 @@ fargateProfiles:
       type: serverless #!
 ```
 
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: prod
+  region: us-east-1
+fargateProfiles:
+- name: staging-serverless
+  selectors:
+  - namespace: staging #!
+    labels:
+      type: serverless #!
+```
+
 - **Step 2 (EKS control plane, mutating webhook):** the EKS mutating webhook sees the pod, checks it against your profiles, and on a match injects `schedulerName: fargate-scheduler` into the pod spec, before scheduling starts. Pods that don't match keep the standard spec.
+
+```yaml
+# the pod as stored after the webhook mutates it
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+  namespace: staging
+  labels:
+    type: serverless
+spec:
+  schedulerName: fargate-scheduler   # injected by EKS, not written by you #!
+  containers:
+  - name: web
+    image: my-company/web:1.0
+```
 
 ```yaml
 # the pod as stored after the webhook mutates it
@@ -314,6 +356,29 @@ spec:
         nvidia.com/gpu: 1
 ```
 
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer-2
+  labels:
+    job: my-training-run #!
+spec:
+  affinity:
+    podAffinity: #!
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            job: my-training-run #!
+        topologyKey: kubernetes.io/hostname   # same node as the other trainers #!
+  containers:
+  - name: trainer
+    image: my-company/trainer:2.0
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+```
+
   - **The failure point:** it only works if pod 1 finds a home first, and writing these rules for 100 pods is a management nightmare. A custom scheduler does it automatically for the whole batch.
 - **Best at this:** the KAI Scheduler, NVIDIA's open-source scheduler with topology-aware placement for GPU fabrics.
 
@@ -351,6 +416,17 @@ spec:
     requests.nvidia.com/gpu: "10"   # static: idle GPUs can't be lent to others #!
 ```
 
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gpu-quota
+  namespace: marketing
+spec:
+  hard:
+    requests.nvidia.com/gpu: "10"   # static: idle GPUs can't be lent to others #!
+```
+
   - **The failure point:** these quotas are static. If marketing isn't using its 10 GPUs, no one else can borrow them. And a team that hits its limit gets an immediate error; the pod doesn't queue and start later when space opens up.
 - **Best at this:** Apache YuniKorn and Run:ai (via KAI), and Kueue, covered below.
 
@@ -375,6 +451,27 @@ WorkloadPriorityClasses decide admission order, and fair sharing favors teams th
   - **Low-precision support:** sending a workload only to GPUs that support the number formats it needs, such as FP8 (Ada and Hopper and newer) or FP4 (Blackwell).
 - **Can the standard scheduler do it?** Yes, to a point.
   - **The workaround:** label nodes by hand (`gpu-gen=blackwell`, `network=infiniband`) and add matching `nodeSelector`s to the AI pods, together with taints and tolerations.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fp4-inference
+spec:
+  nodeSelector:
+    gpu-gen: blackwell #!
+    network: infiniband #!
+  tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+  containers:
+  - name: server
+    image: my-company/llm-server:1.0
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+```
 
 ```yaml
 apiVersion: v1
@@ -446,10 +543,92 @@ spec:
               nvidia.com/gpu: 1
 ```
 
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: pytorch-train
+spec:
+  schedulerName: volcano #!
+  minAvailable: 9            # gang: start nothing until all 9 pods fit #!
+  tasks:
+  - name: master
+    replicas: 1
+    template:
+      spec:
+        restartPolicy: OnFailure
+        containers:
+        - name: master
+          image: my-company/trainer:2.0
+  - name: worker
+    replicas: 8
+    template:
+      spec:
+        restartPolicy: OnFailure
+        containers:
+        - name: worker
+          image: my-company/trainer:2.0
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+```
+
 - **Kueue, the resource quota manager:** a newer, cloud-native job queueing controller. Instead of replacing the scheduler, it is a gatekeeper in front of the default one. Best for shared clusters with many teams, multi-cloud and cloud bursting. It manages a global pool (say 100 A100s), holds jobs in a waitlist (a `ClusterQueue`), and **admits** a job when its quota allows; the standard scheduler then places the pods.
 - **The shared scenario:** teams A and B each need 4 GPUs and the cluster has 4. The default scheduler might give each team 2, and both jobs wait forever. Volcano or Kueue gives all 4 to team A, which finishes, and then team B gets the cluster. Utilization goes up.
 - **Volcano's strength, task dependencies:** in a PyTorch job with one master and many workers, if the master fails filtering (for example a port conflict), the workers would sit idle forever. Volcano can say "start the 100 workers only if the master is placed." Kueue admits a whole job's quota as one unit (and with `waitForPodsReady` it can requeue a job whose pods don't all start), but placement is left to the default scheduler, which doesn't order the pod types within a job.
 - **Kueue's strength, fair sharing and borrowing:** marketing has a 10-GPU quota, data science has 50. On Friday night marketing is idle and data science needs 60. Both teams' ClusterQueues sit in the same cohort, so Kueue sees marketing's unused quota and lends its 10 GPUs. If someone in marketing submits a job on Saturday morning, Kueue preempts the borrowed work and returns the guaranteed GPUs. Volcano focuses on the performance of each job, not on sharing a budget between departments.
+
+```yaml
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: a100
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: data-science
+spec:
+  cohort: gpu-pool             # queues in one cohort can lend to each other #!
+  namespaceSelector: {}
+  resourceGroups:
+  - coveredResources: ["nvidia.com/gpu"]
+    flavors:
+    - name: a100
+      resources:
+      - name: nvidia.com/gpu
+        nominalQuota: 50 #!
+        borrowingLimit: 10 #!
+  preemption:
+    reclaimWithinCohort: Any   # a lender can take its GPUs back #!
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: ds-queue
+  namespace: data-science
+spec:
+  clusterQueue: data-science #!
+---
+# a Job joins the queue with one label
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fine-tune
+  namespace: data-science
+  labels:
+    kueue.x-k8s.io/queue-name: ds-queue #!
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: train
+        image: my-company/trainer:2.0
+        resources:
+          limits:
+            nvidia.com/gpu: 4
+```
 
 ```yaml
 apiVersion: kueue.x-k8s.io/v1beta1

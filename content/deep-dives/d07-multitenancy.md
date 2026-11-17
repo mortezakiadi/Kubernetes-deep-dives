@@ -29,7 +29,27 @@ spec:
   policyTypes: ["Ingress", "Egress"] #!
 ```
 
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: tenant-a
+spec:
+  podSelector: {}          # every pod in the namespace #!
+  policyTypes: ["Ingress", "Egress"] #!
+```
+
   - **Pod Security Standards, enforced by Pod Security Admission (PSA):** three levels, Privileged (no restrictions, the danger zone), Baseline (reasonable defaults) and Restricted (maximum, production-grade hardening). The example labels the `prod` namespace with `pod-security.kubernetes.io/enforce: restricted`.
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod
+  labels:
+    pod-security.kubernetes.io/enforce: restricted #!
+```
 
 ```yaml
 apiVersion: v1
@@ -132,6 +152,35 @@ spec:
         image: my-company/standard-app:1.0
 ```
 
+```yaml
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc #!
+scheduling:
+  nodeSelector:
+    sandbox.gvisor: "true"         # only nodes where gVisor is installed #!
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: premium-tenant-app
+  namespace: tenant-a-premium
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: my-app}
+  template:
+    metadata:
+      labels: {app: my-app}
+    spec:
+      runtimeClassName: gvisor     # the one extra line #!
+      containers:
+      - name: my-container
+        image: my-company/standard-app:1.0
+```
+
 **Going deeper.**
 
 - AI agents that run generated code or untrusted tools need the same isolation.
@@ -149,6 +198,23 @@ spec:
 - **seccomp:** a properly configured seccomp profile is an allowlist that blocks every system call the application doesn't strictly need.
 - **AppArmor / SELinux policies:** mandatory access control in the kernel, on top of normal file permissions (like `chmod 777`). For example, a policy can say "the Nginx process may only read `/var/www/html` and only write to `/var/log/nginx`".
 - **User namespace remapping:** the kernel maps UID 0 (root) inside the container to a high, unprivileged UID on the host. If an attacker breaks out, they find themselves as a powerless user on the host, unable to do damage.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tenant-app
+spec:
+  hostUsers: false               # root in the pod maps to an unprivileged host UID #!
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault #!
+    appArmorProfile:
+      type: RuntimeDefault #!
+  containers:
+  - name: app
+    image: my-company/tenant-app:1.0
+```
 
 ```yaml
 apiVersion: v1

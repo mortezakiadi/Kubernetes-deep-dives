@@ -40,8 +40,17 @@ kubectl set env daemonset aws-node -n kube-system \
   WARM_IP_TARGET=5 MINIMUM_IP_TARGET=10 #!
 ```
 
+```bash
+kubectl set env daemonset aws-node -n kube-system \
+  WARM_IP_TARGET=5 MINIMUM_IP_TARGET=10 #!
+```
+
 - **IP allocation strategies:**
   - **Prefix delegation (advanced):** assigns `/28` blocks (16 IPs) instead of single secondary IPs. If you hit the per-instance limit often, you don't need a bigger, pricier instance; an `m5.large` goes from 29 to 110 pods.
+
+```bash
+kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true #!
+```
 
 ```bash
 kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true #!
@@ -116,6 +125,16 @@ cat /proc/sys/net/netfilter/nf_conntrack_count /proc/sys/net/netfilter/nf_conntr
 #     tcpCloseWaitTimeout: 1h #!
 ```
 
+```bash
+# how full is the table?
+cat /proc/sys/net/netfilter/nf_conntrack_count /proc/sys/net/netfilter/nf_conntrack_max
+# kube-proxy owns these settings; raise the size in its config (KubeProxyConfiguration):
+#   conntrack:
+#     maxPerCore: 131072 #!
+#     tcpEstablishedTimeout: 24h #!
+#     tcpCloseWaitTimeout: 1h #!
+```
+
 ### Security groups for pods and network policies
 
 **Scenario.** A payment service must, for PCI compliance, be protected by an AWS security group of its own, not only by Kubernetes rules. But all pods on a node normally share the node's security group. Separately, the team wrote NetworkPolicies and discovered they weren't being enforced at all.
@@ -131,6 +150,20 @@ cat /proc/sys/net/netfilter/nf_conntrack_count /proc/sys/net/netfilter/nf_conntr
   - **The branch ENI (`aws-k8s-branch-eni`):** one per pod that needs its own security group, a physical-to-virtual mapping designed for isolation.
   - **The connection:** each branch ENI is plugged into the trunk ENI.
   - **The security:** the security group is applied to the branch ENI. Since that ENI belongs to one pod, the pod gets its own firewall.
+
+```yaml
+apiVersion: vpcresources.k8s.aws/v1beta1
+kind: SecurityGroupPolicy
+metadata:
+  name: payments-sg
+  namespace: payments
+spec:
+  podSelector:
+    matchLabels:
+      app: payment-service #!
+  securityGroups:
+    groupIds: ["sg-0123456789abcdef0"] #!
+```
 
 ```yaml
 apiVersion: vpcresources.k8s.aws/v1beta1
@@ -197,6 +230,22 @@ spec:
         matchLabels: {role: frontend} #!
 ```
 
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-from-frontend
+  namespace: shop
+spec:
+  podSelector:
+    matchLabels: {role: backend} #!
+  policyTypes: ["Ingress"]
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels: {role: frontend} #!
+```
+
 - **2. The translator, Calico:** Calico is the controller on every node, watching the Kubernetes API. When it sees a new NetworkPolicy, it works out what this node must allow or block, and translates the YAML into something the kernel understands.
 - **3. The enforcement, iptables (the rulebook):** in Calico's default mode that language is iptables. Calico creates its own chains of rules and attaches them to the **FORWARD** hook of the Netfilter gates.
 - **At packet time:** when a packet reaches the FORWARD hook, the kernel checks Calico's rules and either **accepts** or **drops** it according to your policy. If it's accepted, it continues to the **POSTROUTING** gate.
@@ -222,6 +271,16 @@ spec:
   - **Disabled (`false`):** Cilium acts as a traditional CNI, giving pods IPs and enforcing policies, while kube-proxy keeps handling Services with iptables or IPVS. You still pay the "iptables tax" on Service traffic.
   - **Partial / hybrid (`partial`, older releases):** Cilium handles ClusterIP (internal pod-to-pod) traffic with eBPF but leaves NodePort or LoadBalancer traffic to kube-proxy. Current Cilium versions accept only `true` or `false` and switch these pieces with individual settings instead.
   - **Full (`true`, formerly `strict`):** Cilium takes over every Service type (ClusterIP, NodePort, LoadBalancer, ExternalIPs) with eBPF hash tables, and you can delete the kube-proxy DaemonSet. It also enables **Direct Server Return (DSR)**: replies go straight from the pod to the client instead of back through the load-balancing node, saving a hop and keeping the client's IP.
+
+```yaml
+# Helm values for the cilium chart (helm install cilium cilium/cilium -f values.yaml)
+kubeProxyReplacement: true #!
+k8sServiceHost: <API server endpoint>
+k8sServicePort: 443
+routingMode: native #!
+loadBalancer:
+  mode: dsr #!
+```
 
 ```yaml
 # Helm values for the cilium chart (helm install cilium cilium/cilium -f values.yaml)
