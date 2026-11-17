@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="600px" viewBox="0 0 1260 600" style="background:#ffffff"><title>Identity patterns for agents</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="600" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Four ways to carry identity from user, through agent, to backend</text>
+<rect x="30" y="60" width="150" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="105.0" y="114.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">User</text>
+<rect x="230" y="60" width="170" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="315.0" y="114.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Agent</text>
+<rect x="450" y="60" width="380" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="462" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Token passthrough</text>
+<text x="462" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">user's token forwarded</text>
+<rect x="880" y="60" width="350" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="892" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">sees: user</text>
+<text x="892" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Watch out: expiry, broad scope, theft</text>
+<path d="M 180 110 L 230 110" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 400 110 L 450 110" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 830 110 L 880 110" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="192" width="150" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="105.0" y="246.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">User</text>
+<rect x="230" y="192" width="170" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="315.0" y="246.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Agent</text>
+<rect x="450" y="192" width="380" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="462" y="215" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">ServiceAccount delegation</text>
+<text x="462" y="238" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pod SA token; TokenReview + SubjectAccessReview</text>
+<rect x="880" y="192" width="350" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="892" y="215" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">sees: workload</text>
+<text x="892" y="238" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Watch out: no user identity</text>
+<path d="M 180 242 L 230 242" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 400 242 L 450 242" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 830 242 L 880 242" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="324" width="150" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="105.0" y="378.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">User</text>
+<rect x="230" y="324" width="170" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="315.0" y="378.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Agent</text>
+<rect x="450" y="324" width="380" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="462" y="347" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Token exchange (RFC 8693)</text>
+<text x="462" y="370" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">IdP issues token: sub = user, act = agent</text>
+<rect x="880" y="324" width="350" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="892" y="347" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">sees: user + agent</text>
+<text x="892" y="370" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Watch out: run an exchange service</text>
+<path d="M 180 374 L 230 374" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 400 374 L 450 374" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 830 374 L 880 374" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="456" width="150" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="105.0" y="510.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">User</text>
+<rect x="230" y="456" width="170" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="315.0" y="510.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Agent</text>
+<rect x="450" y="456" width="380" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="462" y="479" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">SPIFFE / SPIRE mTLS</text>
+<text x="462" y="502" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">short-lived X.509 per pod via node agent</text>
+<rect x="880" y="456" width="350" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="892" y="479" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">sees: workload, cryptographically</text>
+<text x="892" y="502" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Watch out: setup and operations</text>
+<path d="M 180 506 L 230 506" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 400 506 L 450 506" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 830 506 L 880 506" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/></svg>

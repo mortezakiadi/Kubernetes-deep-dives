@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="520px" viewBox="0 0 1260 520" style="background:#ffffff"><title>Two AI application shapes</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="520" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Two application shapes: synchronous chat and event-driven backends</text>
+<text x="30" y="75" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d4ed8">Chat app: one synchronous request, latency rules, always warm</text>
+<rect x="30.0" y="90" width="220.8" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42.0" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">User</text>
+<text x="42.0" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">browser, OAuth2</text>
+<path d="M 250.8 140.0 L 274.8 140.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="274.8" y="90" width="220.8" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="286.8" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Gateway</text>
+<text x="286.8" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">auth, rate limits</text>
+<path d="M 495.6 140.0 L 519.6 140.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="519.6" y="90" width="220.8" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="531.6" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Orchestrator</text>
+<text x="531.6" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">prompt, tools, history</text>
+<path d="M 740.4000000000001 140.0 L 764.4000000000001 140.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="764.4000000000001" y="90" width="220.8" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="776.4000000000001" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">LLM</text>
+<text x="776.4000000000001" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">streams tokens back</text>
+<path d="M 985.2 140.0 L 1009.2 140.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1009.2" y="90" width="220.8" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1021.2" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">State store</text>
+<text x="1021.2" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">sessions, history</text>
+<text x="30" y="265" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Backend AI service: event- or schedule-driven, buffered, can scale to zero</text>
+<rect x="30.0" y="280" width="220.8" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42.0" y="303" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Event source</text>
+<text x="42.0" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">order placed, ticket created</text>
+<path d="M 250.8 330.0 L 274.8 330.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="274.8" y="280" width="220.8" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="286.8" y="303" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Queue (Kafka)</text>
+<text x="286.8" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">absorbs bursts</text>
+<path d="M 495.6 330.0 L 519.6 330.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="519.6" y="280" width="220.8" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="531.6" y="303" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Workers</text>
+<text x="531.6" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">KEDA: 0 → 20 on lag</text>
+<path d="M 740.4000000000001 330.0 L 764.4000000000001 330.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="764.4000000000001" y="280" width="220.8" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="776.4000000000001" y="303" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">LLM</text>
+<text x="776.4000000000001" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">shared, protected by the worker</text>
+<text x="776.4000000000001" y="341" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">cap</text>
+<path d="M 985.2 330.0 L 1009.2 330.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1009.2" y="280" width="220.8" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1021.2" y="303" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Results</text>
+<text x="1021.2" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">idempotent writes</text>
+<text x="630" y="470" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569" font-style="italic">Also: nightly CronJobs, always-on agent loops (single-replica Deployments), multi-step automations as Jobs.</text></svg>

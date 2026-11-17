@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="520px" viewBox="0 0 1260 520" style="background:#ffffff"><title>Serving many LoRA adapters</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="520" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">One base model, many adapters, routing that knows where each is loaded</text>
+<rect x="30" y="200" width="220" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="223" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Requests</text>
+<text x="42" y="246" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">model = support-tone /</text>
+<text x="42" y="261" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">legal-summary / …</text>
+<rect x="300" y="190" width="260" height="130" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="312" y="213" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">LoRA-aware routing</text>
+<text x="312" y="236" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">send to a replica that already has</text>
+<text x="312" y="251" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the adapter loaded</text>
+<path d="M 250 255 L 300 255" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="620" y="70" width="610" height="200" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="634" y="94" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">VLLM REPLICA 1 (ONE GPU)</text>
+<rect x="645" y="200" width="560" height="50" rx="6" fill="#fffbeb" stroke="#d97706"/>
+<text x="925" y="230" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Base model weights: one copy, shared</text>
+<rect x="645" y="115" width="176" height="70" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="733" y="148.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">support-tone</text>
+<text x="733" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">adapter</text>
+<rect x="833" y="115" width="176" height="70" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="921" y="148.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">legal-summary</text>
+<text x="921" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">adapter</text>
+<rect x="1021" y="115" width="176" height="70" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="1109" y="148.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">sales-email</text>
+<text x="1109" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">adapter</text>
+<path d="M 560 255 L 620 170" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="620" y="290" width="610" height="200" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="634" y="314" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">VLLM REPLICA 2 (ONE GPU)</text>
+<rect x="645" y="420" width="560" height="50" rx="6" fill="#fffbeb" stroke="#d97706"/>
+<text x="925" y="450" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Base model weights: one copy, shared</text>
+<rect x="645" y="335" width="176" height="70" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="733" y="368.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">support-tone</text>
+<text x="733" y="388" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">adapter</text>
+<rect x="833" y="335" width="176" height="70" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="921" y="368.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">hr-policy</text>
+<text x="921" y="388" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">adapter</text>
+<rect x="1021" y="335" width="176" height="70" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="1109" y="368.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">code-review</text>
+<text x="1109" y="388" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">adapter</text>
+<path d="M 560 255 L 620 390" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="30" y="380" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Requests for different adapters</text>
+<text x="30" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">share one batch, so the GPU stays</text>
+<text x="30" y="420" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">busy even with little traffic each.</text></svg>

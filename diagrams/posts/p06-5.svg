@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="560px" viewBox="0 0 1260 560" style="background:#ffffff"><title>Agent loop on Kubernetes</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="560" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">The agent loop, and where its pieces run</text>
+<rect x="275.0" y="95.0" width="170" height="70" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="360.0" y="124.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Perceive</text>
+<text x="360.0" y="146.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">task, new input</text>
+<rect x="422.22431864335454" y="180.0" width="170" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="507.22431864335454" y="209.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Think</text>
+<text x="507.22431864335454" y="231.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">LLM plans next step</text>
+<rect x="422.2243186433546" y="350.0" width="170" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="507.2243186433546" y="379.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Act</text>
+<text x="507.2243186433546" y="401.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">call a tool</text>
+<rect x="275.0" y="435.0" width="170" height="70" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="360.0" y="464.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Observe</text>
+<text x="360.0" y="486.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">tool result</text>
+<rect x="127.77568135664546" y="350.00000000000006" width="170" height="70" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="212.77568135664546" y="379.00000000000006" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Reflect</text>
+<text x="212.77568135664546" y="401.50000000000006" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">done? retry?</text>
+<rect x="127.77568135664544" y="180.0" width="170" height="70" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="212.77568135664544" y="209.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Remember</text>
+<text x="212.77568135664544" y="231.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">update memory</text>
+<path d="M 407.11178196587343 157.2 L 460.1125366774811 187.8" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 507.22431864335454 269.4 L 507.2243186433546 330.6" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 460.1125366774811 412.2 L 407.11178196587343 442.8" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 312.88821803412657 442.8 L 259.8874633225189 412.20000000000005" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 212.77568135664546 330.6 L 212.77568135664544 269.4" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 259.8874633225189 187.8 L 312.88821803412657 157.2" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="720" y="70" width="510" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="732" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Agent</text>
+<text x="732" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Deployment (or Kagent Agent CR); framework: LangGraph, CrewAI, or a</text>
+<text x="732" y="131" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">server-side runtime</text>
+<rect x="720" y="170" width="510" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="732" y="193" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Tools</text>
+<text x="732" y="216" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Services, mostly MCP servers; fewest tools that do the job</text>
+<rect x="720" y="270" width="510" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="732" y="293" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Memory</text>
+<text x="732" y="316" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Redis StatefulSet (session), database (long-term)</text>
+<rect x="720" y="370" width="510" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="732" y="393" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Heavy work</text>
+<text x="732" y="416" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Jobs; untrusted code in a sandbox (Design 01)</text>
+<rect x="720" y="470" width="510" height="70" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="732" y="493" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Human approval</text>
+<text x="732" y="516" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">before tools that send money, delete data or message customers</text></svg>

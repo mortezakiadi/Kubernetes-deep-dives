@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="520px" viewBox="0 0 1260 520" style="background:#ffffff"><title>Kubeflow Trainer roles</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="520" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Kubeflow Trainer: the platform defines runtimes, data scientists submit jobs</text>
+<rect x="30" y="70" width="330" height="130" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="42" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Platform team</text>
+<text x="42" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">ClusterTrainingRuntime: images, NCCL/EFA,</text>
+<text x="42" y="131" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">placement, torchrun setup</text>
+<rect x="30" y="240" width="330" height="130" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="263" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Data scientist (Python SDK)</text>
+<text x="42" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">TrainerClient().train(CustomTrainer(func=fine_tune,</text>
+<text x="42" y="301" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">num_nodes=2, …))</text>
+<rect x="430" y="150" width="240" height="140" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="550.0" y="206.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">TrainJob</text>
+<text x="550.0" y="230.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">runtimeRef + trainer; queue</text>
+<text x="550.0" y="246.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">label</text>
+<path d="M 360 135 L 430 200" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 360 305 L 430 245" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="730" y="70" width="220" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="742" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Kueue</text>
+<text x="742" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">admit all nodes or none</text>
+<rect x="730" y="200" width="220" height="90" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="742" y="223" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Trainer controller</text>
+<text x="742" y="246" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">TrainJob → JobSet</text>
+<path d="M 670 200 L 730 115" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 670 240 L 730 245" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1010" y="90" width="220" height="120" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1022" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">node 1 pod</text>
+<text x="1022" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">torchrun, 4 GPUs, rank env set</text>
+<path d="M 950 245 L 1010 150" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1010" y="230" width="220" height="120" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1022" y="253" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">node 2 pod</text>
+<text x="1022" y="276" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">torchrun, 4 GPUs, rank env set</text>
+<path d="M 950 245 L 1010 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="430" y="380" width="800" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="442" y="403" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Checkpoints → PVC / S3 every N steps; final adapter → model registry</text>
+<text x="442" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a failed or preempted job resumes from the last checkpoint</text>
+<path d="M 1120 350 L 1120 380" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/></svg>

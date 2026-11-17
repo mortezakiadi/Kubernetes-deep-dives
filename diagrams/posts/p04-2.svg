@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="440px" viewBox="0 0 1260 440" style="background:#ffffff"><title>LLM request timeline</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="440" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">One request, four timings: the user feels TTFT and TPOT, not 'latency'</text>
+<rect x="60" y="100" width="120" height="70" fill="#94a3b8" fill-opacity=".85"/>
+<text x="70" y="140" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Queue</text>
+<rect x="180" y="100" width="220" height="70" fill="#d97706" fill-opacity=".85"/>
+<text x="190" y="140" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Prefill</text>
+<rect x="400" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="428" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t2</text>
+<rect x="462" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="490" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t3</text>
+<rect x="524" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="552" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t4</text>
+<rect x="586" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="614" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t5</text>
+<rect x="648" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="676" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t6</text>
+<rect x="710" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="738" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t7</text>
+<rect x="772" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="800" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t8</text>
+<rect x="834" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="862" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t9</text>
+<rect x="896" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="924" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t10</text>
+<rect x="958" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="986" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t11</text>
+<rect x="1020" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="1048" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t12</text>
+<rect x="1082" y="100" width="56" height="70" fill="#2563eb" fill-opacity=".75"/>
+<text x="1110" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">t13</text>
+<text x="60" y="200.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">Queue: num_requests_waiting, request_queue_time_seconds  ·  Prefill: time_to_first_token_seconds (compute-heavy)  ·  Decode: one token per step, inter_token_latency_seconds (memory-heavy)</text>
+<path d="M 60 250 L 400 250" stroke="#d97706" stroke-width="3" marker-end="url(#a-flow)"/>
+<text x="60" y="275" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">TTFT: what a chat user feels as 'waiting'</text>
+<path d="M 60 310 L 1144 310" stroke="#0f172a" stroke-width="3" marker-end="url(#a-flow)"/>
+<text x="60" y="335" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">End-to-end latency: depends mostly on how many tokens were generated</text>
+<text x="60" y="380" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569">Throughput: prompt + generation tokens per second (generation_tokens_total). CPU stays flat while the queue grows.</text>
+<text x="60" y="405" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">About 4–5 tokens per second keeps up with a human reader.</text></svg>

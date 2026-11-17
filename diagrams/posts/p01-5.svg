@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="560px" viewBox="0 0 1260 560" style="background:#ffffff"><title>Ray Serve on KubeRay</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="560" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Two schedulers: Kubernetes places Ray's pods, Ray places the replicas</text>
+<rect x="40" y="80" width="300" height="120" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="52" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">RayService (Kubernetes CR)</text>
+<text x="52" y="128" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">serveConfigV2 + rayClusterConfig;</text>
+<text x="52" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">zero-downtime upgrades</text>
+<rect x="40" y="240" width="300" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="52" y="263" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">KubeRay operator</text>
+<text x="52" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Creates the RayCluster and deploys the</text>
+<text x="52" y="301" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Serve app</text>
+<path d="M 190 200 L 190 240" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="400" y="70" width="820" height="450" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="414" y="94" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">RAYCLUSTER: PODS PLACED BY KUBE-SCHEDULER</text>
+<rect x="430" y="120" width="240" height="130" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="442" y="143" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Head pod</text>
+<text x="442" y="166" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">GCS, dashboard, Serve controller,</text>
+<text x="442" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">HTTP proxy</text>
+<rect x="700" y="120" width="150" height="330" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="712" y="143" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">GPU worker 1</text>
+<rect x="712" y="170" width="126" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="724" y="192" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Generator</text>
+<text x="724" y="208" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">replica</text>
+<text x="724" y="230" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">num_gpus: 1</text>
+<rect x="712" y="260" width="126" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="724" y="282" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Reranker replica</text>
+<text x="724" y="304" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">CPU</text>
+<rect x="870" y="120" width="150" height="330" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="882" y="143" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">GPU worker 2</text>
+<rect x="882" y="170" width="126" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="894" y="192" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Generator</text>
+<text x="894" y="208" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">replica</text>
+<text x="894" y="230" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">num_gpus: 1</text>
+<rect x="882" y="260" width="126" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="894" y="282" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Reranker replica</text>
+<text x="894" y="304" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">CPU</text>
+<rect x="1040" y="120" width="150" height="330" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1052" y="143" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">GPU worker 3</text>
+<rect x="1052" y="170" width="126" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="1064" y="192" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Generator</text>
+<text x="1064" y="208" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">replica</text>
+<text x="1064" y="230" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">num_gpus: 1</text>
+<text x="430" y="290" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Ray's scheduler places Serve</text>
+<text x="430" y="308" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">replicas onto workers by</text>
+<text x="430" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">their GPU and CPU needs</text>
+<path d="M 340 290 L 430 200" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="430" y="380" width="240" height="110" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="442" y="403" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Ray autoscaler</text>
+<text x="442" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">adds worker pods → Karpenter adds</text>
+<text x="442" y="441" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nodes</text>
+<text x="630" y="545.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569" font-style="italic">Full control from Python, at the cost of a second orchestration layer to debug and size.</text></svg>

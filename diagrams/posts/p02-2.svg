@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="520px" viewBox="0 0 1260 520" style="background:#ffffff"><title>Model registry and object storage</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="520" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">The registry holds the facts; object storage holds the bytes</text>
+<rect x="40" y="70" width="300" height="120" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="52" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Training job llm-sft-0412</text>
+<text x="52" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">writes weights to S3, registers a version</text>
+<rect x="420" y="60" width="420" height="300" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="432" y="85" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#1e40af">Model registry</text>
+<rect x="440" y="100" width="380" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="452" y="122.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">support-assistant v7</text>
+<text x="452" y="145.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">owner, base model, dataset, training job</text>
+<rect x="440" y="164" width="380" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="452" y="186.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Evaluation results</text>
+<text x="452" y="209.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">multilingual: pass · safety: pass</text>
+<rect x="440" y="228" width="380" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="452" y="250.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Alias: production → v7</text>
+<text x="452" y="273.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">staging → v8 · candidate → v9</text>
+<rect x="440" y="292" width="380" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="452" y="314.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Pointer</text>
+<text x="452" y="337.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">s3://models/support-assistant/run-0412/</text>
+<rect x="920" y="70" width="300" height="120" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="932" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Object storage (S3) or OCI registry</text>
+<text x="932" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the actual weight files</text>
+<path d="M 340 130 L 420 130" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="348.12" y="106" width="63.760000000000005" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="380" y="120" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">register</text>
+<path d="M 820 330 L 870 330 L 870 130 L 920 130" fill="none" stroke="#334155" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-flow)"/>
+<rect x="834.76" y="216" width="70.48" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="870" y="230" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">points to</text>
+<rect x="420" y="400" width="420" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="432" y="423" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Deployment (GitOps)</text>
+<text x="432" y="446" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">serves 'support-assistant@production', resolved to a URI at</text>
+<text x="432" y="461" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">deploy time</text>
+<path d="M 630 360 L 630 400" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 840 445 L 1070 445 L 1070 190" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="1014.6" y="316" width="110.80000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="1070" y="330" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#047857">loads the files</text></svg>

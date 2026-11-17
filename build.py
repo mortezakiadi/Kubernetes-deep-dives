@@ -69,7 +69,7 @@ def read_md(path):
         if not mh:
             continue
         nxt = parts[i + 1] if i + 1 < len(parts) else ""
-        ms = re.search(r'data-src="diagrams/(?:sections|designs|appendix)/([^"/]+)\.svg"', nxt)
+        ms = re.search(r'data-src="diagrams/(?:sections|designs|appendix|posts)/([^"/]+)\.svg"', nxt)
         if ms:
             hid = ms.group(1)
         else:

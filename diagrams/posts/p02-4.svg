@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="560px" viewBox="0 0 1260 560" style="background:#ffffff"><title>Model images and layer sharing</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="560" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Model images share layers: ten fine-tunes, one base copy per node</text>
+<rect x="40" y="60" width="700" height="470" rx="14" fill="#f8fafc" fill-opacity=".55" stroke="#475569" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="54" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#0f172a">GPU NODE: IMAGE LAYER CACHE</text>
+<rect x="70" y="420" width="640" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="390" y="455" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Base layer: Qwen2.5-7B weights, 15 GB</text>
+<text x="390" y="478" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">pulled once per node, sha256:9a1e…</text>
+<rect x="75" y="350" width="118" height="54" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="134" y="375.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">adapter A</text>
+<text x="134" y="393" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">~100 MB</text>
+<rect x="75" y="250" width="118" height="80" rx="6" fill="#ffffff" stroke="#475569"/>
+<text x="134" y="285.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">pod 1</text>
+<text x="134" y="303" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">image volume</text>
+<path d="M 134 330 L 134 350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="203" y="350" width="118" height="54" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="262" y="375.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">adapter B</text>
+<text x="262" y="393" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">~100 MB</text>
+<rect x="203" y="250" width="118" height="80" rx="6" fill="#ffffff" stroke="#475569"/>
+<text x="262" y="285.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">pod 2</text>
+<text x="262" y="303" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">image volume</text>
+<path d="M 262 330 L 262 350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="331" y="350" width="118" height="54" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="390" y="375.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">adapter C</text>
+<text x="390" y="393" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">~100 MB</text>
+<rect x="331" y="250" width="118" height="80" rx="6" fill="#ffffff" stroke="#475569"/>
+<text x="390" y="285.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">pod 3</text>
+<text x="390" y="303" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">image volume</text>
+<path d="M 390 330 L 390 350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="459" y="350" width="118" height="54" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="518" y="375.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">adapter D</text>
+<text x="518" y="393" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">~100 MB</text>
+<rect x="459" y="250" width="118" height="80" rx="6" fill="#ffffff" stroke="#475569"/>
+<text x="518" y="285.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">pod 4</text>
+<text x="518" y="303" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">image volume</text>
+<path d="M 518 330 L 518 350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="587" y="350" width="118" height="54" rx="6" fill="#ecfdf5" stroke="#059669"/>
+<text x="646" y="375.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">adapter E</text>
+<text x="646" y="393" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">~100 MB</text>
+<rect x="587" y="250" width="118" height="80" rx="6" fill="#ffffff" stroke="#475569"/>
+<text x="646" y="285.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">pod 5</text>
+<text x="646" y="303" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#334155">image volume</text>
+<path d="M 646 330 L 646 350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="390" y="120" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">Each pod mounts base + its adapter, read-only</text>
+<text x="390" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">Disk used: 15 GB + 5 × 0.1 GB, not 5 × 15 GB</text>
+<rect x="800" y="70" width="420" height="130" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="812" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Versioned by digest</text>
+<text x="812" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">The Deployment names</text>
+<text x="812" y="131" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">registry/models/support-assistant@sha256:4f1c… — exactly what</text>
+<text x="812" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">passed evaluation</text>
+<rect x="800" y="230" width="420" height="130" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="812" y="253" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Pattern 4: image volume</text>
+<text x="812" y="276" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">volumes[].image.reference; mounted read-only; no sidecar, no</text>
+<text x="812" y="291" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">shared process namespace</text>
+<rect x="800" y="390" width="420" height="130" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="812" y="413" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Pattern 3: modelcar</text>
+<text x="812" y="436" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">KServe storageUri: oci://… runs the image as a sidecar; for</text>
+<text x="812" y="451" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">clusters without image volumes</text></svg>

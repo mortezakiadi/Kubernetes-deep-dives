@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="500px" viewBox="0 0 1260 500" style="background:#ffffff"><title>Agent memory tiers</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="500" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Where agent memory belongs</text>
+<rect x="30" y="60" width="330" height="90" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="195.0" y="110.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#991b1b">In-memory</text>
+<rect x="390" y="60" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="402" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Where</text>
+<text x="402" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">variables in the agent process</text>
+<rect x="820" y="60" width="410" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="832" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Why</text>
+<text x="832" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Lost on restart or scale-out. Development only.</text>
+<path d="M 360 105 L 390 105" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 790 105 L 820 105" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="165" width="330" height="90" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="195.0" y="215.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Short-term (session)</text>
+<rect x="390" y="165" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="402" y="188" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Where</text>
+<text x="402" y="211" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Redis StatefulSet, TTL per session</text>
+<rect x="820" y="165" width="410" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="832" y="188" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Why</text>
+<text x="832" y="211" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Any replica can serve the next turn.</text>
+<path d="M 360 210 L 390 210" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 790 210 L 820 210" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="270" width="330" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="195.0" y="320.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Long-term</text>
+<rect x="390" y="270" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="402" y="293" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Where</text>
+<text x="402" y="316" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">database, written asynchronously</text>
+<rect x="820" y="270" width="410" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="832" y="293" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Why</text>
+<text x="832" y="316" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Preferences, audit trail, cross-session analytics.</text>
+<path d="M 360 315 L 390 315" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 790 315 L 820 315" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="375" width="330" height="90" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="195.0" y="425.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Checkpoints (long-running work)</text>
+<rect x="390" y="375" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="402" y="398" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Where</text>
+<text x="402" y="421" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">PVC or object storage after each major step</text>
+<rect x="820" y="375" width="410" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="832" y="398" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Why</text>
+<text x="832" y="421" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Job with restartPolicy: OnFailure resumes where it left off.</text>
+<path d="M 360 420 L 390 420" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 790 420 L 820 420" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="630" y="490" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569" font-style="italic">For hours- or days-long agents, add durable execution: see Design 04.</text></svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="530px" viewBox="0 0 1260 530" style="background:#ffffff"><title>From a script to a model server</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="530" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">From a demo script to a model server</text>
+<rect x="30" y="70" width="380" height="130" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">A script</text>
+<text x="42" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Loads the model, runs one prompt, exits. One</text>
+<text x="42" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">process, no API.</text>
+<rect x="50" y="225" width="340" height="42" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="220.0" y="250.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">no API</text>
+<rect x="50" y="277" width="340" height="42" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="220.0" y="302.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">one request at a time</text>
+<rect x="50" y="329" width="340" height="42" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="220.0" y="354.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">no metrics</text>
+<path d="M 410 135 L 440 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="440" y="70" width="380" height="130" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="452" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Script + FastAPI</text>
+<text x="452" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">An endpoint, but still one request at a time on the</text>
+<text x="452" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">GPU. Every feature is code you write.</text>
+<rect x="460" y="225" width="340" height="42" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="630.0" y="250.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">API: yes</text>
+<rect x="460" y="277" width="340" height="42" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="630.0" y="302.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">batching: write it yourself</text>
+<rect x="460" y="329" width="340" height="42" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="630.0" y="354.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">streaming, metrics: yourself</text>
+<path d="M 820 135 L 850 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="850" y="70" width="380" height="130" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="862" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">A model server (vLLM, TGI, SGLang)</text>
+<text x="862" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Loads once, OpenAI-compatible API, keeps the GPU</text>
+<text x="862" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">busy.</text>
+<rect x="870" y="225" width="340" height="42" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1040.0" y="250.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">continuous batching</text>
+<rect x="870" y="277" width="340" height="42" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1040.0" y="302.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">paged KV-cache memory</text>
+<rect x="870" y="329" width="340" height="42" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1040.0" y="354.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">streaming, metrics, LoRA</text>
+<rect x="30" y="395" width="1200" height="110" rx="10" fill="#fffbeb" stroke="#d97706"/>
+<text x="50" y="428" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Memory decides what fits (16-bit weights ≈ 2 GB per billion parameters)</text>
+<text x="50" y="455.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1e293b">7B: ~15 GB weights, plus KV cache</text>
+<rect x="50" y="466" width="36" height="24" rx="4" fill="#d97706" fill-opacity=".7"/>
+<text x="440" y="455.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1e293b">13B: ~26 GB weights, plus KV cache</text>
+<rect x="440" y="466" width="62" height="24" rx="4" fill="#d97706" fill-opacity=".7"/>
+<text x="830" y="455.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1e293b">70B: ~140 GB weights, plus KV cache</text>
+<rect x="830" y="466" width="336" height="24" rx="4" fill="#d97706" fill-opacity=".7"/></svg>
