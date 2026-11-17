@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Step time breakdown</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Where one RL step's GPU-time goes as scale grows (illustrative)</text>
+<text x="250" y="110" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">8B · 4K · 32 GPUs</text>
+<rect x="270" y="88" width="405" height="38" fill="#d97706"/>
+<text x="276" y="112" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">45%</text>
+<rect x="675" y="88" width="45" height="38" fill="#7c3aed"/>
+<rect x="720" y="88" width="90" height="38" fill="#64748b"/>
+<text x="726" y="112" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">10%</text>
+<rect x="810" y="88" width="270" height="38" fill="#2563eb"/>
+<text x="816" y="112" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">30%</text>
+<rect x="1080" y="88" width="18" height="38" fill="#dc2626"/>
+<rect x="1098" y="88" width="72" height="38" fill="#cbd5e1"/>
+<text x="1104" y="112" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">8%</text>
+<text x="250" y="182" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">8B · 64K</text>
+<rect x="270" y="160" width="558" height="38" fill="#d97706"/>
+<text x="276" y="184" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">62%</text>
+<rect x="828" y="160" width="45" height="38" fill="#7c3aed"/>
+<rect x="873" y="160" width="72" height="38" fill="#64748b"/>
+<text x="879" y="184" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">8%</text>
+<rect x="945" y="160" width="108" height="38" fill="#2563eb"/>
+<text x="951" y="184" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">12%</text>
+<rect x="1053" y="160" width="18" height="38" fill="#dc2626"/>
+<rect x="1071" y="160" width="99" height="38" fill="#cbd5e1"/>
+<text x="1077" y="184" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">11%</text>
+<text x="250" y="254" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">235B MoE · 64K</text>
+<rect x="270" y="232" width="432" height="38" fill="#d97706"/>
+<text x="276" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">48%</text>
+<rect x="702" y="232" width="54" height="38" fill="#7c3aed"/>
+<text x="708" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">6%</text>
+<rect x="756" y="232" width="63" height="38" fill="#64748b"/>
+<text x="762" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">7%</text>
+<rect x="819" y="232" width="108" height="38" fill="#2563eb"/>
+<text x="825" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">12%</text>
+<rect x="927" y="232" width="135" height="38" fill="#dc2626"/>
+<text x="933" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">15%</text>
+<rect x="1062" y="232" width="108" height="38" fill="#cbd5e1"/>
+<text x="1068" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">12%</text>
+<text x="250" y="326" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">+ agentic tools</text>
+<rect x="270" y="304" width="360" height="38" fill="#d97706"/>
+<text x="276" y="328" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">40%</text>
+<rect x="630" y="304" width="198" height="38" fill="#7c3aed"/>
+<text x="636" y="328" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">22%</text>
+<rect x="828" y="304" width="45" height="38" fill="#64748b"/>
+<rect x="873" y="304" width="81" height="38" fill="#2563eb"/>
+<text x="879" y="328" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">9%</text>
+<rect x="954" y="304" width="108" height="38" fill="#dc2626"/>
+<text x="960" y="328" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">12%</text>
+<rect x="1062" y="304" width="108" height="38" fill="#cbd5e1"/>
+<text x="1068" y="328" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">12%</text>
+<text x="250" y="398" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">after fixes</text>
+<rect x="270" y="376" width="522" height="38" fill="#d97706"/>
+<text x="276" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">58%</text>
+<rect x="792" y="376" width="90" height="38" fill="#7c3aed"/>
+<text x="798" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">10%</text>
+<rect x="882" y="376" width="54" height="38" fill="#64748b"/>
+<text x="888" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">6%</text>
+<rect x="936" y="376" width="135" height="38" fill="#2563eb"/>
+<text x="942" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">15%</text>
+<rect x="1071" y="376" width="36" height="38" fill="#dc2626"/>
+<rect x="1107" y="376" width="63" height="38" fill="#cbd5e1"/>
+<text x="1113" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">7%</text>
+<rect x="270" y="455" width="16" height="16" fill="#d97706"/>
+<text x="292" y="468.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">rollout</text>
+<rect x="420" y="455" width="16" height="16" fill="#7c3aed"/>
+<text x="442" y="468.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">reward/env</text>
+<rect x="570" y="455" width="16" height="16" fill="#64748b"/>
+<text x="592" y="468.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">logprobs</text>
+<rect x="720" y="455" width="16" height="16" fill="#2563eb"/>
+<text x="742" y="468.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">train</text>
+<rect x="870" y="455" width="16" height="16" fill="#dc2626"/>
+<text x="892" y="468.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">weight sync</text>
+<rect x="1020" y="455" width="16" height="16" fill="#cbd5e1"/>
+<text x="1042" y="468.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">idle</text>
+<text x="270" y="510.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Weight by GPUs held (including idle), profile the slowest steps, and drive the idle share down.</text></svg>
