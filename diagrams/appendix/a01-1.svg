@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240px" height="620px" viewBox="0 0 1240 620" style="background:#ffffff"><title>When you need a second scheduler</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1240" height="620" fill="#ffffff"/><text x="620" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Use the lightest tool that changes what you need</text>
+<rect x="470" y="60" width="300" height="60" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="620.0" y="95.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">I want different placement</text>
+<rect x="420" y="150" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="432" y="174" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Can the pod spec say it?</text>
+<text x="432" y="198" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">affinity, anti-affinity, topology spread, taints</text>
+<rect x="900" y="155" width="300" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="912" y="179" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Use pod constraints</text>
+<text x="912" y="203" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">No new components</text>
+<path d="M 820 195 L 900 195" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="844.92" y="173" width="30.160000000000004" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="860" y="187" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">yes</text>
+<rect x="420" y="290" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="432" y="314" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Is it a job-level problem?</text>
+<text x="432" y="338" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">all-or-nothing starts, team quotas, queueing</text>
+<rect x="900" y="295" width="300" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="912" y="319" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Use Kueue, Volcano or KAI</text>
+<text x="912" y="343" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Job-level admission and queues</text>
+<path d="M 820 335 L 900 335" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="844.92" y="313" width="30.160000000000004" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="860" y="327" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">yes</text>
+<rect x="420" y="430" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="432" y="454" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Do you need different scoring?</text>
+<text x="432" y="478" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">plugin weights, bin-packing, a plugin turned off</text>
+<rect x="900" y="435" width="300" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="912" y="459" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Run a second scheduler</text>
+<text x="912" y="483" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Same kube-scheduler, your own</text>
+<text x="912" y="499" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">configuration</text>
+<path d="M 820 475 L 900 475" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="844.92" y="453" width="30.160000000000004" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="860" y="467" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#059669">yes</text>
+<path d="M 620 120 L 620 150" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 620 240 L 620 270" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 620 380 L 620 410" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="648.28" y="254" width="23.44" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="660" y="268" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">no</text>
+<rect x="648.28" y="394" width="23.44" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="660" y="408" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">no</text>
+<rect x="40" y="430" width="320" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="52" y="453" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Only want fewer, fuller nodes?</text>
+<text x="52" y="476" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Karpenter consolidation repacks after the</text>
+<text x="52" y="491" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fact; a second scheduler packs at placement</text>
+<text x="52" y="506" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">time</text>
+<path d="M 420 475 L 360 475" fill="none" stroke="#334155" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-flow)"/>
+<rect x="420" y="560" width="400" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="620.0" y="587.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Batch needs bin-packing → second scheduler</text>
+<path d="M 620 520 L 620 560" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/></svg>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260px" height="520px" viewBox="0 0 1260 520" style="background:#ffffff"><title>Spread versus bin-packing</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1260" height="520" fill="#ffffff"/><text x="630" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Same 8 pods, two scoring strategies</text>
+<rect x="40" y="60" width="560" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="52" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">LeastAllocated (default): spread</text>
+<text x="52" y="108" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Emptier nodes score higher. 4 nodes at 50%, none can be removed.</text>
+<rect x="40" y="160" width="120" height="250" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+<text x="100" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">node 1</text>
+<rect x="50" y="355" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="100" y="385" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="50" y="295" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="100" y="325" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<text x="100" y="452" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569">50% full</text>
+<rect x="180" y="160" width="120" height="250" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+<text x="240" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">node 2</text>
+<rect x="190" y="355" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="240" y="385" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="190" y="295" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="240" y="325" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<text x="240" y="452" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569">50% full</text>
+<rect x="320" y="160" width="120" height="250" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+<text x="380" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">node 3</text>
+<rect x="330" y="355" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="380" y="385" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="330" y="295" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="380" y="325" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<text x="380" y="452" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569">50% full</text>
+<rect x="460" y="160" width="120" height="250" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+<text x="520" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">node 4</text>
+<rect x="470" y="355" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="520" y="385" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="470" y="295" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="520" y="325" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<text x="520" y="452" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569">50% full</text>
+<rect x="660" y="60" width="560" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="672" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">MostAllocated: bin-pack</text>
+<text x="672" y="108" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Fuller nodes score higher. 2 nodes full, 2 empty and removable.</text>
+<rect x="660" y="160" width="120" height="250" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+<text x="720" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">node 1</text>
+<rect x="670" y="355" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="720" y="385" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="670" y="295" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="720" y="325" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="670" y="235" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="720" y="265" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="670" y="175" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="720" y="205" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<text x="720" y="452" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">100% full</text>
+<rect x="800" y="160" width="120" height="250" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+<text x="860" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">node 2</text>
+<rect x="810" y="355" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="860" y="385" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="810" y="295" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="860" y="325" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="810" y="235" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="860" y="265" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<rect x="810" y="175" width="100" height="50" rx="6" fill="#2563eb" fill-opacity=".75"/>
+<text x="860" y="205" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pod</text>
+<text x="860" y="452" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">100% full</text>
+<rect x="940" y="160" width="120" height="250" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+<text x="1000" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">node 3</text>
+<text x="1000" y="452" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">0% full</text>
+<rect x="1080" y="160" width="120" height="250" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+<text x="1140" y="430" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">node 4</text>
+<text x="1140" y="452" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">0% full</text>
+<text x="630" y="495" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569" font-style="italic">Add nvidia.com/gpu with a high weight to fill GPU nodes first.</text></svg>
