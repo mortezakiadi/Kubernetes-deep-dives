@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="520px" viewBox="0 0 1300 520" style="background:#ffffff"><title>Trajectory as data</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="520" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">A trajectory recorded so it can be scored, replayed and branched</text>
+<rect x="90" y="90" width="43" height="26" rx="3" fill="#2563eb"/>
+<rect x="136" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="182" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="228" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="274" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="320" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="366" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="412" y="90" width="43" height="26" rx="3" fill="#2563eb"/>
+<rect x="458" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="504" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="550" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="596" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="642" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="688" y="90" width="43" height="26" rx="3" fill="#2563eb"/>
+<rect x="734" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="780" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="826" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="872" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="918" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="964" y="90" width="43" height="26" rx="3" fill="#2563eb"/>
+<rect x="1010" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="1056" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="1102" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<rect x="1148" y="90" width="43" height="26" rx="3" fill="#bfdbfe"/>
+<text x="80" y="109.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">turns</text>
+<path d="M 112 120 L 112 150" stroke="#047857" stroke-width="2"/>
+<rect x="90" y="150" width="44" height="26" rx="13" fill="#d1fae5" stroke="#047857"/>
+<text x="112" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">snap</text>
+<path d="M 434 120 L 434 150" stroke="#047857" stroke-width="2"/>
+<rect x="412" y="150" width="44" height="26" rx="13" fill="#d1fae5" stroke="#047857"/>
+<text x="434" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">snap</text>
+<path d="M 710 120 L 710 150" stroke="#047857" stroke-width="2"/>
+<rect x="688" y="150" width="44" height="26" rx="13" fill="#d1fae5" stroke="#047857"/>
+<text x="710" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">snap</text>
+<path d="M 986 120 L 986 150" stroke="#047857" stroke-width="2"/>
+<rect x="964" y="150" width="44" height="26" rx="13" fill="#d1fae5" stroke="#047857"/>
+<text x="986" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">snap</text>
+<text x="90" y="205.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">blue = branch point (high-entropy decision, key action, or evenly spaced) with an environment snapshot</text>
+<rect x="1198" y="86" width="70" height="34" rx="6" fill="#059669"/>
+<text x="1233" y="108.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">outcome</text>
+<text x="90" y="250" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Each turn stores</text>
+<rect x="30" y="265" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="288" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Model output</text>
+<text x="42" y="311" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reasoning + parsed action (tool call)</text>
+<rect x="450" y="265" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="462" y="288" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Observation</text>
+<text x="462" y="311" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">environment response, truncated for storage</text>
+<rect x="870" y="265" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="882" y="288" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Per-token logprobs</text>
+<text x="882" y="311" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">from the rollout engine, for IS corrections</text>
+<rect x="30" y="370" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="393" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Metadata</text>
+<text x="42" y="416" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">policy version, tokens, latency, entropy</text>
+<rect x="450" y="370" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="462" y="393" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Checks</text>
+<text x="462" y="416" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">intermediate verifier results, milestone flags</text>
+<rect x="870" y="370" width="400" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="882" y="393" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Context used</text>
+<text x="882" y="416" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">summary boundaries; the exact context seen</text>
+<text x="650" y="500.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Determinism by contract: same snapshot + seed + actions → same observations.</text></svg>

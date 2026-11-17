@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Long-horizon metrics</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Metrics that show long-horizon ability, not just easy-task gains</text>
+<rect x="70" y="100" width="560" height="260" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="70" y="90.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">success by horizon bucket</text>
+<rect x="90" y="157" width="40" height="203" fill="#cbd5e1"/>
+<rect x="134" y="152" width="40" height="208" fill="#2563eb"/>
+<text x="132" y="378.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#334155">≤10</text>
+<rect x="198" y="225" width="40" height="135" fill="#cbd5e1"/>
+<rect x="242" y="204" width="40" height="156" fill="#2563eb"/>
+<text x="240" y="378.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#334155">11–30</text>
+<rect x="306" y="290" width="40" height="70" fill="#cbd5e1"/>
+<rect x="350" y="253" width="40" height="107" fill="#2563eb"/>
+<text x="348" y="378.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#334155">31–60</text>
+<rect x="414" y="329" width="40" height="31" fill="#cbd5e1"/>
+<rect x="458" y="290" width="40" height="70" fill="#2563eb"/>
+<text x="456" y="378.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#334155">61–100</text>
+<rect x="522" y="350" width="40" height="10" fill="#cbd5e1"/>
+<rect x="566" y="326" width="40" height="34" fill="#2563eb"/>
+<text x="564" y="378.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#334155">100+</text>
+<rect x="70" y="392" width="14" height="14" fill="#cbd5e1"/>
+<text x="90" y="404" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">before</text>
+<rect x="160" y="392" width="14" height="14" fill="#2563eb"/>
+<text x="180" y="404" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">after: gains grow with horizon</text>
+<rect x="680" y="70" width="590" height="76" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="692" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">pass@1 vs pass@k</text>
+<text x="692" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">can solve vs reliably solves; widening gap = consistency problem</text>
+<rect x="680" y="158" width="590" height="76" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="692" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Partial progress</text>
+<text x="692" y="204" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">milestones reached on failed episodes</text>
+<rect x="680" y="246" width="590" height="76" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="692" y="269" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Recovery rate</text>
+<text x="692" y="292" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">success after an intermediate check fails</text>
+<rect x="680" y="334" width="590" height="76" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="692" y="357" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Pathologies</text>
+<text x="692" y="380" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">early stop, loops, false success claims, length</text>
+<rect x="680" y="422" width="590" height="76" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="692" y="445" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Credit quality</text>
+<text x="692" y="468" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">agreement with expensive MC estimates</text>
+<rect x="30" y="440" width="620" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="463" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Private long-horizon eval set</text>
+<text x="42" y="486" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fresh-environment verification, human-checked; never trained on. Report cost per solved task.</text></svg>
