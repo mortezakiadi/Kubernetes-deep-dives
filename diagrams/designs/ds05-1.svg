@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Networking layers</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Four layers with one job each, and policy enforced in all of them</text>
+<rect x="30" y="60" width="1000" height="108" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="48" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Edge and load balancing</text>
+<text x="48" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">How clients reach services</text>
+<rect x="290" y="82" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="375.0" y="110.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Route 53 / Global</text>
+<text x="375.0" y="126.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Accelerator</text>
+<rect x="472" y="82" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="557.0" y="118.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">ALB / NLB (IP targets)</text>
+<rect x="654" y="82" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="739.0" y="118.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Gateway API</text>
+<rect x="836" y="82" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="921.0" y="118.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Inference-aware routing</text>
+<rect x="30" y="185" width="1000" height="108" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+<text x="48" y="219" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Service connectivity</text>
+<text x="48" y="239" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">How a service calls a</text>
+<text x="48" y="254" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">service elsewhere</text>
+<rect x="290" y="207" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="375.0" y="235.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">VPC Lattice service</text>
+<text x="375.0" y="251.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">network</text>
+<rect x="472" y="207" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="557.0" y="235.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Istio ambient (where</text>
+<text x="557.0" y="251.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">mTLS needed)</text>
+<rect x="654" y="207" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="739.0" y="243.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Stable service names</text>
+<rect x="836" y="207" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="921.0" y="235.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Direct routes for bulk</text>
+<text x="921.0" y="251.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">data</text>
+<rect x="30" y="310" width="1000" height="108" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+<text x="48" y="344" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Cluster and host networking</text>
+<text x="48" y="364" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">How pods and nodes get</text>
+<text x="48" y="379" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">addresses and talk</text>
+<rect x="290" y="332" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="375.0" y="368.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">VPC CNI (default)</text>
+<rect x="472" y="332" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="557.0" y="360.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Cilium chaining /</text>
+<text x="557.0" y="376.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">hybrid nodes</text>
+<rect x="654" y="332" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="739.0" y="368.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">IPAM, IPv6, pod ranges</text>
+<rect x="836" y="332" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="921.0" y="360.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">NodeLocal DNS, MTU,</text>
+<text x="921.0" y="376.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">conntrack</text>
+<rect x="30" y="435" width="1000" height="108" rx="10" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+<text x="48" y="469" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Transport: routing and peering</text>
+<text x="48" y="489" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">How packets cross VPCs,</text>
+<text x="48" y="504" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">regions and clouds</text>
+<rect x="290" y="457" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="375.0" y="493.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Cloud WAN segments</text>
+<rect x="472" y="457" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="557.0" y="485.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">AWS Interconnect (other</text>
+<text x="557.0" y="501.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">cloud)</text>
+<rect x="654" y="457" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="739.0" y="485.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Direct Connect</text>
+<text x="739.0" y="501.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">(on-premises)</text>
+<rect x="836" y="457" width="170" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="921.0" y="493.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Inspection VPC</text>
+<rect x="1060" y="60" width="210" height="483" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+<text x="1165" y="92" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b91c1c">Policy plane</text>
+<rect x="1078" y="112" width="174" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1165.0" y="143.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Segment rules</text>
+<rect x="1078" y="182" width="174" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1165.0" y="213.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Security groups</text>
+<rect x="1078" y="252" width="174" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1165.0" y="283.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">ClusterNetworkPolicy</text>
+<rect x="1078" y="322" width="174" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1165.0" y="353.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">NetworkPolicy</text>
+<rect x="1078" y="392" width="174" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1165.0" y="423.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Workload identity</text>
+<rect x="1078" y="462" width="174" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1165.0" y="493.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Egress control</text>
+<text x="530" y="585.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569" font-style="italic">Name every connection by layer: if a layer has no answer, the design isn't finished.</text></svg>

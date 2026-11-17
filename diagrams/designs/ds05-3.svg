@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320px" height="700px" viewBox="0 0 1320 700" style="background:#ffffff"><title>Core network with segments</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1320" height="700" fill="#ffffff"/><text x="660" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">One policy-driven core network instead of a mesh of peerings</text>
+<rect x="300" y="250" width="720" height="200" rx="100" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="660" y="290" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#1d4ed8">AWS Cloud WAN core network</text>
+<text x="660" y="310" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">one policy document in Git · routes between regions propagate automatically</text>
+<rect x="350" y="340" width="190" height="50" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="445.0" y="369.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">us-east-1 edge</text>
+<rect x="565" y="340" width="190" height="50" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="660.0" y="369.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">eu-west-1 edge</text>
+<rect x="780" y="340" width="190" height="50" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="875.0" y="369.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">us-west-2 edge</text>
+<rect x="345" y="405" width="118" height="30" rx="15" fill="#ecfdf5" stroke="#059669"/>
+<text x="404" y="425.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">segment prod</text>
+<rect x="473" y="405" width="118" height="30" rx="15" fill="#fffbeb" stroke="#d97706"/>
+<text x="532" y="425.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#92400e">segment nonprod</text>
+<rect x="601" y="405" width="118" height="30" rx="15" fill="#fef2f2" stroke="#dc2626"/>
+<text x="660" y="425.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#991b1b">segment sandbox</text>
+<rect x="729" y="405" width="118" height="30" rx="15" fill="#eff6ff" stroke="#2563eb"/>
+<text x="788" y="425.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1e40af">segment shared</text>
+<rect x="857" y="405" width="118" height="30" rx="15" fill="#f8fafc" stroke="#475569"/>
+<text x="916" y="425.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#0f172a">segment hybrid</text>
+<rect x="40" y="70" width="210" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="52" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">prod VPCs</text>
+<text x="52" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">inference, services</text>
+<path d="M 145 150 L 470 250" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="300" y="70" width="210" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="312" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">nonprod VPCs</text>
+<text x="312" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">dev, staging</text>
+<path d="M 405 150 L 520 250" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="560" y="70" width="210" height="80" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="572" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">sandbox VPCs</text>
+<text x="572" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">agent sandboxes</text>
+<path d="M 665 150 L 660 250" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="820" y="70" width="210" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="832" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">shared VPC</text>
+<text x="832" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">registry, DNS, CI</text>
+<path d="M 925 150 L 800 250" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1080" y="70" width="210" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1092" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">inspection VPC</text>
+<text x="1092" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Network Firewall</text>
+<path d="M 1185 150 L 920 280" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="40" y="540" width="330" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="52" y="563" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Google Cloud (TPU training)</text>
+<text x="52" y="586" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">AWS Interconnect - multicloud: private, managed</text>
+<text x="52" y="601" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">L3 link; attached to segment hybrid</text>
+<rect x="950" y="540" width="330" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="962" y="563" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">On-premises GPU racks</text>
+<text x="962" y="586" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Direct Connect (two locations); EKS hybrid</text>
+<text x="962" y="601" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nodes; pod ranges over BGP</text>
+<path d="M 370 595 L 480 450" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)" marker-start="url(#a-blue-s)"/>
+<path d="M 950 595 L 840 450" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)" marker-start="url(#a-blue-s)"/>
+<text x="660" y="520.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">prod ↔ shared and nonprod ↔ shared allowed;  prod ↔ nonprod denied;  sandbox reaches only its egress path</text>
+<text x="660" y="680.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569" font-style="italic">Keep a direct VPC peering only for very high-volume pairs (a training cluster and its data lake).</text></svg>

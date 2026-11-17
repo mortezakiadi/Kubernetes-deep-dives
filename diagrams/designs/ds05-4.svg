@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="480px" viewBox="0 0 1300 480" style="background:#ffffff"><title>Services across clusters</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="480" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Three kinds of cross-cluster traffic, three tools</text>
+<rect x="30" y="60" width="300" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Request traffic: HTTP and gRPC</text>
+<text x="42" y="108" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">e.g. inference gateway → feature store</text>
+<text x="42" y="124" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">(other account)</text>
+<rect x="360" y="60" width="300" height="110" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="510.0" y="111.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">VPC Lattice service network (Gateway</text>
+<text x="510.0" y="129.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">API)</text>
+<rect x="690" y="60" width="580" height="110" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="702" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Why</text>
+<text x="702" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Exported services called by stable name across clusters, VPCs and accounts. IAM auth</text>
+<text x="702" y="121" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">per service. Works with overlapping addresses: no routes needed.</text>
+<path d="M 330 115 L 360 115" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 660 115 L 690 115" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="190" width="300" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="214" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Traffic that needs workload mTLS</text>
+<text x="42" y="238" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">e.g. payments → ledger (regulated)</text>
+<rect x="360" y="190" width="300" height="110" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="510.0" y="250.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Istio ambient mode</text>
+<rect x="690" y="190" width="580" height="110" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="702" y="213" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Why</text>
+<text x="702" y="236" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Mutual TLS and identity-based policy between workloads, no sidecars. Multi-cluster mode</text>
+<text x="702" y="251" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">is beta, so only opted-in clusters.</text>
+<path d="M 330 245 L 360 245" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 660 245 L 690 245" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="320" width="300" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="42" y="344" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Bulk data</text>
+<text x="42" y="368" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">e.g. datasets, checkpoints, KV-cache</text>
+<text x="42" y="384" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">transfer, replication</text>
+<rect x="360" y="320" width="300" height="110" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="510.0" y="380.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Direct routed paths</text>
+<rect x="690" y="320" width="580" height="110" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="702" y="343" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Why</text>
+<text x="702" y="366" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Core network or a direct peering, endpoint to endpoint, no proxy in the path.</text>
+<path d="M 330 375 L 360 375" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 660 375 L 690 375" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="650" y="465" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569" font-style="italic">Services, not IPs, are the contract between teams.</text></svg>

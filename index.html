@@ -201,7 +201,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul><li class="design"><a href="#design-sandboxing"><b>01</b> Sandboxing and secure execution</a></li>
 <li class="design"><a href="#design-multicluster"><b>02</b> Multi-cluster CPU and GPU platform</a></li>
 <li class="design"><a href="#design-training-inference"><b>03</b> Training and inference infrastructure</a></li>
-<li class="design"><a href="#design-agent-state"><b>04</b> Long-running agent state</a></li></ul>
+<li class="design"><a href="#design-agent-state"><b>04</b> Long-running agent state</a></li>
+<li class="design"><a href="#design-networking"><b>05</b> Networking across clouds and clusters</a></li></ul>
       <h3>Further research</h3>
       <ul><li class="notes"><a href="#post-serving">Serving LLMs on Kubernetes</a></li>
 <li class="notes"><a href="#post-model-data">Getting model weights into pods</a></li>
@@ -225,8 +226,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p class="legend">How to read the colours: <mark class="kw-act">actions</mark> the system takes, <mark class="kw">concepts and Kubernetes objects</mark>, and <mark class="kw-tool">tools and projects</mark>. In config snippets, the <span style="background:rgba(250,204,21,.25);box-shadow:inset 3px 0 #facc15;padding:0 6px">highlighted lines</span> are the ones that matter for that point.</p></div>
       <ul class="stats">
         <li>14 deep dives</li>
-        <li>4 designs</li>
-        <li>118 scenario sections</li>
+        <li>5 designs</li>
+        <li>124 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -3179,6 +3180,222 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Pod-level checkpoint and restore:</strong> once the Kubernetes API matures, is it worth using to resume long-running tool processes (a test suite, a build) instead of restarting them?</li>
 <li><strong>Multi-agent runs:</strong> when one run spawns sub-agents, should each be a child workflow with its own budget, and how do cancellation and rewind propagate between them?</li>
 <li><strong>Retention:</strong> how long to keep histories, context logs and snapshots for audit, versus deleting them for privacy.</li>
+</ul></div>
+</section>
+
+<section class="entry design" id="design-networking" aria-labelledby="design-networking-h">
+  <header class="entry-head">
+    <span class="tag">Design 05 · 12 sections</span>
+    <h2 id="design-networking-h">Design 05: The networking layer across clouds, clusters and hosts</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#design-networking-the-use-case-and-requirements">The use case and requirements</a></li><li><a href="#ds05-1">Four layers and one policy plane</a></li><li><a href="#ds05-2">The address plan</a></li><li><a href="#ds05-3">Routing and peering: one core network</a></li><li><a href="#design-networking-inside-a-cluster-and-on-the-host">Inside a cluster and on the host</a></li><li><a href="#ds05-4">Services across clusters and accounts</a></li><li><a href="#ds05-5">Load balancing in layers</a></li><li><a href="#ds05-6">Network isolation in layers</a></li><li><a href="#design-networking-dns-across-clouds-and-clusters">DNS across clouds and clusters</a></li><li><a href="#design-networking-cost-and-traffic-engineering">Cost and traffic engineering</a></li><li><a href="#design-networking-failure-modes-and-operations">Failure modes and operations</a></li><li><a href="#design-networking-rollout-plan-trade-offs-and-open-questions">Rollout plan, trade-offs and open questions</a></li></ol></nav>
+  <div class="prose"><p>This design answers one question: <em>how do we connect dozens of clusters across AWS regions, a second cloud and on-premises GPU racks so that the right things can reach each other quickly and cheaply, and everything else can't reach each other at all?</em> It's the network underneath <a href="#design-multicluster">Design 02</a> (the cluster fleet), <a href="#design-training-inference">Design 03</a> (training and inference traffic) and <a href="#design-sandboxing">Design 01</a> (sandbox egress). For how a single cluster's pod networking works, see the deep dives on <a href="#d09-1">VPC CNI</a>, <a href="#d09-3">packet paths</a> and <a href="#d09-5">network policy</a>.</p>
+<p>The short version: one <em>address plan</em> with no overlaps for anything that must be routed; <em>one policy-driven core network</em> (AWS Cloud WAN) with segments instead of a mesh of peerings, joined to the other cloud by a managed private interconnect and to on-premises by Direct Connect; <em>pods that aren't routable unless they need to be</em>; service-to-service traffic across clusters through <em>named services, not IP addresses</em>; <em>load balancing in layers</em> from global DNS down to the pod; and <em>isolation in layers</em> from network segments down to workload identity, each layer owned by one team.</p>
+<h3 id="design-networking-the-use-case-and-requirements">The use case and requirements</h3>
+<p><strong>Scenario.</strong> The platform has grown to 22 EKS clusters in three AWS regions, a Google Cloud project where the data team runs TPU training, and two racks of on-premises GPU servers joined as EKS hybrid nodes. The network grew one peering at a time: 40 VPC peering connections, three VPCs with the same <code>10.0.0.0/16</code>, pods that ran out of IP addresses during a scale-out, a training job that pulled 300 TB across regions through a NAT gateway, and no single place that answers "can service A reach service B?".</p>
+<p><strong>What the design must do.</strong></p>
+<ul>
+<li><strong>Route between everything that should talk:</strong> clusters in all regions, the second cloud, on-premises racks and shared services, without overlapping addresses or hand-maintained route tables.</li>
+<li><strong>Scale addresses:</strong> never run out of pod IPs again, including for clusters of thousands of GPU pods.</li>
+<li><strong>Connect services, not hosts:</strong> a service in one cluster calls a service in another by name, with failover, without knowing pod IPs.</li>
+<li><strong>Load balance at every level:</strong> across regions, across clusters, across pods, with health checks at each level.</li>
+<li><strong>Isolate by default:</strong> production, non-production, sandboxes and regulated tenants are separated at the network level, and every allowed path is written down.</li>
+<li><strong>Keep data transfer costs predictable:</strong> bulk traffic takes the cheapest correct path and stays in its zone when it can.</li>
+</ul>
+<p><strong>What it must avoid.</strong></p>
+<ul>
+<li>A full mesh of VPC peerings, which doesn't scale and can't express segments.</li>
+<li>Making every pod routable everywhere, which wastes addresses and widens the <mark class="kw">blast radius</mark>.</li>
+<li>A service mesh as the answer to every problem, including bulk data paths it would only slow down.</li>
+</ul>
+<p><strong>Out of scope for this design:</strong> the GPU fabric inside a training job (<mark class="kw">EFA</mark> and <mark class="kw">NVLink</mark>, see <a href="#d10-5">Latency and EFA</a>), and application-level authentication.</p>
+<h3 id="ds05-1">Four layers and one policy plane</h3>
+<p><strong>Scenario.</strong> Every networking incident starts with the same question: "which layer is it?". The team needs a model where each layer has one job and one owner.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Four layers and one policy plane" class="open" data-src="diagrams/designs/ds05-1.svg" data-title="Four layers and one policy plane" type="button"><img alt="Diagram: Four layers and one policy plane" decoding="async" loading="lazy" src="diagrams/designs/ds05-1.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The networking layer split into four layers, from the wire up, with policy running through all of them.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Transport (routing and peering)</span></summary><div class="acc-body">how packets get between VPCs, regions, clouds and on-premises. AWS Cloud WAN with segments, AWS Interconnect to the second cloud, Direct Connect to the data center. Owned by the network team.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Cluster and host networking</span></summary><div class="acc-body">how pods and nodes get addresses and talk inside a cluster. The <mark class="kw-tool">VPC CNI</mark> or <mark class="kw-tool">Cilium</mark>, IP address management, node-level settings. Owned by the platform team.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Service connectivity</span></summary><div class="acc-body">how a service finds and calls a service in another cluster or account. Gateway API, VPC Lattice, and a mesh where mutual TLS between workloads is required. Owned by the platform team, used by application teams.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Edge and load balancing</span></summary><div class="acc-body">how clients reach services: global DNS and anycast, regional load balancers, in-cluster gateways. Owned by the platform team.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Policy plane (across all layers)</span></summary><div class="acc-body">segment rules in Cloud WAN, security groups, cluster-wide and namespace network policies, and workload identity. Each layer enforces what it can see, and nothing relies on a single layer.</div></details></div>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">2 points</span></summary><div class="acc-body"><ul>
+<li><strong>Most problems are solved one layer down from where they appear.</strong> A slow cross-cluster call is often a routing path (it hairpins through an inspection VPC in another region), not a service problem.</li>
+<li><strong>Name every connection by layer in the design review.</strong> "The inference gateway in us-east-1 calls the feature store in eu-west-1" becomes "edge → service connectivity (Lattice) → transport (Cloud WAN segment prod)". If a layer has no answer, the design isn't finished.</li>
+</ul></div></details>
+
+<h3 id="ds05-2">The address plan</h3>
+<p><strong>Scenario.</strong> A new cluster can't be connected to the shared-services VPC because both use <code>10.0.0.0/16</code>. A month later, a large training job fails to start because the cluster's subnets have no free IPs for pods. Both problems are the same problem: nobody owns the address plan.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: The address plan" class="open" data-src="diagrams/designs/ds05-2.svg" data-title="The address plan" type="button"><img alt="Diagram: The address plan" decoding="async" loading="lazy" src="diagrams/designs/ds05-2.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Three kinds of addresses, each with different rules.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Routable IPv4 (scarce, unique everywhere)</span></summary><div class="acc-body">allocated from one plan by Amazon VPC IP Address Manager (IPAM), with pools per region and environment. Used for nodes, load balancers, gateways and anything that must be reached from another VPC, cloud or on-premises. Never overlaps, never reused.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Pod IPv4 (plentiful, reused)</span></summary><div class="acc-body">pods in IPv4 clusters get addresses from a secondary range such as <code>100.64.0.0/10</code> (<mark class="kw-tool">VPC CNI</mark> custom networking). The same range is reused in every VPC because it's never routed outside it; pod traffic leaving the VPC is translated to the node's routable address.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">IPv6 (plentiful, routable)</span></summary><div class="acc-body">new clusters use IPv6 for pods where every dependency supports it. Every pod gets a globally unique address from the VPC's IPv6 range, so there's no exhaustion and no translation inside AWS.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">The other cloud and on-premises</span></summary><div class="acc-body">their ranges come from the same IPAM plan, so routes can be exchanged without translation.</div></details></div>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
+<li><strong>Prefix delegation</strong> in the <mark class="kw-tool">VPC CNI</mark> assigns /28 blocks to nodes instead of single IPs, which helps both density and the speed of pod startup. See <a href="#d09-2">Warm pools and prefix delegation</a>.</li>
+<li><strong>Why not make every pod routable?</strong> It burns the scarce routable space, makes the routing tables huge, and lets anything with a route reach any pod. The default is that only services, through load balancers or Lattice, are reachable from outside a VPC.</li>
+<li><strong>IPv6 caveats:</strong> some third-party tools and older SDKs still assume IPv4. IPv6 clusters keep IPv4 egress to the internet through the node or a NAT64 path, so check every dependency before choosing it for a cluster.</li>
+<li><strong>Hybrid nodes need routable pod ranges</strong> on the on-premises side, or the control plane can't reach webhooks and metrics running in those pods. Plan those ranges in IPAM too and advertise them with BGP.</li>
+</ul></div></details>
+
+<h3 id="ds05-3">Routing and peering: one core network</h3>
+<p><strong>Scenario.</strong> The network team spends a day a week editing route tables for new VPC peerings, and nobody can tell whether a development VPC can reach production. Adding the second cloud and the on-premises racks would make it worse.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Routing and peering: one core network" class="open" data-src="diagrams/designs/ds05-3.svg" data-title="Routing and peering: one core network" type="button"><img alt="Diagram: Routing and peering: one core network" decoding="async" loading="lazy" src="diagrams/designs/ds05-3.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> One managed core network that every VPC, the second cloud and the data center attach to, divided into segments.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">AWS Cloud WAN core network</span></summary><div class="acc-body">a global network defined by one policy document in Git. Each region has an edge; VPCs attach to the edge in their region; routes between regions propagate automatically.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Segments</span></summary><div class="acc-body"><code>prod</code>, <code>nonprod</code>, <code>sandbox</code>, <code>shared</code> and <code>hybrid</code>. A VPC's attachment is mapped to a segment by its tags. Segments are isolated from each other by default, and the policy lists which segments may share routes (for example, <code>prod</code> and <code>nonprod</code> both reach <code>shared</code>, but not each other).</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Inspection between segments</span></summary><div class="acc-body">traffic between segments that are allowed to talk can be sent through an inspection VPC running AWS Network Firewall, defined in the same policy.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">The second cloud</span></summary><div class="acc-body">AWS Interconnect - multicloud gives a private, managed connection between AWS and Google Cloud VPCs, attached to the <code>hybrid</code> segment. No VPN tunnels or colocation cross-connects to build.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">On-premises</span></summary><div class="acc-body">Direct Connect, attached to the <code>hybrid</code> segment, carries the hybrid nodes' traffic and the on-premises data paths.</div></details></div>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>Why Cloud WAN rather than Transit Gateways:</strong> a Transit Gateway is regional, and connecting several means peering them and managing route tables by hand. Cloud WAN gives the same transitive routing with segments and multi-region routing in one declarative policy. Transit Gateways can still be attached to Cloud WAN during a migration.</li>
+<li><strong>Keep VPC peering for one case:</strong> two VPCs that exchange very large volumes of data (a training cluster and its data lake, for example) can have a direct peering in addition to the core network, which avoids per-gigabyte processing charges on that path.</li>
+<li><strong>Interconnect bandwidth is a budget.</strong> Cross-cloud links have a fixed capacity and per-gigabyte cost. Training data should be copied once to where the GPUs are, not read across the link during training.</li>
+</ul></div></details>
+
+<h3 id="design-networking-inside-a-cluster-and-on-the-host">Inside a cluster and on the host</h3>
+<p><strong>Scenario.</strong> A cluster for agent sandboxes needs domain-based egress rules and detailed flow visibility; a training cluster needs the fastest possible pod networking and <mark class="kw">EFA</mark>; the hybrid nodes on-premises can't use the <mark class="kw-tool">VPC CNI</mark> at all. One CNI choice doesn't fit every cluster.</p>
+<p><strong>The design.</strong></p>
+<ul>
+<li><strong>Default: the Amazon VPC CNI.</strong> Pods get VPC addresses (or addresses from the pod range), traffic needs no overlay, and security groups and VPC flow logs work for pods. Network policies are enforced by the VPC CNI's network policy agent. This is the choice for most clusters.</li>
+<li><strong>Cilium where its features are needed:</strong> in chaining mode alongside the VPC CNI for clusters that need domain-based egress policy, L7 visibility or Hubble flow logs (the sandbox clusters from <a href="#design-sandboxing">Design 01</a>). Comparisons are in <a href="#d09-8">Calico vs. Cilium</a>.</li>
+<li><strong>Hybrid nodes:</strong> on-premises nodes run <mark class="kw-tool">Cilium</mark> (or <mark class="kw-tool">Calico</mark>) as their CNI, with pod ranges advertised to the data center routers over BGP so the control plane and other clusters can reach them.</li>
+<li><strong>GPU nodes:</strong> the EFA interfaces carry training collectives only and aren't part of the pod network or any route table; the pod network carries everything else. See <a href="#d10-4">Standard vs. SR-IOV vs. RDMA</a>.</li>
+<li><strong>Node basics, set once in the node templates:</strong> <mark class="kw-tool">NodeLocal DNSCache</mark>, <mark class="kw">conntrack</mark> table sizes for busy gateway nodes, <mark class="kw">MTU</mark> matched to the path (<mark class="kw">jumbo frames</mark> inside the VPC, smaller across the interconnect and VPN), and <mark class="kw-tool">kube-proxy</mark> in <mark class="kw-tool">IPVS</mark> or <mark class="kw-tool">nftables</mark> mode for large clusters.</li>
+</ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">2 points</span></summary><div class="acc-body"><ul>
+<li><strong>The CNI is per cluster, so it's part of the cluster template</strong> from <a href="#design-multicluster">Design 02</a>: a sandbox cluster template includes <mark class="kw-tool">Cilium</mark> chaining; a training cluster template doesn't.</li>
+<li><strong>MTU mismatches are the classic cross-cloud bug:</strong> large packets are silently dropped on a path with a smaller <mark class="kw">MTU</mark> when path MTU discovery is blocked. Test with large payloads across every new link.</li>
+</ul></div></details>
+
+<h3 id="ds05-4">Services across clusters and accounts</h3>
+<p><strong>Scenario.</strong> The inference gateway in one cluster needs to call a feature store in another account, a model registry in a shared-services cluster, and, during an incident, the same model in another region. Hard-coding load balancer DNS names worked for two services; it doesn't work for two hundred.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Services across clusters and accounts" class="open" data-src="diagrams/designs/ds05-4.svg" data-title="Services across clusters and accounts" type="button"><img alt="Diagram: Services across clusters and accounts" decoding="async" loading="lazy" src="diagrams/designs/ds05-4.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Three kinds of traffic between clusters, and the right tool for each.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Request traffic between services (HTTP and gRPC)</span></summary><div class="acc-body">a service network in Amazon VPC Lattice, managed from Kubernetes with the Gateway API (the AWS Gateway API Controller). A service in one cluster is exported, and services in other clusters, VPCs and accounts call it by a stable name. Lattice handles the routing, health checks and IAM authorization, and it works across overlapping addresses because it doesn't need routes between the VPCs.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Traffic that needs mutual TLS between workload identities</span></summary><div class="acc-body">a service mesh, <mark class="kw-tool">Istio</mark> in ambient mode (no sidecars), inside clusters that need it. Its multi-cluster mode is still beta, so cross-cluster mesh traffic is limited to clusters that have opted in.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Bulk data (datasets, checkpoints, KV-cache transfer, replication)</span></summary><div class="acc-body">plain routed traffic over the core network or a direct peering, straight between endpoints, with no proxy in the path. A proxy would add latency and cost without adding anything these flows need.</div></details></div>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>Services, not IPs, are the contract.</strong> Teams publish services with names and owners; no team writes another team's pod or node IP in its configuration.</li>
+<li><strong>Why Lattice for the default:</strong> it's managed, needs no shared certificate authority between clusters, and enforces IAM authorization per service, which fits teams in separate accounts. A mesh adds per-workload <mark class="kw">mTLS</mark> and richer traffic policy, at the cost of running it.</li>
+<li><strong>If the fleet standardizes on Cilium,</strong> <mark class="kw-tool">Cilium</mark> Cluster Mesh is the alternative for pod-to-pod and service discovery across clusters. It needs routable or non-overlapping pod ranges between the clusters it joins, so it fits clusters in the same region and segment.</li>
+</ul></div></details>
+
+<h3 id="ds05-5">Load balancing in layers</h3>
+<p><strong>Scenario.</strong> During an availability zone outage, users in Europe were still sent to a load balancer whose targets were all unhealthy, because health checks existed at the pod level but not at the region level. Each layer of load balancing needs its own health signal.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Load balancing in layers" class="open" data-src="diagrams/designs/ds05-5.svg" data-title="Load balancing in layers" type="button"><img alt="Diagram: Load balancing in layers" decoding="async" loading="lazy" src="diagrams/designs/ds05-5.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> A request's path from the client to a pod, and the decision made at each layer.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Global (which region)</span></summary><div class="acc-body">Route 53 latency-based records with health checks, or AWS Global Accelerator for static anycast IPs and faster failover. A region whose health check fails is removed in seconds.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Regional (which cluster and zone)</span></summary><div class="acc-body">an Application or Network Load Balancer, created from Kubernetes Gateway or Ingress resources by the AWS Load Balancer Controller, sending traffic directly to pod IPs (IP target mode), not through node ports.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">In-cluster (which pod)</span></summary><div class="acc-body">for most services, the Gateway's routing rules; for model servers, the inference-aware routing from <a href="#design-training-inference">Design 03</a>, which picks the replica with the right cache and the shortest queue.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Topology-aware routing</span></summary><div class="acc-body">Services prefer endpoints in the same availability zone, which cuts latency and cross-zone data charges, while still failing over to other zones when the local ones are unhealthy.</div></details></div>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>Health checks must mean "can serve",</strong> not "process is up". A model server that's loaded but whose <mark class="kw">KV cache</mark> is full should fail its readiness check so the layers above route around it.</li>
+<li><strong>Connection draining at every layer:</strong> the load balancer's deregistration delay must be shorter than the pod's termination grace period, or rolling updates drop requests.</li>
+<li><strong>Internal traffic uses the same layers without the global one:</strong> internal load balancers or Lattice, then in-cluster routing.</li>
+</ul></div></details>
+
+<h3 id="ds05-6">Network isolation in layers</h3>
+<p><strong>Scenario.</strong> An audit asks the team to prove that a compromised pod in a development namespace can't reach the production payments database. The honest answer was "probably", based on one security group. The team needs every layer to deny the path, and to be able to show it.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Network isolation in layers" class="open" data-src="diagrams/designs/ds05-6.svg" data-title="Network isolation in layers" type="button"><img alt="Diagram: Network isolation in layers" decoding="async" loading="lazy" src="diagrams/designs/ds05-6.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Six layers of isolation, from the widest to the narrowest, each owned by one team.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Segments (Cloud WAN)</span></summary><div class="acc-body">production and non-production can't route to each other at all. Owned by the network team.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">VPCs, subnets and security groups</span></summary><div class="acc-body">only load balancers and gateways accept traffic from outside the VPC; security groups for pods restrict which pods can reach databases and other AWS resources. See <a href="#d09-5">Security groups for pods</a>.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Cluster-wide policy (ClusterNetworkPolicy)</span></summary><div class="acc-body"><mark class="kw">guardrails</mark> set by the platform team that namespace owners can't override, such as "no namespace may reach the instance metadata service" and "everything is denied unless a team allows it".<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: policy.networking.k8s.io/v1alpha2</span><span class="ln"><span class="tk">kind</span>: ClusterNetworkPolicy</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: baseline-default-deny</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln kl">  <span class="tk">tier</span>: Baseline                  <span class="tc"># teams can open paths with NetworkPolicy above this</span></span><span class="ln">  <span class="tk">priority</span>: 10</span><span class="ln">  <span class="tk">subject</span>:</span><span class="ln">    <span class="tk">namespaces</span>: {}</span><span class="ln">  <span class="tk">ingress</span>:</span><span class="ln kl">  - <span class="tk">action</span>: Deny                  <span class="tc"># zero-trust default for every namespace</span></span><span class="ln">    <span class="tk">from</span>:</span><span class="ln">    - <span class="tk">namespaces</span>: {}</span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: policy.networking.k8s.io/v1alpha2</span><span class="ln"><span class="tk">kind</span>: ClusterNetworkPolicy</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: admin-allow-monitoring-and-dns</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln kl">  <span class="tk">tier</span>: Admin                     <span class="tc"># evaluated first; namespace owners can't override</span></span><span class="ln">  <span class="tk">priority</span>: 30</span><span class="ln">  <span class="tk">subject</span>:</span><span class="ln">    <span class="tk">namespaces</span>: {}</span><span class="ln">  <span class="tk">ingress</span>:</span><span class="ln">  - <span class="tk">action</span>: Accept</span><span class="ln">    <span class="tk">name</span>: allow-monitoring</span><span class="ln">    <span class="tk">from</span>:</span><span class="ln">    - <span class="tk">namespaces</span>:</span><span class="ln">        <span class="tk">matchLabels</span>: { kubernetes.io/metadata.name: monitoring }</span><span class="ln">  <span class="tk">egress</span>:</span><span class="ln">  - <span class="tk">action</span>: Accept</span><span class="ln">    <span class="tk">name</span>: allow-cluster-dns</span><span class="ln">    <span class="tk">to</span>:</span><span class="ln">    - <span class="tk">pods</span>:</span><span class="ln">        <span class="tk">namespaceSelector</span>:</span><span class="ln">          <span class="tk">matchLabels</span>: { kubernetes.io/metadata.name: kube-system }</span><span class="ln">        <span class="tk">podSelector</span>:</span><span class="ln">          <span class="tk">matchLabels</span>: { k8s-app: kube-dns }</span></code></pre></div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Namespace policy (NetworkPolicy)</span></summary><div class="acc-body">each team allows the traffic its own services need, inside the platform's guardrails.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Workload identity (mesh or Lattice auth)</span></summary><div class="acc-body">for traffic that crosses clusters or accounts, the receiver checks who is calling (a service identity or IAM principal), not just where the packet came from.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Egress control</span></summary><div class="acc-body">traffic to the internet leaves through a central egress path per region (NAT gateways and AWS Network Firewall with domain rules), and sandbox clusters add per-session egress gateways from <a href="#design-sandboxing">Design 01</a>.</div></details></div>
+
+
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>ClusterNetworkPolicy is new.</strong> It replaces the earlier AdminNetworkPolicy and BaselineAdminNetworkPolicy with one resource and a <code>tier</code> field, and is still <code>v1alpha2</code>. Check that the cluster's policy engine supports it; where it doesn't, the platform enforces the same <mark class="kw">guardrails</mark> with the policy engine's own cluster-wide resources.</li>
+<li><strong>Test the denials, not just the allows:</strong> a scheduled job in each cluster tries the paths that must fail (development to production, any pod to IMDS, sandbox to the internet) and alerts if any succeeds.</li>
+<li><strong>One source for policy:</strong> segment rules, security groups and cluster-wide policies are all generated from Git, so the answer to "can A reach B?" can be computed, not guessed.</li>
+</ul></div></details>
+
+<h3 id="design-networking-dns-across-clouds-and-clusters">DNS across clouds and clusters</h3>
+<p><strong>Scenario.</strong> A job on the on-premises racks can't resolve the name of the model registry, which lives in a private hosted zone in AWS. A pod in Google Cloud can't resolve it either. Routing worked; naming didn't.</p>
+<p><strong>The design.</strong></p>
+<ul>
+<li><strong>One private namespace:</strong> internal names live under one domain (for example, <code>internal.example.com</code>) in Route 53 private hosted zones, shared with every VPC through Route 53 Profiles.</li>
+<li><strong>Resolver endpoints for the outside:</strong> Route 53 Resolver inbound endpoints let on-premises and the other cloud resolve AWS names; outbound endpoints and forwarding rules let AWS resolve their names. Each side forwards only its partner's domains.</li>
+<li><strong>Cluster DNS stays local:</strong> <mark class="kw-tool">CoreDNS</mark> with <mark class="kw-tool">NodeLocal DNSCache</mark> resolves in-cluster names and forwards everything else to the VPC resolver. Lower <code>ndots</code> for workloads that mostly call external names, to cut wasted lookups.</li>
+<li><strong>Service names, not load balancer names:</strong> clients use stable names (Lattice service names or internal records) that point at whatever load balancer currently serves them.</li>
+</ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">2 points</span></summary><div class="acc-body"><ul>
+<li><strong>DNS is a dependency of everything:</strong> run <mark class="kw-tool">NodeLocal DNSCache</mark> on every node, monitor resolver latency and errors per cluster, and keep Resolver endpoints in at least two zones.</li>
+<li><strong>DNS is also an exfiltration path</strong> for untrusted workloads; sandbox clusters use a resolver that only answers for allowlisted domains (<a href="#design-sandboxing">Design 01</a>).</li>
+</ul></div></details>
+
+<h3 id="design-networking-cost-and-traffic-engineering">Cost and traffic engineering</h3>
+<p><strong>Scenario.</strong> The monthly bill shows more spent on data transfer than on CPU instances. Most of it is three patterns: pods calling across availability zones, training jobs reading data from another region, and every container image pull going through a NAT gateway.</p>
+<p><strong>The design.</strong></p>
+<ul>
+<li><strong>Stay in the zone:</strong> <mark class="kw">topology-aware routing</mark> for Services, zone-aware load balancer settings, and replicas <mark class="kw-act">spread</mark> so every zone can serve itself.</li>
+<li><strong>Move data once, then compute:</strong> datasets are replicated to the region and cloud where the GPUs are (S3 replication, or a one-time transfer over the interconnect), never read across regions during training.</li>
+<li><strong>Keep AWS traffic off NAT gateways:</strong> gateway endpoints for S3 and interface endpoints for ECR, STS and other AWS APIs in every VPC, so image pulls and API calls don't pay NAT processing charges.</li>
+<li><strong>Pull-through caches for public images</strong> in each region, so public image pulls don't leave the region.</li>
+<li><strong>Measure flows by cost:</strong> VPC flow logs (or <mark class="kw-tool">Cilium</mark>'s Hubble) aggregated by source, destination, zone and region, labelled with team and service, reviewed monthly like compute spend.</li>
+</ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">2 points</span></summary><div class="acc-body"><ul>
+<li>See <a href="#d12-2">Networking</a> in the optimization deep dive for the instance-level levers.</li>
+<li><strong>Price the paths before designing them.</strong> Cross-zone, cross-region, interconnect, NAT, Transit Gateway and Cloud WAN processing all have different per-gigabyte costs; the cheapest correct path is a design decision, not an accident.</li>
+</ul></div></details>
+
+<h3 id="design-networking-failure-modes-and-operations">Failure modes and operations</h3>
+<p><strong>Scenario.</strong> Before launch, the network and platform teams walk through what breaks when each layer fails.</p>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>What users see</th>
+<th>What the design does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Availability zone lost</td>
+<td>Brief errors, then recovery</td>
+<td>Load balancers and topology-aware routing stop sending traffic to the zone; replicas in other zones serve</td>
+</tr>
+<tr>
+<td>Region lost</td>
+<td>Users routed to another region</td>
+<td>Global health checks remove the region; inference and services fail over; batch work waits or uses the other region's queue</td>
+</tr>
+<tr>
+<td>Interconnect to the second cloud down</td>
+<td>Cross-cloud jobs slow or pause</td>
+<td>Redundant connections across locations; a site-to-site VPN as a lower-bandwidth backup on the <code>hybrid</code> segment</td>
+</tr>
+<tr>
+<td>Direct Connect to on-premises down</td>
+<td>Hybrid nodes lose the control plane</td>
+<td>Two connections in different locations; hybrid node workloads keep running but can't be rescheduled until the link returns</td>
+</tr>
+<tr>
+<td>Bad Cloud WAN policy change</td>
+<td>Routes withdrawn between segments</td>
+<td>Policy changes go through Git review and a change set preview; rollback is a revert</td>
+</tr>
+<tr>
+<td>Pod IP exhaustion</td>
+<td>New pods stuck pending</td>
+<td>Pod ranges sized from the address plan; alerts on free IPs per subnet; IPv6 for new large clusters</td>
+</tr>
+<tr>
+<td>DNS resolver problems</td>
+<td>Widespread, confusing failures</td>
+<td>NodeLocal DNSCache on every node; resolver endpoints in two zones; DNS latency alerts</td>
+</tr>
+</tbody>
+</table>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">2 points</span></summary><div class="acc-body"><ul>
+<li><strong>Every network change is code:</strong> the Cloud WAN policy, IPAM pools, VPCs, security groups, Lattice service networks and cluster-wide policies all live in Git and are applied through the same pipeline as the clusters (<a href="#design-multicluster">Design 02</a>).</li>
+<li><strong>Reachability tests run continuously:</strong> synthetic probes check the paths that must work (service to service, cross-cloud, on-premises) and the denial tests check the paths that must not.</li>
+</ul></div></details>
+
+<h3 id="design-networking-rollout-plan-trade-offs-and-open-questions">Rollout plan, trade-offs and open questions</h3>
+<p><strong>Scenario.</strong> The network can't be replaced in a weekend. Leadership asks for an order that reduces risk at each step.</p>
+<p><strong>Rollout.</strong></p>
+<ul>
+<li><strong>Phase 1, the address plan:</strong> VPC IPAM with pools per region and environment, pod ranges for every cluster, IPv6 for new clusters, and a plan for renumbering the three overlapping VPCs.</li>
+<li><strong>Phase 2, the core network:</strong> Cloud WAN with segments, Transit Gateways and peerings moved onto it one VPC at a time, inspection between segments.</li>
+<li><strong>Phase 3, the outside:</strong> AWS Interconnect to Google Cloud, Direct Connect for the hybrid racks, Resolver endpoints for shared DNS.</li>
+<li><strong>Phase 4, services and isolation:</strong> VPC Lattice service networks with the Gateway API, ClusterNetworkPolicy <mark class="kw">guardrails</mark>, denial tests, and a mesh only where workload <mark class="kw">mTLS</mark> is required.</li>
+</ul>
+<p><strong>Trade-offs we accepted.</strong></p>
+<ul>
+<li><strong>Cloud WAN over a Transit Gateway mesh:</strong> a managed, policy-driven core with segments, at the cost of a newer service and its pricing model.</li>
+<li><strong>Non-routable pods by default:</strong> less flexibility for direct pod-to-pod calls across VPCs, in exchange for address space that never runs out and a smaller <mark class="kw">blast radius</mark>.</li>
+<li><strong>Lattice before a mesh:</strong> managed cross-account service connectivity with IAM authorization, at the cost of fewer traffic-management features than a full mesh.</li>
+<li><strong>Two CNIs in the fleet:</strong> the <mark class="kw-tool">VPC CNI</mark> for most clusters and <mark class="kw-tool">Cilium</mark> where its features matter, at the cost of two things to know and operate.</li>
+</ul>
+<p><strong>Open questions for the next review.</strong></p>
+<ul>
+<li><strong>IPv6 everywhere?</strong> When every dependency supports it, IPv6-only clusters would remove the pod address problem entirely.</li>
+<li><strong>Mesh across clusters:</strong> when <mark class="kw-tool">Istio</mark> ambient multicluster is production-ready, should it replace Lattice for some east-west traffic?</li>
+<li><strong>A second partner cloud:</strong> AWS Interconnect is adding more cloud providers; the same <code>hybrid</code> segment model should extend to them.</li>
+<li><strong>Network policy at the edge of the cluster:</strong> whether ClusterNetworkPolicy's beta, expected soon, is enough to replace engine-specific cluster-wide policies across the fleet.</li>
 </ul></div>
 </section>
 
