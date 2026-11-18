@@ -981,8 +981,50 @@ spec:
 - **The setup:** the `api` pods have a *preferred* pod affinity for the cache pod (same node), as in the YAML above the picture. Node 2 runs the cache pod and already one `api` replica; node 1 is emptier and has the `api` image cached.
 
 - **Affinity on its own would win:** InterPodAffinity gives node 2 a grade of 100 (the only node with a cache pod), and with its default weight of 2 that's 200 points against node 1's 0.
-- **But four other plugins prefer node 1:** node 2 is busier because the cache pod and a replica already use its CPU and memory. So NodeResourcesFit (80 vs 30), BalancedResourceAllocation (90 vs 60), ImageLocality (90 vs 0) and the default topology spread (100 × 2 vs 0, since node 2 already has a replica) all favor node 1.
-- **The result:** node 1 gets 80 + 90 + 90 + 200 + 0 = **460**, node 2 gets 30 + 60 + 0 + 0 + 200 = **290**. Node 1 wins, and the affinity seems to be ignored. No single plugin beat it; several small ones added up.
+- **But four other plugins prefer node 1:** node 2 is busier because the cache pod and a replica already use its CPU and memory. So NodeResourcesFit (80 vs 30), BalancedResourceAllocation (90 vs 80), ImageLocality (90 vs 0) and the default topology spread (100 × 2 vs 0, since node 2 already has a replica) all favor node 1.
+- **The result:** node 1 gets 80 + 90 + 90 + 200 + 0 = **460**, node 2 gets 30 + 80 + 0 + 0 + 200 = **310**. Node 1 wins, and the affinity seems to be ignored. No single plugin beat it; several small ones added up.
+
+> **Note: how the numbers in the table are calculated**
+>
+> Both nodes have 10 CPU and 40 GiB allocatable, and the new `api` pod requests 1 CPU and 1 GiB. Every plugin counts the new pod as if it were already placed:
+>
+> | | CPU requested (incl. new pod) | Memory requested (incl. new pod) |
+> |---|---|---|
+> | Node 1 | 3 of 10 → **30%** | 4 of 40 GiB → **10%** |
+> | Node 2 (cache, a replica, other pods) | 9 of 10 → **90%** | 20 of 40 GiB → **50%** |
+>
+> ```text
+> 1. NodeResourcesFit (LeastAllocated): average share left free
+>    score = average over CPU and memory of (1 − requested ÷ allocatable) × 100
+>    Node 1: ((1 − 0.30) + (1 − 0.10)) ÷ 2 × 100 = 80
+>    Node 2: ((1 − 0.90) + (1 − 0.50)) ÷ 2 × 100 = 30
+>
+> 2. BalancedResourceAllocation: how close the CPU and memory shares are
+>    score = (1 − standard deviation of the shares) × 100
+>          = 100 − |cpu% − memory%| × 50   (with two resources)
+>    Node 1: 100 − |30% − 10%| × 50 = 90
+>    Node 2: 100 − |90% − 50%| × 50 = 80
+>
+> 3. ImageLocality: image size, scaled by how many nodes have it
+>    sum   = image size × (nodes with the image ÷ all nodes)
+>    score = (sum − 23 MB) ÷ (1000 MB − 23 MB) × 100, kept within 0–100
+>    Node 1: 1.2 GB × 3 of 4 nodes = 900 MB → (900 − 23) ÷ 977 × 100 ≈ 90
+>    Node 2: image not there → 0
+>
+> 4. PodTopologySpread (soft default): fewer replicas already there is better
+>    raw = api replicas already on the node (and in its zone)
+>    then scaled so the best node gets 100 and the worst 0
+>    Node 1: 0 replicas → 100     Node 2: 1 replica → 0
+>
+> 5. InterPodAffinity: add the weights of matched preferences, then scale
+>    raw = the rule's weight (100) for each cache pod on the node
+>    then scaled so the best node gets 100
+>    Node 1: no cache pod → 0     Node 2: one cache pod → raw 100 → 100
+> ```
+>
+> - **Two kinds of grade:** plugins 1 to 3 grade each node on its own situation; plugins 4 and 5 produce raw counts with no fixed range, so they're scaled so the best node gets 100. That's why grades never need to add up to 100 across nodes.
+> - **ImageLocality's 23 MB and 1000 MB** are kube-scheduler's built-in limits for one container: smaller images earn nothing, and anything above 1000 MB counts the same.
+
 - **Choice A, the hard rule (filtering):** change `preferredDuringSchedulingIgnoredDuringExecution` to `requiredDuringSchedulingIgnoredDuringExecution`. The rule moves from the scoring phase to the filtering phase, so Node 1 is never even considered.
 
 ```yaml
@@ -1009,7 +1051,7 @@ spec:
         image: my-company/api:1.4
 ```
 
-- **Choice B, scheduler configuration (advanced):** write a `KubeSchedulerConfiguration` profile that gives InterPodAffinity a higher weight, for example 5 instead of 2. Node 2 then gets 90 + 100 × 5 = 590 and beats node 1's 460, while the affinity stays a preference (the pod can still run elsewhere if node 2 is full). The full second-scheduler example in [Appendix A](#appendix-second-scheduler) goes further and uses weight 100, so affinity beats everything else. On a managed control plane like EKS you can't change the default scheduler, so you run this as a second scheduler and point pods at it with `schedulerName`.
+- **Choice B, scheduler configuration (advanced):** write a `KubeSchedulerConfiguration` profile that gives InterPodAffinity a higher weight, for example 5 instead of 2. Node 2 then gets 110 + 100 × 5 = 610 and beats node 1's 460 (4 is the smallest weight that flips it: 110 + 400 = 510; 3 still loses with 410), while the affinity stays a preference (the pod can still run elsewhere if node 2 is full). The full second-scheduler example in [Appendix A](#appendix-second-scheduler) goes further and uses weight 100, so affinity beats everything else. On a managed control plane like EKS you can't change the default scheduler, so you run this as a second scheduler and point pods at it with `schedulerName`.
 
 ```yaml
 # config file passed to a kube-scheduler you run yourself (--config)
@@ -1021,7 +1063,7 @@ profiles:
     score:
       enabled:
       - name: InterPodAffinity
-        weight: 5                       # was 2: node 2 now gets 90 + 100 x 5 = 590 > 460 #!
+        weight: 5                       # was 2: node 2 now gets 110 + 100 x 5 = 610 > 460 #!
 ```
 
 ### A worked example
