@@ -977,7 +977,7 @@ spec:
 
 ### When affinity loses to ImageLocality
 
-**Scenario.** A team adds a *preferred* pod affinity so their API runs next to its cache. Most of the time it works, but some pods land on a different node: one that happens to have the API's image already pulled. The team asks why their affinity rule "lost" to an image cache.
+**Scenario.** A team adds a *preferred* pod affinity so their API runs next to its cache. Most of the time it works, but during a rollout to a new version some pods land on a different node: one that happens to have the *new* image already pulled. The team asks why their affinity rule "lost" to an image cache.
 
 ```yaml
 # The cache, and the API that would like to run next to it
@@ -1021,7 +1021,8 @@ spec:
               topologyKey: kubernetes.io/hostname           # "same node as the cache" #!
       containers:
       - name: api
-        image: my-company/api:1.4            # already pulled on some other nodes
+        image: my-company/api:1.4            # NEW version being rolled out; cached on
+                                             # some nodes, while older replicas run api:1.3
         resources:
           requests: {cpu: "1", memory: 1Gi}
 ---
@@ -1033,7 +1034,7 @@ spec:
 
 **What the picture shows.** Why a *preferred* affinity can lose even though, on its own, it would win, and two ways to fix it. The scoring itself (grade × weight, then add up) is explained in [Score × weight](#d01-4).
 
-- **The setup:** the `api` pods have a *preferred* pod affinity for the cache pod (same node), as in the YAML above the picture. Node 2 runs the cache pod and already one `api` replica; node 1 is emptier and has the `api` image cached.
+- **The setup:** the `api` pods have a *preferred* pod affinity for the cache pod (same node), as in the YAML above the picture. The team is rolling out `api:1.4`. Node 2 runs the cache pod and one `api` replica still on the old version, `api:1.3`, so only the 1.3 image is cached there. Node 1 is emptier and already has `api:1.4` cached (for example from a 1.4 pod that ran there earlier, or a pre-pull job). ImageLocality matches the exact image, tag included, so node 2's 1.3 copy earns nothing for a 1.4 pod.
 
 > **The two nodes, side by side**
 >
@@ -1069,8 +1070,8 @@ spec:
 > 3. ImageLocality: image size, scaled by how many nodes have it
 >    sum   = image size × (nodes with the image ÷ all nodes)
 >    score = (sum − 23 MB) ÷ (1000 MB − 23 MB) × 100, kept within 0–100
->    Node 1: 1.2 GB × 3 of 4 nodes = 900 MB → (900 − 23) ÷ 977 × 100 ≈ 90
->    Node 2: image not there → 0
+>    Node 1: api:1.4 is 1.2 GB, on 3 of 4 nodes = 900 MB → (900 − 23) ÷ 977 × 100 ≈ 90
+>    Node 2: only api:1.3 is there; the tag doesn't match → 0
 >
 > 4. PodTopologySpread (soft default): fewer replicas already there is better
 >    raw = api replicas already on the node (and in its zone)
