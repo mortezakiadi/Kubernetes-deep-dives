@@ -11,6 +11,8 @@ The short version: the three workload families are different enough that one gen
 
 **Scenario.** The company now trains its own models. Thirty researchers prototype in notebooks, an LLM team runs multi-week pre-training and many fine-tuning jobs, and product teams serve a dozen models to customers, two of them too large for one node. Today every group builds its own scripts: researchers SSH into GPU boxes, training runs die and restart by hand, and inference teams over-provision because nobody trusts autoscaling. The platform team is asked to build the infrastructure all three can share.
 
+![Three groups, one platform](diagrams/designs/concepts/ds03-c1.svg)
+
 **What the design must do.**
 
 - **Research:** a GPU environment in minutes, with the team's data and code, that doesn't waste a whole H100 when someone goes to lunch.
@@ -29,6 +31,8 @@ The short version: the three workload families are different enough that one gen
 ### Three workload families, three sets of demands
 
 **Scenario.** In the kickoff, each group describes its needs as "GPUs, and fast". The platform team needs a sharper picture: what each workload is bottlenecked on, how long it runs, how it fails, and what it costs when it waits.
+
+![Three workload families](diagrams/designs/concepts/ds03-c2.svg)
 
 ![Three workload families, three sets of demands](diagrams/designs/ds03-1.svg)
 
@@ -50,6 +54,8 @@ The short version: the three workload families are different enough that one gen
 
 **Scenario.** The team needs one map of the capabilities to build, which workloads use each, and which ones are shared.
 
+![Capability map](diagrams/designs/concepts/ds03-c3.svg)
+
 ![The platform at a glance](diagrams/designs/ds03-2.svg)
 
 **What the picture shows.** Five layers of platform capabilities, from what users touch to the hardware.
@@ -69,6 +75,8 @@ The short version: the three workload families are different enough that one gen
 
 **Scenario.** A researcher wants to try a new attention variant on a small model. Today she waits two days for a "GPU box", then leaves it running all weekend. The platform should give her a GPU in minutes and take it back when she's not using it.
 
+![GPU in minutes, back when idle](diagrams/designs/concepts/ds03-c4.svg)
+
 **The design.**
 
 - **Notebooks and dev pods on demand:** a JupyterLab or VS Code server (Kubeflow Notebooks, or a simple self-service portal) in the team's namespace, with the team's datasets mounted read-only and a personal workspace volume.
@@ -86,6 +94,8 @@ The short version: the three workload families are different enough that one gen
 ### Training: the job lifecycle
 
 **Scenario.** A 64-GPU fine-tuning run is submitted on Friday evening. Without help, it can wait behind a smaller job, start with half its pods, land across two network blocks, lose a node on Saturday and sit dead until Monday. The platform has to handle each of those steps automatically.
+
+![Training job lifecycle](diagrams/designs/concepts/ds03-c5.svg)
 
 ![Training: the job lifecycle](diagrams/designs/ds03-3.svg)
 
@@ -129,6 +139,8 @@ spec:
 
 **Scenario.** A run on 128 GPUs shows 40% GPU utilization. The cause isn't the model: the data loader reads small files straight from S3, and every checkpoint pauses training for six minutes while 1.5 TB is written. Fast GPUs are only as fast as the storage feeding them.
 
+![Data and checkpoints](diagrams/designs/concepts/ds03-c6.svg)
+
 ![Training: data and checkpoints](diagrams/designs/ds03-4.svg)
 
 **What the picture shows.** The storage tiers between the durable copy in S3 and the GPU, and which data flows through each.
@@ -150,6 +162,8 @@ spec:
 
 **Scenario.** On a 512-GPU run, something fails every few hours: a GPU throws an XID error, an EFA link flaps, a node's NVMe fills up. Each failure stops all 512 GPUs. The team needs failures to cost minutes, not hours.
 
+![Failures cost minutes](diagrams/designs/concepts/ds03-c7.svg)
+
 **The design.**
 
 - **Find bad hardware before jobs do:** new GPU nodes run a short burn-in (DCGM diagnostics, an NCCL all-reduce test across the node) before they're marked ready for training. Nodes that fail are replaced, not scheduled.
@@ -168,6 +182,8 @@ spec:
 
 **Scenario.** A fine-tuned model scores well in the training team's notebook and is deployed on Friday. On Monday, customers report worse answers in Spanish: the model was never evaluated on the multilingual suite, and nobody can say exactly which checkpoint is in production.
 
+![Registry and promotion](diagrams/designs/concepts/ds03-c8.svg)
+
 **The design.**
 
 - **One model registry:** every model version has an immutable ID, its weights in object storage (as Safetensors, or packaged as an OCI artifact), the training job and data versions that produced it, and its evaluation results. See [Model registries](#post-model-data) for the options.
@@ -183,6 +199,8 @@ spec:
 ### Inference: the serving stack
 
 **Scenario.** One model fits on a single GPU and serves chat with short prompts; another is a 400B-parameter model that needs two 8-GPU nodes per replica and serves long documents. Both need to hit latency targets at the lowest cost. One generic Deployment template can't do both well.
+
+![The serving stack](diagrams/designs/concepts/ds03-c9.svg)
 
 ![Inference: the serving stack](diagrams/designs/ds03-5.svg)
 
@@ -204,6 +222,8 @@ spec:
 
 **Scenario.** Traffic doubles every weekday at 9 a.m. The autoscaler adds replicas, but each new replica takes 11 minutes to become ready: 4 to get a node, 2 to pull a 15 GB image, 5 to load 140 GB of weights. By the time it's ready, the morning peak is over.
 
+![Cold starts](diagrams/designs/concepts/ds03-c10.svg)
+
 **The design.**
 
 - **Scale on serving signals:** HPA or KEDA on the number of waiting requests per replica, KV-cache utilization, or time to first token, never on CPU or GPU utilization, which stay high under any load.
@@ -224,6 +244,8 @@ spec:
 
 **Scenario.** The inference fleet is sized for the daily peak, so at 3 a.m. half its GPUs are idle. The training queue, meanwhile, has two days of jobs waiting. Finance asks why the company pays for idle GPUs while work waits.
 
+![Sharing GPUs](diagrams/designs/concepts/ds03-c11.svg)
+
 ![Sharing GPUs between training and inference](diagrams/designs/ds03-6.svg)
 
 **What the picture shows.** The same pool of GPUs over a day: inference follows traffic, and borrowed batch work fills the gap.
@@ -243,6 +265,8 @@ spec:
 
 **Scenario.** Every team has a dashboard, and every dashboard shows GPU utilization at 90%. Yet training is slow, inference misses its latency target at peak, and researchers wait a day for a GPU. GPU utilization alone says almost nothing.
 
+![The right number per workload](diagrams/designs/concepts/ds03-c12.svg)
+
 **What each family is measured by.**
 
 - **Research:** time to get a GPU (p50, p95), allocated vs. used GPU hours per notebook, idle-culling savings.
@@ -258,6 +282,8 @@ spec:
 ### Rollout plan, trade-offs and open questions
 
 **Scenario.** Leadership asks for the order of work that helps the most people soonest.
+
+![Rollout plan](diagrams/designs/concepts/ds03-c13.svg)
 
 **Rollout.**
 

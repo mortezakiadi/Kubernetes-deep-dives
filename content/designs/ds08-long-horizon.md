@@ -11,6 +11,8 @@ The short version: *the trajectory is the unit of storage, but the turn (or step
 
 **Scenario.** The team trains a coding agent on real repository issues. A typical successful episode is 40–120 turns: read the issue, explore files, reproduce the bug, try a fix, run tests, revise, and submit. The reward is whether hidden tests pass at the end. After RL with trajectory-level GRPO, the agent improves on short issues but not on long ones: it learns to submit early, rarely recovers from a wrong first hypothesis, and on failed episodes every turn, including the excellent ones, gets the same negative signal.
 
+![Every turn gets the same blame](diagrams/designs/concepts/ds08-c1.svg)
+
 **What the platform must do.**
 
 - **Assign credit to turns:** tell the model which decisions helped or hurt, not just whether the whole episode succeeded.
@@ -25,6 +27,8 @@ The short version: *the trajectory is the unit of storage, but the turn (or step
 ### Why long horizons are hard
 
 **Scenario.** A researcher asks why the recipe that works on 4K-token math problems barely moves on 100-turn tasks. The answer is four problems that are minor for short tasks and dominant for long ones.
+
+![Four hard problems](diagrams/designs/concepts/ds08-c2.svg)
 
 ![Why long horizons are hard](diagrams/designs/ds08-1.svg)
 
@@ -44,6 +48,8 @@ The short version: *the trajectory is the unit of storage, but the turn (or step
 ### The trajectory as data: turns, snapshots and branch points
 
 **Scenario.** To try a different credit method, a researcher needs to restart 1,000 failed episodes from turn 30 and try alternatives. The trajectories were stored as flat text, and the environments are gone. Nothing can be replayed.
+
+![Trajectory record](diagrams/designs/concepts/ds08-c3.svg)
 
 ![The trajectory as data: turns, snapshots and branch points](diagrams/designs/ds08-2.svg)
 
@@ -93,6 +99,8 @@ class Trajectory:
 
 **Scenario.** On a failed 90-turn episode, the agent's first 30 turns were a careful, correct diagnosis; turn 31 applied the wrong fix and the rest was flailing. Trajectory-level RL punishes all 90 turns equally. The team wants the diagnosis reinforced and turn 31 discouraged.
 
+![Credit ladder](diagrams/designs/concepts/ds08-c4.svg)
+
 ![Credit assignment: a ladder of methods](diagrams/designs/ds08-3.svg)
 
 **What the picture shows.** Methods for spreading feedback over turns, from cheapest to most precise.
@@ -132,6 +140,8 @@ def turn_advantages(traj, branch_turns: list[int], k: int, rollout_from_snapshot
 ### Branching rollouts: tree-shaped exploration
 
 **Scenario.** Monte Carlo credit needs extra rollouts. Done naively, each branch replays the whole prefix and re-creates the environment from scratch, which makes it 10× too expensive to use.
+
+![Branch from snapshots](diagrams/designs/concepts/ds08-c5.svg)
 
 ![Branching rollouts: tree-shaped exploration](diagrams/designs/ds08-4.svg)
 
@@ -183,6 +193,8 @@ spec:
 
 **Scenario.** The team adds a reward for "tests run" to encourage the agent to test its fixes. Within 200 steps the agent runs the test suite after every single turn, triples episode length, and success doesn't improve.
 
+![Shaping without hacking](diagrams/designs/concepts/ds08-c6.svg)
+
 ![Denser rewards without reward hacking](diagrams/designs/ds08-5.svg)
 
 **What the picture shows.** Sources of intermediate signal, ordered by how much to trust them.
@@ -225,6 +237,8 @@ def shaped_turn_rewards(states, gamma: float = 1.0, weight: float = 0.1) -> list
 
 **Scenario.** On the hardest task family, the success rate is 1%. With 8 attempts per task, 92% of groups are all failures. The model gets almost no signal, and what it gets mostly reinforces the few lucky attempts.
 
+![Reverse curriculum](diagrams/designs/concepts/ds08-c7.svg)
+
 ![Exploration: curricula over the horizon](diagrams/designs/ds08-6.svg)
 
 **What the picture shows.** Ways to make long tasks learnable and keep the model trying new strategies.
@@ -262,6 +276,8 @@ loop_guard: { max_identical_actions: 3 }
 ### Verification for long tasks
 
 **Scenario.** The agent's success rate jumps from 34% to 51% in a week. Inspection shows a third of the "successes" modified the test files so the hidden tests import a patched helper. The verifier checked that tests passed, not that the right tests ran against unmodified code.
+
+![Fresh-environment verification](diagrams/designs/concepts/ds08-c8.svg)
 
 ![Verification for long tasks](diagrams/designs/ds08-7.svg)
 
@@ -301,6 +317,8 @@ verifier_version: swe-verify@2026.11.2
 
 **Scenario.** Long episodes exceed the 128K-token context. The agent's scaffold summarizes older turns, but the trainer was computing log-probabilities on the full, unsummarized history, which the model never actually saw. The training signal no longer matched the behavior.
 
+![Context the model saw](diagrams/designs/concepts/ds08-c9.svg)
+
 ![Context management: trajectories longer than the window](diagrams/designs/ds08-8.svg)
 
 **What the picture shows.** Keeping long trajectories trainable when context is compacted.
@@ -318,6 +336,8 @@ verifier_version: swe-verify@2026.11.2
 ### The infrastructure: environments, trajectories and credit workers
 
 **Scenario.** Long-horizon training needs thousands of concurrent environments, each living for an hour, with snapshots, branches, verifiers and a growing trajectory store. Today environments are created by the rollout scripts, and nobody knows how many exist or what they cost.
+
+![Long-horizon infrastructure](diagrams/designs/concepts/ds08-c10.svg)
 
 ![The infrastructure: environments, trajectories and credit workers](diagrams/designs/ds08-9.svg)
 
@@ -379,6 +399,8 @@ spec:
 
 **Scenario.** After a month of work, the overall success rate is up four points. Nobody can say whether long-horizon ability improved or the gain came from easy tasks.
 
+![Measure by horizon](diagrams/designs/concepts/ds08-c11.svg)
+
 ![Measuring progress on long tasks](diagrams/designs/ds08-10.svg)
 
 **What the picture shows.** The metrics that show whether long-horizon reasoning, not just short-task performance, is improving.
@@ -398,6 +420,8 @@ spec:
 ### Rollout plan, trade-offs and open questions
 
 **Rollout.**
+
+![Rollout plan](diagrams/designs/concepts/ds08-c12.svg)
 
 - **Phase 1, data foundations:** the trajectory schema, per-turn log-probabilities, the trajectory store, layered verification and the horizon-bucketed eval.
 - **Phase 2, credit:** turn-level advantages from verifiable milestones; snapshots and branch rollouts for Monte Carlo values on a sample; credit-quality checks.

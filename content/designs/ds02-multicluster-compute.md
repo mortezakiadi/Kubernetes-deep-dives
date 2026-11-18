@@ -11,6 +11,8 @@ The short version: clusters are *cattle with roles* (CPU, GPU training, GPU infe
 
 **Scenario.** The company grew five EKS clusters by accident: two CPU clusters for services and data pipelines, a training cluster with H100 Capacity Blocks in us-east-1, and two inference clusters in us-east-1 and eu-west-1. Each has its own quotas and its own Slack channel for "who is using the GPUs?". Training jobs wait for days in one cluster while reserved H100s idle in another, and two teams have quietly started buying their own capacity. Leadership asks the platform team to make it one platform.
 
+![Five clusters, one platform](diagrams/designs/concepts/ds02-c1.svg)
+
 **What the design must do.**
 
 - **One front door for batch work:** a team submits a training or batch job once, without knowing which cluster will run it.
@@ -31,6 +33,8 @@ The short version: clusters are *cattle with roles* (CPU, GPU training, GPU infe
 ### The architecture at a glance
 
 **Scenario.** The team needs one picture that shows where users submit work, which component decides where it runs, and how the clusters are kept consistent.
+
+![Hub and spokes](diagrams/designs/concepts/ds02-c2.svg)
 
 ![The architecture at a glance](diagrams/designs/ds02-1.svg)
 
@@ -54,6 +58,8 @@ The short version: clusters are *cattle with roles* (CPU, GPU training, GPU infe
 
 **Scenario.** One architect argues for "one big cluster per region, simpler". Another wants "one cluster per team, safer". The team needs a rule for when a new cluster is justified.
 
+![When a new cluster is justified](diagrams/designs/concepts/ds02-c3.svg)
+
 **The rule: split clusters by failure domain and workload role, never by team.** Teams are separated inside clusters with namespaces, queues and policies; clusters are separated when the *infrastructure* needs to be different or fail independently.
 
 | Split by | Why it's worth a separate cluster | Example |
@@ -73,6 +79,8 @@ The short version: clusters are *cattle with roles* (CPU, GPU training, GPU infe
 ### Four layers of scheduling decisions
 
 **Scenario.** A researcher asks why her 32-GPU job has been "pending" for an hour. Nobody can answer, because nobody can say which component is holding it. The team needs every decision to have one clear owner.
+
+![Four layers of decisions](diagrams/designs/concepts/ds02-c4.svg)
 
 ![Four layers of scheduling decisions](diagrams/designs/ds02-2.svg)
 
@@ -94,6 +102,8 @@ The short version: clusters are *cattle with roles* (CPU, GPU training, GPU infe
 ### Queues, quotas and fair sharing
 
 **Scenario.** Three teams share 256 reserved H100s. The LLM team needs most of them for a two-week run; the vision team needs bursts; research wants anything idle. Static per-team node pools left 40% of the GPUs idle last quarter. The team needs shares that are guaranteed but not wasted.
+
+![Fair sharing](diagrams/designs/concepts/ds02-c5.svg)
 
 ![Queues, quotas and fair sharing](diagrams/designs/ds02-3.svg)
 
@@ -152,6 +162,8 @@ spec:
 
 **Scenario.** A fine-tuning job with 16 GPUs is submitted to the hub. Two training clusters have room, one in each region, but the dataset lives in an S3 bucket in us-east-1, and copying 4 TB across regions would cost more than the GPU hours. The dispatch has to be smart about more than free GPUs.
 
+![Data-aware placement](diagrams/designs/concepts/ds02-c6.svg)
+
 ![Sending work to the right cluster](diagrams/designs/ds02-4.svg)
 
 **What the picture shows.** One job's path from submission to running in a worker, and back.
@@ -197,6 +209,8 @@ spec:
 
 **Scenario.** A 64-GPU training job is admitted, but its step time is 30% slower than last week. The pods landed on nodes in different network blocks, and two of them share a host with a noisy inference pod. Getting the cluster is only half the job; getting the right GPUs inside it is the other half.
 
+![Topology inside a GPU cluster](diagrams/designs/concepts/ds02-c7.svg)
+
 **The design.**
 
 - **Topology-aware scheduling for training:** training nodes carry labels for their place in the network (block, then node), written by a topology labeller such as Topograph from the EC2 instance topology API. A Kueue `Topology` lists those levels, and jobs ask for `kueue.x-k8s.io/podset-required-topology` (all pods in one block) or `podset-preferred-topology` (as close as possible).
@@ -214,6 +228,8 @@ spec:
 ### Autoscaling: where capacity comes from
 
 **Scenario.** The CFO sees three bills: Capacity Blocks that idled overnight, on-demand H100s bought on a Saturday by an experiment, and a Spot-based inference fleet that dropped 30% of its replicas during an interruption wave. The team needs rules that decide where each workload's capacity comes from.
+
+![Where capacity comes from](diagrams/designs/concepts/ds02-c8.svg)
 
 ![Autoscaling: where capacity comes from](diagrams/designs/ds02-5.svg)
 
@@ -235,6 +251,8 @@ spec:
 ### Multi-tenant isolation
 
 **Scenario.** A bank-owned subsidiary joins the platform with a rule: its training data must never be on a node shared with another tenant. At the same time, a dozen small internal teams just want a few GPUs each without waiting for a whole node. One isolation model doesn't fit both.
+
+![Isolation tiers](diagrams/designs/concepts/ds02-c9.svg)
 
 ![Multi-tenant isolation](diagrams/designs/ds02-6.svg)
 
@@ -258,6 +276,8 @@ spec:
 
 **Scenario.** At the quarterly review, every team claims it's GPU-starved, and finance says GPU utilization is 45%. Both can be true, and the platform needs the data to prove which.
 
+![Utilization vs starvation](diagrams/designs/concepts/ds02-c10.svg)
+
 **What's measured.**
 
 - **Queue health (Kueue metrics):** pending workloads and wait time per ClusterQueue, quota used vs. nominal, borrowed and lent capacity, and preemptions. This is the "who is starved" view.
@@ -274,6 +294,8 @@ spec:
 ### Failure modes and operations
 
 **Scenario.** Before launch, the on-call team walks through "what happens when each box fails", so the runbook exists before the incident.
+
+![Failure drills](diagrams/designs/concepts/ds02-c11.svg)
 
 | Failure | What users see | What the design does |
 |---|---|---|
@@ -293,6 +315,8 @@ spec:
 ### Rollout plan, trade-offs and open questions
 
 **Scenario.** Leadership asks for a plan that delivers value in weeks, not after a year of migration.
+
+![Rollout plan](diagrams/designs/concepts/ds02-c12.svg)
 
 **Rollout.**
 

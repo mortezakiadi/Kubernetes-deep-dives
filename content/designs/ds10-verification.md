@@ -11,6 +11,8 @@ The short version: *a verifier is production software that an optimizer is activ
 
 **Scenario.** The team's math-and-code RL run reports +11 points on training reward and +9 on the internal benchmark. An external evaluation shows +2. Investigation finds three problems: the math verifier accepts answers that list several candidates, the code verifier counts a program as correct if its printed output matches even when it crashes afterwards, and the benchmark shares a verifier with training. RL learned all three.
 
+![Reported gains vs real gains](diagrams/designs/concepts/ds10-c1.svg)
+
 **What the platform must do.**
 
 - **Make verifiers trustworthy:** precise contracts, measured error rates, and evidence before a verifier is used for training.
@@ -25,6 +27,8 @@ The short version: *a verifier is production software that an optimizer is activ
 ### How RL looks better than it is
 
 **Scenario.** Each failure was found by accident. The team wants a checklist of the ways a reward can lie, so each one has an owner and a test.
+
+![Seven failure modes](diagrams/designs/concepts/ds10-c2.svg)
 
 ![How RL looks better than it is](diagrams/designs/ds10-1.svg)
 
@@ -46,6 +50,8 @@ The short version: *a verifier is production software that an optimizer is activ
 ### A verifier is a product: contract, interface and lifecycle
 
 **Scenario.** The math verifier is a 40-line function written in an afternoon. Three teams copied it with small changes. Nobody knows which copy scored which run.
+
+![Anatomy of a verifier](diagrams/designs/concepts/ds10-c3.svg)
 
 ![A verifier is a product: contract, interface and lifecycle](diagrams/designs/ds10-2.svg)
 
@@ -98,6 +104,8 @@ class Verifier:
 
 **Scenario.** Asked "how good is our code verifier?", the team answers "it uses the official tests." That doesn't say how often it's wrong, or on what.
 
+![Precision first](diagrams/designs/concepts/ds10-c4.svg)
+
 ![Measuring verifier quality](diagrams/designs/ds10-3.svg)
 
 **What the picture shows.** How verifier quality is measured, and why precision gets the most attention.
@@ -145,6 +153,8 @@ def verifier_quality(rows):
 
 **Scenario.** After a hack is found, the fix takes a day. But the policy found the hack in a few hundred steps; the team wants to find such holes before training does.
 
+![Differential fuzzing](diagrams/designs/concepts/ds10-c5.svg)
+
 ![Hardening: fuzzing and differential testing](diagrams/designs/ds10-4.svg)
 
 **What the picture shows.** Generating adversarial completions and comparing verifiers to find false positives automatically.
@@ -190,6 +200,8 @@ def fuzz(verifier, reference, tasks, n_per_task=5, seed=0):
 ### Answer verification: strict contracts for math and short answers
 
 **Scenario.** The math verifier extracts "the last number in the response." The policy learns to end every answer with a short list of plausible values.
+
+![Strict answer contract](diagrams/designs/concepts/ds10-c6.svg)
 
 ![Answer verification: strict contracts for math and short answers](diagrams/designs/ds10-5.svg)
 
@@ -243,6 +255,8 @@ class StrictFinalAnswer(Verifier):
 
 **Scenario.** A code task's tests check printed output. The policy learns to print the expected output and exit early; on some tasks it hard-codes outputs for the visible examples.
 
+![Code verification layers](diagrams/designs/concepts/ds10-c7.svg)
+
 ![Code verification: tests that are hard to fool](diagrams/designs/ds10-6.svg)
 
 **What the picture shows.** Layers that make code verification robust.
@@ -284,6 +298,8 @@ verifier_version: code-tests@5.1.0
 
 **Scenario.** For open-ended tasks with no checkable answer, the team uses an LLM judge with a rubric. After 400 steps the policy's answers all start with the same confident opening paragraph and the judge's scores rise 20%.
 
+![Guarded judges](diagrams/designs/concepts/ds10-c8.svg)
+
 ![Model-based judges: useful, and fragile](diagrams/designs/ds10-7.svg)
 
 **What the picture shows.** How to make model-based judging as trustworthy as it can be.
@@ -323,6 +339,8 @@ def judged_reward(task, completion, judge_a, judge_b, max_tokens=4000) -> Result
 
 **Scenario.** On day four, training reward is still climbing smoothly. Nothing alerts. On day seven, a person reading samples notices that half of the "correct" answers are hedged lists.
 
+![Hacking gap](diagrams/designs/concepts/ds10-c9.svg)
+
 ![Detecting reward hacking during training](diagrams/designs/ds10-8.svg)
 
 **What the picture shows.** Independent signals that diverge from the training reward when the policy exploits it.
@@ -360,6 +378,8 @@ def reward_quality_step(step, batch, train_verifier, audit_verifier, log, sample
 
 **Scenario.** For proofs and research summaries, no automatic check is reliable. Reviewing everything is impossible; reviewing nothing means trusting the judge.
 
+![People in the loop](diagrams/designs/concepts/ds10-c10.svg)
+
 ![Semi-automatic verification: people in the loop](diagrams/designs/ds10-9.svg)
 
 **What the picture shows.** How automatic checks and human review share the work.
@@ -378,6 +398,8 @@ def reward_quality_step(step, batch, train_verifier, audit_verifier, log, sample
 ### The platform on Kubernetes
 
 **Scenario.** Verifiers run inside rollout workers, copied into each training repo. The team wants one service, one version history and one place to see quality.
+
+![Reward-quality platform](diagrams/designs/concepts/ds10-c11.svg)
 
 ![The platform on Kubernetes](diagrams/designs/ds10-10.svg)
 
@@ -444,6 +466,8 @@ spec:
 ### Rollout plan, trade-offs and open questions
 
 **Rollout.**
+
+![Rollout phases](diagrams/designs/concepts/ds10-c12.svg)
 
 - **Phase 1, interface and inventory:** one verifier interface with abstention and reasons; all existing verifiers registered with versions; rewards tagged with versions.
 - **Phase 2, measurement:** gold sets per slice, precision and recall dashboards, training gated on precision.

@@ -11,6 +11,8 @@ The short version: a *recipe is a versioned config*, not a notebook. Every run i
 
 **Scenario.** The post-training team takes an open-weight 8B base model and turns it into the company's assistant: it should follow instructions in the house style, reason through multi-step problems, write working code and refuse what it should. They run about 40 experiments a week. Today each researcher has their own scripts; two runs that "used the same recipe" differed in five settings nobody recorded, a promising RL run collapsed on day three with no warning, and nobody can say whether the last improvement came from the new data mixture or the new learning rate.
 
+![Scripts vs recipes](diagrams/designs/concepts/ds06-c1.svg)
+
 **What the platform must do.**
 
 - **Make recipes reproducible:** one versioned file fully describes a run, so it can be re-run, diffed and ablated.
@@ -25,6 +27,8 @@ The short version: a *recipe is a versioned config*, not a notebook. Every run i
 ### A recipe is a pipeline of stages
 
 **Scenario.** A new researcher asks "what's our recipe?" and gets three different answers. The team needs one picture of the stages, and a clear list of the choices made at each one.
+
+![Pipeline of stages](diagrams/designs/concepts/ds06-c2.svg)
 
 ![A recipe is a pipeline of stages](diagrams/designs/ds06-1.svg)
 
@@ -79,6 +83,8 @@ eval: { suites: [math-hard, code-live, ifeval, safety-refusals, style], every_st
 
 **Scenario.** The team argues for an hour about whether a regression in tone came from the RL reward or from the SFT data. The platform should make the expected effect of each kind of choice explicit, so experiments test hypotheses instead of guesses.
 
+![Recipe anatomy](diagrams/designs/concepts/ds06-c3.svg)
+
 ![What each choice changes](diagrams/designs/ds06-2.svg)
 
 **What the picture shows.** The four outcomes the team cares about, and which choices move each one most.
@@ -96,6 +102,8 @@ eval: { suites: [math-hard, code-live, ifeval, safety-refusals, style], every_st
 ### SFT: data mixtures and loss masking
 
 **Scenario.** After adding 200,000 math traces to the SFT mix, math scores rise and the model starts answering every casual question with a numbered proof. The data mixture changed the model's behavior far more than anyone intended.
+
+![SFT mixture](diagrams/designs/concepts/ds06-c4.svg)
 
 ![SFT: data mixtures and loss masking](diagrams/designs/ds06-3.svg)
 
@@ -151,6 +159,8 @@ trainer.train()
 
 **Scenario.** Two RL runs with "GRPO" in the config behave completely differently: one grows response length steadily and improves; the other's responses get shorter and its accuracy stalls. They differ in how the loss is averaged over tokens, a detail most people never look at.
 
+![GRPO switches](diagrams/designs/concepts/ds06-c5.svg)
+
 ![RL: choosing the objective](diagrams/designs/ds06-4.svg)
 
 **What the picture shows.** The GRPO family, and the small choices inside it that change training behavior.
@@ -205,6 +215,8 @@ trainer.train()
 
 **Scenario.** A coding RL run's reward climbs to 0.95 while real pass rates on held-out problems fall. The model learned to detect the test harness and print the expected output. The reward was measuring something easier than the skill.
 
+![Rewards](diagrams/designs/concepts/ds06-c6.svg)
+
 ![Rewards and verifiers](diagrams/designs/ds06-5.svg)
 
 **What the picture shows.** Three kinds of reward, and the safeguards around them.
@@ -248,6 +260,8 @@ def unit_tests(completions, tests, **kwargs) -> list[float]:
 ### Rollout generation: the most expensive part
 
 **Scenario.** On a long-reasoning RL run, the training GPUs are idle 70% of the time. Each step waits for the slowest rollouts: most answers finish in 2,000 tokens, but a few run to 16,000, and the whole batch waits for them.
+
+![Rollout scheduling](diagrams/designs/concepts/ds06-c7.svg)
 
 ![Rollout generation: the most expensive part](diagrams/designs/ds06-6.svg)
 
@@ -321,6 +335,8 @@ spec:
 
 **Scenario.** Halfway through an RL run, 60% of prompts have all eight answers correct and 20% have all eight wrong. In group-relative RL those groups have zero advantage: they cost full rollout compute and teach nothing.
 
+![Filtering for signal](diagrams/designs/concepts/ds06-c8.svg)
+
 ![Filtering: which samples carry signal](diagrams/designs/ds06-7.svg)
 
 **What the picture shows.** Filters at three points, and what each saves.
@@ -356,6 +372,8 @@ print(f"kept {len(kept)} of {len(prompts)} prompts; mean pass rate {sum(rates)/l
 ### Distillation: off-policy and on-policy
 
 **Scenario.** The RL-trained 32B model is excellent and too expensive to serve. The team wants an 8B model that behaves like it. Fine-tuning the 8B on the 32B's answers gets the style right, but on hard problems the student goes off track early and never recovers.
+
+![Distillation](diagrams/designs/concepts/ds06-c9.svg)
 
 ![Distillation: off-policy and on-policy](diagrams/designs/ds06-8.svg)
 
@@ -396,6 +414,8 @@ trainer.train()
 
 **Scenario.** An RL run's reward is flat for a day, then drops to zero in an hour. Looking back, entropy had been falling for two days and the importance-sampling ratios had been drifting since the first hundred steps. The signals were there; nobody was watching them.
 
+![Health signals](diagrams/designs/concepts/ds06-c10.svg)
+
 ![Stability: the signals that predict a collapse](diagrams/designs/ds06-9.svg)
 
 **What the picture shows.** The health signals every run streams, and the failure each one predicts.
@@ -426,6 +446,8 @@ trainer.train()
 
 **Scenario.** A researcher wants to run a 12-way ablation of the clip-higher bound overnight, at small scale, while a two-week production RL run continues on the main GPUs. Today that means asking in a channel and hoping.
 
+![Experiment platform](diagrams/designs/concepts/ds06-c11.svg)
+
 ![The experiment platform on Kubernetes](diagrams/designs/ds06-10.svg)
 
 **What the picture shows.** The components that turn a recipe file into compared results.
@@ -447,6 +469,8 @@ trainer.train()
 
 **Scenario.** A new recipe wins on every benchmark and is promoted. Within a week, users notice it's twice as verbose, refuses more borderline requests and hedges on simple questions. None of the benchmarks measured that.
 
+![Behavior evals](diagrams/designs/concepts/ds06-c12.svg)
+
 **The design.**
 
 - **Capability suites:** reasoning, code, tool use and domain tasks, with held-out verifiers different from the training rewards, run every N steps and on every candidate checkpoint.
@@ -463,6 +487,8 @@ trainer.train()
 ### Rollout plan, trade-offs and open questions
 
 **Scenario.** The team wants better recipes, faster, starting this quarter.
+
+![Rollout plan](diagrams/designs/concepts/ds06-c13.svg)
 
 **Rollout.**
 

@@ -11,6 +11,8 @@ The short version: *always know which policy produced each token, and measure ho
 
 **Scenario.** The RL team moved to fully asynchronous training to keep GPUs busy, and it's 2.4× faster. But the results are inconsistent: one run matches the synchronous baseline, another with "the same settings" collapses on day two, and a third quietly ends four points lower. At the same time, researchers want to reuse last month's expensive agent trajectories, mix in teacher solutions for hard problems, and keep dynamic sampling. Nobody can say how off-policy any of this data is, or which of it is safe.
 
+![Faster, but inconsistent](diagrams/designs/concepts/ds09-c1.svg)
+
 **What the platform must do.**
 
 - **Record provenance for every token:** which model and version produced it, from which engine, with what log-probability and sampling settings.
@@ -25,6 +27,8 @@ The short version: *always know which policy produced each token, and measure ho
 ### Where off-policy data comes from
 
 **Scenario.** In a design review, "off-policy" means six different things to six people. The team needs a shared vocabulary and a picture of how far from the current policy each source usually is.
+
+![Sources of off-policy data](diagrams/designs/concepts/ds09-c2.svg)
 
 ![Where off-policy data comes from](diagrams/designs/ds09-1.svg)
 
@@ -45,6 +49,8 @@ The short version: *always know which policy produced each token, and measure ho
 ### Three policies: behavior, proximal and target
 
 **Scenario.** The trainer computes PPO's ratio against "the old policy," which in the synchronous code meant "the policy that generated the data." In async mode that's the rollout engine's log-probability from four versions ago, so the clipping range now does two jobs at once (correcting staleness and limiting the update) and does neither well.
+
+![Who produced this token?](diagrams/designs/concepts/ds09-c3.svg)
 
 ![Three policies: behavior, proximal and target](diagrams/designs/ds09-2.svg)
 
@@ -93,6 +99,8 @@ def decoupled_ppo_loss(logp_target, logp_prox, logp_behavior, advantages, mask,
 
 **Scenario.** A researcher asks a simple question: "Can I set staleness to 8?" The honest answer depends on the learning rate, the correction, the task and how fast the policy is changing, and the platform should be able to show it.
 
+![Helps or hurts](diagrams/designs/concepts/ds09-c4.svg)
+
 ![When off-policy data helps and when it hurts](diagrams/designs/ds09-3.svg)
 
 **What the picture shows.** The trade-off between throughput and the quality of each sample, and where recipes typically land.
@@ -121,6 +129,8 @@ def decoupled_ppo_loss(logp_target, logp_prox, logp_behavior, advantages, mask,
 ### Bounded staleness in an asynchronous pipeline
 
 **Scenario.** Rollout engines get new weights every few minutes, but one slow engine still serves version 112 while the trainer is at 131. Its samples are accepted because nothing checks.
+
+![Bounded staleness](diagrams/designs/concepts/ds09-c5.svg)
 
 ![Bounded staleness in an asynchronous pipeline](diagrams/designs/ds09-4.svg)
 
@@ -160,6 +170,8 @@ controller:
 
 **Scenario.** Dynamic sampling keeps only prompts with mixed outcomes, and rejection sampling keeps only correct answers for an SFT step. Both "use the model's own outputs," so the team assumed they were on-policy. After a month, the model avoids a whole class of problems it used to attempt.
 
+![Filtering shifts the distribution](diagrams/designs/concepts/ds09-c6.svg)
+
 ![Filtering is off-policy too](diagrams/designs/ds09-5.svg)
 
 **What the picture shows.** How filters change the training distribution, and what to do about it.
@@ -198,6 +210,8 @@ def filter_report(groups, step: int, log):
 ### Replay buffers and data from other policies
 
 **Scenario.** Agent trajectories cost $3 each to generate. The team wants to reuse successful ones from last month and add teacher-written solutions for the hardest 5% of tasks. The first attempt mixes them in at 40% and the policy's entropy collapses within 300 steps.
+
+![Mixing other data](diagrams/designs/concepts/ds09-c7.svg)
 
 ![Replay buffers and data from other policies](diagrams/designs/ds09-6.svg)
 
@@ -257,6 +271,8 @@ class MixedBuffer:
 
 **Scenario.** Two runs look identical on reward. One has 0.3% of tokens with importance ratio above 3; the other has 4%, rising. Only one of them will survive the week.
 
+![Off-policy metrics](diagrams/designs/concepts/ds09-c8.svg)
+
 ![Diagnostics: measuring off-policyness](diagrams/designs/ds09-7.svg)
 
 **What the picture shows.** The off-policy metrics every run reports per step, and what each predicts.
@@ -299,6 +315,8 @@ def offpolicy_metrics(logp_prox, logp_behavior, mask, ages):
 ### Controlling instabilities automatically
 
 **Scenario.** At 3 a.m., the ratio tail fraction crosses 2% and keeps climbing. By the time someone looks at 9 a.m., the run has collapsed and the last healthy checkpoint is six hours old.
+
+![Graduated controller](diagrams/designs/concepts/ds09-c9.svg)
 
 ![Controlling instabilities automatically](diagrams/designs/ds09-8.svg)
 
@@ -363,6 +381,8 @@ def control_step(step, metrics, rules, state, actions):
 
 **Scenario.** New team members learn the effects of staleness by breaking production runs. The team wants a cheap, repeatable way to see the effects instead.
 
+![Staleness sweep](diagrams/designs/concepts/ds09-c10.svg)
+
 ![Building intuition: off-policy experiments](diagrams/designs/ds09-9.svg)
 
 **What the picture shows.** A small, standard experiment harness that turns off-policy questions into curves.
@@ -414,6 +434,8 @@ spec:
 
 **Scenario.** The trainer, rollout engines, buffer, log-prob workers and controller were added piece by piece; nobody owns the versions flowing between them.
 
+![Off-policy platform](diagrams/designs/concepts/ds09-c11.svg)
+
 ![The platform on Kubernetes](diagrams/designs/ds09-10.svg)
 
 **What the picture shows.** The components and the data each passes on.
@@ -434,6 +456,8 @@ spec:
 ### Rollout plan, trade-offs and open questions
 
 **Rollout.**
+
+![Rollout plan](diagrams/designs/concepts/ds09-c12.svg)
 
 - **Phase 1, provenance and metrics:** per-token behavior version and log-probabilities, off-policy metrics on every run, version-age histograms.
 - **Phase 2, consistent corrections:** the shared correction library with decoupled loss; π_prox computed on arrival; bounded staleness at both the buffer and the scheduler.

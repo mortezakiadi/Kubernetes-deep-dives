@@ -11,6 +11,8 @@ The short version: *scaling RL is two problems at once*. The **algorithm** probl
 
 **Scenario.** The recipe from Design 06 works: on an 8B model with 4K-token answers it improves math and code steadily for 500 steps on 32 GPUs. The team now wants a 235B mixture-of-experts model, answers up to 64K tokens, multi-turn tool use, 5,000+ steps and a budget of about 200,000 GPU hours. The first attempt at 8× scale ran at 11% GPU utilization, spent 40% of each step waiting for weight sync, and collapsed on day nine with no obvious cause.
 
+![Small run to big run](diagrams/designs/concepts/ds07-c1.svg)
+
 **What the platform must do.**
 
 - **Predict before spending:** estimate where a recipe will plateau and how fast it gets there, from runs costing a few percent of the full budget.
@@ -25,6 +27,8 @@ The short version: *scaling RL is two problems at once*. The **algorithm** probl
 ### What changes when you scale each axis
 
 **Scenario.** The team scales everything at once and can't tell which change caused which problem. They need a map of what each scaling axis breaks, so they can scale one axis at a time.
+
+![Five axes](diagrams/designs/concepts/ds07-c2.svg)
 
 ![What changes when you scale each axis](diagrams/designs/ds07-1.svg)
 
@@ -44,6 +48,8 @@ The short version: *scaling RL is two problems at once*. The **algorithm** probl
 ### Predict before you spend: compute–performance curves
 
 **Scenario.** Two recipes are compared at 2,000 GPU hours. Recipe A is clearly ahead. At 30,000 hours, recipe B passes it and keeps rising while A flattens. Choosing from the small comparison would have wasted the budget on the recipe with the lower ceiling.
+
+![Ceiling vs early lead](diagrams/designs/concepts/ds07-c3.svg)
 
 ![Predict before you spend: compute–performance curves](diagrams/designs/ds07-2.svg)
 
@@ -90,6 +96,8 @@ for name, hist in runs.items():                       # runs: recipe -> (hours, 
 
 **Scenario.** Leadership asks "when can we start the big run?" The honest answer is "after the rung below it is understood," and the platform needs to make that concrete.
 
+![Scaling ladder](diagrams/designs/concepts/ds07-c4.svg)
+
 ![The scaling ladder](diagrams/designs/ds07-3.svg)
 
 **What the picture shows.** A sequence of runs, each roughly 4× the previous, with explicit exit criteria.
@@ -131,6 +139,8 @@ rollout:
 ### Where the time goes: the step-time breakdown
 
 **Scenario.** At rung 3, a step takes 14 minutes. Nobody knows whether to buy more rollout GPUs, optimize the trainer or fix the network, because the 14 minutes have never been broken down.
+
+![Step-time breakdown](diagrams/designs/concepts/ds07-c5.svg)
 
 ![Where the time goes: the step-time breakdown](diagrams/designs/ds07-4.svg)
 
@@ -177,6 +187,8 @@ with stage("weight_sync", step, run_id, rollout_gpus): sync.push(trainer.state_d
 ### Long trajectories and the long tail
 
 **Scenario.** At 64K-token answers, the median answer finishes in 4 minutes and the slowest 1% take 25. In synchronous RL, every step waits 25 minutes, and 90% of rollout GPUs sit idle for most of it.
+
+![Long tail](diagrams/designs/concepts/ds07-c6.svg)
 
 ![Long trajectories and the long tail](diagrams/designs/ds07-5.svg)
 
@@ -237,6 +249,8 @@ spec:
 
 **Scenario.** The 235B MoE trains well with one parallel layout but needs a completely different layout to generate efficiently. Every step, the new weights have to get from one layout to the other, across 64 nodes, and that transfer alone takes four minutes.
 
+![Two layouts](diagrams/designs/concepts/ds07-c7.svg)
+
 ![Larger models: two layouts and the weight sync between them](diagrams/designs/ds07-6.svg)
 
 **What the picture shows.** The training and rollout layouts, and the paths for moving weights between them.
@@ -280,6 +294,8 @@ def _flush(bucket, group):
 
 **Scenario.** At 8B dense, the inference engine's token probabilities and the trainer's match closely. At 235B MoE with FP8 rollouts, a few percent of tokens have probability ratios above 10, and those tokens dominate the gradient. The run looks fine for a week, then collapses.
 
+![Mismatch grows with scale](diagrams/designs/concepts/ds07-c8.svg)
+
 ![Numerics and MoE: the mismatch that grows with scale](diagrams/designs/ds07-7.svg)
 
 **What the picture shows.** Sources of train–inference mismatch, and how each is reduced.
@@ -317,6 +333,8 @@ def mismatch_metrics(train_logp, rollout_logp, mask, cap: float = 3.0):
 ### Rewards and environments at scale
 
 **Scenario.** Moving from math to multi-turn coding agents, each rollout calls tools 20–50 times. The sandbox pool that handled 2,000 test runs per step now gets 150,000 tool calls per step, and rollout GPUs sit idle waiting for sandboxes.
+
+![Environment tier](diagrams/designs/concepts/ds07-c9.svg)
 
 ![Rewards and environments at scale](diagrams/designs/ds07-8.svg)
 
@@ -358,6 +376,8 @@ spec:
 
 **Scenario.** The production run improves for 2,400 steps, then held-out scores start sliding. Entropy fell slowly the whole time, response length doubled since step 1,500, and 30% of prompts now have all-correct groups. Each signal was within its alert threshold; together they predicted the slide.
 
+![Slow drifts](diagrams/designs/concepts/ds07-c10.svg)
+
 ![Stability over thousands of steps](diagrams/designs/ds07-9.svg)
 
 **What the picture shows.** Slow drifts that only matter on long runs, and the controls for each.
@@ -377,6 +397,8 @@ spec:
 ### Failures and recovery on multi-week runs
 
 **Scenario.** A 2,048-GPU run on its eleventh day: one GPU throws an uncorrectable memory error. The whole job crashes; restarting takes 70 minutes (rescheduling, loading a 3 TB checkpoint, warming 64 rollout engines). It happens twice a week.
+
+![Cheap failures](diagrams/designs/concepts/ds07-c11.svg)
 
 ![Failures and recovery on multi-week runs](diagrams/designs/ds07-10.svg)
 
@@ -432,6 +454,8 @@ spec:
 ### Rollout plan, trade-offs and open questions
 
 **Rollout.**
+
+![Rollout plan](diagrams/designs/concepts/ds07-c12.svg)
 
 - **Phase 1, measurement:** step-time breakdown, goodput and mismatch metrics on every run, plus the curve-fitting service on eval history.
 - **Phase 2, the ladder:** rung recipes, exit criteria and the nightly reference rung.

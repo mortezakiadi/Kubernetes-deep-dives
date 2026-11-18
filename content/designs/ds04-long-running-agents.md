@@ -11,6 +11,8 @@ The short version: *the agent's state is not its process.* Every agent run is a 
 
 **Scenario.** The company's coding agent takes a ticket, explores the repo, writes code, runs the tests in a sandbox, opens a pull request, waits for a reviewer and addresses comments. A typical run takes three hours of work spread over two days. Last month, runs failed for a dozen reasons: a node was replaced, the model API returned errors for ten minutes, the agent service was redeployed, a sandbox ran out of disk, a reviewer took the weekend. Each failure started the run from scratch, burned the tokens again, and twice opened duplicate pull requests.
 
+![A three-hour agent run](diagrams/designs/concepts/ds04-c1.svg)
+
 **What the design must do.**
 
 - **Survive any single failure:** worker pod or node loss, sandbox loss, model provider errors, deployments, and a lost availability zone, and continue from the last completed step.
@@ -30,6 +32,8 @@ The short version: *the agent's state is not its process.* Every agent run is a 
 ### Five kinds of agent state
 
 **Scenario.** The first recovery attempt saved the conversation messages to Redis and called it a checkpoint. After a crash, the agent resumed with the right messages but an empty workspace, no idea whether it had already pushed its branch, and a half-finished test run. "State" turned out to be five different things.
+
+![Five kinds of state](diagrams/designs/concepts/ds04-c2.svg)
 
 ![Five kinds of agent state](diagrams/designs/ds04-1.svg)
 
@@ -51,6 +55,8 @@ The short version: *the agent's state is not its process.* Every agent run is a 
 
 **Scenario.** The team needs one picture that shows which components hold state, which are stateless and can be replaced at any time, and how a run moves between them.
 
+![Stateful vs stateless](diagrams/designs/concepts/ds04-c3.svg)
+
 ![The architecture at a glance](diagrams/designs/ds04-2.svg)
 
 **What the picture shows.** Stateless workers in the middle, everything durable around them.
@@ -71,6 +77,8 @@ The short version: *the agent's state is not its process.* Every agent run is a 
 ### Steps, history and replay
 
 **Scenario.** A run is on step 47 of a refactoring task when its worker pod is evicted. The team wants step 48 to run next, on another worker, and the 46 completed model calls not to be paid for again.
+
+![Replay after eviction](diagrams/designs/concepts/ds04-c4.svg)
 
 ![Steps, history and replay](diagrams/designs/ds04-3.svg)
 
@@ -135,6 +143,8 @@ class CodingAgentRun:
 
 **Scenario.** The tool call "open a pull request" succeeded at GitHub, but the worker died before recording the result. On retry, the agent opened a second, identical pull request. A retry is only safe if the tool knows it has already done the work.
 
+![Exactly-once side effects](diagrams/designs/concepts/ds04-c5.svg)
+
 ![Side effects: exactly once where it matters](diagrams/designs/ds04-4.svg)
 
 **What the picture shows.** How a tool call with a side effect is made safe to retry.
@@ -155,6 +165,8 @@ class CodingAgentRun:
 
 **Scenario.** A run's sandbox node is reclaimed during step 31. The new sandbox comes up empty, and the agent, which "remembers" editing six files, runs tests against code that isn't there.
 
+![Workspace snapshots](diagrams/designs/concepts/ds04-c6.svg)
+
 ![Working state: workspace snapshots and sandbox restore](diagrams/designs/ds04-5.svg)
 
 **What the picture shows.** How files survive the loss of a sandbox.
@@ -174,6 +186,8 @@ class CodingAgentRun:
 
 **Scenario.** After a 10-hour run, the agent's message log is 2 million tokens, far beyond the model's context window. Before the restart, the agent was working from a running summary that lived only in process memory. After the restart, it had to rebuild that summary and made different choices.
 
+![Context after restart](diagrams/designs/concepts/ds04-c7.svg)
+
 **The design.**
 
 - **An append-only context log:** every model input, output and tool result for the run is stored in the session database (large payloads in object storage), keyed by session and step.
@@ -189,6 +203,8 @@ class CodingAgentRun:
 ### Run lifecycle: pause, resume, rewind and fork
 
 **Scenario.** A reviewer sees the agent heading in the wrong direction at step 60 and wants to send it back to step 52 with a hint, while keeping the original run for comparison. Operators also need to stop a run that's looping, and resume all runs after an incident.
+
+![Pause, rewind, fork](diagrams/designs/concepts/ds04-c8.svg)
 
 ![Run lifecycle: pause, resume, rewind and fork](diagrams/designs/ds04-6.svg)
 
@@ -212,6 +228,8 @@ class CodingAgentRun:
 
 **Scenario.** The team ships a new version of the agent's workflow code on Tuesday. Runs that started on Monday replay their history through the new code, take a different branch at step 12 and fail with a non-determinism error. A deployment must not break runs that are already in flight.
 
+![Versioned deploys](diagrams/designs/concepts/ds04-c9.svg)
+
 **The design.**
 
 - **Version the workers:** each build of the agent is deployed as its own worker version. With Temporal's worker versioning (or the equivalent in other engines), a run stays on the version it started with, and new runs go to the new version.
@@ -227,6 +245,8 @@ class CodingAgentRun:
 ### Failure modes and operations
 
 **Scenario.** Before launch, the on-call team walks through what happens when each piece fails.
+
+![Failure drills](diagrams/designs/concepts/ds04-c10.svg)
 
 | Failure | What users see | What the design does |
 |---|---|---|
@@ -246,6 +266,8 @@ class CodingAgentRun:
 ### Rollout plan, trade-offs and open questions
 
 **Scenario.** Leadership asks for the order of work that removes the most failures soonest.
+
+![Rollout plan](diagrams/designs/concepts/ds04-c11.svg)
 
 **Rollout.**
 

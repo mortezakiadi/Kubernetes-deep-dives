@@ -11,6 +11,8 @@ The short version: one *address plan* with no overlaps for anything that must be
 
 **Scenario.** The platform has grown to 22 EKS clusters in three AWS regions, a Google Cloud project where the data team runs TPU training, and two racks of on-premises GPU servers joined as EKS hybrid nodes. The network grew one peering at a time: 40 VPC peering connections, three VPCs with the same `10.0.0.0/16`, pods that ran out of IP addresses during a scale-out, a training job that pulled 300 TB across regions through a NAT gateway, and no single place that answers "can service A reach service B?".
 
+![A network that grew by accident](diagrams/designs/concepts/ds05-c1.svg)
+
 **What the design must do.**
 
 - **Route between everything that should talk:** clusters in all regions, the second cloud, on-premises racks and shared services, without overlapping addresses or hand-maintained route tables.
@@ -32,6 +34,8 @@ The short version: one *address plan* with no overlaps for anything that must be
 
 **Scenario.** Every networking incident starts with the same question: "which layer is it?". The team needs a model where each layer has one job and one owner.
 
+![Four layers, one policy plane](diagrams/designs/concepts/ds05-c2.svg)
+
 ![Four layers and one policy plane](diagrams/designs/ds05-1.svg)
 
 **What the picture shows.** The networking layer split into four layers, from the wire up, with policy running through all of them.
@@ -50,6 +54,8 @@ The short version: one *address plan* with no overlaps for anything that must be
 ### The address plan
 
 **Scenario.** A new cluster can't be connected to the shared-services VPC because both use `10.0.0.0/16`. A month later, a large training job fails to start because the cluster's subnets have no free IPs for pods. Both problems are the same problem: nobody owns the address plan.
+
+![The address plan](diagrams/designs/concepts/ds05-c3.svg)
 
 ![The address plan](diagrams/designs/ds05-2.svg)
 
@@ -71,6 +77,8 @@ The short version: one *address plan* with no overlaps for anything that must be
 
 **Scenario.** The network team spends a day a week editing route tables for new VPC peerings, and nobody can tell whether a development VPC can reach production. Adding the second cloud and the on-premises racks would make it worse.
 
+![One core network](diagrams/designs/concepts/ds05-c4.svg)
+
 ![Routing and peering: one core network](diagrams/designs/ds05-3.svg)
 
 **What the picture shows.** One managed core network that every VPC, the second cloud and the data center attach to, divided into segments.
@@ -91,6 +99,8 @@ The short version: one *address plan* with no overlaps for anything that must be
 
 **Scenario.** A cluster for agent sandboxes needs domain-based egress rules and detailed flow visibility; a training cluster needs the fastest possible pod networking and EFA; the hybrid nodes on-premises can't use the VPC CNI at all. One CNI choice doesn't fit every cluster.
 
+![Different clusters, different CNIs](diagrams/designs/concepts/ds05-c5.svg)
+
 **The design.**
 
 - **Default: the Amazon VPC CNI.** Pods get VPC addresses (or addresses from the pod range), traffic needs no overlay, and security groups and VPC flow logs work for pods. Network policies are enforced by the VPC CNI's network policy agent. This is the choice for most clusters.
@@ -107,6 +117,8 @@ The short version: one *address plan* with no overlaps for anything that must be
 ### Services across clusters and accounts
 
 **Scenario.** The inference gateway in one cluster needs to call a feature store in another account, a model registry in a shared-services cluster, and, during an incident, the same model in another region. Hard-coding load balancer DNS names worked for two services; it doesn't work for two hundred.
+
+![Services across clusters](diagrams/designs/concepts/ds05-c6.svg)
 
 ![Services across clusters and accounts](diagrams/designs/ds05-4.svg)
 
@@ -126,6 +138,8 @@ The short version: one *address plan* with no overlaps for anything that must be
 
 **Scenario.** During an availability zone outage, users in Europe were still sent to a load balancer whose targets were all unhealthy, because health checks existed at the pod level but not at the region level. Each layer of load balancing needs its own health signal.
 
+![Load balancing in layers](diagrams/designs/concepts/ds05-c7.svg)
+
 ![Load balancing in layers](diagrams/designs/ds05-5.svg)
 
 **What the picture shows.** A request's path from the client to a pod, and the decision made at each layer.
@@ -144,6 +158,8 @@ The short version: one *address plan* with no overlaps for anything that must be
 ### Network isolation in layers
 
 **Scenario.** An audit asks the team to prove that a compromised pod in a development namespace can't reach the production payments database. The honest answer was "probably", based on one security group. The team needs every layer to deny the path, and to be able to show it.
+
+![Isolation in layers](diagrams/designs/concepts/ds05-c8.svg)
 
 ![Network isolation in layers](diagrams/designs/ds05-6.svg)
 
@@ -208,6 +224,8 @@ spec:
 
 **Scenario.** A job on the on-premises racks can't resolve the name of the model registry, which lives in a private hosted zone in AWS. A pod in Google Cloud can't resolve it either. Routing worked; naming didn't.
 
+![DNS everywhere](diagrams/designs/concepts/ds05-c9.svg)
+
 **The design.**
 
 - **One private namespace:** internal names live under one domain (for example, `internal.example.com`) in Route 53 private hosted zones, shared with every VPC through Route 53 Profiles.
@@ -223,6 +241,8 @@ spec:
 ### Cost and traffic engineering
 
 **Scenario.** The monthly bill shows more spent on data transfer than on CPU instances. Most of it is three patterns: pods calling across availability zones, training jobs reading data from another region, and every container image pull going through a NAT gateway.
+
+![Data transfer costs](diagrams/designs/concepts/ds05-c10.svg)
 
 **The design.**
 
@@ -240,6 +260,8 @@ spec:
 ### Failure modes and operations
 
 **Scenario.** Before launch, the network and platform teams walk through what breaks when each layer fails.
+
+![Failure drills](diagrams/designs/concepts/ds05-c11.svg)
 
 | Failure | What users see | What the design does |
 |---|---|---|
@@ -259,6 +281,8 @@ spec:
 ### Rollout plan, trade-offs and open questions
 
 **Scenario.** The network can't be replaced in a weekend. Leadership asks for an order that reduces risk at each step.
+
+![Rollout plan](diagrams/designs/concepts/ds05-c12.svg)
 
 **Rollout.**
 
