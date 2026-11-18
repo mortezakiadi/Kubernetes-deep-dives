@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Job API split</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">What a researcher writes vs what the platform fills in</text>
+<rect x="30" y="60" width="560" height="420" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="44" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">RESEARCHER WRITES (RESEARCHJOB)</text>
+<rect x="55" y="100" width="510" height="40" rx="6" fill="#ffffff" stroke="#047857"/>
+<text x="72" y="125" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">image + command</text>
+<rect x="55" y="152" width="510" height="40" rx="6" fill="#ffffff" stroke="#047857"/>
+<text x="72" y="177" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">GPUs and shape: 8 nodes × 8</text>
+<rect x="55" y="204" width="510" height="40" rx="6" fill="#ffffff" stroke="#047857"/>
+<text x="72" y="229" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">accelerator class, min memory</text>
+<rect x="55" y="256" width="510" height="40" rx="6" fill="#ffffff" stroke="#047857"/>
+<text x="72" y="281" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">interconnect: high-bandwidth</text>
+<rect x="55" y="308" width="510" height="40" rx="6" fill="#ffffff" stroke="#047857"/>
+<text x="72" y="333" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">data inputs + checkpoint location</text>
+<rect x="55" y="360" width="510" height="40" rx="6" fill="#ffffff" stroke="#047857"/>
+<text x="72" y="385" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">priority or deadline</text>
+<rect x="55" y="412" width="510" height="40" rx="6" fill="#ffffff" stroke="#047857"/>
+<text x="72" y="437" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">constraints only when needed</text>
+<rect x="710" y="60" width="560" height="420" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="724" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">PLATFORM FILLS IN</text>
+<rect x="735" y="100" width="510" height="40" rx="6" fill="#ffffff" stroke="#2563eb"/>
+<text x="752" y="125" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">site (placement decision + reason)</text>
+<rect x="735" y="152" width="510" height="40" rx="6" fill="#ffffff" stroke="#2563eb"/>
+<text x="752" y="177" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">native object: JobSet or sbatch script</text>
+<rect x="735" y="204" width="510" height="40" rx="6" fill="#ffffff" stroke="#2563eb"/>
+<text x="752" y="229" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">node selectors, tolerations, devices</text>
+<rect x="735" y="256" width="510" height="40" rx="6" fill="#ffffff" stroke="#2563eb"/>
+<text x="752" y="281" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">fabric env: EFA / IB / RoCE settings</text>
+<rect x="735" y="308" width="510" height="40" rx="6" fill="#ffffff" stroke="#2563eb"/>
+<text x="752" y="333" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">mounts, storage classes, caches</text>
+<rect x="735" y="360" width="510" height="40" rx="6" fill="#ffffff" stroke="#2563eb"/>
+<text x="752" y="385" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">credentials (short-lived), queue / account</text>
+<rect x="735" y="412" width="510" height="40" rx="6" fill="#ffffff" stroke="#2563eb"/>
+<text x="752" y="437" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">status, logs, resume across sites</text>
+<path d="M 590 270 L 710 270" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="621.48" y="248" width="57.040000000000006" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="650" y="262" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">one CLI</text>
+<text x="650" y="515.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: a 60-line sbatch script became 140 lines of YAML per site, with the NCCL settings wrong.</text></svg>

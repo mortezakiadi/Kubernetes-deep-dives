@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1340px" height="560px" viewBox="0 0 1340 560" style="background:#ffffff"><title>Kubernetes operator</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1340" height="560" fill="#ffffff"/><text x="670" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Kubernetes execution operator: render, overlay, dispatch, sync</text>
+<rect x="30" y="80" width="240" height="130" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">ResearchJob</text>
+<text x="42" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">portable spec</text>
+<path d="M 270 145 L 292 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="292" y="80" width="240" height="130" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="304" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Render</text>
+<text x="304" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">JobSet + Kueue labels + TAS</text>
+<text x="304" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">annotations + mounts</text>
+<path d="M 532 145 L 554 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="554" y="80" width="240" height="130" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="566" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Overlay site profile</text>
+<text x="566" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">selectors, devices, fabric env,</text>
+<text x="566" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">storage, mirrors</text>
+<path d="M 794 145 L 816 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="816" y="80" width="240" height="130" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="828" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Dispatch</text>
+<text x="828" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">to the site cluster (or via</text>
+<text x="828" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">MultiKueue)</text>
+<path d="M 1056 145 L 1078 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1078" y="80" width="240" height="130" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="1090" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Sync status</text>
+<text x="1090" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">queued / admitted / running /</text>
+<text x="1090" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">done + reason</text>
+<rect x="30" y="250" width="420" height="230" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="44" y="274" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">SITE PROFILE: AWS P5</text>
+<rect x="50" y="290" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="62" y="309" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">instance-type p5.48xlarge</text>
+<rect x="50" y="326" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="62" y="345" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">vpc.amazonaws.com/efa: 32</text>
+<rect x="50" y="362" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="62" y="381" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">FI_PROVIDER=efa</text>
+<rect x="50" y="398" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="62" y="417" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">+ aws-ofi-nccl layer</text>
+<rect x="50" y="434" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="62" y="453" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">fsx-lustre</text>
+<rect x="467" y="250" width="420" height="230" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="481" y="274" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">SITE PROFILE: IB NEOCLOUD</text>
+<rect x="487" y="290" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="499" y="309" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">gpu class h100</text>
+<rect x="487" y="326" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="499" y="345" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">rdma/ib: 8</text>
+<rect x="487" y="362" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="499" y="381" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">NCCL_IB_HCA=mlx5</text>
+<rect x="487" y="398" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="499" y="417" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">no extra layer</text>
+<rect x="487" y="434" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="499" y="453" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">vast-rwx</text>
+<rect x="904" y="250" width="420" height="230" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="918" y="274" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">SITE PROFILE: GCP A3</text>
+<rect x="924" y="290" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="936" y="309" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">accelerator h100-mega</text>
+<rect x="924" y="326" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="936" y="345" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">multi-NIC (GPUDirect)</text>
+<rect x="924" y="362" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="936" y="381" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">provider NCCL plugin</text>
+<rect x="924" y="398" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="936" y="417" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">+ plugin layer</text>
+<rect x="924" y="434" width="380" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="936" y="453" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">filestore / lustre</text>
+<text x="670" y="520" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">Same image and ResearchJob everywhere; only the overlay changes. Profiles are tested artifacts (conformance suite).</text></svg>

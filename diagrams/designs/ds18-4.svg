@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>Placement</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Placement: filter, then score (illustrative, 64-GPU job)</text>
+<rect x="30" y="70" width="480" height="44" rx="6" fill="#dbeafe" stroke="#2563eb"/>
+<text x="45" y="98.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8">accelerator ≥ 80 GB → 5 sites</text>
+<rect x="55" y="126" width="430" height="44" rx="6" fill="#dbeafe" stroke="#2563eb"/>
+<text x="70" y="154.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8">fabric domain ≥ 64 GPUs → 5 sites</text>
+<rect x="80" y="182" width="380" height="44" rx="6" fill="#dbeafe" stroke="#2563eb"/>
+<text x="95" y="210.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8">data class allowed → 4 sites</text>
+<rect x="105" y="238" width="330" height="44" rx="6" fill="#dbeafe" stroke="#2563eb"/>
+<text x="120" y="266.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8">healthy, budget available → 4 sites</text>
+<text x="30" y="320" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">neocloud-b excluded: dataset is “internal”, EU site holds only “public”</text>
+<rect x="560" y="60" width="710" height="290" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="580" y="86.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">score = compute + data move + rework risk + waiting cost (lower wins)</text>
+<text x="720" y="136" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">neocloud-a</text>
+<rect x="735" y="118" width="36" height="28" rx="4" fill="#059669"/>
+<text x="778.4615384615385" y="137" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">$1,580  ← chosen</text>
+<text x="720" y="192" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">aws-us-east</text>
+<rect x="735" y="174" width="214" height="28" rx="4" fill="#94a3b8"/>
+<text x="956.3846153846154" y="193" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">$9,290</text>
+<text x="720" y="248" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">gcp-us-central</text>
+<rect x="735" y="230" width="211" height="28" rx="4" fill="#94a3b8"/>
+<text x="952.9230769230769" y="249" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">$9,140</text>
+<text x="720" y="304" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">onprem-campus</text>
+<rect x="735" y="286" width="420" height="28" rx="4" fill="#94a3b8"/>
+<text x="1162.0" y="305" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">$18,200</text>
+<rect x="30" y="380" width="400" height="160" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="403" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Data gravity, measured</text>
+<text x="42" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">move 2 TB for ~$40 and start in 12 minutes, or wait 2 weeks</text>
+<text x="42" y="441" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">next to the data</text>
+<rect x="450" y="380" width="400" height="160" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="462" y="403" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Price the wait</text>
+<text x="462" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a waiting cost per priority stops placement from queueing</text>
+<text x="462" y="441" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">forever at the cheapest site</text>
+<rect x="870" y="380" width="400" height="160" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="882" y="403" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Re-evaluate</text>
+<text x="882" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">still waiting past its estimate → re-place; the CLI shows</text>
+<text x="882" y="441" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the decision and the runner-up</text></svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>Site lifecycle</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Site lifecycle and fleet operations</text>
+<rect x="30" y="70" width="232" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="93.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#0f172a">Onboarding</text>
+<text x="42" y="117.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">conformance suite running</text>
+<path d="M 262 120 L 282 120" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="282" y="70" width="232" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="294" y="93.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#065f46">Active</text>
+<text x="294" y="117.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">all jobs</text>
+<path d="M 514 120 L 534 120" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="534" y="70" width="232" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="546" y="93.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#92400e">Degraded</text>
+<text x="546" y="117.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">no new large jobs</text>
+<path d="M 766 120 L 786 120" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="786" y="70" width="232" height="100" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="798" y="93.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#991b1b">Draining</text>
+<text x="798" y="117.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">contract ending / maintenance</text>
+<path d="M 1018 120 L 1038 120" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1038" y="70" width="232" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1050" y="93.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#0f172a">Retired</text>
+<text x="1050" y="117.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">data + checkpoints moved</text>
+<path d="M 398 170 L 398 200 L 650 200 L 650 170" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-muted)"/>
+<rect x="481.4" y="178" width="77.2" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="520" y="192" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#94a3b8">regression</text>
+<rect x="30" y="230" width="610" height="190" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="50" y="258.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Conformance suite (pass → Active)</text>
+<text x="60" y="284.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">✓ GPU + node health</text>
+<text x="60" y="306.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">✓ NCCL all-reduce at 8 / 64 / 512 GPUs</text>
+<text x="60" y="328.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">✓ storage read + write throughput</text>
+<text x="60" y="350.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">✓ image pull from mirror</text>
+<text x="60" y="372.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">✓ checkpoint write + cross-site restore</text>
+<text x="60" y="394.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">✓ end-to-end ResearchJob per scheduler path</text>
+<rect x="660" y="230" width="610" height="90" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="672" y="252.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Normalized observability</text>
+<text x="672" y="275.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">same DCGM metrics, job labels, logs from every site → one GPU-hour breakdown</text>
+<rect x="660" y="330" width="610" height="90" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="672" y="352.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Cost + commitments</text>
+<text x="672" y="375.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">spend per site, team, job; commitment burn vs plan; alerts when behind</text>
+<rect x="30" y="450" width="1240" height="100" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="482.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: a new neocloud contract started Monday; the first real job failed Thursday, storage at a tenth of the advertised throughput.</text>
+<text x="50" y="508" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">Every contract also has an exit plan before it starts: how to drain it, where its data goes, how long that takes.</text></svg>

@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Fleet inventory</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">The fleet inventory: every site in one schema (illustrative)</text>
+<rect x="20" y="70" width="190" height="40" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="28" y="95.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">site</text>
+<rect x="210" y="70" width="80" height="40" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="218" y="95.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">GPUs</text>
+<rect x="290" y="70" width="190" height="40" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="298" y="95.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">fabric (max gang)</text>
+<rect x="480" y="70" width="160" height="40" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="488" y="95.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">scheduler</text>
+<rect x="640" y="70" width="190" height="40" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="648" y="95.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">contract</text>
+<rect x="830" y="70" width="100" height="40" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="838" y="95.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">$/GPU-h</text>
+<rect x="930" y="70" width="80" height="40" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="938" y="95.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">free</text>
+<rect x="1010" y="70" width="130" height="40" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1018" y="95.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">wait 64 GPUs</text>
+<rect x="20" y="110" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="28" y="137" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">aws-us-east</text>
+<rect x="210" y="110" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="218" y="137" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">512</text>
+<rect x="290" y="110" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="298" y="137" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">EFA (512)</text>
+<rect x="480" y="110" width="160" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="488" y="137" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">K8s + Kueue</text>
+<rect x="640" y="110" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="648" y="137" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">capacity block → Dec 20</text>
+<rect x="830" y="110" width="100" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="838" y="137" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">4.10</text>
+<rect x="930" y="110" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="938" y="137" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">40</text>
+<rect x="1010" y="110" width="130" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="1018" y="137" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">1 h</text>
+<rect x="20" y="154" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="28" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">gcp-us-central</text>
+<rect x="210" y="154" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="218" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">256</text>
+<rect x="290" y="154" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="298" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">GPUDirect (256)</text>
+<rect x="480" y="154" width="160" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="488" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">K8s + Kueue</text>
+<rect x="640" y="154" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="648" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">reservation</text>
+<rect x="830" y="154" width="100" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="838" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">3.90</text>
+<rect x="930" y="154" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="938" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">0</text>
+<rect x="1010" y="154" width="130" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="1018" y="181" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">9 h</text>
+<rect x="20" y="198" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="28" y="225" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">neocloud-a-us-east</text>
+<rect x="210" y="198" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="218" y="225" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">2,048</text>
+<rect x="290" y="198" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="298" y="225" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">IB (1,024)</text>
+<rect x="480" y="198" width="160" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="488" y="225" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">K8s + Kueue</text>
+<rect x="640" y="198" width="190" height="44" fill="#fef3c7" stroke="#e2e8f0"/>
+<text x="648" y="225" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">committed, 61% used</text>
+<rect x="830" y="198" width="100" height="44" fill="#d1fae5" stroke="#e2e8f0"/>
+<text x="838" y="225" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">≈0 marginal</text>
+<rect x="930" y="198" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="938" y="225" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">312</text>
+<rect x="1010" y="198" width="130" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="1018" y="225" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">12 min</text>
+<rect x="20" y="242" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="28" y="269" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">neocloud-b-eu-west</text>
+<rect x="210" y="242" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="218" y="269" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">1,024</text>
+<rect x="290" y="242" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="298" y="269" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">IB (1,024)</text>
+<rect x="480" y="242" width="160" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="488" y="269" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">Slurm on K8s</text>
+<rect x="640" y="242" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="648" y="269" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">committed</text>
+<rect x="830" y="242" width="100" height="44" fill="#d1fae5" stroke="#e2e8f0"/>
+<text x="838" y="269" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">≈0 marginal</text>
+<rect x="930" y="242" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="938" y="269" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">96</text>
+<rect x="1010" y="242" width="130" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="1018" y="269" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">2 h</text>
+<rect x="20" y="286" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="28" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">onprem-campus</text>
+<rect x="210" y="286" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="218" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">768</text>
+<rect x="290" y="286" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="298" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">IB (768)</text>
+<rect x="480" y="286" width="160" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="488" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">Slurm</text>
+<rect x="640" y="286" width="190" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="648" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">owned</text>
+<rect x="830" y="286" width="100" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="838" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">0.90</text>
+<rect x="930" y="286" width="80" height="44" fill="#ffffff" stroke="#e2e8f0"/>
+<text x="938" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">0</text>
+<rect x="1010" y="286" width="130" height="44" fill="#fee2e2" stroke="#e2e8f0"/>
+<text x="1018" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="500" fill="#0f172a">2 weeks</text>
+<rect x="20" y="380" width="400" height="150" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="32" y="403" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Committed = use it or lose it</text>
+<text x="32" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">paid regardless; marginal price ≈ 0 until the commitment is</text>
+<text x="32" y="441" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">used, so placement prefers it</text>
+<rect x="440" y="380" width="400" height="150" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="452" y="403" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Measured, not declared</text>
+<text x="452" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">free GPUs, wait estimates and reliability come from each</text>
+<text x="452" y="441" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">site's history</text>
+<rect x="860" y="380" width="420" height="150" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="872" y="403" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Constraints</text>
+<text x="872" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">jurisdiction, data classes, export tags; the job's data class</text>
+<text x="872" y="441" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">filters sites before any scoring</text></svg>
