@@ -1018,7 +1018,13 @@ spec:
             podAffinityTerm:
               labelSelector:
                 matchLabels: {app: cache} #!
-              topologyKey: kubernetes.io/hostname           # "same node as the cache" #!
+              topologyKey: kubernetes.io/hostname           # "same node as the cache"
+      topologySpreadConstraints:                            # soft: keep replicas apart
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels: {app: api}                           # counts 1.3 AND 1.4 pods #!
       containers:
       - name: api
         image: my-company/api:1.4            # NEW version being rolled out; cached on
@@ -1040,10 +1046,10 @@ spec:
 >
 > ![The tug of war: one pod, two nodes](diagrams/extra/affinity-tug.svg)
 >
-> What each node has, and the points it earns. Your affinity is the only plugin that favors node 2; NodeResourcesFit, BalancedResourceAllocation, ImageLocality and the default topology spread all favor node 1.
+> What each node has, and the points it earns. Your affinity is the only plugin that favors node 2; NodeResourcesFit, BalancedResourceAllocation, ImageLocality and the team's soft spread rule all favor node 1.
 
 - **Affinity on its own would win:** InterPodAffinity gives node 2 a grade of 100 (the only node with a cache pod), and with its default weight of 2 that's 200 points against node 1's 0.
-- **But four other plugins prefer node 1:** node 2 is busier because the cache pod and a replica already use its CPU and memory. So NodeResourcesFit (80 vs 30), BalancedResourceAllocation (90 vs 80), ImageLocality (90 vs 0) and the default topology spread (100 × 2 vs 0, since node 2 already has a replica) all favor node 1.
+- **But four other plugins prefer node 1:** node 2 is busier because the cache pod and a replica already use its CPU and memory. So NodeResourcesFit (80 vs 30), BalancedResourceAllocation (90 vs 80), ImageLocality (90 vs 0) and the team's soft topology spread rule (100 × 2 vs 0, since node 2 already has an `api` replica) all favor node 1.
 - **The result:** node 1 gets 80 + 90 + 90 + 200 + 0 = **460**, node 2 gets 30 + 80 + 0 + 0 + 200 = **310**. Node 1 wins, and the affinity seems to be ignored. No single plugin beat it; several small ones added up.
 
 > **Note: how the numbers in the table are calculated**
@@ -1073,8 +1079,8 @@ spec:
 >    Node 1: api:1.4 is 1.2 GB, on 3 of 4 nodes = 900 MB → (900 − 23) ÷ 977 × 100 ≈ 90
 >    Node 2: only api:1.3 is there; the tag doesn't match → 0
 >
-> 4. PodTopologySpread (soft default): fewer replicas already there is better
->    raw = api replicas already on the node (and in its zone)
+> 4. PodTopologySpread (the Deployment's soft spread rule): fewer replicas there is better
+>    raw = pods labeled app: api already on the node, old (1.3) and new (1.4) alike
 >    then scaled so the best node gets 100 and the worst 0
 >    Node 1: 0 replicas → 100     Node 2: 1 replica → 0
 >
@@ -1085,6 +1091,7 @@ spec:
 > ```
 >
 > - **Two kinds of grade:** plugins 1 to 3 grade each node on its own situation; plugins 4 and 5 produce raw counts with no fixed range, so they're scaled so the best node gets 100. That's why grades never need to add up to 100 across nodes.
+> - **Why the spread rule is written out:** a rule with `labelSelector: {app: api}` counts old and new pods together, so node 2's 1.3 replica counts. The scheduler's built-in default spread works out its selector from the pod's ReplicaSet, which is different for each version, so during a rollout it would count only 1.4 pods. Then both nodes would score 100 for spread, node 2 would total 510, and the affinity would win.
 > - **ImageLocality's 23 MB and 1000 MB** are kube-scheduler's built-in limits for one container: smaller images earn nothing, and anything above 1000 MB counts the same.
 
 - **Choice A, the hard rule (filtering):** change `preferredDuringSchedulingIgnoredDuringExecution` to `requiredDuringSchedulingIgnoredDuringExecution`. The rule moves from the scoring phase to the filtering phase, so Node 1 is never even considered.
