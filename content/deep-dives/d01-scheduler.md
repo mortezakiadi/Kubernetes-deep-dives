@@ -1132,66 +1132,6 @@ profiles:
         weight: 4                       # was 2: node 2 gets 118.8 + 400 = 518.8 > 464.8 (3 gives 418.8) #!
 ```
 
-### The weight field in your YAML
-
-**Scenario.** A platform team reviews a Helm chart that has both `required` and `preferred` affinity blocks, with weights of 1 and 100 scattered around. Nobody is sure what the numbers actually do, or why the `required` block has no weight at all.
-
-![The weight field in your YAML](diagrams/sections/d01-7.svg)
-
-**What the picture shows.** How the `weight` field in your YAML plugs into the scheduler.
-
-- **Required (hard rule):** there is no `weight` field for `requiredDuringSchedulingIgnoredDuringExecution`, because "required" is a filter, not a score. A node either passes or is removed.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: report-builder
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:   # no weight: pass or fail #!
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: node.kubernetes.io/instance-type
-            operator: In
-            values: ["m5.2xlarge"]
-  containers:
-  - name: builder
-    image: my-company/report-builder:3.1
-```
-
-- **Weight tunes scoring from the outside:** whenever you see a `weight` in Kubernetes YAML, you are adjusting the scoring phase (never the filtering phase). You're telling the scheduler how much your rule matters compared to its built-in rules.
-- **How it's applied:** for each node, the scheduler adds up the weights (1 to 100) of the preferred terms that node matches. Those sums are then normalized to 0–100 across the candidate nodes and multiplied by the plugin's own weight (2 for NodeAffinity and InterPodAffinity).
-- **Preferred + high weight (a strong suggestion):** weight 100 says "this term matters much more than my other preferred terms". Because of the normalization, a matched preference is worth at most about 200 points in total, so it usually wins but can still be outvoted by several other plugins together. If it must always win, make it `required`.
-- **Preferred + low weight (a nice-to-have):** weight 1 says "this would be nice, but it matters little compared with my other preferences". The weights only rank your preferred terms against each other.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: report-builder
-spec:
-  affinity:
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution: #!
-      - weight: 100        # "I really want this" #!
-        preference:
-          matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: ["us-east-1a"]
-      - weight: 1          # "nice to have" #!
-        preference:
-          matchExpressions:
-          - key: disktype
-            operator: In
-            values: ["ssd"]
-  containers:
-  - name: builder
-    image: my-company/report-builder:3.1
-```
-
 ### Scheduler score vs. OOM score
 
 **Scenario.** A node runs out of memory and Kubernetes kills the team's most important pod. The team is surprised: "The scheduler gave that node a great score when it placed the pod, so why was our pod the one that died?" They are mixing up two different scores.
