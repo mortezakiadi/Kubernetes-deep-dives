@@ -1,9 +1,24 @@
 ---
 id: d-batch-realtime
 title: "Batch and real-time on one cluster"
-short: "Kubernetes Batch and Realtime"
+short: "Batch and real-time: sharing a cluster"
 ---
-One cluster runs a latency-critical web API next to cost-driven batch jobs. This deep dive follows the isolation stack from node tiers down to CPU, memory, network and disk.
+One cluster runs a latency-critical web API next to cost-driven batch jobs. The goal is to share the cluster safely: batch should use every spare resource, but never slow down or kill the API.
+
+**This deep dive follows the isolation stack, from node tiers down to CPU, memory, network and disk.** Each section is one layer of that stack, and each answers the same question for a different resource: when the API and batch compete, who wins?
+
+| Layer | Section | The question it answers for "API + batch on one cluster" |
+|---|---|---|
+| Nodes | [Workloads and node tiers](#d03-1) | Which nodes does each kind of workload run on? |
+| Priority | [Priority, preemption and QoS](#d03-2) | When there's no room, who gets bumped: the API or batch? |
+| Sizing | [Placement, autoscaling and cost](#d03-3) | How do you set requests, limits and scaling for each tier? |
+| CPU | [CPU: shares and throttling](#d03-4) | Can a batch job slow the API down on a shared node? |
+| CPU, inside the node | [Kernel vs. Kubernetes](#d03-5) | What do requests and limits actually do on the node? |
+| Memory | [Memory: who gets killed](#d03-6) | When memory runs out, does the batch job die, or the API? |
+| Network | [Network: the unmanaged resource](#d03-7) | Can a batch job's traffic hurt the API? Kubernetes doesn't isolate it. |
+| Disk | [Storage I/O: the other unmanaged resource](#d03-8) | Can a batch job's disk I/O hurt the API? Kubernetes doesn't isolate it either. |
+
+How requests and limits become the kernel settings that enforce all this is covered in the [cgroups](#d-cgroups) deep dive.
 
 ### Workloads and node tiers
 
@@ -310,7 +325,7 @@ spec:
 
 ### Memory: who gets killed
 
-**Scenario.** A node runs low on memory and Kubernetes kills a pod that was using only 150 MiB, while a much bigger pod using 510 MiB survives. The owner of the small pod is angry: "Why did you kill the small one?"
+**Scenario.** The web API and a batch job share a node. The node runs low on memory, and Kubernetes kills an API pod using only 150 MiB while the batch pod using 510 MiB survives. The API team is angry: "Why kill our small, important pod and keep the batch job?"
 
 ![Memory: who gets killed](diagrams/sections/d03-6.svg)
 
@@ -324,7 +339,8 @@ spec:
   - **BestEffort:** 1000, "kill me first".
   - **Burstable:** 1000 − 1000 × (memory request ÷ node memory), kept between 2 and 999, so a bigger request makes the pod safer.
   - **Guaranteed:** −997, "don't kill me".
-- **The worked example (two Burstable pods):** pod A requested 100 Mi and uses 150 Mi (50 Mi over). Pod B requested 500 Mi and uses 510 Mi (10 Mi over). Both use more than they requested and (here) have the same priority, so the kubelet evicts the pod furthest over its *request*: **pod A goes first**, even though it uses far less memory than pod B. That's the scenario's answer.
+- **The worked example (two Burstable pods):** the API pod requested 100 Mi and uses 150 Mi (50 Mi over). The batch pod requested 500 Mi and uses 510 Mi (10 Mi over). Both use more than they requested, and nobody gave them different priorities, so the kubelet evicts the pod furthest over its *request*: **the API pod goes first**, even though it uses far less memory. That's the scenario's answer: Kubernetes doesn't know the API is important unless you tell it.
+- **The fix, in the API's spec:** set its memory request close to what it really uses (or make it Guaranteed, with requests equal to limits), and give it a higher PriorityClass than batch ([Priority, preemption and QoS](#d03-2)). Either change would have made the batch pod the one evicted. How the memory request and limit become kernel settings is in the cgroups deep dive ([Policy maker, translator, enforcer](#d04-1)).
 - **Not the scheduling score:** this score is about killing a pod, not about choosing a node. The two are unrelated, so a pod the scheduler placed on a "great" node can still be the one that dies.
 
 > **Note: scheduler score vs. OOM score**

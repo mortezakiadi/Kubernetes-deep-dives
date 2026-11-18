@@ -186,7 +186,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul><li><a href="#d-scheduler"><b>01</b> Kubernetes Scheduler</a></li>
 <li><a href="#d-gpu"><b>02</b> Kubernetes and GPU</a></li>
 <li><a href="#d-multischeduler"><b>03</b> Kubernetes Multi-Scheduler</a></li>
-<li><a href="#d-batch-realtime"><b>04</b> Kubernetes Batch and Realtime</a></li>
+<li><a href="#d-batch-realtime"><b>04</b> Batch and real-time: sharing a cluster</a></li>
 <li><a href="#d-cgroups"><b>05</b> cgroups</a></li>
 <li><a href="#d-challenges-1"><b>06</b> Challenges 1</a></li>
 <li><a href="#d-multitenancy"><b>07</b> Kubernetes Multi-tenancy</a></li>
@@ -1372,7 +1372,60 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <h2 id="d-batch-realtime-h">Batch and real-time on one cluster</h2>
   </header>
   <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d03-1">Workloads and node tiers</a></li><li><a href="#d03-2">Priority, preemption and QoS</a></li><li><a href="#d03-3">Placement, autoscaling and cost</a></li><li><a href="#d03-4">CPU: shares and throttling</a></li><li><a href="#d03-5">Kernel vs. Kubernetes</a></li><li><a href="#d03-6">Memory: who gets killed</a></li><li><a href="#d03-7">Network: the unmanaged resource</a></li><li><a href="#d03-8">Storage I/O: the other unmanaged resource</a></li></ol></nav>
-  <div class="prose"><p>One cluster runs a latency-critical web API next to cost-driven batch jobs. This deep dive follows the isolation stack from node tiers down to CPU, memory, network and disk.</p>
+  <div class="prose"><p>One cluster runs a latency-critical web API next to cost-driven batch jobs. The goal is to share the cluster safely: batch should use every spare resource, but never slow down or kill the API.</p>
+<p><strong>This deep dive follows the isolation stack, from node tiers down to CPU, memory, network and disk.</strong> Each section is one layer of that stack, and each answers the same question for a different resource: when the API and batch compete, who wins?</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Section</th>
+<th>The question it answers for "API + batch on one cluster"</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nodes</td>
+<td><a href="#d03-1">Workloads and node tiers</a></td>
+<td>Which nodes does each kind of workload run on?</td>
+</tr>
+<tr>
+<td>Priority</td>
+<td><a href="#d03-2">Priority, preemption and QoS</a></td>
+<td>When there's no room, who gets bumped: the API or batch?</td>
+</tr>
+<tr>
+<td>Sizing</td>
+<td><a href="#d03-3">Placement, autoscaling and cost</a></td>
+<td>How do you set requests, limits and scaling for each tier?</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td><a href="#d03-4">CPU: shares and throttling</a></td>
+<td>Can a batch job slow the API down on a shared node?</td>
+</tr>
+<tr>
+<td>CPU, inside the node</td>
+<td><a href="#d03-5">Kernel vs. Kubernetes</a></td>
+<td>What do requests and limits actually do on the node?</td>
+</tr>
+<tr>
+<td>Memory</td>
+<td><a href="#d03-6">Memory: who gets killed</a></td>
+<td>When memory runs out, does the batch job die, or the API?</td>
+</tr>
+<tr>
+<td>Network</td>
+<td><a href="#d03-7">Network: the unmanaged resource</a></td>
+<td>Can a batch job's traffic hurt the API? Kubernetes doesn't isolate it.</td>
+</tr>
+<tr>
+<td>Disk</td>
+<td><a href="#d03-8">Storage I/O: the other unmanaged resource</a></td>
+<td>Can a batch job's disk I/O hurt the API? Kubernetes doesn't isolate it either.</td>
+</tr>
+</tbody>
+</table>
+<p>How <mark class="kw">requests and limits</mark> become the kernel settings that enforce all this is covered in the <a href="#d-cgroups">cgroups</a> deep dive.</p>
 <h3 id="d03-1">Workloads and node tiers</h3>
 <p><strong>Scenario.</strong> A company wants to run its customer-facing web API and its nightly batch jobs on the same Kubernetes cluster to save money. The web team is worried that a big batch run will slow the API down; the finance team wants batch to run as cheaply as possible. How do you design node pools so both groups are happy?</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Workloads and node tiers" class="open" data-src="diagrams/sections/d03-1.svg" data-title="Workloads and node tiers" type="button"><img alt="Diagram: Workloads and node tiers" decoding="async" loading="lazy" src="diagrams/sections/d03-1.svg"/><span class="hint">Open full screen</span></button></figure>
@@ -1502,7 +1555,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </ul>
 </div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">When the node is idle</span></summary><div class="acc-body">a pod that requests 100m but is the only thing running may use 100% of the CPU. The request isn't a cage.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">When the node is under contention</span></summary><div class="acc-body">if five pods all want 100%, the kernel divides time by shares. A pod with 1000m (1024 shares) gets 10 times more time than one with 100m (102 shares).</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Admission control, Kubernetes' real job</span></summary><div class="acc-body">the one thing the kernel can't do is stop a node from getting too crowded. The scheduler treats requests as reservations: on a 4-core node that already has 3.8 cores requested, it refuses to add more pods.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">The consequence of skipping requests</span></summary><div class="acc-body">the scheduler might pack 100 pods onto one node, and even with perfect fairness each pod would get about 1% of a CPU, so the whole application crawls.</div></details><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">Bridge to memory</span></summary><div class="acc-body">CPU can be stretched by slowing things down, but memory is <mark class="kw">all-or-nothing</mark>.</div></details></div>
 <h3 id="d03-6">Memory: who gets killed</h3>
-<p><strong>Scenario.</strong> A node runs low on memory and Kubernetes kills a pod that was using only 150 MiB, while a much bigger pod using 510 MiB survives. The owner of the small pod is angry: "Why did you kill the small one?"</p>
+<p><strong>Scenario.</strong> The web API and a batch job share a node. The node runs low on memory, and Kubernetes kills an API pod using only 150 MiB while the batch pod using 510 MiB survives. The API team is angry: "Why kill our small, important pod and keep the batch job?"</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Memory: who gets killed" class="open" data-src="diagrams/sections/d03-6.svg" data-title="Memory: who gets killed" type="button"><img alt="Diagram: Memory: who gets killed" decoding="async" loading="lazy" src="diagrams/sections/d03-6.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Layer 2, memory, a <em>non-compressible</em> resource: you can't slow memory down, so when it runs out someone has to die.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Two levels of OOM</span></summary><div class="acc-body"><ul>
@@ -1514,7 +1567,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Burstable:</strong> 1000 − 1000 × (memory request ÷ node memory), kept between 2 and 999, so a bigger request makes the pod safer.</li>
 <li><strong>Guaranteed:</strong> −997, "don't kill me".</li>
 </ul>
-</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">The worked example (two Burstable pods)</span></summary><div class="acc-body">pod A requested 100 Mi and uses 150 Mi (50 Mi over). Pod B requested 500 Mi and uses 510 Mi (10 Mi over). Both use more than they requested and (here) have the same priority, so the kubelet <mark class="kw-act">evicts</mark> the pod furthest over its <em>request</em>: <strong>pod A goes first</strong>, even though it uses far less memory than pod B. That's the scenario's answer.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Not the scheduling score</span></summary><div class="acc-body">this score is about killing a pod, not about choosing a node. The two are unrelated, so a pod the scheduler placed on a "great" node can still be the one that dies.<blockquote>
+</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">The worked example (two Burstable pods)</span></summary><div class="acc-body">the API pod requested 100 Mi and uses 150 Mi (50 Mi over). The batch pod requested 500 Mi and uses 510 Mi (10 Mi over). Both use more than they requested, and nobody gave them different priorities, so the kubelet <mark class="kw-act">evicts</mark> the pod furthest over its <em>request</em>: <strong>the API pod goes first</strong>, even though it uses far less memory. That's the scenario's answer: Kubernetes doesn't know the API is important unless you tell it.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">The fix, in the API's spec</span></summary><div class="acc-body">set its memory request close to what it really uses (or make it Guaranteed, with requests equal to limits), and give it a higher <mark class="kw">PriorityClass</mark> than batch (<a href="#d03-2">Priority, preemption and QoS</a>). Either change would have made the batch pod the one evicted. How the memory request and limit become kernel settings is in the <mark class="kw">cgroups</mark> deep dive (<a href="#d04-1">Policy maker, translator, enforcer</a>).</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Not the scheduling score</span></summary><div class="acc-body">this score is about killing a pod, not about choosing a node. The two are unrelated, so a pod the scheduler placed on a "great" node can still be the one that dies.<blockquote>
 <p><strong>Note: scheduler score vs. OOM score</strong></p>
 <table>
 <thead>
@@ -1601,7 +1654,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <h2 id="d-cgroups-h">From a YAML limit to a kernel quota</h2>
   </header>
   <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d04-1">Policy maker, translator, enforcer</a></li><li><a href="#d04-2">From a limit to a quota</a></li></ol></nav>
-  <div class="prose"><p>This deep dive follows how <code>resources.requests</code> and <code>resources.limits</code> turn into <mark class="kw">cgroup</mark> settings that the Linux <mark class="kw">CFS</mark> scheduler enforces.</p>
+  <div class="prose"><p>This deep dive follows how <code>resources.requests</code> and <code>resources.limits</code> turn into <mark class="kw">cgroup</mark> settings that the Linux <mark class="kw">CFS</mark> scheduler enforces. What happens when they compete on a shared node (who gets <mark class="kw-act">throttled</mark>, who gets killed) is in the Batch and real-time deep dive: <a href="#d03-4">CPU: shares and throttling</a> and <a href="#d03-6">Memory: who gets killed</a>.</p>
 <h3 id="d04-1">Policy maker, translator, enforcer</h3>
 <p><strong>Scenario.</strong> A web service and a batch job run on the same node. The web pod asks for 1 CPU with a limit of 2; the batch pod asks for 250m with a limit of 500m. An engineer wants to know what actually happens inside Linux to those four numbers, both when the CPU is busy and when it's idle.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Policy maker, translator, enforcer" class="open" data-src="diagrams/sections/d04-1.svg" data-title="Policy maker, translator, enforcer" type="button"><img alt="Diagram: Policy maker, translator, enforcer" decoding="async" loading="lazy" src="diagrams/sections/d04-1.svg"/><span class="hint">Open full screen</span></button></figure>

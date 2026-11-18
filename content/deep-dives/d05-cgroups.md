@@ -3,7 +3,7 @@ id: d-cgroups
 title: "From a YAML limit to a kernel quota"
 short: "cgroups"
 ---
-This deep dive follows how `resources.requests` and `resources.limits` turn into cgroup settings that the Linux CFS scheduler enforces.
+This deep dive follows how `resources.requests` and `resources.limits` turn into cgroup settings that the Linux CFS scheduler enforces. What happens when they compete on a shared node (who gets throttled, who gets killed) is in the Batch and real-time deep dive: [CPU: shares and throttling](#d03-4) and [Memory: who gets killed](#d03-6).
 
 ### Policy maker, translator, enforcer
 
