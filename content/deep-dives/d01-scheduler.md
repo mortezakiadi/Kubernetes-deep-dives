@@ -919,6 +919,61 @@ profiles:
 - **Points and the final score:** points = score × weight for each plugin, and the final score is their sum. Node A gets 60 + 0 + 200 = **260**, node B 20 + 90 + 0 = **110**, so node A wins even though node B had the image.
 - **Who wins when plugins disagree:** that's the scenario's question. Here ImageLocality prefers B while the other two prefer A, and the weights settle it. Raise ImageLocality's weight to 3 and B wins, 290 against 260 (the box at the bottom of the picture).
 - **Two different weights, don't mix them up:** the `weight: 80` in the pod's preferred rule only matters *inside* NodeAffinity's own score, to rank the pod's preferences against each other. With a single rule, any weight from 1 to 100 ends up as 100 after scaling; it matters once there are several rules. For example, with rules weighted 80 and 20, a node matching both gets a raw 100 and one matching only the second gets 20, so they scale to 100 and 20. The plugin weight (×2 in the picture) is different: it multiplies NodeAffinity's whole score against the other plugins.
+- **A pod with no rules is still scored:** if a Deployment says nothing about placement, the built-in plugins still grade every node with their default weights. NodeResourcesFit, BalancedResourceAllocation, ImageLocality and the default topology spread decide; NodeAffinity and InterPodAffinity give every node 0, so they don't change anything. A plain pod still gets a reasoned placement, driven by spreading, balance and image caching.
+
+```yaml
+# No nodeSelector, no affinity, no tolerations: placement is still scored
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plain-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: plain-app}
+  template:
+    metadata:
+      labels: {app: plain-app}
+    spec:
+      containers:
+      - name: app
+        image: my-company/plain-app:1.0   # ImageLocality: is it cached on the node? #!
+        resources:
+          requests:                        # NodeResourcesFit + BalancedResourceAllocation #!
+            cpu: 500m
+            memory: 512Mi
+# Also scoring: the default topology spread (keeps the 3 replicas apart)
+# and TaintToleration (nodes with a PreferNoSchedule taint lose points).
+# NodeAffinity and InterPodAffinity give every node 0: there are no rules.
+```
+
+- **A preferred rule must have a `weight`:** it has to be between 1 and 100. Leave it out and the API server rejects the object, so `kubectl apply` fails before the scheduler ever sees the pod.
+
+```yaml
+# Rejected: a preferred rule without a weight
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - preference:                        # no "weight:" line #!
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["us-east-1a"]
+  containers:
+  - name: web
+    image: nginx:1.27
+# kubectl apply -f web.yaml
+# The Pod "web" is invalid:
+#   spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight:
+#   Invalid value: 0: must be in the range 1-100 #!
+#
+# Fix: add "- weight: 50" (any value from 1 to 100) above "preference:".
+```
 
 ### When affinity loses to ImageLocality
 
@@ -1065,24 +1120,6 @@ profiles:
       - name: InterPodAffinity
         weight: 5                       # was 2: node 2 now gets 110 + 100 x 5 = 610 > 460 #!
 ```
-
-### A worked example
-
-**Scenario.** A developer writes a plain Deployment with no affinity rules at all and asks: "If I didn't set any weights, how does the scheduler decide anything?" They also tried adding a preferred rule without a weight, and `kubectl apply` rejected the YAML.
-
-![A worked example](diagrams/sections/d01-6.svg)
-
-**What the picture shows.** The defaults that are always in play, even when your YAML says nothing.
-
-- **ImageLocality score:** grows with the total size of the cached images, scaled down when only a few nodes have the image. A big image cached is close to 100; nothing cached is 0.
-- **Preferred rules need a weight:** the YAML is fine, but the API server rejects a preferred affinity term without a `weight` (it must be 1–100), which is why the developer's apply failed.
-- **Built-in plugins still score every node:** the plugins you never see in your YAML (like LeastAllocated or ImageLocality) run anyway, with these default weights:
-  - NodeResourcesFit (LeastAllocated): **1**
-  - BalancedResourceAllocation: **1**
-  - ImageLocality: **1**
-  - InterPodAffinity / NodeAffinity / TopologySpread: **2**
-  - TaintToleration: **3**
-- **What this means:** a simple pod still gets a reasoned placement, driven mostly by spreading, balance and image caching.
 
 ### The weight field in your YAML
 
