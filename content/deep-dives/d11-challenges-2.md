@@ -28,16 +28,6 @@ spec:
   securityGroups: ["sg-0123456789abcdef0"]
 ```
 
-```yaml
-apiVersion: crd.k8s.amazonaws.com/v1alpha1
-kind: ENIConfig
-metadata:
-  name: us-east-1a             # one per AZ, named after the zone #!
-spec:
-  subnet: subnet-0abc1234def567890     # a subnet in the 100.64.0.0/16 range #!
-  securityGroups: ["sg-0123456789abcdef0"]
-```
-
 ### Service connectivity drops
 
 **Scenario.** A pod can't reach a Service: requests hang or are refused, while other pods work fine. The network team insists the VPC is healthy. The on-call engineer needs a step-by-step way to find where the "pipe" between the two pods is broken.
@@ -96,28 +86,6 @@ spec:
         image: my-company/llm-client:1.0
 ```
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: llm-client
-spec:
-  replicas: 3
-  selector:
-    matchLabels: {app: llm-client}
-  template:
-    metadata:
-      labels: {app: llm-client}
-    spec:
-      dnsConfig:
-        options:
-        - name: ndots #!
-          value: "2" #!
-      containers:
-      - name: client
-        image: my-company/llm-client:1.0
-```
-
 ### Latency by distance
 
 **Scenario.** A team splits a chatty microservice across three Availability Zones for resilience, and its p99 latency doubles. They want to know how much latency each kind of network hop actually adds.
@@ -142,10 +110,6 @@ spec:
 - **Burstable vs. guaranteed:** "up to" means burstable; sustained transfers fall back to a much lower baseline. That explains the slow `t3.medium` in the scenario.
 - **MTU, how data is chopped up:**
   - **VPC default, 9001 bytes (jumbo frames):** works inside a VPC (and over Direct Connect if configured). The VPC CNI already gives pods MTU 9001 by default; `AWS_VPC_ENI_MTU` changes it.
-
-```bash
-kubectl set env daemonset aws-node -n kube-system AWS_VPC_ENI_MTU=9001 #!
-```
 
 ```bash
 kubectl set env daemonset aws-node -n kube-system AWS_VPC_ENI_MTU=9001 #!

@@ -56,37 +56,8 @@ spec:
   trafficDistribution: PreferClose     # stay in the caller's zone when possible #!
 ```
 
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend
-spec:
-  selector: {app: backend}
-  ports:
-  - port: 80
-    targetPort: 8080
-  trafficDistribution: PreferClose     # stay in the caller's zone when possible #!
-```
-
   - **Karpenter:** can provision nodes in the same AZ as the workloads that talk to each other.
 - **Load balancer configuration, IP mode:** pods are registered directly as ELB targets, skipping the extra hop (and possible cross-AZ hop) through a node.
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: web
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: external
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip #!
-spec:
-  type: LoadBalancer
-  selector: {app: web}
-  ports:
-  - port: 443
-    targetPort: 8443
-```
 
 ```yaml
 apiVersion: v1

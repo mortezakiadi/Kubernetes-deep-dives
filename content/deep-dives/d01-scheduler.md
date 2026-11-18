@@ -62,40 +62,6 @@ profiles:
           weight: 1
 ```
 
-<div id="fit-check-yaml" class="anchor"></div>
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: api
-spec:
-  containers:
-  - name: api
-    image: my-company/api:1.4
-    resources:
-      requests:          # the scheduler adds up requests, not real usage #!
-        cpu: "500m" #!
-        memory: "1Gi" #!
----
-# kube-scheduler's own config file, passed with --config. NOT applied with kubectl.
-# Without it, the scheduler uses these same built-in defaults.
-apiVersion: kubescheduler.config.k8s.io/v1
-kind: KubeSchedulerConfiguration
-profiles:
-- schedulerName: default-scheduler
-  pluginConfig:
-  - name: NodeResourcesFit     # filter: does the pod fit? + score: which node is best? #!
-    args:
-      scoringStrategy:
-        type: LeastAllocated   # the default (spread); MostAllocated = bin-pack #!
-        resources:
-        - name: cpu
-          weight: 1
-        - name: memory
-          weight: 1
-```
-
 > **Note: when would you actually write a `KubeSchedulerConfiguration`?**
 >
 > Only when you want to *change* the scheduler's built-in settings. Two things to know first:
@@ -106,19 +72,6 @@ profiles:
 >   - **Managed clusters** (EKS, GKE, AKS): the provider runs the default scheduler, so you can't change its file. Instead, run a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete, ready-to-apply example is in [Appendix A: Running a second scheduler](#appendix-second-scheduler). For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see [Built-in plugins, and what a second scheduler changes](#d01-9) in the Kubernetes Multi-Scheduler deep dive.
 
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: api
-spec:
-  nodeSelector: #!
-    disktype: ssd        # only nodes labelled disktype=ssd pass the filter #!
-  containers:
-  - name: api
-    image: my-company/api:1.4
-```
 
 ```yaml
 apiVersion: v1
@@ -165,64 +118,7 @@ spec:
     image: my-company/trainer:2.0
 ```
 
-```yaml
-# 1. The taint lives on the NODE. You add it with a command:
-#      kubectl taint nodes gpu-node-1 dedicated=gpu:NoSchedule #!
-#    (or in the node group / Karpenter NodePool config). The node then looks like this:
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-spec:
-  taints: #!
-  - key: dedicated #!
-    value: gpu #!
-    effect: NoSchedule        # pods without a matching toleration are filtered out #!
----
-# 2. The toleration lives on the POD that is allowed in
-apiVersion: v1
-kind: Pod
-metadata:
-  name: trainer
-spec:
-  tolerations: #!
-  - key: dedicated #!
-    operator: Equal
-    value: gpu #!
-    effect: NoSchedule #!
-  containers:
-  - name: trainer
-    image: my-company/trainer:2.0
-```
-
 - **Affinity and anti-affinity violations:** A <mark class="kw">required</mark> node affinity ("must run in us-east-1a") or pod anti-affinity ("never on a node that already runs a copy of me") removes nodes that break the rule.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: api-1
-  labels:
-    app: api
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution: #!
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: ["us-east-1a"] #!
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution: #!
-      - labelSelector:
-          matchLabels:
-            app: api
-        topologyKey: kubernetes.io/hostname   # never two api pods on one node #!
-  containers:
-  - name: api
-    image: my-company/api:1.4
-```
 
 ```yaml
 apiVersion: v1
@@ -612,68 +508,6 @@ spec:
             nvidia.com/gpu: 1
 ```
 
-<div id="dedicated-gpu-yaml" class="anchor"></div>
-
-```yaml
-# 1. The GPU nodes: a label (to be found) and a taint (to keep others out)
-#    Usually set in the node group or Karpenter NodePool, not by hand.
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    node-type: gpu #!
-spec:
-  taints: #!
-  - key: dedicated #!
-    value: gpu
-    effect: NoSchedule
----
-# 2. The GPU workload: toleration + node affinity + pod anti-affinity
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: inference
-spec:
-  replicas: 3
-  selector:
-    matchLabels: {app: inference}
-  template:
-    metadata:
-      labels: {app: inference}
-    spec:
-      tolerations:                     # allowed onto the tainted GPU nodes #!
-      - key: dedicated #!
-        operator: Equal
-        value: gpu
-        effect: NoSchedule
-      - key: node.kubernetes.io/unreachable
-        operator: Exists
-        effect: NoExecute #!
-        tolerationSeconds: 60          # stay 60 s on an unreachable node, then get evicted #!
-      affinity:
-        nodeAffinity:                  # sent to the GPU nodes (hard rule) #!
-          requiredDuringSchedulingIgnoredDuringExecution: #!
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: node-type
-                operator: In
-                values: ["gpu"] #!
-        podAntiAffinity:               # spread replicas across nodes (soft rule) #!
-          preferredDuringSchedulingIgnoredDuringExecution: #!
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchLabels: {app: inference}
-              topologyKey: kubernetes.io/hostname
-      containers:
-      - name: server
-        image: vllm/vllm-openai:latest
-        resources:
-          limits:
-            nvidia.com/gpu: 1
-```
-
 > **Why does this example have two tolerations?** `tolerations` is a list, and each entry tolerates one kind of taint. A pod can tolerate as many as it needs; here the two entries do different jobs.
 >
 > - **Entry 1, our own GPU taint (`dedicated=gpu`, `NoSchedule`):** it matches the taint we put on the GPU nodes, so it decides *where the pod may go*. `operator: Equal` means the key and the value must both match.
@@ -686,31 +520,6 @@ spec:
   - **Hard or soft:** `DoNotSchedule` filters nodes out; `ScheduleAnyway` only lowers their score.
   - **How it differs from pod anti-affinity:** anti-affinity says "not where a pod like me already runs", so a hard rule allows only one per place: 6 replicas in 3 zones means 3 stay `Pending`. A spread constraint allows several per place as long as they stay balanced, so all 6 run, 2 per zone.
   - **When to use which:** anti-affinity for "never two on one node" (say, one database replica per node); spread constraints for "balance across zones" (most web services). Even without either, the scheduler applies a soft default spread across nodes and zones.
-
-```yaml
-# 6 replicas spread evenly across 3 zones: 2 per zone.
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: web
-spec:
-  replicas: 6
-  selector:
-    matchLabels: {app: web}
-  template:
-    metadata:
-      labels: {app: web}
-    spec:
-      topologySpreadConstraints: #!
-      - maxSkew: 1                                # zones may differ by at most 1 pod #!
-        topologyKey: topology.kubernetes.io/zone  # a "place" is a zone #!
-        whenUnsatisfiable: DoNotSchedule          # hard rule; ScheduleAnyway = soft #!
-        labelSelector:
-          matchLabels: {app: web}                 # which pods to count
-      containers:
-      - name: web
-        image: nginx:1.27
-```
 
 ```yaml
 # 6 replicas spread evenly across 3 zones: 2 per zone.
@@ -828,20 +637,6 @@ spec:
       hostPort: 80       # only one pod per node can claim host port 80 #!
 ```
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: edge-proxy
-spec:
-  containers:
-  - name: proxy
-    image: nginx:1.27
-    ports:
-    - containerPort: 8080
-      hostPort: 80       # only one pod per node can claim host port 80 #!
-```
-
 **Going deeper.**
 
 - For GPUs, these same filters do the steering: node labels pick the GPU model, a taint keeps other pods off GPU nodes, and the GPU count is checked just like CPU and memory. How GPUs get advertised to the scheduler, how to steer pods to the right one, and Dynamic Resource Allocation are covered in the next deep dive, [Kubernetes and GPU](#d-gpu).
@@ -850,30 +645,6 @@ spec:
   - a queue in front of the scheduler, such as **Kueue**, which admits the whole job only when there's room for all of it ([Volcano vs. Kueue](#d02-6));
   - a batch scheduler such as **Volcano**, **KAI** or **YuniKorn**, running as a second scheduler ([what a second scheduler changes](#d01-9) and [the landscape](#d02-7), both in [Kubernetes Multi-Scheduler](#d-multischeduler));
   - the **coscheduling plugin** (a PodGroup with `minMember`) or, from Kubernetes 1.35, the alpha **Workload API**, both covered in [gang scheduling](#d02-2).
-
-```yaml
-# 8 workers that must all run together, but nothing here says so.
-# parallelism only lets the Job controller create 8 pods at once; it does NOT
-# make them a gang. The default scheduler filters and places each pod on its
-# own: with 6 free GPUs, 6 start (and sit idle) while 2 stay Pending.
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: distributed-train
-spec:
-  parallelism: 8 #!
-  completions: 8
-  completionMode: Indexed
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-      - name: worker
-        image: my-company/trainer:2.0
-        resources:
-          limits:
-            nvidia.com/gpu: 1 #!
-```
 
 ```yaml
 # 8 workers that must all run together, but nothing here says so.
@@ -1008,50 +779,6 @@ spec:
         image: my-company/reports-api:1.4
 ```
 
-```yaml
-# Three soft preferences a pod (or a node) can express. None of them can
-# block scheduling; they only add or remove scoring points.
-apiVersion: v1
-kind: Node
-metadata:
-  name: node-old-1
-spec:
-  taints:
-  - key: hardware
-    value: old
-    effect: PreferNoSchedule         # 3. "avoid me if you can" (TaintToleration score) #!
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: reports-api
-spec:
-  replicas: 3
-  selector:
-    matchLabels: {app: reports-api}
-  template:
-    metadata:
-      labels: {app: reports-api}
-    spec:
-      affinity:
-        podAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:   # 1. soft: scored, never filtered #!
-          - weight: 80                                      # how much this wish counts (1-100) #!
-            podAffinityTerm:
-              labelSelector:
-                matchLabels: {app: postgres}                # "near my database"
-              topologyKey: topology.kubernetes.io/zone      # "near" = same zone #!
-      topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: ScheduleAnyway                   # 2. soft spread: scored, not filtered #!
-        labelSelector:
-          matchLabels: {app: reports-api}
-      containers:
-      - name: api
-        image: my-company/reports-api:1.4
-```
-
 - **The default-weights trap:** most of these plugins have the same small weight (1 or 2). In a large cluster that can lead to poor choices, and this is the scenario: the full node won because it already had the image cached, and the CPU contention showed up later.
 
 **Going deeper.**
@@ -1112,46 +839,7 @@ spec:
         image: my-company/api:1.4
 ```
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api
-spec:
-  replicas: 3
-  selector:
-    matchLabels: {app: api}
-  template:
-    metadata:
-      labels: {app: api}
-    spec:
-      affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:   # now a filter, not a score #!
-          - labelSelector:
-              matchLabels: {app: cache} #!
-            topologyKey: kubernetes.io/hostname #!
-      containers:
-      - name: api
-        image: my-company/api:1.4
-```
-
 - **Choice B, scheduler configuration (advanced):** write a `KubeSchedulerConfiguration` profile with different weights, for example InterPodAffinity 100 and ImageLocality 1, so even a weak affinity match beats an image cache. On a managed control plane like EKS you can't change the default scheduler, so you run this as a second scheduler and point pods at it with `schedulerName`.
-
-```yaml
-# config file passed to a kube-scheduler you run yourself (--config)
-apiVersion: kubescheduler.config.k8s.io/v1
-kind: KubeSchedulerConfiguration
-profiles:
-- schedulerName: affinity-first-scheduler #!
-  plugins:
-    score:
-      enabled:
-      - name: InterPodAffinity #!
-        weight: 100 #!
-      - name: ImageLocality #!
-        weight: 1 #!
-```
 
 ```yaml
 # config file passed to a kube-scheduler you run yourself (--config)
@@ -1215,55 +903,10 @@ spec:
     image: my-company/report-builder:3.1
 ```
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: report-builder
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:   # no weight: pass or fail #!
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: node.kubernetes.io/instance-type
-            operator: In
-            values: ["m5.2xlarge"]
-  containers:
-  - name: builder
-    image: my-company/report-builder:3.1
-```
-
 - **Weight tunes scoring from the outside:** whenever you see a `weight` in Kubernetes YAML, you are adjusting the scoring phase (never the filtering phase). You're telling the scheduler how much your rule matters compared to its built-in rules.
 - **How it's applied:** for each node, the scheduler adds up the weights (1 to 100) of the preferred terms that node matches. Those sums are then normalized to 0–100 across the candidate nodes and multiplied by the plugin's own weight (2 for NodeAffinity and InterPodAffinity).
 - **Preferred + high weight (a strong suggestion):** weight 100 says "this term matters much more than my other preferred terms". Because of the normalization, a matched preference is worth at most about 200 points in total, so it usually wins but can still be outvoted by several other plugins together. If it must always win, make it `required`.
 - **Preferred + low weight (a nice-to-have):** weight 1 says "this would be nice, but it matters little compared with my other preferences". The weights only rank your preferred terms against each other.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: report-builder
-spec:
-  affinity:
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution: #!
-      - weight: 100        # "I really want this" #!
-        preference:
-          matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: ["us-east-1a"]
-      - weight: 1          # "nice to have" #!
-        preference:
-          matchExpressions:
-          - key: disktype
-            operator: In
-            values: ["ssd"]
-  containers:
-  - name: builder
-    image: my-company/report-builder:3.1
-```
 
 ```yaml
 apiVersion: v1

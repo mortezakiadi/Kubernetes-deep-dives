@@ -31,20 +31,6 @@ spec:
         nvidia.com/gpu: 1    # schedulable only after the device plugin registers GPUs #!
 ```
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference
-spec:
-  containers:
-  - name: inference
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1    # schedulable only after the device plugin registers GPUs #!
-```
-
 - **Step 4, the scheduler subtracts and binds:** a node fits if enough of its GPUs are still unreserved. The scheduler picks one and binds the pod to it.
 - **Step 5, the kubelet asks for a device:** on that node, the kubelet asks the plugin to allocate one GPU. This happens on the node, not in the control plane.
 - **Step 6, the container gets the GPU:** the plugin returns the device files and `NVIDIA_VISIBLE_DEVICES`, and the container starts with exactly that GPU. The scheduler never knew which GPU it would be, only that one was free.
@@ -63,32 +49,6 @@ spec:
 > On EKS Auto Mode the plugin is already built in. The NVIDIA GPU Operator is the all-in-one alternative: it installs the driver, toolkit, device plugin, NFD and GPU Feature Discovery together.
 >
 > **Check (device plugin):** `kubectl get nodes -o custom-columns=NAME:.metadata.name,GPUS:.status.allocatable.nvidia\.com/gpu`
-
-```yaml
-# What the NODE shows (written by the kubelet; see it with kubectl get node -o yaml)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-status:
-  capacity:
-    nvidia.com/gpu: "8"              # reported by the device plugin #!
-  allocatable:
-    nvidia.com/gpu: "8"              # what the scheduler counts against
----
-# What the POD writes: just a number
-apiVersion: v1
-kind: Pod
-metadata:
-  name: train
-spec:
-  containers:
-  - name: trainer
-    image: my-company/trainer:2.0
-    resources:
-      limits:
-        nvidia.com/gpu: 1            # "any one free GPU on the node" #!
-```
 
 ```yaml
 # What the NODE shows (written by the kubelet; see it with kubectl get node -o yaml)
@@ -202,37 +162,6 @@ spec:
         image: my-company/gpu-monitor:1.0
 ```
 
-```yaml
-# What the NODE shows (labels written by the NFD master)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    # The GPU Operator configures NFD to label by vendor only:
-    feature.node.kubernetes.io/pci-10de.present: "true" #!
-    # NFD's own default labels by class + vendor (0302 = 3D controller):
-    # feature.node.kubernetes.io/pci-0302_10de.present: "true"
----
-# What the POD writes: "any node with an NVIDIA card"
-apiVersion: apps/v1
-kind: DaemonSet                      # a typical user: per-GPU-node agents
-metadata:
-  name: gpu-monitor
-spec:
-  selector:
-    matchLabels: {app: gpu-monitor}
-  template:
-    metadata:
-      labels: {app: gpu-monitor}
-    spec:
-      nodeSelector: #!
-        feature.node.kubernetes.io/pci-10de.present: "true" #!
-      containers:
-      - name: exporter
-        image: my-company/gpu-monitor:1.0
-```
-
 ![3. GPU Feature Discovery: GPU details as node labels](diagrams/extra/adv-gfd.svg)
 
 > **Installing it.** GPU Feature Discovery now ships in the same repository and Helm chart as the device plugin, so you turn it on there. The chart also installs NFD for you unless you say you already have it:
@@ -247,40 +176,6 @@ spec:
 > With the GPU Operator, GPU Feature Discovery is on by default.
 >
 > **Check (GFD):** `kubectl get node gpu-node-1 --show-labels | tr ',' '\n' | grep nvidia.com/gpu`
-
-```yaml
-# What the NODE shows (labels written by GPU Feature Discovery via NFD)
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB
-    nvidia.com/gpu.memory: "81920"   # per-GPU memory, in MiB #!
-    nvidia.com/gpu.family: ampere
-    nvidia.com/gpu.count: "8"        # only a label: nothing counts against it
----
-# What the POD writes: pick a node by label, then still ask for a GPU
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: nvidia.com/gpu.memory #!
-            operator: Gt #!
-            values: ["40000"]
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1            # the device plugin still allocates the GPU
-```
 
 ```yaml
 # What the NODE shows (labels written by GPU Feature Discovery via NFD)
@@ -331,56 +226,6 @@ spec:
 > Then apply an `EC2NodeClass` and a `NodePool` like the one below. On EKS Auto Mode, Karpenter is built in and run by AWS, and the same labels use the `eks.amazonaws.com/` prefix instead (for example `eks.amazonaws.com/instance-gpu-name`).
 >
 > **Check (Karpenter):** `kubectl get nodes -L karpenter.k8s.aws/instance-gpu-name,karpenter.k8s.aws/instance-gpu-memory`
-
-```yaml
-# A Karpenter NodePool that may launch big-GPU instances
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: gpu
-spec:
-  template:
-    spec:
-      nodeClassRef:
-        group: karpenter.k8s.aws
-        kind: EC2NodeClass
-        name: default
-      requirements:
-      - key: karpenter.k8s.aws/instance-gpu-name #!
-        operator: In
-        values: ["a100", "h100"]
-      - key: karpenter.k8s.aws/instance-gpu-memory   # per GPU, in MiB #!
-        operator: Gt
-        values: ["40000"]
-      taints:
-      - key: nvidia.com/gpu
-        effect: NoSchedule
----
-# What the POD writes: affinity on the same labels Karpenter will set
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: karpenter.k8s.aws/instance-gpu-memory #!
-            operator: Gt
-            values: ["40000"]
-  tolerations:
-  - key: nvidia.com/gpu
-    operator: Exists
-    effect: NoSchedule
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-```
 
 ```yaml
 # A Karpenter NodePool that may launch big-GPU instances
@@ -489,46 +334,6 @@ spec:
               expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
 ```
 
-```yaml
-# What the DRIVER publishes (one ResourceSlice per node, one entry per GPU)
-apiVersion: resource.k8s.io/v1
-kind: ResourceSlice
-metadata:
-  name: gpu-node-1-gpu.nvidia.com-x8k2p   # generated name
-spec:
-  driver: gpu.nvidia.com
-  nodeName: gpu-node-1
-  pool:
-    name: gpu-node-1
-    generation: 1
-    resourceSliceCount: 1
-  devices:
-  - name: gpu-0 #!
-    attributes:
-      productName: {string: NVIDIA A100-SXM4-80GB}
-      architecture: {string: Ampere} #!
-    capacity:
-      memory: {value: 80Gi} #!
-  - name: gpu-1
-    # ... one entry for each of the 8 GPUs
----
-# What the POD writes: a claim that describes the device (full example below)
-apiVersion: resource.k8s.io/v1
-kind: ResourceClaimTemplate
-metadata:
-  name: gpu-40gb-plus
-spec:
-  spec:
-    devices:
-      requests:
-      - name: gpu
-        exactly:
-          deviceClassName: gpu.nvidia.com #!
-          selectors:
-          - cel:
-              expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
-```
-
 ### Steering pods to the right GPU
 
 **Scenario.** Three teams share a cluster with T4, A10G, A100 and H100 nodes. The batch team wants exactly A100s, the inference team wants "at least 40 GB, Hopper if possible", and the web team's ordinary pods keep landing on expensive GPU nodes.
@@ -562,94 +367,7 @@ spec:
         nvidia.com/gpu: 1      # "any one GPU": a 16 GB T4 and an 80 GB A100 both count as 1 #!
 ```
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference
-spec:
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1      # "any one GPU": a 16 GB T4 and an 80 GB A100 both count as 1 #!
-```
-
 - A `nodeSelector` on GPU labels pins an exact model, node affinity can say "at least 40 GB, prefer Hopper", and a taint on GPU nodes keeps everything else off them.
-
-<div id="gpu-labels-yaml" class="anchor"></div>
-
-```yaml
-# The GPU NODE: labels (added automatically by NVIDIA GPU Feature Discovery,
-# part of the GPU Operator) and a taint (set in the node group / NodePool).
-# Shown trimmed: a real node has many more labels.
-apiVersion: v1
-kind: Node
-metadata:
-  name: gpu-node-1
-  labels:
-    nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB   # the exact model #!
-    nvidia.com/gpu.memory: "81920"                  # per-GPU memory, in MiB #!
-    nvidia.com/gpu.family: ampere                   # GPU generation #!
-    nvidia.com/gpu.count: "8"
-spec:
-  taints:
-  - key: nvidia.com/gpu
-    value: present
-    effect: NoSchedule                              # keeps non-GPU pods off #!
----
-# Option 1: pin an exact GPU model with nodeSelector
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference-a100
-spec:
-  nodeSelector:
-    nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB #!
-  tolerations:                       # GPU nodes are usually tainted
-  - key: nvidia.com/gpu
-    operator: Exists
-    effect: NoSchedule
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1
----
-# Option 2: "at least 40 GB, prefer Hopper" with node affinity
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference-big-gpu
-spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: nvidia.com/gpu.memory #!
-            operator: Gt #!
-            values: ["40000"]        # more than ~40 GB #!
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 50
-        preference:
-          matchExpressions:
-          - key: nvidia.com/gpu.family #!
-            operator: In
-            values: ["hopper"] #!
-  tolerations:
-  - key: nvidia.com/gpu
-    operator: Exists
-    effect: NoSchedule
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      limits:
-        nvidia.com/gpu: 1
-```
 
 <div id="gpu-labels-yaml" class="anchor"></div>
 
@@ -745,40 +463,6 @@ spec:
 **Going deeper.**
 
 - Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.
-
-```yaml
-# DRA: describe the GPU you need; the DRA driver finds a match.
-# The device class and attribute names come from the driver (here NVIDIA's).
-apiVersion: resource.k8s.io/v1
-kind: ResourceClaimTemplate
-metadata:
-  name: gpu-40gb-plus
-spec:
-  spec:
-    devices:
-      requests:
-      - name: gpu
-        exactly:
-          deviceClassName: gpu.nvidia.com #!
-          selectors:
-          - cel:
-              expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: inference-dra
-spec:
-  resourceClaims:
-  - name: gpu
-    resourceClaimTemplateName: gpu-40gb-plus #!
-  containers:
-  - name: server
-    image: vllm/vllm-openai:latest
-    resources:
-      claims: #!
-      - name: gpu                    # no nvidia.com/gpu count: the claim is the request
-```
 
 ```yaml
 # DRA: describe the GPU you need; the DRA driver finds a match.
@@ -1002,52 +686,6 @@ spec:
 - Changing a MIG layout with the GPU Operator: label the node with the layout you want, for example `nvidia.com/mig.config=all-1g.10gb`, and the operator's MIG manager reconfigures the GPU. Pods using the GPU must be moved off first.
 - Newer versions of NVIDIA's DRA driver can also create MIG slices on demand for a claim and remove them when the claim is released (an alpha feature called DynamicMIG), instead of relying on a fixed layout.
 - Asking for a MIG slice, with the device plugin and with DRA:
-
-```yaml
-# Device plugin, "mixed" MIG strategy: ask for a slice size by resource name
-apiVersion: v1
-kind: Pod
-metadata:
-  name: notebook-small
-spec:
-  containers:
-  - name: jupyter
-    image: jupyter/base-notebook:latest
-    resources:
-      limits:
-        nvidia.com/mig-1g.10gb: 1 #!
----
-# DRA: ask for a MIG slice by profile
-apiVersion: resource.k8s.io/v1
-kind: ResourceClaimTemplate
-metadata:
-  name: small-mig-slice
-spec:
-  spec:
-    devices:
-      requests:
-      - name: mig
-        exactly:
-          deviceClassName: mig.nvidia.com #!
-          selectors:
-          - cel:
-              expression: device.attributes["gpu.nvidia.com"].profile == "1g.10gb" #!
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: notebook-small-dra
-spec:
-  resourceClaims:
-  - name: mig
-    resourceClaimTemplateName: small-mig-slice
-  containers:
-  - name: jupyter
-    image: jupyter/base-notebook:latest
-    resources:
-      claims:
-      - name: mig
-```
 
 ```yaml
 # Device plugin, "mixed" MIG strategy: ask for a slice size by resource name

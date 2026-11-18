@@ -50,33 +50,6 @@ spec:
         image: cassandra:5.0
 ```
 
-```yaml
-# node group taint: stateful=true:NoSchedule, label: workload=stateful
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: cassandra
-spec:
-  serviceName: cassandra
-  replicas: 3
-  selector:
-    matchLabels: {app: cassandra}
-  template:
-    metadata:
-      labels: {app: cassandra}
-    spec:
-      tolerations:
-      - key: stateful #!
-        operator: Equal
-        value: "true"
-        effect: NoSchedule #!
-      nodeSelector:
-        workload: stateful #!
-      containers:
-      - name: cassandra
-        image: cassandra:5.0
-```
-
   - **Affinity:** steers stateful pods onto the stateful group.
 - **Stateful focus, what a StatefulSet gives you:**
   - **Ordered operations:** pods are created one at a time (0 to N), which databases need for bootstrap and quorum.
@@ -84,18 +57,6 @@ spec:
   - **Stable identity, storage:** predictable PVC names (for example `data-db-0`) that survive pod restarts.
   - **Update strategy:** rolling updates with partitions, or `OnDelete` for manual control.
   - **PodDisruptionBudget:** stops *voluntary* disruptions (node drains, upgrades, Karpenter consolidation) from taking down enough pods to lose quorum. It can't prevent hardware failures or Spot reclaims.
-
-```yaml
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: cassandra-pdb
-spec:
-  minAvailable: 2          # keep quorum of a 3-node ring #!
-  selector:
-    matchLabels:
-      app: cassandra
-```
 
 ```yaml
 apiVersion: policy/v1
@@ -134,20 +95,6 @@ Separate lifecycles let you update prompts, models and data independently.
   - **Anti-pattern:** not for databases, because latency is too high.
   - **Provisioned throughput mode:** for predictable performance.
 - **Reclaim policy:** `Retain` in production so deleting a PVC doesn't delete the data, `Delete` in development.
-
-```yaml
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: db-gp3
-provisioner: ebs.csi.aws.com
-reclaimPolicy: Retain #!
-volumeBindingMode: WaitForFirstConsumer #!
-allowVolumeExpansion: true
-parameters:
-  type: gp3
-  csi.storage.k8s.io/fstype: xfs #!
-```
 
 ```yaml
 apiVersion: storage.k8s.io/v1
@@ -240,34 +187,6 @@ spec:
         image: cassandra:5.0
 ```
 
-```yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: cassandra
-spec:
-  serviceName: cassandra
-  replicas: 6
-  selector:
-    matchLabels: {app: cassandra}
-  template:
-    metadata:
-      labels: {app: cassandra}
-    spec:
-      topologySpreadConstraints:
-      - maxSkew: 1 #!
-        topologyKey: topology.kubernetes.io/zone #!
-        whenUnsatisfiable: DoNotSchedule      # hard #!
-        labelSelector: {matchLabels: {app: cassandra}}
-      - maxSkew: 2 #!
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: ScheduleAnyway     # soft #!
-        labelSelector: {matchLabels: {app: cassandra}}
-      containers:
-      - name: cassandra
-        image: cassandra:5.0
-```
-
 ### NUMA and CPU pinning
 
 **Scenario.** A database on a large `r6i.8xlarge` instance has inconsistent query latency. The CPU isn't saturated and the disk is fine, but some queries are mysteriously slower than others. Profiling shows many accesses to memory that is "far away" from the CPU running the query.
@@ -282,19 +201,6 @@ spec:
 - **Without awareness:** Kubernetes treats all CPUs and RAM as one pool. If a database's vCPUs are on socket 0 but its data is in socket 1's RAM, every query pays a remote-memory tax.
 - **Context switching and cache thrashing:** the kernel also moves the database process between cores to balance load, and each move throws away warm CPU caches.
 - **The solution, kubelet configuration:** enable the static CPU manager and topology manager policies, so Guaranteed pods with whole-number CPU requests get exclusive cores, and their CPU and memory come from the same NUMA node.
-
-```yaml
-apiVersion: kubelet.config.k8s.io/v1beta1
-kind: KubeletConfiguration
-cpuManagerPolicy: static #!
-topologyManagerPolicy: single-numa-node #!
-memoryManagerPolicy: Static #!
-reservedSystemCPUs: "0,1"
-reservedMemory:                 # required by the Static memory manager
-- numaNode: 0
-  limits:
-    memory: 1Gi
-```
 
 ```yaml
 apiVersion: kubelet.config.k8s.io/v1beta1
@@ -338,36 +244,6 @@ reservedMemory:                 # required by the Static memory manager
 
 - **Strategy 1, a StatefulSet per AZ (horizontal replication):**
   - **Architecture:** a separate StatefulSet for each zone (for example `db-az-a`, `db-az-b`), each pinned with a `nodeSelector`.
-
-```yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: db-az-a
-spec:
-  serviceName: db
-  replicas: 1
-  selector:
-    matchLabels: {app: db, zone: a}
-  template:
-    metadata:
-      labels: {app: db, zone: a}
-    spec:
-      nodeSelector:
-        topology.kubernetes.io/zone: us-east-1a #!
-      containers:
-      - name: postgres
-        image: postgres:17
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      storageClassName: db-gp3
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 200Gi
-```
 
 ```yaml
 apiVersion: apps/v1
@@ -460,20 +336,6 @@ parameters:
   csi.storage.k8s.io/fstype: xfs #!
 ```
 
-```yaml
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: db-xfs
-provisioner: ebs.csi.aws.com
-volumeBindingMode: WaitForFirstConsumer
-mountOptions:
-- noatime #!
-parameters:
-  type: gp3
-  csi.storage.k8s.io/fstype: xfs #!
-```
-
   - **`data=writeback` (ext4 journaling):** only metadata is journaled, so data may reach the disk after the metadata pointing to it. It's faster, but after a crash a file can contain stale or garbage blocks. Most production databases keep the default `data=ordered` and rely on their own write-ahead log plus `fsync`.
 
 ### The EBS CSI driver
@@ -513,19 +375,6 @@ parameters:
 - **The persistent-volume subsystem:** the abstraction layer that lets developers ask for storage without knowing anything about AWS hardware. It acts as a broker between your application and the CSI driver.
 - **The core components:**
   - **PersistentVolumeClaim (PVC), the "rental application":** a developer writes "I need 50 GB of fast storage", without caring whether it's EBS, EFS or a local disk.
-
-```yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: data
-spec:
-  accessModes: ["ReadWriteOnce"] #!
-  storageClassName: gp3      # the "brochure" tier #!
-  resources:
-    requests:
-      storage: 50Gi #!
-```
 
 ```yaml
 apiVersion: v1

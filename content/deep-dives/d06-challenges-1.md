@@ -51,39 +51,6 @@ spec:
           storage: 20Gi
 ```
 
-```yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: postgres
-spec:
-  serviceName: postgres
-  replicas: 30
-  selector:
-    matchLabels: {app: postgres}
-  template:
-    metadata:
-      labels: {app: postgres}
-    spec:
-      topologySpreadConstraints: #!
-      - maxSkew: 1 #!
-        topologyKey: kubernetes.io/hostname #!
-        whenUnsatisfiable: DoNotSchedule #!
-        labelSelector:
-          matchLabels: {app: postgres}
-      containers:
-      - name: postgres
-        image: postgres:17
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 20Gi
-```
-
 ### The stuck volume
 
 **Scenario.** A worker node running a database crashes suddenly. Kubernetes reschedules the database pod onto a healthy node, but the pod is stuck in `ContainerCreating` because its volume won't attach. The EBS console still shows the volume as attached to a node that no longer exists.
@@ -109,32 +76,6 @@ spec:
 - **The rule:** EBS volumes are regionally resilient but **AZ-locked**; a volume can only attach to nodes in its own AZ.
 - **The problem:** a snapshot restored into `us-east-1a` can never be used by database nodes in `us-east-1b`. Kubernetes can't stretch a cable between data centres.
 - **The fix:** when restoring a snapshot for a PVC, make sure the new volume is in the same AZ as the nodes. Setting `volumeBindingMode: WaitForFirstConsumer` in the StorageClass helps automate this the first time a volume is provisioned.
-
-```yaml
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: gp3-wffc
-provisioner: ebs.csi.aws.com
-volumeBindingMode: WaitForFirstConsumer #!
-parameters:
-  type: gp3
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: restored-data
-spec:
-  storageClassName: gp3-wffc
-  accessModes: ["ReadWriteOnce"]
-  dataSource:                      # restore from a VolumeSnapshot #!
-    apiGroup: snapshot.storage.k8s.io
-    kind: VolumeSnapshot #!
-    name: db-snap-2026-11-01 #!
-  resources:
-    requests:
-      storage: 100Gi
-```
 
 ```yaml
 apiVersion: storage.k8s.io/v1
@@ -199,19 +140,6 @@ parameters:
   throughput: "500"     # MiB/s #!
 ```
 
-```yaml
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: gp3-db
-provisioner: ebs.csi.aws.com
-volumeBindingMode: WaitForFirstConsumer
-parameters:
-  type: gp3
-  iops: "10000" #!
-  throughput: "500"     # MiB/s #!
-```
-
 ### Cross-AZ transfer costs
 
 **Scenario.** The finance team asks why the AWS networking bill for the data platform is now higher than the compute bill. The platform runs a 3-node Kafka cluster spread across three Availability Zones for resilience.
@@ -255,40 +183,12 @@ spec:
         memory: 8Gi     # no limit: killed only if the node itself runs out #!
 ```
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: etl-worker
-spec:
-  containers:
-  - name: etl
-    image: my-company/etl:1.0
-    resources:
-      requests:
-        memory: 8Gi     # no limit: killed only if the node itself runs out #!
-```
-
   - **Widen the gap:** set the limit well above the request to pay the "page cache tax".
   - **Monitor the right metric:** `container_memory_working_set_bytes` shows what Kubernetes sees.
   - **App-level tuning:** in Python or C++, call `posix_fadvise(POSIX_FADV_DONTNEED)` after processing a range of a file. It's a hint that tells the kernel "I'm done with this part, you can evict it", which puts you, not the kernel, in charge of what stays cached even on a 1 TB dataset.
 - **The opposite advice, for shared nodes:**
   - **Don't skip the limit:** it's better for one batch job to die than for it to make the node evict everyone else.
   - **Request = limit:** give batch jobs Guaranteed QoS so the kubelet can't over-schedule the node.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: etl-worker
-spec:
-  containers:
-  - name: etl
-    image: my-company/etl:1.0
-    resources:
-      requests: {cpu: "4", memory: 16Gi} #!
-      limits:   {cpu: "4", memory: 16Gi}   # Guaranteed QoS #!
-```
 
 ```yaml
 apiVersion: v1
@@ -362,31 +262,6 @@ spec:
         image: my-company/batch:1.0
 ```
 
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: nightly-batch
-  labels:
-    kueue.x-k8s.io/queue-name: batch   # admitted only when capacity exists #!
-spec:
-  parallelism: 50
-  completions: 50
-  backoffLimit: 6
-  podFailurePolicy: #!
-    rules:
-    - action: Ignore                  # preemption doesn't burn the retry budget #!
-      onPodConditions:
-      - type: DisruptionTarget #!
-  template:
-    spec:
-      priorityClassName: batch-low    # preemptionPolicy: Never #!
-      restartPolicy: Never
-      containers:
-      - name: worker
-        image: my-company/batch:1.0
-```
-
 **Going deeper.** The same kind of loop appears when a descheduler's strategy disagrees with the scheduler's scoring: pods get evicted, land back on the same node, and get evicted again. A steadily rising eviction count with no consolidation is the signal.
 
 ### CPU limit vs. request gap
@@ -403,23 +278,6 @@ spec:
 - **What the request actually does:** it only sets CPU shares. Under contention CFS splits CPU by shares, but the batch burst still grabs cores, caches and memory bandwidth in spikes.
 - **The result:** if the web pods have tight CPU limits, those spikes throttle them, giving p99 jitter at a 60% average.
 - **The solution:** for CPU-heavy batch jobs, set requests close to limits. That tells Kubernetes "this pod is heavy, don't pack too much else here", and the batch job gets a steady share instead of violent bursts. For I/O-bound batch work (mostly waiting on network or disk), low requests are fine.
-
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: feature-builder
-spec:
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-      - name: builder
-        image: my-company/feature-builder:1.0
-        resources:
-          requests: {cpu: "6"} #!
-          limits:   {cpu: "8"}   # small gap: a steady share, no 7-core surprise #!
-```
 
 ```yaml
 apiVersion: batch/v1
