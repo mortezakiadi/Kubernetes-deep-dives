@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="540px" viewBox="0 0 1300 540" style="background:#ffffff"><title>Semi-automatic verification</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="540" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Automatic checks first, people where they matter most</text>
+<rect x="30" y="80" width="280" height="120" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Automatic</text>
+<text x="42" y="128" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">rules + judges, each able to abstain</text>
+<rect x="400" y="70" width="330" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="412" y="93" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Reward (immediate)</text>
+<text x="412" y="116" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">confident pass / fail: most samples</text>
+<path d="M 310 120 L 400 105" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="400" y="170" width="330" height="200" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="412" y="194" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Routed to review</text>
+<text x="420" y="225.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">• abstentions</text>
+<text x="420" y="251.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">• judge disagreements</text>
+<text x="420" y="277.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">• low-confidence passes</text>
+<text x="420" y="303.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">• suspected exploits</text>
+<text x="420" y="329.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">• random sample of confident passes</text>
+<path d="M 310 170 L 400 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="800" y="170" width="470" height="200" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="812" y="193" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Review queue</text>
+<text x="812" y="216" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">priority: high-advantage samples, new task families. Reviewers see</text>
+<text x="812" y="231" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">task, completion, verifier reasons and a checklist. Labels arrive</text>
+<text x="812" y="246" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">hours later.</text>
+<path d="M 730 270 L 800 270" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="410" width="296" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="433" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Gold labels</text>
+<text x="42" y="456" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">calibration of precision/recall</text>
+<rect x="342" y="410" width="296" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="354" y="433" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Regression tests</text>
+<text x="354" y="456" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">every confirmed exploit</text>
+<rect x="654" y="410" width="296" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="666" y="433" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Re-scoring</text>
+<text x="666" y="456" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fix affected stored samples</text>
+<rect x="966" y="410" width="296" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="978" y="433" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Judge data</text>
+<text x="978" y="456" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">where appropriate</text>
+<path d="M 1035 370 L 1035 395 L 180 395 L 180 410" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/></svg>

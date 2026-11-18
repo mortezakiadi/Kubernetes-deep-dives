@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="540px" viewBox="0 0 1300 540" style="background:#ffffff"><title>Verifier quality</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="540" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Measure verifier quality per slice; precision matters most</text>
+<text x="300" y="90" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">gold label</text>
+<text x="230" y="114.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">correct</text>
+<text x="380" y="114.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">wrong</text>
+<rect x="160" y="125" width="140" height="90" rx="8" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="230" y="165" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#047857">TP</text>
+<text x="230" y="189" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">learn the skill</text>
+<rect x="310" y="125" width="140" height="90" rx="8" fill="#fee2e2" stroke="#cbd5e1"/>
+<text x="380" y="165" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#b91c1c">FP</text>
+<text x="380" y="189" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">learn the bug</text>
+<rect x="160" y="225" width="140" height="90" rx="8" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="230" y="265" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#92400e">FN</text>
+<text x="230" y="289" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">slower learning</text>
+<rect x="310" y="225" width="140" height="90" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="380" y="265" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#334155">TN</text>
+<text x="380" y="289" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">fine</text>
+<text x="145" y="175.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">pass</text>
+<text x="145" y="275.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">fail</text>
+<text x="80" y="225" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">verifier</text>
+<text x="160" y="350" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">precision = TP / (TP + FP)   ·   recall = TP / (TP + FN)</text>
+<rect x="560" y="70" width="710" height="300" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="580" y="96" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Precision per slice: static gold set vs fresh policy outputs (illustrative)</text>
+<text x="700" y="142.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">algebra</text>
+<rect x="715" y="120" width="468" height="14" fill="#94a3b8"/>
+<text x="1188.0" y="132" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#94a3b8">0.995</text>
+<rect x="715" y="136" width="456" height="14" fill="#2563eb"/>
+<text x="1176.0" y="148" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#2563eb">0.990</text>
+<text x="700" y="188.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">geometry</text>
+<rect x="715" y="166" width="456" height="14" fill="#94a3b8"/>
+<text x="1176.0" y="178" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#94a3b8">0.990</text>
+<rect x="715" y="182" width="408" height="14" fill="#2563eb"/>
+<text x="1127.9999999999998" y="194" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#2563eb">0.970</text>
+<text x="700" y="234.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">word problems</text>
+<rect x="715" y="212" width="444" height="14" fill="#94a3b8"/>
+<text x="1164.0" y="224" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#94a3b8">0.985</text>
+<rect x="715" y="228" width="264" height="14" fill="#2563eb"/>
+<text x="984.0" y="240" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#2563eb">0.910</text>
+<text x="700" y="280.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">code: strings</text>
+<rect x="715" y="258" width="456" height="14" fill="#94a3b8"/>
+<text x="1176.0" y="270" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#94a3b8">0.990</text>
+<rect x="715" y="274" width="360" height="14" fill="#2563eb"/>
+<text x="1079.9999999999998" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#2563eb">0.950</text>
+<text x="700" y="326.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">code: graphs</text>
+<rect x="715" y="304" width="432" height="14" fill="#94a3b8"/>
+<text x="1151.9999999999998" y="316" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#94a3b8">0.980</text>
+<rect x="715" y="320" width="144" height="14" fill="#2563eb"/>
+<text x="863.9999999999999" y="332" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#2563eb">0.860</text>
+<line x1="1147" y1="115" x2="1147" y2="350" stroke="#b91c1c" stroke-dasharray="4 4"/>
+<text x="1150" y="362.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">gate: 0.98</text>
+<rect x="580" y="340" width="12" height="12" fill="#94a3b8"/>
+<text x="598" y="351.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#334155">static gold</text>
+<rect x="690" y="340" width="12" height="12" fill="#2563eb"/>
+<text x="708" y="351.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">policy outputs (drifts)</text>
+<rect x="30" y="400" width="1240" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="423.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#065f46">Gate training on precision</text>
+<text x="42" y="447.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">A slice is used for training only above its precision threshold on fresh policy outputs; below it, the slice abstains or goes to review. Report intervals: a few hundred labels give</text>
+<text x="42" y="462.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">wide ones.</text></svg>

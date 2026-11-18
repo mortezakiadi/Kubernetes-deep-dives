@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="520px" viewBox="0 0 1300 520" style="background:#ffffff"><title>Verifier lifecycle</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="520" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">A verifier's lifecycle: built, tested and monitored like production software</text>
+<rect x="30" y="90" width="195" height="150" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Contract</text>
+<text x="42" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">what counts as correct;</text>
+<text x="42" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">equivalences; forbidden</text>
+<text x="42" y="166" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">forms; when to abstain</text>
+<path d="M 225 165 L 240 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="240" y="90" width="195" height="150" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="252" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Implementation</text>
+<text x="252" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">versioned package; verdict</text>
+<text x="252" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pass / fail / abstain +</text>
+<text x="252" y="166" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reasons</text>
+<path d="M 435 165 L 450 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="450" y="90" width="195" height="150" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="462" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Test set</text>
+<text x="462" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">labeled tricky cases + past</text>
+<text x="462" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">exploits; CI</text>
+<path d="M 645 165 L 660 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="660" y="90" width="195" height="150" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="672" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Fuzz + differential</text>
+<text x="672" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">adversarial completions vs</text>
+<text x="672" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a strict reference</text>
+<path d="M 855 165 L 870 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="870" y="90" width="195" height="150" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="882" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Calibrate</text>
+<text x="882" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">precision / recall per</text>
+<text x="882" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">slice, gold + policy</text>
+<text x="882" y="166" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">outputs</text>
+<path d="M 1065 165 L 1080 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1080" y="90" width="195" height="150" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="1092" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Deploy + monitor</text>
+<text x="1092" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pinned version; rewards</text>
+<text x="1092" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tagged; quality monitored</text>
+<path d="M 1160 240 L 1160 300 L 130 300 L 130 240" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-muted)"/>
+<rect x="493.79999999999995" y="278" width="312.40000000000003" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="650" y="292" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#94a3b8">change → new version → re-score affected data</text>
+<rect x="30" y="340" width="610" height="140" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="363.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#065f46">Abstention is a feature</text>
+<text x="42" y="387.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">A verifier allowed to say 'I don't know' can be strict without being wrong. Abstained</text>
+<text x="42" y="402.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">samples give no reward and are counted.</text>
+<rect x="660" y="340" width="610" height="140" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="672" y="363.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#92400e">Reasons are data</text>
+<text x="672" y="387.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">'multiple_final_answers' rising from 0.1% to 6% is often the first sign of a policy</text>
+<text x="672" y="402.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">probing the verifier.</text></svg>

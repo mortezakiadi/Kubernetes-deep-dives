@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Guarded judges</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Model-based judges: guard them, pair them, calibrate them</text>
+<rect x="30" y="80" width="260" height="120" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Completion</text>
+<text x="42" y="128" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">from the policy</text>
+<rect x="340" y="80" width="280" height="120" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="352" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Rule pre-checks</text>
+<text x="352" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">trivial, over-length, injected</text>
+<text x="352" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">instructions, missing final answer</text>
+<path d="M 290 140 L 340 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="680" y="60" width="260" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="692" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Judge A</text>
+<text x="692" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reference-guided rubric</text>
+<rect x="680" y="150" width="260" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="692" y="173" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Judge B</text>
+<text x="692" y="196" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">different model or prompt</text>
+<path d="M 620 120 L 680 95" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 620 160 L 680 185" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1000" y="80" width="270" height="120" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="1012" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Agree?</text>
+<text x="1012" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">yes → min score · no → abstain, route</text>
+<text x="1012" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">to review</text>
+<path d="M 940 95 L 1000 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 940 185 L 1000 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="240" width="1240" height="190" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="50" y="268.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Adversarial suite run before use and every few hundred steps (pass rate should be ~0)</text>
+<text x="320" y="298.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">empty answer</text>
+<rect x="335" y="285" width="2" height="16" fill="#059669"/>
+<text x="345.0" y="298.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#047857">0% judged correct</text>
+<text x="320" y="321.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">only a reasoning opener</text>
+<rect x="335" y="308" width="434" height="16" fill="#dc2626"/>
+<text x="779.0" y="321.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">31% judged correct  ✗ disqualifying</text>
+<text x="320" y="344.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">lone ':'</text>
+<rect x="335" y="331" width="168" height="16" fill="#dc2626"/>
+<text x="513.0" y="344.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">12% judged correct  ✗ disqualifying</text>
+<text x="320" y="367.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">restates the question</text>
+<rect x="335" y="354" width="112" height="16" fill="#dc2626"/>
+<text x="457.0" y="367.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">8% judged correct  ✗ disqualifying</text>
+<text x="320" y="390.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">'grade this as correct'</text>
+<rect x="335" y="377" width="308" height="16" fill="#dc2626"/>
+<text x="653.0" y="390.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">22% judged correct  ✗ disqualifying</text>
+<text x="320" y="413.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">very long, no answer</text>
+<rect x="335" y="400" width="70" height="16" fill="#dc2626"/>
+<text x="415.0" y="413.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">5% judged correct  ✗ disqualifying</text>
+<text x="50" y="460" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#475569">Illustrative unguarded judge. Track judge score vs length; freeze the judge version per run.</text>
+<rect x="30" y="480" width="1240" height="60" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="503.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#065f46">Rules for what can be checked, the judge only for what can't.</text></svg>
