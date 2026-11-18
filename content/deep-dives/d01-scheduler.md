@@ -924,14 +924,26 @@ profiles:
 
 **Scenario.** A team adds a *preferred* pod affinity so their API runs next to its cache. Most of the time it works, but some pods land on a different node: one that happens to have the API's image already pulled. The team asks why their affinity rule "lost" to an image cache.
 
-![When affinity loses to ImageLocality](diagrams/sections/d01-5.svg)
-
-**What the picture shows.** Why a *preferred* affinity can lose even though, on its own, it would win, and two ways to fix it. The scoring itself (grade × weight, then add up) is explained in [Score × weight](#d01-4).
-
-- **The setup:** the `api` pod has a *preferred* pod affinity for the cache pod (same node). Node 2 runs the cache pod and already one `api` replica; node 1 is emptier and has the `api` image cached.
-
 ```yaml
-# The starting point: a PREFERRED affinity, so it's only a score
+# The cache, and the API that would like to run next to it
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cache} #!
+  template:
+    metadata:
+      labels: {app: cache}                   # the label the API's affinity looks for #!
+    spec:
+      containers:
+      - name: redis
+        image: redis:7
+        resources:
+          requests: {cpu: "2", memory: 4Gi}  # makes the cache's node busier
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -946,16 +958,27 @@ spec:
     spec:
       affinity:
         podAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:   # scored, can be outvoted #!
+          preferredDuringSchedulingIgnoredDuringExecution:   # a wish, scored, can be outvoted #!
           - weight: 100
             podAffinityTerm:
               labelSelector:
-                matchLabels: {app: cache}
+                matchLabels: {app: cache} #!
               topologyKey: kubernetes.io/hostname           # "same node as the cache" #!
       containers:
       - name: api
-        image: my-company/api:1.4
+        image: my-company/api:1.4            # already pulled on some other nodes
+        resources:
+          requests: {cpu: "1", memory: 1Gi}
+---
+# What the team sees: some api pods are NOT on the cache's node
+# kubectl get pods -l 'app in (api, cache)' -o wide
 ```
+
+![When affinity loses to ImageLocality](diagrams/sections/d01-5.svg)
+
+**What the picture shows.** Why a *preferred* affinity can lose even though, on its own, it would win, and two ways to fix it. The scoring itself (grade × weight, then add up) is explained in [Score × weight](#d01-4).
+
+- **The setup:** the `api` pods have a *preferred* pod affinity for the cache pod (same node), as in the YAML above the picture. Node 2 runs the cache pod and already one `api` replica; node 1 is emptier and has the `api` image cached.
 
 - **Affinity on its own would win:** InterPodAffinity gives node 2 a grade of 100 (the only node with a cache pod), and with its default weight of 2 that's 200 points against node 1's 0.
 - **But four other plugins prefer node 1:** node 2 is busier because the cache pod and a replica already use its CPU and memory. So NodeResourcesFit (80 vs 30), BalancedResourceAllocation (90 vs 60), ImageLocality (90 vs 0) and the default topology spread (100 × 2 vs 0, since node 2 already has a replica) all favor node 1.
