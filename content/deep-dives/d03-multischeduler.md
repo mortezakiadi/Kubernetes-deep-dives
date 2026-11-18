@@ -151,6 +151,10 @@ profiles:
 > - **Both plugins have a `resources` list, but they mean different things:** for NodeResourcesFit it's what counts when judging how full or empty a node is; for BalancedResourceAllocation it's what it tries to keep even.
 > - **A second scheduler** would be a second `- schedulerName:` item under `profiles`, with its own `plugins` and `pluginConfig`.
 
+- **There isn't an entry for every plugin:**
+  - you only list what you change; everything else keeps its default (on, with its default weight and settings);
+  - only about half the plugins have settings at all, for example NodeResourcesFit (`scoringStrategy`), BalancedResourceAllocation (`resources`), InterPodAffinity, PodTopologySpread (default spread rules), NodeAffinity (an extra node filter for every pod), VolumeBinding and DefaultPreemption; others, like TaintToleration or ImageLocality, can only be switched on or off and weighted;
+  - there's at most one `pluginConfig` entry per plugin in each profile, and each profile can have its own.
 > **Note: different scoring for different pods**
 >
 > A pod can't pick plugins directly: every enabled scoring plugin runs for every pod, and the scores are added up. What a pod *can* pick is the **profile**, through `schedulerName`. So you create two profiles with different scoring, and each pod chooses one. For example, one profile without BalancedResourceAllocation and one without NodeResourcesFit's score:
@@ -197,10 +201,6 @@ profiles:
 > - **A pod's own spec already decides some of it:** NodeAffinity and InterPodAffinity only add points when the pod has preferred rules, so a pod without them gets nothing from those plugins anyway.
 > - **On EKS** you can't add profiles to the default scheduler, so you'd run these two profiles in your own kube-scheduler, as in the [second-scheduler appendix](#appendix-second-scheduler). One process can serve both names.
 
-- **There isn't an entry for every plugin:**
-  - you only list what you change; everything else keeps its default (on, with its default weight and settings);
-  - only about half the plugins have settings at all, for example NodeResourcesFit (`scoringStrategy`), BalancedResourceAllocation (`resources`), InterPodAffinity, PodTopologySpread (default spread rules), NodeAffinity (an extra node filter for every pod), VolumeBinding and DefaultPreemption; others, like TaintToleration or ImageLocality, can only be switched on or off and weighted;
-  - there's at most one `pluginConfig` entry per plugin in each profile, and each profile can have its own.
 - **Turning off a filter is rarely a good idea:** without TaintToleration, for example, pods would ignore every taint. Custom setups usually *add* plugins, such as a gang plugin at `permit`.
 
 > **Note: one file, several schedulers, and other schedulers' formats**
