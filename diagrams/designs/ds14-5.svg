@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Rollout fleet resilience</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">A rollout fleet whose failures the trainer never sees</text>
+<rect x="30" y="90" width="230" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="113" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Rollout client</text>
+<text x="42" y="136" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">deadline, retry elsewhere, hedge</text>
+<text x="42" y="151" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">slow tail</text>
+<rect x="340" y="70" width="130" height="90" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="405" y="104.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">engine 1</text>
+<text x="405" y="126" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">canary ✓</text>
+<rect x="490" y="70" width="130" height="90" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="555" y="104.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">engine 2</text>
+<text x="555" y="126" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">canary ✓</text>
+<rect x="640" y="70" width="130" height="90" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="705" y="104.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">engine 3</text>
+<text x="705" y="126" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">canary ✓</text>
+<rect x="790" y="70" width="130" height="90" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="855" y="104.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">engine 4</text>
+<text x="855" y="126" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">canary ✓</text>
+<rect x="340" y="180" width="130" height="90" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="405" y="214.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">engine 5</text>
+<text x="405" y="236" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">canary ✓</text>
+<rect x="490" y="180" width="130" height="90" rx="8" fill="#fee2e2" stroke="#dc2626"/>
+<text x="555" y="214.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">engine 6</text>
+<text x="555" y="236" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#b91c1c">canary ✗ quarantined</text>
+<rect x="640" y="180" width="130" height="90" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="705" y="214.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">engine 7</text>
+<text x="705" y="236" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">canary ✓</text>
+<rect x="790" y="180" width="130" height="90" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="855" y="214.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">engine 8</text>
+<text x="855" y="236" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">canary ✓</text>
+<path d="M 260 145 L 340 115" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 260 145 L 340 225" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="960" y="70" width="310" height="200" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="972" y="92.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Deep health</text>
+<text x="972" y="115.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">fixed canary prompt: compare output + logprobs</text>
+<text x="972" y="129.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">with expected; compare per-engine reward,</text>
+<text x="972" y="144.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">length, logprob with peers</text>
+<rect x="30" y="300" width="1240" height="100" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="50" y="328" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Rolling weight update: groups swap one at a time; the fleet never goes fully offline</text>
+<rect x="50" y="345" width="270" height="36" rx="6" fill="#d1fae5" stroke="#94a3b8"/>
+<text x="185" y="368" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">group 1: v131</text>
+<rect x="350" y="345" width="270" height="36" rx="6" fill="#d1fae5" stroke="#94a3b8"/>
+<text x="485" y="368" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">group 2: v131</text>
+<rect x="650" y="345" width="270" height="36" rx="6" fill="#e2e8f0" stroke="#94a3b8"/>
+<text x="785" y="368" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">group 3: v130 (serving)</text>
+<rect x="950" y="345" width="270" height="36" rx="6" fill="#e2e8f0" stroke="#94a3b8"/>
+<text x="1085" y="368" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">group 4: v130 (serving)</text>
+<rect x="30" y="430" width="1240" height="90" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="462.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Seen: an engine produced garbled output after a driver error but passed its HTTP health check;</text>
+<text x="50" y="486" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">1/64 of rollouts were nonsense for two hours. Canary + peer comparison catches it in minutes.</text></svg>
