@@ -464,13 +464,42 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">6 points</span></summary><div class="acc-body"><ul>
 <li>For GPU training I switch <mark class="kw">NodeResourcesFit</mark> to <strong>MostAllocated</strong> (<mark class="kw-act">bin-packing</mark>) and give <code>nvidia.com/gpu</code> a higher weight than CPU and memory.</li>
 </ul><pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tc"># A separate profile for GPU training, so ordinary pods keep the default spread.</span></span><span class="ln"><span class="tc"># On EKS this runs in your own kube-scheduler (see the second-scheduler appendix).</span></span><span class="ln"><span class="tk">apiVersion</span>: kubescheduler.config.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: KubeSchedulerConfiguration</span><span class="ln"><span class="tk">profiles</span>:</span><span class="ln">- <span class="tk">schedulerName</span>: default-scheduler        <span class="tc"># unchanged: LeastAllocated (spread)</span></span><span class="ln kl">- <span class="tk">schedulerName</span>: gpu-binpack              <span class="tc"># GPU training pods opt in to this one</span></span><span class="ln">  <span class="tk">pluginConfig</span>:</span><span class="ln">  - <span class="tk">name</span>: NodeResourcesFit</span><span class="ln">    <span class="tk">args</span>:</span><span class="ln">      <span class="tk">scoringStrategy</span>:</span><span class="ln kl">        <span class="tk">type</span>: MostAllocated               <span class="tc"># pack: prefer the FULLEST node that still fits</span></span><span class="ln">        <span class="tk">resources</span>:</span><span class="ln">        - <span class="tk">name</span>: nvidia.com/gpu</span><span class="ln kl">          <span class="tk">weight</span>: 5                       <span class="tc"># GPUs dominate the "how full" score</span></span><span class="ln">        - <span class="tk">name</span>: cpu</span><span class="ln">          <span class="tk">weight</span>: 1</span><span class="ln">        - <span class="tk">name</span>: memory</span><span class="ln">          <span class="tk">weight</span>: 1</span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: batch/v1</span><span class="ln"><span class="tk">kind</span>: Job</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: finetune</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">template</span>:</span><span class="ln">    <span class="tk">spec</span>:</span><span class="ln kl">      <span class="tk">schedulerName</span>: gpu-binpack          <span class="tc"># use the packing profile</span></span><span class="ln">      <span class="tk">restartPolicy</span>: Never</span><span class="ln">      <span class="tk">containers</span>:</span><span class="ln">      - <span class="tk">name</span>: trainer</span><span class="ln">        <span class="tk">image</span>: my-company/trainer:2.0</span><span class="ln">        <span class="tk">resources</span>:</span><span class="ln">          <span class="tk">limits</span>:</span><span class="ln">            <span class="tk">nvidia.com/gpu</span>: 2</span></code></pre><ul>
-<li>Packing leaves whole nodes empty, so the autoscaler can remove them.</li>
-<li>That matters when a GPU node costs tens of dollars an hour.</li>
-<li>The catch is a bigger <mark class="kw">blast radius</mark> per node, so I offer it as a separate scheduler profile and let critical services keep <mark class="kw-act">spreading</mark>.</li>
+<li><strong>Packing leaves whole nodes empty, so the autoscaler can remove them.</strong> For example, 4 GPU nodes with 8 GPUs each, and 8 training pods that each need 1 GPU:</li>
+</ul><table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Where the 8 pods land</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spread</strong> (LeastAllocated, the default)</td>
+<td>2 pods on each of the 4 nodes</td>
+<td>All 4 nodes busy, each only 25% used</td>
+</tr>
+<tr>
+<td><strong>Pack</strong> (MostAllocated)</td>
+<td>All 8 pods on node 1</td>
+<td>Node 1 full; nodes 2, 3 and 4 <strong>completely empty</strong></td>
+</tr>
+</tbody>
+</table><ul>
+<li><strong>Why only packing saves money:</strong> the cluster autoscaler (or <mark class="kw-tool">Karpenter</mark>) removes a node only when nothing important runs on it. <mark class="kw-act">Spreading</mark> leaves no empty node, so nothing can go; packing leaves three empty nodes that can be shut down.</li>
+<li><strong>That matters when a GPU node costs tens of dollars an hour:</strong> a p4d.24xlarge (8 A100s) costs roughly $20–40 an hour on demand, depending on region and pricing. Removing three idle ones saves around $60–120 an hour, over $1,000 a day. For cheap CPU nodes the difference is small; for GPU nodes it's large.</li>
+<li><strong>The catch is a bigger blast radius per node:</strong> "<mark class="kw">blast radius</mark>" is how much breaks when one thing fails. With all 8 pods on node 1, losing that node kills all 8 at once; spread out, a node failure took down only 2. For a training job that's often acceptable, since it restarts from its last <mark class="kw-act">checkpoint</mark> anyway. For a critical service, such as a web API with 8 replicas, losing them all at once is an outage.</li>
+<li><strong>So it's a separate profile, not a change to the default:</strong><ul>
+<li>training Jobs opt in with <code>schedulerName: gpu-binpack</code> and get packed, which is cheap;</li>
+<li>critical services keep the default scheduler and stay spread out, which is resilient.</li>
+</ul>
+</li>
 </ul></div></details>
+
+
 
 
 

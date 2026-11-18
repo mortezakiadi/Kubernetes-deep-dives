@@ -823,9 +823,19 @@ spec:
             nvidia.com/gpu: 2
 ```
 
-- Packing leaves whole nodes empty, so the autoscaler can remove them.
-- That matters when a GPU node costs tens of dollars an hour.
-- The catch is a bigger blast radius per node, so I offer it as a separate scheduler profile and let critical services keep spreading.
+- **Packing leaves whole nodes empty, so the autoscaler can remove them.** For example, 4 GPU nodes with 8 GPUs each, and 8 training pods that each need 1 GPU:
+
+| Strategy | Where the 8 pods land | Result |
+|---|---|---|
+| **Spread** (LeastAllocated, the default) | 2 pods on each of the 4 nodes | All 4 nodes busy, each only 25% used |
+| **Pack** (MostAllocated) | All 8 pods on node 1 | Node 1 full; nodes 2, 3 and 4 **completely empty** |
+
+- **Why only packing saves money:** the cluster autoscaler (or Karpenter) removes a node only when nothing important runs on it. Spreading leaves no empty node, so nothing can go; packing leaves three empty nodes that can be shut down.
+- **That matters when a GPU node costs tens of dollars an hour:** a p4d.24xlarge (8 A100s) costs roughly $20–40 an hour on demand, depending on region and pricing. Removing three idle ones saves around $60–120 an hour, over $1,000 a day. For cheap CPU nodes the difference is small; for GPU nodes it's large.
+- **The catch is a bigger blast radius per node:** "blast radius" is how much breaks when one thing fails. With all 8 pods on node 1, losing that node kills all 8 at once; spread out, a node failure took down only 2. For a training job that's often acceptable, since it restarts from its last checkpoint anyway. For a critical service, such as a web API with 8 replicas, losing them all at once is an outage.
+- **So it's a separate profile, not a change to the default:**
+  - training Jobs opt in with `schedulerName: gpu-binpack` and get packed, which is cheap;
+  - critical services keep the default scheduler and stay spread out, which is resilient.
 
 ### Score × weight
 
