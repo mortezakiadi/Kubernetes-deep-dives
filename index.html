@@ -240,17 +240,17 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>14 deep dives</li>
         <li>18 designs</li>
-        <li>515 scenario sections</li>
+        <li>514 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
     
 <section class="entry tab" id="d-scheduler" aria-labelledby="d-scheduler-h">
   <header class="entry-head">
-    <span class="tag">Deep dive 01 · 5 sections</span>
+    <span class="tag">Deep dive 01 · 4 sections</span>
     <h2 id="d-scheduler-h">How kube-scheduler picks a node</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d01-1">Phase 1: filtering</a></li><li><a href="#d01-3">Phase 2: scoring plugins</a></li><li><a href="#d01-4">Score × weight</a></li><li><a href="#d01-5">When a preferred affinity loses</a></li><li><a href="#d01-8">Scheduler score vs. OOM score</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#d01-1">Phase 1: filtering</a></li><li><a href="#d01-3">Phase 2: scoring plugins</a></li><li><a href="#d01-4">Score × weight</a></li><li><a href="#d01-5">When a preferred affinity loses</a></li></ol></nav>
   <div class="prose"><p>Every pod goes through the same decision. The scheduler first <strong>chooses</strong> a node in two phases: it <em><mark class="kw-act">filters</mark></em> out the nodes that can't run the pod, then <em><mark class="kw-act">scores</mark></em> the ones that can. Then it <strong>binds</strong> the pod to the winner, which is a separate final step that just records the choice. This deep dive follows that decision step by step.</p>
 <h3 id="d01-1">Phase 1: filtering</h3>
 <p><strong>Scenario.</strong> A developer deploys a new service, but the pod never starts. It sits in <code>Pending</code>, and <code>kubectl describe pod</code> shows <code>0/12 nodes are available</code>. The developer is confused: the monitoring dashboard shows every node at around 35% CPU, so there seems to be plenty of room. Why won't Kubernetes place the pod, and how do you find out which rule is blocking it?</p>
@@ -617,12 +617,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-
-<h3 id="d01-8">Scheduler score vs. OOM score</h3>
-<p><strong>Scenario.</strong> A node runs out of memory and Kubernetes kills the team's most important pod. The team is surprised: "The scheduler gave that node a great <mark class="kw-act">score</mark> when it placed the pod, so why was our pod the one that died?" They are mixing up two different <mark class="kw-act">scores</mark>.</p>
-<figure class="diagram"><button aria-label="Open diagram full screen: Scheduler score vs. OOM score" class="open" data-src="diagrams/sections/d01-8.svg" data-title="Scheduler score vs. OOM score" type="button"><img alt="Diagram: Scheduler score vs. OOM score" decoding="async" loading="lazy" src="diagrams/sections/d01-8.svg"/><span class="hint">Open full screen</span></button></figure>
-<p><strong>What the picture shows.</strong> Two "<mark class="kw-act">scores</mark>" that have nothing to do with each other.</p>
-<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Don't mix them up</span></summary><div class="acc-body">the <em>scheduling</em> <mark class="kw-act">score</mark> is about choosing a node for a pod. The <em><mark class="kw">QoS</mark> / OOM</em> score is about choosing which pod to kill (covered in <a href="#d03-6">Memory: who gets killed</a>).</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">The scheduler's choice</span></summary><div class="acc-body">at placement time the scheduler might see a node is 90% full and give it a low score, because it wants to <mark class="kw-act">spread</mark> the load. Once the pod is placed, that score is forgotten.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">The kubelet's reality</span></summary><div class="acc-body">under memory pressure nobody looks at the scheduler's grade. The <mark class="kw-tool">kubelet</mark> first picks pods that use more memory than they <em>requested</em>, then ranks them by priority, then by how far over their request they are. If the kernel's <mark class="kw">OOM killer</mark> fires first, it uses <code>oom_score</code>, which is memory usage plus a QoS-based <code>oom_score_adj</code>. So an "important" pod that uses more than it requested can still be the one that's killed.</div></details></div></div>
+</div>
 </section>
 
 <section class="entry tab" id="d-gpu" aria-labelledby="d-gpu-h">
@@ -1519,7 +1514,46 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Burstable:</strong> 1000 − 1000 × (memory request ÷ node memory), kept between 2 and 999, so a bigger request makes the pod safer.</li>
 <li><strong>Guaranteed:</strong> −997, "don't kill me".</li>
 </ul>
-</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">The worked example (two Burstable pods)</span></summary><div class="acc-body">pod A requested 100 Mi and uses 150 Mi (50 Mi over). Pod B requested 500 Mi and uses 510 Mi (10 Mi over). Both use more than they requested and (here) have the same priority, so the kubelet <mark class="kw-act">evicts</mark> the pod furthest over its <em>request</em>: <strong>pod A goes first</strong>, even though it uses far less memory than pod B. That's the scenario's answer.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Not the scheduling score</span></summary><div class="acc-body">this score is about killing a pod, not about choosing a node (see <a href="#d01-8">Scheduler score vs. OOM score</a>).</div></details></div>
+</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">The worked example (two Burstable pods)</span></summary><div class="acc-body">pod A requested 100 Mi and uses 150 Mi (50 Mi over). Pod B requested 500 Mi and uses 510 Mi (10 Mi over). Both use more than they requested and (here) have the same priority, so the kubelet <mark class="kw-act">evicts</mark> the pod furthest over its <em>request</em>: <strong>pod A goes first</strong>, even though it uses far less memory than pod B. That's the scenario's answer.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Not the scheduling score</span></summary><div class="acc-body">this score is about killing a pod, not about choosing a node. The two are unrelated, so a pod the scheduler placed on a "great" node can still be the one that dies.<blockquote>
+<p><strong>Note: scheduler score vs. OOM score</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Scheduler score</th>
+<th>OOM / eviction ranking</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Question it answers</td>
+<td>Which <strong>node</strong> should this new pod go to?</td>
+<td>Which <strong>pod</strong> should die when a node runs out of memory?</td>
+</tr>
+<tr>
+<td>Who calculates it</td>
+<td>kube-scheduler, once, at placement</td>
+<td>The kubelet (eviction) or the Linux kernel (OOM killer), later, under memory pressure</td>
+</tr>
+<tr>
+<td>Based on</td>
+<td>Plugin grades × weights (see <a href="#d01-4">Score × weight</a>)</td>
+<td>Memory used vs. <em>requested</em>, pod priority, and QoS class (<code>oom_score_adj</code>)</td>
+</tr>
+<tr>
+<td>Lifetime</td>
+<td>Forgotten as soon as the pod is placed</td>
+<td>Worked out fresh when memory runs out</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>What the scheduler saw doesn't protect the pod:</strong> it may have given the node a great score because it looked empty, but nobody looks at that score again.</li>
+<li><strong>Under memory pressure, the kubelet ranks pods for eviction:</strong> first pods using more memory than they <em>requested</em>, then lower priority, then whoever is furthest over its request.</li>
+<li><strong>If the kernel's OOM killer acts first,</strong> it uses <code>oom_score</code>: memory use plus the QoS-based <code>oom_score_adj</code> above. So an "important" pod that uses more than it requested can still be the one that's killed. Setting memory requests close to real use, or making the pod Guaranteed, is what actually protects it.</li>
+</ul>
+</blockquote></div></details></div>
+
 <h3 id="d03-7">Network: the unmanaged resource</h3>
 <p><strong>Scenario.</strong> An API pod's latency suddenly spikes and it starts dropping connections, yet its CPU and memory graphs look perfectly normal. Hours later someone notices that a backup pod in a different namespace, on the same node, started a large transfer at exactly that time.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Network: the unmanaged resource" class="open" data-src="diagrams/sections/d03-7.svg" data-title="Network: the unmanaged resource" type="button"><img alt="Diagram: Network: the unmanaged resource" decoding="async" loading="lazy" src="diagrams/sections/d03-7.svg"/><span class="hint">Open full screen</span></button></figure>

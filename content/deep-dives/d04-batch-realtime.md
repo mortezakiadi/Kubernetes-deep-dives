@@ -325,7 +325,20 @@ spec:
   - **Burstable:** 1000 − 1000 × (memory request ÷ node memory), kept between 2 and 999, so a bigger request makes the pod safer.
   - **Guaranteed:** −997, "don't kill me".
 - **The worked example (two Burstable pods):** pod A requested 100 Mi and uses 150 Mi (50 Mi over). Pod B requested 500 Mi and uses 510 Mi (10 Mi over). Both use more than they requested and (here) have the same priority, so the kubelet evicts the pod furthest over its *request*: **pod A goes first**, even though it uses far less memory than pod B. That's the scenario's answer.
-- **Not the scheduling score:** this score is about killing a pod, not about choosing a node (see [Scheduler score vs. OOM score](#d01-8)).
+- **Not the scheduling score:** this score is about killing a pod, not about choosing a node. The two are unrelated, so a pod the scheduler placed on a "great" node can still be the one that dies.
+
+> **Note: scheduler score vs. OOM score**
+>
+> | | Scheduler score | OOM / eviction ranking |
+> |---|---|---|
+> | Question it answers | Which **node** should this new pod go to? | Which **pod** should die when a node runs out of memory? |
+> | Who calculates it | kube-scheduler, once, at placement | The kubelet (eviction) or the Linux kernel (OOM killer), later, under memory pressure |
+> | Based on | Plugin grades × weights (see [Score × weight](#d01-4)) | Memory used vs. *requested*, pod priority, and QoS class (`oom_score_adj`) |
+> | Lifetime | Forgotten as soon as the pod is placed | Worked out fresh when memory runs out |
+>
+> - **What the scheduler saw doesn't protect the pod:** it may have given the node a great score because it looked empty, but nobody looks at that score again.
+> - **Under memory pressure, the kubelet ranks pods for eviction:** first pods using more memory than they *requested*, then lower priority, then whoever is furthest over its request.
+> - **If the kernel's OOM killer acts first,** it uses `oom_score`: memory use plus the QoS-based `oom_score_adj` above. So an "important" pod that uses more than it requested can still be the one that's killed. Setting memory requests close to real use, or making the pod Guaranteed, is what actually protects it.
 
 ### Network: the unmanaged resource
 

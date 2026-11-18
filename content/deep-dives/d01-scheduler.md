@@ -1132,14 +1132,3 @@ profiles:
         weight: 4                       # was 2: node 2 gets 118.8 + 400 = 518.8 > 464.8 (3 gives 418.8) #!
 ```
 
-### Scheduler score vs. OOM score
-
-**Scenario.** A node runs out of memory and Kubernetes kills the team's most important pod. The team is surprised: "The scheduler gave that node a great score when it placed the pod, so why was our pod the one that died?" They are mixing up two different scores.
-
-![Scheduler score vs. OOM score](diagrams/sections/d01-8.svg)
-
-**What the picture shows.** Two "scores" that have nothing to do with each other.
-
-- **Don't mix them up:** the *scheduling* score is about choosing a node for a pod. The *QoS / OOM* score is about choosing which pod to kill (covered in [Memory: who gets killed](#d03-6)).
-- **The scheduler's choice:** at placement time the scheduler might see a node is 90% full and give it a low score, because it wants to spread the load. Once the pod is placed, that score is forgotten.
-- **The kubelet's reality:** under memory pressure nobody looks at the scheduler's grade. The kubelet first picks pods that use more memory than they *requested*, then ranks them by priority, then by how far over their request they are. If the kernel's OOM killer fires first, it uses `oom_score`, which is memory usage plus a QoS-based `oom_score_adj`. So an "important" pod that uses more than it requested can still be the one that's killed.
