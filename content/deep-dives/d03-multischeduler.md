@@ -90,6 +90,28 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 - **postFilter (4):** runs only when no node passed. DefaultPreemption looks for lower-priority pods to evict to make room.
 - **preScore and score (5):** scoring. The only stage where plugins have a **weight**, which says how much each plugin counts in the total.
 - **One plugin, several stages:** NodeResourcesFit filters ("does it fit?") and scores ("how full would the node be?"). NodeAffinity, TaintToleration, InterPodAffinity and PodTopologySpread do both too: their required or hard rules filter, their preferred or soft rules score.
+
+> **Note: why NodeResourcesFit is at both filter and score**
+>
+> It answers two different questions about the same numbers: the node's allocatable CPU and memory minus the requests of the pods already there.
+>
+> | Stage | Question | Answer |
+> |---|---|---|
+> | **Filter** | Does the pod **fit** on this node at all? | Yes or no. If its requests exceed what's left, the node is removed ("Insufficient cpu"). |
+> | **Score** | Of the nodes where it fits, **how good** is each one? | A number from 0 to 100, based on how full the node would be after placing the pod. |
+>
+> For example, a pod requests 1 CPU and three nodes each have 4 CPU allocatable:
+>
+> | Node | Already requested | Filter | Score with LeastAllocated (default) |
+> |---|---|---|---|
+> | A | 3.5 CPU | ✗ only 0.5 left | – |
+> | B | 2 CPU | ✓ | lower (would be 75% full) |
+> | C | 0.5 CPU | ✓ | higher (would be 37.5% full) |
+>
+> - **The filter removes A.** Scoring then prefers C, because LeastAllocated favors emptier nodes and so spreads pods out.
+> - **Switch the strategy to MostAllocated** and the same plugin prefers B instead: it fills nodes up (bin-packing) so empty nodes can be removed. That's why the fit check itself is "not bin-packing": the filter only says yes or no, and packing versus spreading is decided at the score stage.
+> - **Why one plugin and not two:** both stages need the same calculation, so one plugin computes it once and uses it twice. NodeAffinity, TaintToleration, InterPodAffinity and PodTopologySpread work the same way: they filter on their hard rules and score on their soft ones.
+
 - **reserve and permit (6, 7):** reserve holds the chosen node's resources (volumes, devices) while binding is in progress. Permit can approve, deny or make a pod **wait**; nothing runs there by default, but gang plugins use it to hold each pod until its whole group has a place.
 - **The binding cycle (8 to 10):** preBind prepares what the pod needs (for example provisioning its volume), bind writes the chosen node into the pod, postBind cleans up. This part runs in the background, so the scheduler can start on the next pod.
 - **profiles[]:** one entry per scheduler name. A pod picks one with `schedulerName`, and one kube-scheduler process can serve several.

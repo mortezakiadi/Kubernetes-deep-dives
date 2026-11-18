@@ -951,7 +951,69 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <p><strong>Scenario.</strong> The platform team wants pods packed onto fewer nodes so idle nodes can be removed, and a gang plugin for training jobs. They open a <code>KubeSchedulerConfiguration</code> and find <code>profiles</code>, <code>plugins</code>, <code>pluginConfig</code>, a dozen stage names and two different <code>weight</code> fields. Before changing anything, they need to know what each part controls.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Configuring a scheduler: stages, plugins and profiles" class="open" data-src="diagrams/sections/d02-9.svg" data-title="Configuring a scheduler: stages, plugins and profiles" type="button"><img alt="Diagram: Configuring a scheduler: stages, plugins and profiles" decoding="async" loading="lazy" src="diagrams/sections/d02-9.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> The stages every pod passes through inside <mark class="kw-tool">kube-scheduler</mark>, the plugins the default scheduler puts at each one, and the three parts of the configuration file that control them.</p>
-<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">The stages (extension points)</span></summary><div class="acc-body">kube-scheduler is a pipeline of fixed stages, numbered 1 to 10 in the picture. Each stage is filled with <strong>plugins</strong>, and <mark class="kw-act">filtering</mark>, <mark class="kw-act">scoring</mark> and <mark class="kw-act">binding</mark> are just the best-known stages.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">preEnqueue and queueSort (1, 2)</span></summary><div class="acc-body">decide whether a pod may enter the queue at all (<mark class="kw">SchedulingGates</mark> holds it back until its gates are removed) and in what order waiting pods are taken (<mark class="kw">PrioritySort</mark>: higher priority first).</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">preFilter and filter (3)</span></summary><div class="acc-body">filtering. Each plugin removes nodes that break one rule: resources, ports, <mark class="kw">taints</mark>, <mark class="kw">affinity</mark>, <mark class="kw">topology spread</mark>, volumes, devices.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">postFilter (4)</span></summary><div class="acc-body">runs only when no node passed. <mark class="kw">DefaultPreemption</mark> looks for lower-priority pods to <mark class="kw-act">evict</mark> to make room.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">preScore and score (5)</span></summary><div class="acc-body">scoring. The only stage where plugins have a <strong>weight</strong>, which says how much each plugin counts in the total.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">One plugin, several stages</span></summary><div class="acc-body"><mark class="kw">NodeResourcesFit</mark> filters ("does it fit?") and scores ("how full would the node be?"). <mark class="kw">NodeAffinity</mark>, <mark class="kw">TaintToleration</mark>, <mark class="kw">InterPodAffinity</mark> and <mark class="kw">PodTopologySpread</mark> do both too: their required or hard rules filter, their preferred or soft rules <mark class="kw-act">score</mark>.</div></details><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">reserve and permit (6, 7)</span></summary><div class="acc-body">reserve holds the chosen node's resources (volumes, devices) while binding is in progress. Permit can approve, deny or make a pod <strong>wait</strong>; nothing runs there by default, but gang plugins use it to hold each pod until its whole group has a place.</div></details><details class="acc"><summary><span class="acc-num">8</span><span class="acc-title">The binding cycle (8 to 10)</span></summary><div class="acc-body">preBind prepares what the pod needs (for example provisioning its volume), bind writes the chosen node into the pod, postBind cleans up. This part runs in the background, so the scheduler can start on the next pod.</div></details><details class="acc"><summary><span class="acc-num">9</span><span class="acc-title">profiles[]</span></summary><div class="acc-body">one entry per scheduler name. A pod picks one with <code>schedulerName</code>, and one kube-scheduler process can serve several.</div></details><details class="acc"><summary><span class="acc-num">10</span><span class="acc-title">plugins</span></summary><div class="acc-body">per stage, which plugins are enabled or disabled, and under <code>score</code>, each plugin's weight.</div></details><details class="acc"><summary><span class="acc-num">11</span><span class="acc-title">pluginConfig</span></summary><div class="acc-body">per plugin, its own settings (<code>args</code>), which change how it calculates rather than whether it runs.</div></details></div>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">The stages (extension points)</span></summary><div class="acc-body">kube-scheduler is a pipeline of fixed stages, numbered 1 to 10 in the picture. Each stage is filled with <strong>plugins</strong>, and <mark class="kw-act">filtering</mark>, <mark class="kw-act">scoring</mark> and <mark class="kw-act">binding</mark> are just the best-known stages.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">preEnqueue and queueSort (1, 2)</span></summary><div class="acc-body">decide whether a pod may enter the queue at all (<mark class="kw">SchedulingGates</mark> holds it back until its gates are removed) and in what order waiting pods are taken (<mark class="kw">PrioritySort</mark>: higher priority first).</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">preFilter and filter (3)</span></summary><div class="acc-body">filtering. Each plugin removes nodes that break one rule: resources, ports, <mark class="kw">taints</mark>, <mark class="kw">affinity</mark>, <mark class="kw">topology spread</mark>, volumes, devices.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">postFilter (4)</span></summary><div class="acc-body">runs only when no node passed. <mark class="kw">DefaultPreemption</mark> looks for lower-priority pods to <mark class="kw-act">evict</mark> to make room.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">preScore and score (5)</span></summary><div class="acc-body">scoring. The only stage where plugins have a <strong>weight</strong>, which says how much each plugin counts in the total.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">One plugin, several stages</span></summary><div class="acc-body"><mark class="kw">NodeResourcesFit</mark> filters ("does it fit?") and scores ("how full would the node be?"). <mark class="kw">NodeAffinity</mark>, <mark class="kw">TaintToleration</mark>, <mark class="kw">InterPodAffinity</mark> and <mark class="kw">PodTopologySpread</mark> do both too: their required or hard rules filter, their preferred or soft rules <mark class="kw-act">score</mark>.<blockquote>
+<p><strong>Note: why NodeResourcesFit is at both filter and score</strong></p>
+<p>It answers two different questions about the same numbers: the node's allocatable CPU and memory minus the requests of the pods already there.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Question</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Filter</strong></td>
+<td>Does the pod <strong>fit</strong> on this node at all?</td>
+<td>Yes or no. If its requests exceed what's left, the node is removed ("Insufficient cpu").</td>
+</tr>
+<tr>
+<td><strong>Score</strong></td>
+<td>Of the nodes where it fits, <strong>how good</strong> is each one?</td>
+<td>A number from 0 to 100, based on how full the node would be after placing the pod.</td>
+</tr>
+</tbody>
+</table>
+<p>For example, a pod requests 1 CPU and three nodes each have 4 CPU allocatable:</p>
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th>Already requested</th>
+<th>Filter</th>
+<th>Score with LeastAllocated (default)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>3.5 CPU</td>
+<td>✗ only 0.5 left</td>
+<td>–</td>
+</tr>
+<tr>
+<td>B</td>
+<td>2 CPU</td>
+<td>✓</td>
+<td>lower (would be 75% full)</td>
+</tr>
+<tr>
+<td>C</td>
+<td>0.5 CPU</td>
+<td>✓</td>
+<td>higher (would be 37.5% full)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>The filter removes A.</strong> Scoring then prefers C, because <mark class="kw">LeastAllocated</mark> favors emptier nodes and so <mark class="kw-act">spreads</mark> pods out.</li>
+<li><strong>Switch the strategy to MostAllocated</strong> and the same plugin prefers B instead: it fills nodes up (<mark class="kw-act">bin-packing</mark>) so empty nodes can be removed. That's why the fit check itself is "not bin-packing": the filter only says yes or no, and packing versus spreading is decided at the score stage.</li>
+<li><strong>Why one plugin and not two:</strong> both stages need the same calculation, so one plugin computes it once and uses it twice. NodeAffinity, TaintToleration, InterPodAffinity and PodTopologySpread work the same way: they filter on their hard rules and score on their soft ones.</li>
+</ul>
+</blockquote></div></details><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">reserve and permit (6, 7)</span></summary><div class="acc-body">reserve holds the chosen node's resources (volumes, devices) while binding is in progress. Permit can approve, deny or make a pod <strong>wait</strong>; nothing runs there by default, but gang plugins use it to hold each pod until its whole group has a place.</div></details><details class="acc"><summary><span class="acc-num">8</span><span class="acc-title">The binding cycle (8 to 10)</span></summary><div class="acc-body">preBind prepares what the pod needs (for example provisioning its volume), bind writes the chosen node into the pod, postBind cleans up. This part runs in the background, so the scheduler can start on the next pod.</div></details><details class="acc"><summary><span class="acc-num">9</span><span class="acc-title">profiles[]</span></summary><div class="acc-body">one entry per scheduler name. A pod picks one with <code>schedulerName</code>, and one kube-scheduler process can serve several.</div></details><details class="acc"><summary><span class="acc-num">10</span><span class="acc-title">plugins</span></summary><div class="acc-body">per stage, which plugins are enabled or disabled, and under <code>score</code>, each plugin's weight.</div></details><details class="acc"><summary><span class="acc-num">11</span><span class="acc-title">pluginConfig</span></summary><div class="acc-body">per plugin, its own settings (<code>args</code>), which change how it calculates rather than whether it runs.</div></details></div>
+
+
 <details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">5 points</span></summary><div class="acc-body"><ul>
 <li><strong>Reading a real configuration:</strong> in this example, <code>plugins</code> says <mark class="kw">BalancedResourceAllocation</mark>'s <mark class="kw-act">score</mark> counts double, and <code>pluginConfig</code> says which resources it compares when it measures balance. BalancedResourceAllocation is already on by default, so listing it under <code>enabled</code> only changes its weight; it doesn't add a second copy.</li>
 </ul><pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: kubescheduler.config.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: KubeSchedulerConfiguration</span><span class="ln"><span class="tk">profiles</span>:</span><span class="ln">- <span class="tk">schedulerName</span>: default-scheduler     <span class="tc"># profiles[]: one scheduler</span></span><span class="ln kl">  <span class="tk">plugins</span>:                             <span class="tc"># plugins: which run, per stage</span></span><span class="ln">    <span class="tk">score</span>:</span><span class="ln">      <span class="tk">enabled</span>:</span><span class="ln">      - <span class="tk">name</span>: BalancedResourceAllocation</span><span class="ln kl">        <span class="tk">weight</span>: 2                      <span class="tc"># counts double vs. other scoring plugins (default 1)</span></span><span class="ln kl">  <span class="tk">pluginConfig</span>:                        <span class="tc"># pluginConfig: how a plugin calculates</span></span><span class="ln">  - <span class="tk">name</span>: BalancedResourceAllocation</span><span class="ln">    <span class="tk">args</span>:</span><span class="ln kl">      <span class="tk">resources</span>:                       <span class="tc"># which resources to keep in balance</span></span><span class="ln">      - <span class="tk">name</span>: cpu</span><span class="ln">        <span class="tk">weight</span>: 1</span><span class="ln">      - <span class="tk">name</span>: memory</span><span class="ln">        <span class="tk">weight</span>: 1</span><span class="ln">      - <span class="tk">name</span>: nvidia.com/gpu           <span class="tc"># e.g. also balance GPUs</span></span><span class="ln">        <span class="tk">weight</span>: 1</span></code></pre><table>
