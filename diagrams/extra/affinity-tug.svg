@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 680" width="1180" height="680" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0" font-weight="700" fill="#1f2933">The tug of war: one pod, two nodes</tspan></text>
+<text x="24" y="62" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="24" dy="0" font-weight="400" fill="#5b6675">Your affinity pulls the new api pod toward node 2. Four other plugins pull it toward node 1, and together they pull harder.</tspan></text>
+<rect x="480.0" y="84" width="220" height="64" rx="12" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.6"/>
+<text x="590.0" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e4fb8" text-anchor="middle"><tspan x="590.0" dy="0" font-weight="700" fill="#1e4fb8">new api pod (Pending)</tspan></text>
+<text x="590.0" y="133" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="middle"><tspan x="590.0" dy="0" font-weight="400" fill="#5b6675">requests 1 CPU · 1 GiB</tspan></text>
+<path d="M550.0,148 L550.0,166 L298.0,166 L298.0,186" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M630.0,148 L630.0,166 L882.0,166 L882.0,186" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="24" y="186" width="548" height="470" rx="16" fill="#f3fbf6" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="46" y="218" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#2f9e5b" text-anchor="start"><tspan x="46" dy="0" font-weight="700" fill="#2f9e5b">Node 1</tspan></text>
+<text x="46" y="240" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="46" dy="0" font-weight="400" fill="#5b6675">10 CPU · 40 GiB allocatable (shares include the new pod)</tspan></text>
+<rect x="46" y="258" width="504" height="58" rx="10" fill="#f3f4f6" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="298.0" y="292" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle"><tspan x="298.0" dy="0" font-weight="400" fill="#5b6675">a few small pods · plenty of room</tspan></text>
+<text x="46" y="348" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="start"><tspan x="46" dy="0" font-weight="600" fill="#1f2933">CPU</tspan></text>
+<rect x="118" y="334" width="250" height="18" rx="9" fill="#ffffff" stroke="#c9d2dc" stroke-width="1.2"/>
+<rect x="118" y="334" width="75" height="18" rx="9" fill="#2f9e5b"/>
+<text x="380" y="348" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#5b6675" text-anchor="start"><tspan x="380" dy="0" font-weight="600" fill="#5b6675">30% requested</tspan></text>
+<text x="46" y="376" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="start"><tspan x="46" dy="0" font-weight="600" fill="#1f2933">Memory</tspan></text>
+<rect x="118" y="362" width="250" height="18" rx="9" fill="#ffffff" stroke="#c9d2dc" stroke-width="1.2"/>
+<rect x="118" y="362" width="25" height="18" rx="9" fill="#2f9e5b"/>
+<text x="380" y="376" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#5b6675" text-anchor="start"><tspan x="380" dy="0" font-weight="600" fill="#5b6675">10% requested</tspan></text>
+<rect x="46" y="394" width="504" height="40" rx="10" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="64" y="419" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="64" dy="0" font-weight="600" fill="#2f9e5b">api image (1.2 GB): already cached ✓</tspan></text>
+<text x="46" y="460" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="start"><tspan x="46" dy="0" font-weight="600" fill="#1f2933">No api replica here yet · no cache pod</tspan></text>
+<text x="46" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="46" dy="0" font-weight="700" fill="#2f9e5b">Points this node earns:</tspan></text>
+<text x="58" y="528" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="58" dy="0" font-weight="700" fill="#1f2933">• NodeResourcesFit</tspan></text>
+<text x="274" y="528" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="274" dy="0" font-weight="400" fill="#5b6675">emptier: 80 × 1</tspan></text>
+<text x="548" y="528" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="end"><tspan x="548" dy="0" font-weight="700" fill="#2f9e5b">+80</tspan></text>
+<text x="58" y="548" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="58" dy="0" font-weight="700" fill="#1f2933">• BalancedResourceAllocation</tspan></text>
+<text x="274" y="548" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="274" dy="0" font-weight="400" fill="#5b6675">CPU and memory close: 90 × 1</tspan></text>
+<text x="548" y="548" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="end"><tspan x="548" dy="0" font-weight="700" fill="#2f9e5b">+90</tspan></text>
+<text x="58" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="58" dy="0" font-weight="700" fill="#1f2933">• ImageLocality</tspan></text>
+<text x="274" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="274" dy="0" font-weight="400" fill="#5b6675">image cached: 90 × 1</tspan></text>
+<text x="548" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="end"><tspan x="548" dy="0" font-weight="700" fill="#2f9e5b">+90</tspan></text>
+<text x="58" y="588" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="58" dy="0" font-weight="700" fill="#1f2933">• PodTopologySpread</tspan></text>
+<text x="274" y="588" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="274" dy="0" font-weight="400" fill="#5b6675">no replica yet: 100 × 2</tspan></text>
+<text x="548" y="588" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="end"><tspan x="548" dy="0" font-weight="700" fill="#2f9e5b">+200</tspan></text>
+<rect x="46" y="604" width="504" height="38" rx="10" fill="#e8f6ee" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="298.0" y="629" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f9e5b" text-anchor="middle"><tspan x="298.0" dy="0" font-weight="700" fill="#2f9e5b">Total 460  → wins</tspan></text>
+<rect x="608" y="186" width="548" height="470" rx="16" fill="#fdf5f4" stroke="#c0392b" stroke-width="1.6"/>
+<text x="630" y="218" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#c0392b" text-anchor="start"><tspan x="630" dy="0" font-weight="700" fill="#c0392b">Node 2</tspan></text>
+<text x="630" y="240" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="630" dy="0" font-weight="400" fill="#5b6675">10 CPU · 40 GiB allocatable (shares include the new pod)</tspan></text>
+<rect x="630" y="258" width="160" height="58" rx="10" fill="#fff3d6" stroke="#d48a1c" stroke-width="1.6"/>
+<text x="710" y="284" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="710" dy="0" font-weight="700" fill="#1f2933">cache</tspan></text>
+<text x="710" y="303" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle"><tspan x="710" dy="0" font-weight="400" fill="#5b6675">the Redis pod</tspan></text>
+<rect x="802" y="258" width="160" height="58" rx="10" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.6"/>
+<text x="882" y="284" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="882" dy="0" font-weight="700" fill="#1f2933">api</tspan></text>
+<text x="882" y="303" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle"><tspan x="882" dy="0" font-weight="400" fill="#5b6675">replica #1</tspan></text>
+<rect x="974" y="258" width="160" height="58" rx="10" fill="#f3f4f6" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="1054" y="284" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="1054" dy="0" font-weight="700" fill="#1f2933">other</tspan></text>
+<text x="1054" y="303" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle"><tspan x="1054" dy="0" font-weight="400" fill="#5b6675">pods</tspan></text>
+<text x="630" y="348" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="start"><tspan x="630" dy="0" font-weight="600" fill="#1f2933">CPU</tspan></text>
+<rect x="702" y="334" width="250" height="18" rx="9" fill="#ffffff" stroke="#c9d2dc" stroke-width="1.2"/>
+<rect x="702" y="334" width="225" height="18" rx="9" fill="#c0392b"/>
+<text x="964" y="348" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#5b6675" text-anchor="start"><tspan x="964" dy="0" font-weight="600" fill="#5b6675">90% requested</tspan></text>
+<text x="630" y="376" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="start"><tspan x="630" dy="0" font-weight="600" fill="#1f2933">Memory</tspan></text>
+<rect x="702" y="362" width="250" height="18" rx="9" fill="#ffffff" stroke="#c9d2dc" stroke-width="1.2"/>
+<rect x="702" y="362" width="125" height="18" rx="9" fill="#c0392b"/>
+<text x="964" y="376" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#5b6675" text-anchor="start"><tspan x="964" dy="0" font-weight="600" fill="#5b6675">50% requested</tspan></text>
+<rect x="630" y="394" width="504" height="40" rx="10" fill="#ffffff" stroke="#c9d2dc" stroke-width="1.6"/>
+<text x="648" y="419" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="648" dy="0" font-weight="600" fill="#5b6675">api image (1.2 GB): not here, would have to download</tspan></text>
+<text x="630" y="460" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="start"><tspan x="630" dy="0" font-weight="600" fill="#1f2933">Has the cache pod your affinity wants · already has an api replica</tspan></text>
+<text x="630" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="630" dy="0" font-weight="700" fill="#c0392b">Points this node earns:</tspan></text>
+<text x="642" y="528" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="642" dy="0" font-weight="700" fill="#1f2933">• InterPodAffinity</tspan></text>
+<text x="858" y="528" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="858" dy="0" font-weight="400" fill="#5b6675">your rule: 100 × 2</tspan></text>
+<text x="1132" y="528" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end"><tspan x="1132" dy="0" font-weight="700" fill="#c0392b">+200</tspan></text>
+<text x="642" y="548" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="642" dy="0" font-weight="700" fill="#1f2933">• BalancedResourceAllocation</tspan></text>
+<text x="858" y="548" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="858" dy="0" font-weight="400" fill="#5b6675">less even: 80 × 1</tspan></text>
+<text x="1132" y="548" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end"><tspan x="1132" dy="0" font-weight="700" fill="#c0392b">+80</tspan></text>
+<text x="642" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="642" dy="0" font-weight="700" fill="#1f2933">• NodeResourcesFit</tspan></text>
+<text x="858" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start"><tspan x="858" dy="0" font-weight="400" fill="#5b6675">busier: 30 × 1</tspan></text>
+<text x="1132" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end"><tspan x="1132" dy="0" font-weight="700" fill="#c0392b">+30</tspan></text>
+<rect x="630" y="604" width="504" height="38" rx="10" fill="#fbe9e7" stroke="#c0392b" stroke-width="1.6"/>
+<text x="882.0" y="629" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#c0392b" text-anchor="middle"><tspan x="882.0" dy="0" font-weight="700" fill="#c0392b">Total 310</tspan></text>
+</svg>

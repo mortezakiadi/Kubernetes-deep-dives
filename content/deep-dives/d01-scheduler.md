@@ -1035,6 +1035,12 @@ spec:
 
 - **The setup:** the `api` pods have a *preferred* pod affinity for the cache pod (same node), as in the YAML above the picture. Node 2 runs the cache pod and already one `api` replica; node 1 is emptier and has the `api` image cached.
 
+> **The two nodes, side by side**
+>
+> ![The tug of war: one pod, two nodes](diagrams/extra/affinity-tug.svg)
+>
+> What each node has, and the points it earns. Your affinity is the only plugin that favors node 2; NodeResourcesFit, BalancedResourceAllocation, ImageLocality and the default topology spread all favor node 1.
+
 - **Affinity on its own would win:** InterPodAffinity gives node 2 a grade of 100 (the only node with a cache pod), and with its default weight of 2 that's 200 points against node 1's 0.
 - **But four other plugins prefer node 1:** node 2 is busier because the cache pod and a replica already use its CPU and memory. So NodeResourcesFit (80 vs 30), BalancedResourceAllocation (90 vs 80), ImageLocality (90 vs 0) and the default topology spread (100 × 2 vs 0, since node 2 already has a replica) all favor node 1.
 - **The result:** node 1 gets 80 + 90 + 90 + 200 + 0 = **460**, node 2 gets 30 + 80 + 0 + 0 + 200 = **310**. Node 1 wins, and the affinity seems to be ignored. No single plugin beat it; several small ones added up.
