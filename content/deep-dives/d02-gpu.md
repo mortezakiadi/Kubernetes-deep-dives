@@ -83,14 +83,20 @@ spec:
   - it monitors their health, and an unhealthy GPU is taken out of the node's allocatable count.
 - **Two labeling tools usually run next to it:** on a typical GPU node there are three separate NVIDIA-related pods. All three are DaemonSets (one pod per GPU node), and the NVIDIA GPU Operator usually installs them together:
 
-| Tool | What it does | What it produces |
-|---|---|---|
-| **Device plugin** | Counts the GPUs, and **gives one to a container** when a pod asks | A count in the node's capacity (`nvidia.com/gpu: 8`), plus the actual GPU device inside the container |
-| **Node Feature Discovery** | Scans the hardware | Generic labels such as `feature.node.kubernetes.io/pci-10de.present=true` ("an NVIDIA card is here") |
-| **GPU Feature Discovery** | Reads the GPU details | Labels such as `nvidia.com/gpu.product=…A100…` and `nvidia.com/gpu.memory=81920` |
+| Tool | What it does | What it produces | Do you need it? |
+|---|---|---|---|
+| **Device plugin** | Counts the GPUs, and **gives one to a container** when a pod asks | A count in the node's capacity (`nvidia.com/gpu: 8`), plus the actual GPU device inside the container | **Always.** It's the only one that hands out GPUs; without it pods can't get one at all. |
+| **Node Feature Discovery** | Scans the hardware | Generic labels such as `feature.node.kubernetes.io/pci-10de.present=true` ("an NVIDIA card is here") | **Only as a helper:** GPU Feature Discovery needs it to write its labels, and the GPU Operator uses it to find which nodes need the GPU driver and plugin. |
+| **GPU Feature Discovery** | Reads the GPU details | Labels such as `nvidia.com/gpu.product=…A100…` and `nvidia.com/gpu.memory=81920` | **Only when your GPUs differ** and pods must pick a model or size, *and* nothing else describes the GPU already. Often unnecessary on EKS (see below). |
 
 - **They describe the GPUs; only the device plugin hands them out:** Node Feature Discovery and GPU Feature Discovery only write *information* onto the Node object as labels, like a sign on the door saying "this room has A100s with 80 GB". The device plugin is the only one that *gives* a GPU to a container: when a pod asks for `nvidia.com/gpu: 1`, the kubelet asks the device plugin for a GPU, and the plugin hands one over.
 - **Why it matters:** a pod that only uses the labels (`nodeSelector: nvidia.com/gpu.product: …A100…`) lands on an A100 node but **gets no GPU**. It still needs `nvidia.com/gpu: 1` so the device plugin hands one over. Labels choose the node; the device plugin gives the GPU. More on the labels in [How GPUs are advertised](#d06-2).
+- **Why not just the device plugin?** Its count treats every GPU the same: a 16 GB T4 and an 80 GB H100 are both "1". So with the device plugin alone, a pod can ask for "one GPU" but not "an A100" or "at least 40 GB". That's the gap the labels fill.
+- **What you actually need:**
+  - **one GPU type everywhere:** the device plugin alone; every GPU is the same, so "one GPU" is all a pod needs to say;
+  - **several GPU types:** the device plugin plus a way to label the model, either GPU Feature Discovery (which brings Node Feature Discovery) or labels you already have;
+  - **with the GPU Operator:** you get all three by default, whether you need them or not.
+- **On EKS you may not need GPU Feature Discovery:** every node already has `node.kubernetes.io/instance-type`, and on AWS the instance type tells you the GPU (a p4de.24xlarge has 8 × A100 80 GB, a g5 has A10Gs). With Karpenter you also get `karpenter.k8s.aws/instance-gpu-name` and `instance-gpu-memory`. A `nodeSelector` or affinity on those picks the GPU model without GFD. GFD earns its place on on-prem or mixed hardware, where nothing else describes the GPU.
 - A minimal vLLM Deployment on such a node still needs a GPU limit, a toleration for the GPU taint, and a PVC as a model cache, so restarts don't re-download the weights.
 - Plugins expose counts, not topology: the scheduler doesn't know which GPUs share an NVLink or a PCIe switch. That gap is why topology labels, [Dynamic Resource Allocation](#d06-4) and topology-aware schedulers ([topology bin-packing](#d02-3)) exist.
 

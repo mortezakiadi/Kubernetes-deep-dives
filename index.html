@@ -634,7 +634,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">AWS cloud and the GPU instance</span></summary><div class="acc-body">an EC2 GPU instance (here a p4d.24xlarge with 8 A100s) gives the worker node its physical GPUs. The NVIDIA driver must already be on the node; the EKS-optimized accelerated AMIs include it.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Control plane</span></summary><div class="acc-body">the API server stores each node's status, including its GPU count; <mark class="kw-tool">kube-scheduler</mark> checks that count the same way it checks CPU and memory.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Step 1, the plugin registers</span></summary><div class="acc-body">the device plugin runs on every GPU node as a DaemonSet. It finds the node's GPUs and registers with the <mark class="kw-tool">kubelet</mark> over a local socket.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Step 2, the kubelet reports the count</span></summary><div class="acc-body">the kubelet adds <code>nvidia.com/gpu: 8</code> to the node's capacity and allocatable. From then on GPUs are a countable resource. This is the missing piece in the scenario: without the plugin the node never reports any <code>nvidia.com/gpu</code>, so every node fails the fit check.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Step 3, a pod asks for a GPU</span></summary><div class="acc-body">the user or CI deploys a pod with <code>nvidia.com/gpu: 1</code> under <code>resources.limits</code>.<pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: inference</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: inference</span><span class="ln">    <span class="tk">image</span>: vllm/vllm-openai:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln kl">        <span class="tk">nvidia.com/gpu</span>: 1    <span class="tc"># schedulable only after the device plugin registers GPUs</span></span></code></pre></div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Step 4, the scheduler subtracts and binds</span></summary><div class="acc-body">a node fits if enough of its GPUs are still unreserved. The scheduler picks one and <mark class="kw-act">binds</mark> the pod to it.</div></details><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">Step 5, the kubelet asks for a device</span></summary><div class="acc-body">on that node, the kubelet asks the plugin to allocate one GPU. This happens on the node, not in the control plane.</div></details><details class="acc"><summary><span class="acc-num">8</span><span class="acc-title">Step 6, the container gets the GPU</span></summary><div class="acc-body">the plugin returns the device files and <code>NVIDIA_VISIBLE_DEVICES</code>, and the container starts with exactly that GPU. The scheduler never knew which GPU it would be, only that one was free.</div></details></div>
 
 
-<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">6 points</span></summary><div class="acc-body"><blockquote>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">9 points</span></summary><div class="acc-body"><blockquote>
 <p><strong>Installing it.</strong> Each GPU node first needs the NVIDIA driver and container toolkit; the EKS-optimized accelerated AMIs already include them. Then install the plugin with Helm:</p>
 <pre class="snippet"><code class="language-bash"><span class="ln">helm repo add nvdp https://nvidia.github.io/k8s-device-plugin</span><span class="ln">helm repo update</span><span class="ln">helm upgrade -i nvdp nvdp/nvidia-device-plugin \</span><span class="ln">  --namespace nvidia-device-plugin --create-namespace</span></code></pre>
 <p>On EKS Auto Mode the plugin is already built in. The NVIDIA <mark class="kw-tool">GPU Operator</mark> is the all-in-one alternative: it installs the driver, toolkit, <mark class="kw">device plugin</mark>, NFD and <mark class="kw-tool">GPU Feature Discovery</mark> together.</p>
@@ -654,6 +654,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <th>Tool</th>
 <th>What it does</th>
 <th>What it produces</th>
+<th>Do you need it?</th>
 </tr>
 </thead>
 <tbody>
@@ -661,21 +662,32 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <td><strong>Device plugin</strong></td>
 <td>Counts the GPUs, and <strong>gives one to a container</strong> when a pod asks</td>
 <td>A count in the node's capacity (<code>nvidia.com/gpu: 8</code>), plus the actual GPU device inside the container</td>
+<td><strong>Always.</strong> It's the only one that hands out GPUs; without it pods can't get one at all.</td>
 </tr>
 <tr>
 <td><strong>Node Feature Discovery</strong></td>
 <td>Scans the hardware</td>
 <td>Generic labels such as <code>feature.node.kubernetes.io/pci-10de.present=true</code> ("an NVIDIA card is here")</td>
+<td><strong>Only as a helper:</strong> GPU Feature Discovery needs it to write its labels, and the GPU Operator uses it to find which nodes need the GPU driver and plugin.</td>
 </tr>
 <tr>
 <td><strong>GPU Feature Discovery</strong></td>
 <td>Reads the GPU details</td>
 <td>Labels such as <code>nvidia.com/gpu.product=…A100…</code> and <code>nvidia.com/gpu.memory=81920</code></td>
+<td><strong>Only when your GPUs differ</strong> and pods must pick a model or size, <em>and</em> nothing else describes the GPU already. Often unnecessary on EKS (see below).</td>
 </tr>
 </tbody>
 </table><ul>
 <li><strong>They describe the GPUs; only the device plugin hands them out:</strong> <mark class="kw-tool">Node Feature Discovery</mark> and GPU Feature Discovery only write <em>information</em> onto the Node object as labels, like a sign on the door saying "this room has A100s with 80 GB". The device plugin is the only one that <em>gives</em> a GPU to a container: when a pod asks for <code>nvidia.com/gpu: 1</code>, the <mark class="kw-tool">kubelet</mark> asks the device plugin for a GPU, and the plugin hands one over.</li>
 <li><strong>Why it matters:</strong> a pod that only uses the labels (<code>nodeSelector: nvidia.com/gpu.product: …A100…</code>) lands on an A100 node but <strong>gets no GPU</strong>. It still needs <code>nvidia.com/gpu: 1</code> so the device plugin hands one over. Labels choose the node; the device plugin gives the GPU. More on the labels in <a href="#d06-2">How GPUs are advertised</a>.</li>
+<li><strong>Why not just the device plugin?</strong> Its count treats every GPU the same: a 16 GB T4 and an 80 GB H100 are both "1". So with the device plugin alone, a pod can ask for "one GPU" but not "an A100" or "at least 40 GB". That's the gap the labels fill.</li>
+<li><strong>What you actually need:</strong><ul>
+<li><strong>one GPU type everywhere:</strong> the device plugin alone; every GPU is the same, so "one GPU" is all a pod needs to say;</li>
+<li><strong>several GPU types:</strong> the device plugin plus a way to label the model, either GPU Feature Discovery (which brings Node Feature Discovery) or labels you already have;</li>
+<li><strong>with the GPU Operator:</strong> you get all three by default, whether you need them or not.</li>
+</ul>
+</li>
+<li><strong>On EKS you may not need GPU Feature Discovery:</strong> every node already has <code>node.kubernetes.io/instance-type</code>, and on AWS the instance type tells you the GPU (a p4de.24xlarge has 8 × A100 80 GB, a g5 has A10Gs). With <mark class="kw-tool">Karpenter</mark> you also get <code>karpenter.k8s.aws/instance-gpu-name</code> and <code>instance-gpu-memory</code>. A <code>nodeSelector</code> or <mark class="kw">affinity</mark> on those picks the GPU model without GFD. GFD earns its place on on-prem or mixed hardware, where nothing else describes the GPU.</li>
 <li>A minimal <mark class="kw-tool">vLLM</mark> Deployment on such a node still needs a GPU limit, a <mark class="kw">toleration</mark> for the GPU <mark class="kw">taint</mark>, and a <mark class="kw">PVC</mark> as a model cache, so restarts don't re-download the weights.</li>
 <li>Plugins expose counts, not topology: the scheduler doesn't know which GPUs share an <mark class="kw">NVLink</mark> or a PCIe switch. That gap is why topology labels, <a href="#d06-4">Dynamic Resource Allocation</a> and <mark class="kw">topology-aware</mark> schedulers (<a href="#d02-3">topology bin-packing</a>) exist.</li>
 </ul></div></details>
