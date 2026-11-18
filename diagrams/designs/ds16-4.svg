@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Campaign design</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">What a rater sees, and what the campaign defines</text>
+<rect x="30" y="60" width="760" height="500" rx="12" fill="#f8fafc" stroke="#94a3b8"/>
+<text x="50" y="88.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#475569">Task 4,812 · coding-agent-prefs-2026-11 · guideline v4</text>
+<rect x="50" y="100" width="720" height="50" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="66" y="130.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">Prompt: “Add retry with exponential backoff to fetch_orders() and a test for it.”</text>
+<rect x="50" y="165" width="355" height="160" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="64" y="188.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8">Response A (left, randomized)</text>
+<rect x="64" y="204" width="300" height="10" rx="3" fill="#e2e8f0"/>
+<rect x="64" y="226" width="263" height="10" rx="3" fill="#e2e8f0"/>
+<rect x="64" y="248" width="226" height="10" rx="3" fill="#e2e8f0"/>
+<rect x="64" y="270" width="189" height="10" rx="3" fill="#e2e8f0"/>
+<rect x="64" y="292" width="272" height="10" rx="3" fill="#e2e8f0"/>
+<rect x="415" y="165" width="355" height="160" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="429" y="188.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8">Response B (right)</text>
+<rect x="429" y="204" width="300" height="10" rx="3" fill="#e2e8f0"/>
+<rect x="429" y="226" width="263" height="10" rx="3" fill="#e2e8f0"/>
+<rect x="429" y="248" width="226" height="10" rx="3" fill="#e2e8f0"/>
+<rect x="429" y="270" width="189" height="10" rx="3" fill="#e2e8f0"/>
+<rect x="429" y="292" width="272" height="10" rx="3" fill="#e2e8f0"/>
+<text x="50" y="352" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Which is better?</text>
+<rect x="50" y="362" width="96" height="32" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<text x="98" y="383" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#0f172a">A much better</text>
+<rect x="153" y="362" width="96" height="32" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<text x="201" y="383" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#0f172a">A better</text>
+<rect x="256" y="362" width="96" height="32" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<text x="304" y="383" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#0f172a">A slightly</text>
+<rect x="359" y="362" width="96" height="32" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<text x="407" y="383" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#0f172a">Tie*</text>
+<rect x="462" y="362" width="96" height="32" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<text x="510" y="383" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#0f172a">B slightly</text>
+<rect x="565" y="362" width="96" height="32" rx="16" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="613" y="383" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#0f172a">B better</text>
+<rect x="668" y="362" width="96" height="32" rx="16" fill="#ffffff" stroke="#94a3b8"/>
+<text x="716" y="383" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#0f172a">B much better</text>
+<text x="50" y="420.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">Rubric: correct ☐  follows instructions ☐  safe ☐  concise ☐  tool use appropriate ☐</text>
+<rect x="50" y="436" width="720" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="66" y="461" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">Reason (required): B adds the test and caps retries; A retries forever.</text>
+<text x="50" y="500" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">*Tie only when neither response is better on any rubric item</text>
+<text x="50" y="530.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">Before: “tie when both are acceptable” → 71% ties</text>
+<rect x="830" y="60" width="440" height="86" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="842" y="82.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Task + UI</text>
+<text x="842" y="105.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">pairwise, randomized order, rubric, reason</text>
+<rect x="830" y="160" width="440" height="86" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="842" y="182.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Guidelines</text>
+<text x="842" y="205.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">versioned, worked examples, hard-case rules</text>
+<rect x="830" y="260" width="440" height="86" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="842" y="282.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Raters</text>
+<text x="842" y="305.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">pool, qualifications, languages</text>
+<rect x="830" y="360" width="440" height="86" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="842" y="382.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Quality</text>
+<text x="842" y="405.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">5% gold, 15% overlap, min time</text>
+<rect x="830" y="460" width="440" height="86" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="842" y="482.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Sampling + budget</text>
+<text x="842" y="505.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">strategy, quotas, deadline, cost</text></svg>
