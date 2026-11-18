@@ -784,6 +784,45 @@ spec:
 **Going deeper.**
 
 - For GPU training I switch NodeResourcesFit to **MostAllocated** (bin-packing) and give `nvidia.com/gpu` a higher weight than CPU and memory.
+
+```yaml
+# A separate profile for GPU training, so ordinary pods keep the default spread.
+# On EKS this runs in your own kube-scheduler (see the second-scheduler appendix).
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+- schedulerName: default-scheduler        # unchanged: LeastAllocated (spread)
+- schedulerName: gpu-binpack              # GPU training pods opt in to this one #!
+  pluginConfig:
+  - name: NodeResourcesFit
+    args:
+      scoringStrategy:
+        type: MostAllocated               # pack: prefer the FULLEST node that still fits #!
+        resources:
+        - name: nvidia.com/gpu
+          weight: 5                       # GPUs dominate the "how full" score #!
+        - name: cpu
+          weight: 1
+        - name: memory
+          weight: 1
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: finetune
+spec:
+  template:
+    spec:
+      schedulerName: gpu-binpack          # use the packing profile #!
+      restartPolicy: Never
+      containers:
+      - name: trainer
+        image: my-company/trainer:2.0
+        resources:
+          limits:
+            nvidia.com/gpu: 2
+```
+
 - Packing leaves whole nodes empty, so the autoscaler can remove them.
 - That matters when a GPU node costs tens of dollars an hour.
 - The catch is a bigger blast radius per node, so I offer it as a separate scheduler profile and let critical services keep spreading.
