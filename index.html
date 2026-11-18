@@ -883,7 +883,66 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <td>–</td>
 </tr>
 </tbody>
+</table><p><strong>From pod spec to plugin:</strong> you never write a plugin's name in a pod. You write a field, and the plugin that reads it does the work. The diagram and the table above use plugin names; this is how they map to what you write:</p><table>
+<thead>
+<tr>
+<th>You write in the pod spec</th>
+<th>The plugin that reads it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>resources.requests</code></td>
+<td>NodeResourcesFit, BalancedResourceAllocation</td>
+</tr>
+<tr>
+<td><code>nodeSelector</code>, <code>affinity.nodeAffinity</code></td>
+<td>NodeAffinity</td>
+</tr>
+<tr>
+<td><code>affinity.podAffinity</code> / <code>podAntiAffinity</code></td>
+<td>InterPodAffinity</td>
+</tr>
+<tr>
+<td><code>topologySpreadConstraints</code></td>
+<td>PodTopologySpread</td>
+</tr>
+<tr>
+<td><code>tolerations</code></td>
+<td>TaintToleration</td>
+</tr>
+<tr>
+<td><code>nodeName</code></td>
+<td>NodeName</td>
+</tr>
+<tr>
+<td><code>ports[].hostPort</code></td>
+<td>NodePorts</td>
+</tr>
+<tr>
+<td><code>priorityClassName</code></td>
+<td>PrioritySort, DefaultPreemption</td>
+</tr>
+<tr>
+<td><code>volumes</code> (PVCs)</td>
+<td>VolumeBinding, VolumeZone, VolumeRestrictions, NodeVolumeLimits</td>
+</tr>
+<tr>
+<td><code>resourceClaims</code> (DRA)</td>
+<td>DynamicResources</td>
+</tr>
+<tr>
+<td>the image in <code>containers[].image</code></td>
+<td>ImageLocality</td>
+</tr>
+<tr>
+<td><code>schedulingGates</code></td>
+<td>SchedulingGates</td>
+</tr>
+</tbody>
 </table><p><strong>What a second scheduler changes:</strong></p><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">One pod, one scheduler</span></summary><div class="acc-body">a pod is handled only by the scheduler named in its <code>schedulerName</code>. The other schedulers' plugins never see it.</div></details><details class="acc"><summary><span class="acc-num">8</span><span class="acc-title">Same program, different profile (amber lane)</span></summary><div class="acc-body">you can change weights, switch the scoring strategy, or disable plugins (for example turn off <mark class="kw">ImageLocality</mark>). One kube-scheduler process can even serve several profiles, each under its own <code>schedulerName</code>.</div></details><details class="acc"><summary><span class="acc-num">9</span><span class="acc-title">Different program (teal lane)</span></summary><div class="acc-body">you get features the built-in plugins don't have, such as gang scheduling, queues and GPU topology. In return, its pods follow its rules, not the table above.</div></details><details class="acc"><summary><span class="acc-num">10</span><span class="acc-title">No coordination</span></summary><div class="acc-body">two schedulers can pick the same free space at the same moment, because each one only sees its own decisions in flight. The <mark class="kw-tool">kubelet</mark> then rejects the pod that arrives second (<code>OutOfcpu</code> / <code>OutOfmemory</code>) and its controller creates a new one. The usual fix is to give each scheduler its own nodes, with taints and node labels, or to send all pods of one kind (for example all GPU pods) to a single scheduler.</div></details><details class="acc"><summary><span class="acc-num">11</span><span class="acc-title">Preemption crosses the boundary</span></summary><div class="acc-body">the default scheduler's <mark class="kw">DefaultPreemption</mark> can <mark class="kw-act">evict</mark> pods placed by your scheduler if they have lower priority, and the other way round. Use <mark class="kw">PriorityClasses</mark> consistently across both.</div></details><details class="acc"><summary><span class="acc-num">12</span><span class="acc-title">Autoscalers</span></summary><div class="acc-body"><mark class="kw-tool">Cluster Autoscaler</mark> and <mark class="kw-tool">Karpenter</mark> decide whether to add nodes by simulating the <em>default</em> scheduler's rules. Check whether yours acts on pods with a custom <code>schedulerName</code> at all, and remember that custom filters it doesn't know about can lead to nodes being added that your scheduler then won't use.</div></details></div>
+
+
 
 
 

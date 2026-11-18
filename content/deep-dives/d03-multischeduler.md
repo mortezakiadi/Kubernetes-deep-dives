@@ -50,6 +50,23 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 | DefaultPreemption | PostFilter: evicts lower-priority pods when nothing fits | – | – |
 | DefaultBinder | Bind: writes `spec.nodeName` | – | – |
 
+**From pod spec to plugin:** you never write a plugin's name in a pod. You write a field, and the plugin that reads it does the work. The diagram and the table above use plugin names; this is how they map to what you write:
+
+| You write in the pod spec | The plugin that reads it |
+|---|---|
+| `resources.requests` | NodeResourcesFit, BalancedResourceAllocation |
+| `nodeSelector`, `affinity.nodeAffinity` | NodeAffinity |
+| `affinity.podAffinity` / `podAntiAffinity` | InterPodAffinity |
+| `topologySpreadConstraints` | PodTopologySpread |
+| `tolerations` | TaintToleration |
+| `nodeName` | NodeName |
+| `ports[].hostPort` | NodePorts |
+| `priorityClassName` | PrioritySort, DefaultPreemption |
+| `volumes` (PVCs) | VolumeBinding, VolumeZone, VolumeRestrictions, NodeVolumeLimits |
+| `resourceClaims` (DRA) | DynamicResources |
+| the image in `containers[].image` | ImageLocality |
+| `schedulingGates` | SchedulingGates |
+
 **What a second scheduler changes:**
 
 - **One pod, one scheduler:** a pod is handled only by the scheduler named in its `schedulerName`. The other schedulers' plugins never see it.
