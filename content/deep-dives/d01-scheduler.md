@@ -975,9 +975,9 @@ spec:
 # Fix: add "- weight: 50" (any value from 1 to 100) above "preference:".
 ```
 
-### When affinity loses to ImageLocality
+### When a preferred affinity loses
 
-**Scenario.** A team adds a *preferred* pod affinity so their API runs next to its cache. Most of the time it works, but during a rollout to a new version some pods land on a different node: one that happens to have the *new* image already pulled. The team asks why their affinity rule "lost" to an image cache.
+**Scenario.** A team adds a *preferred* pod affinity so their API runs on the same node as its Redis cache, and a soft rule to spread API replicas across zones. Most API pods end up next to the cache, but a new replica lands on another node: emptier, in a zone with no API pods yet, and with the API image already cached from an earlier pod. The team asks why their affinity rule "lost".
 
 ```yaml
 # The cache, and the API that would like to run next to it
@@ -991,13 +991,13 @@ spec:
     matchLabels: {app: cache} #!
   template:
     metadata:
-      labels: {app: cache}                   # the label the API's affinity looks for #!
+      labels: {app: cache}                   # the label the API's affinity looks for
     spec:
       containers:
       - name: redis
         image: redis:7
         resources:
-          requests: {cpu: "2", memory: 4Gi}  # makes the cache's node busier
+          requests: {cpu: "1", memory: 20Gi} # memory-heavy: makes its node lopsided
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1013,88 +1013,85 @@ spec:
     spec:
       affinity:
         podAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:   # a wish, scored, can be outvoted #!
+          preferredDuringSchedulingIgnoredDuringExecution:   # wish 1: next to the cache #!
           - weight: 100
             podAffinityTerm:
               labelSelector:
                 matchLabels: {app: cache} #!
-              topologyKey: kubernetes.io/hostname           # "same node as the cache"
-      topologySpreadConstraints:                            # soft: keep replicas apart
+              topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:                            # wish 2: spread across zones #!
       - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: ScheduleAnyway
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway                   # soft: scored, not filtered #!
         labelSelector:
-          matchLabels: {app: api}                           # counts 1.3 AND 1.4 pods #!
+          matchLabels: {app: api}
       containers:
       - name: api
-        image: my-company/api:1.4            # NEW version being rolled out; cached on
-                                             # some nodes, while older replicas run api:1.3
+        image: my-company/api:1.4            # 1.8 GB
         resources:
-          requests: {cpu: "1", memory: 1Gi}
----
-# What the team sees: some api pods are NOT on the cache's node
-# kubectl get pods -l 'app in (api, cache)' -o wide
+          requests: {cpu: "1", memory: 2Gi}
+# See where they landed: kubectl get pods -l 'app in (api, cache)' -o wide
 ```
 
-![When affinity loses to ImageLocality](diagrams/sections/d01-5.svg)
+![When a preferred affinity loses](diagrams/sections/d01-5.svg)
 
-**What the picture shows.** Why a *preferred* affinity can lose even though, on its own, it would win, and two ways to fix it. The scoring itself (grade × weight, then add up) is explained in [Score × weight](#d01-4).
+**What the picture shows.** Two candidate nodes for one new `api` replica, the plugins that grade them differently, and two ways to make the affinity win. Every number is calculated in the note under "The result".
 
-- **The setup:** the `api` pods have a *preferred* pod affinity for the cache pod (same node), as in the YAML above the picture. The team is rolling out `api:1.4`. Node 2 runs the cache pod and one `api` replica still on the old version, `api:1.3`, so only the 1.3 image is cached there. Node 1 is emptier and already has `api:1.4` cached (for example from a 1.4 pod that ran there earlier, or a pre-pull job). ImageLocality matches the exact image, tag included, so node 2's 1.3 copy earns nothing for a 1.4 pod.
+- **The setup:** both nodes have 8 CPU and 32 GiB. Node 2 (zone b) runs the Redis cache, which requests a lot of memory; node 1 (zone a) is lightly used and still has the `api` image from an earlier `api` pod. Zone b already has two `api` replicas, on another node; zone a has none.
 
 > **The two nodes, side by side**
 >
 > ![The tug of war: one pod, two nodes](diagrams/extra/affinity-tug.svg)
 >
-> What each node has, and the points it earns. Your affinity is the only plugin that favors node 2; NodeResourcesFit, BalancedResourceAllocation, ImageLocality and the team's soft spread rule all favor node 1.
+> What each node has, and the points it earns. Only your affinity favors node 2; your spread rule and three built-in plugins favor node 1.
 
-- **Affinity on its own would win:** InterPodAffinity gives node 2 a grade of 100 (the only node with a cache pod), and with its default weight of 2 that's 200 points against node 1's 0.
-- **But four other plugins prefer node 1:** node 2 is busier because the cache pod and a replica already use its CPU and memory. So NodeResourcesFit (80 vs 30), BalancedResourceAllocation (90 vs 80), ImageLocality (90 vs 0) and the team's soft topology spread rule (100 × 2 vs 0, since node 2 already has an `api` replica) all favor node 1.
-- **The result:** node 1 gets 80 + 90 + 90 + 200 + 0 = **460**, node 2 gets 30 + 80 + 0 + 0 + 200 = **310**. Node 1 wins, and the affinity seems to be ignored. No single plugin beat it; several small ones added up.
+- **Affinity on its own would win:** InterPodAffinity gives node 2 a grade of 100 (the only node with a cache pod) and node 1 a grade of 0. At its default weight of 2, that's 200 points for node 2.
+- **Three built-in plugins prefer node 1:** NodeResourcesFit (75 vs 34.4), BalancedResourceAllocation (100 vs 84.4) and ImageLocality (89.8 vs 0), each at weight 1.
+- **…but together they can't beat the affinity:** without the spread rule, node 1 would total 75 + 100 + 89.8 = **264.8** and node 2 34.4 + 84.4 + 200 = **318.8**, so the affinity would win. A weight-1 plugin can favor one node by at most 100 points, and in practice these three fall well short of 200 combined.
+- **Your spread rule tips it:** it prefers the zone with fewer `api` pods. Zone a has 0 and zone b has 2, so node 1 gets 100 × 2 = **200** and node 2 gets 0.
+- **The result:** node 1 gets 75 + 100 + 89.8 + 200 = **464.8**, node 2 gets 34.4 + 84.4 + 0 + 0 + 200 = **318.8**, and node 1 wins. Your two soft rules disagreed, and the spread rule plus the built-in plugins outvoted the affinity. A preferred affinity is one vote among several, not a guarantee.
 
-> **Note: how the numbers in the table are calculated**
+> **Note: how the numbers are calculated**
 >
-> Both nodes have 10 CPU and 40 GiB allocatable, and the new `api` pod requests 1 CPU and 1 GiB. Every plugin counts the new pod as if it were already placed:
+> Both nodes have 8 CPU and 32 GiB allocatable. The new `api` pod requests 1 CPU and 2 GiB, and every plugin counts it as if it were already placed. The cluster has 4 nodes; the 1.8 GB `api` image is cached on 2 of them (node 1, and node 4, which runs the two zone-b replicas).
 >
-> | | CPU requested (incl. new pod) | Memory requested (incl. new pod) |
-> |---|---|---|
-> | Node 1 | 3 of 10 → **30%** | 4 of 40 GiB → **10%** |
-> | Node 2 (cache, a replica, other pods) | 9 of 10 → **90%** | 20 of 40 GiB → **50%** |
+> | | Already requested | CPU share (incl. new pod) | Memory share (incl. new pod) |
+> |---|---|---|---|
+> | Node 1 | 1 CPU, 6 GiB (a few small pods) | 2 of 8 → **25%** | 8 of 32 → **25%** |
+> | Node 2 | 3 CPU, 24 GiB (cache: 1 CPU, 20 GiB; others: 2 CPU, 4 GiB) | 4 of 8 → **50%** | 26 of 32 → **81.25%** |
 >
 > ```text
 > 1. NodeResourcesFit (LeastAllocated): average share left free
->    score = average over CPU and memory of (1 − requested ÷ allocatable) × 100
->    Node 1: ((1 − 0.30) + (1 − 0.10)) ÷ 2 × 100 = 80
->    Node 2: ((1 − 0.90) + (1 − 0.50)) ÷ 2 × 100 = 30
+>    score = average over CPU and memory of (1 − share) × 100
+>    Node 1: ((1 − 0.25) + (1 − 0.25)) ÷ 2 × 100     = 75
+>    Node 2: ((1 − 0.50) + (1 − 0.8125)) ÷ 2 × 100   = 34.375 ≈ 34.4
 >
 > 2. BalancedResourceAllocation: how close the CPU and memory shares are
 >    score = (1 − standard deviation of the shares) × 100
->          = 100 − |cpu% − memory%| × 50   (with two resources)
->    Node 1: 100 − |30% − 10%| × 50 = 90
->    Node 2: 100 − |90% − 50%| × 50 = 80
+>          = 100 − |CPU share − memory share| × 50     (with two resources)
+>    Node 1: 100 − |25% − 25%| × 50                  = 100
+>    Node 2: 100 − |50% − 81.25%| × 50               = 84.375 ≈ 84.4
 >
 > 3. ImageLocality: image size, scaled by how many nodes have it
 >    sum   = image size × (nodes with the image ÷ all nodes)
 >    score = (sum − 23 MB) ÷ (1000 MB − 23 MB) × 100, kept within 0–100
->    Node 1: api:1.4 is 1.2 GB, on 3 of 4 nodes = 900 MB → (900 − 23) ÷ 977 × 100 ≈ 90
->    Node 2: only api:1.3 is there; the tag doesn't match → 0
+>    Node 1: 1800 MB × 2 ÷ 4 = 900 MB → (900 − 23) ÷ 977 × 100 = 89.8
+>    Node 2: image not on the node                   = 0
 >
-> 4. PodTopologySpread (the Deployment's soft spread rule): fewer replicas there is better
->    raw = pods labeled app: api already on the node, old (1.3) and new (1.4) alike
->    then scaled so the best node gets 100 and the worst 0
->    Node 1: 0 replicas → 100     Node 2: 1 replica → 0
+> 4. PodTopologySpread (your soft per-zone rule): fewer api pods in the zone is better
+>    raw = api pods already in the node's zone; then scaled, fewest = 100, most = 0
+>    Node 1: zone a has 0 → 100                      Node 2: zone b has 2 → 0
 >
-> 5. InterPodAffinity: add the weights of matched preferences, then scale
->    raw = the rule's weight (100) for each cache pod on the node
->    then scaled so the best node gets 100
->    Node 1: no cache pod → 0     Node 2: one cache pod → raw 100 → 100
+> 5. InterPodAffinity (your preferred rule, weight 100 in the pod)
+>    raw = 100 for each cache pod on the node; then scaled, best = 100
+>    Node 1: no cache pod → 0                        Node 2: one cache pod → 100
 > ```
 >
-> - **Two kinds of grade:** plugins 1 to 3 grade each node on its own situation; plugins 4 and 5 produce raw counts with no fixed range, so they're scaled so the best node gets 100. That's why grades never need to add up to 100 across nodes.
-> - **Why the spread rule is written out:** a rule with `labelSelector: {app: api}` counts old and new pods together, so node 2's 1.3 replica counts. The scheduler's built-in default spread works out its selector from the pod's ReplicaSet, which is different for each version, so during a rollout it would count only 1.4 pods. Then both nodes would score 100 for spread, node 2 would total 510, and the affinity would win.
-> - **ImageLocality's 23 MB and 1000 MB** are kube-scheduler's built-in limits for one container: smaller images earn nothing, and anything above 1000 MB counts the same.
+> - **Left out on purpose:** TaintToleration and NodeAffinity give both nodes the same score (no taints, no node rules), so they add the same to each total and can't change the winner.
+> - **Decimals:** the scheduler works in whole numbers and rounds each score down (34.375 becomes 34), which changes the totals slightly but not the winner.
+> - **Why the spread rule is written out:** a pod that has its own `topologySpreadConstraints` uses only those; the scheduler's built-in default spread applies only to pods that have none.
 
-- **Choice A, the hard rule (filtering):** change `preferredDuringSchedulingIgnoredDuringExecution` to `requiredDuringSchedulingIgnoredDuringExecution`. The rule moves from the scoring phase to the filtering phase, so Node 1 is never even considered.
+- **Choice A, the hard rule (filtering):** change `preferredDuringSchedulingIgnoredDuringExecution` to `requiredDuringSchedulingIgnoredDuringExecution`. The rule moves from scoring to filtering: node 1 has no cache pod, so it's removed before scoring and node 2 is the only candidate. The trade-off: if node 2 is full, the pod waits in `Pending`.
 
 ```yaml
 apiVersion: apps/v1
@@ -1120,7 +1117,7 @@ spec:
         image: my-company/api:1.4
 ```
 
-- **Choice B, scheduler configuration (advanced):** write a `KubeSchedulerConfiguration` profile that gives InterPodAffinity a higher weight, for example 5 instead of 2. Node 2 then gets 110 + 100 × 5 = 610 and beats node 1's 460 (4 is the smallest weight that flips it: 110 + 400 = 510; 3 still loses with 410), while the affinity stays a preference (the pod can still run elsewhere if node 2 is full). The full second-scheduler example in [Appendix A](#appendix-second-scheduler) goes further and uses weight 100, so affinity beats everything else. On a managed control plane like EKS you can't change the default scheduler, so you run this as a second scheduler and point pods at it with `schedulerName`.
+- **Choice B, scheduler configuration (advanced):** keep the rule preferred, but give the InterPodAffinity plugin a higher weight in a `KubeSchedulerConfiguration` profile. Node 2 has 118.8 points from the other plugins, so it needs more than 464.8 − 118.8 = 346 points from affinity: weight 3 gives 418.8 (still loses), weight **4** gives 518.8 (wins). On EKS you can't change the default scheduler, so this runs as a second scheduler that pods choose with `schedulerName`. The full second-scheduler example in [Appendix A](#appendix-second-scheduler) goes further and uses weight 100, so affinity beats everything else.
 
 ```yaml
 # config file passed to a kube-scheduler you run yourself (--config)
@@ -1132,7 +1129,7 @@ profiles:
     score:
       enabled:
       - name: InterPodAffinity
-        weight: 5                       # was 2: node 2 now gets 110 + 100 x 5 = 610 > 460 #!
+        weight: 4                       # was 2: node 2 gets 118.8 + 400 = 518.8 > 464.8 (3 gives 418.8) #!
 ```
 
 ### The weight field in your YAML
