@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1340px" height="600px" viewBox="0 0 1340 600" style="background:#ffffff"><title>Eval fan-out</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1340" height="600" fill="#ffffff"/><text x="670" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Evaluate a release candidate in hours, not days</text>
+<rect x="30" y="230" width="220" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="253" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Trigger</text>
+<text x="42" y="276" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">checkpoint registered or RC</text>
+<text x="42" y="291" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tagged</text>
+<rect x="300" y="230" width="230" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="312" y="253" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Scheduler</text>
+<text x="312" y="276" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">40 suites × shards; priority by</text>
+<text x="312" y="291" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">purpose</text>
+<path d="M 250 285 L 300 285" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="590" y="70" width="190" height="60" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="685" y="96.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">shard 1</text>
+<text x="685" y="116" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">200 questions × 8</text>
+<path d="M 530 285 L 590 100" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 780 100 L 850 285" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="590" y="148" width="190" height="60" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="685" y="174.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">shard 2</text>
+<text x="685" y="194" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">200 questions × 8</text>
+<path d="M 530 285 L 590 178" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 780 178 L 850 285" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="590" y="226" width="190" height="60" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="685" y="252.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">shard 3</text>
+<text x="685" y="272" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">200 questions × 8</text>
+<path d="M 530 285 L 590 256" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 780 256 L 850 285" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="590" y="304" width="190" height="60" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="685" y="330.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">shard 4</text>
+<text x="685" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">200 questions × 8</text>
+<path d="M 530 285 L 590 334" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 780 334 L 850 285" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="590" y="382" width="190" height="60" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="685" y="408.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">shard 5</text>
+<text x="685" y="428" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">200 questions × 8</text>
+<path d="M 530 285 L 590 412" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 780 412 L 850 285" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="590" y="460" width="190" height="60" rx="8" fill="#fef3c7" stroke="#d97706"/>
+<text x="685" y="486.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">shard 6</text>
+<text x="685" y="506" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">200 questions × 8</text>
+<path d="M 530 285 L 590 490" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 780 490 L 850 285" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="850" y="200" width="220" height="170" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="862" y="223" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">vLLM servers</text>
+<text x="862" y="246" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">for this checkpoint, sized to</text>
+<text x="862" y="261" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the work; shards share them</text>
+<rect x="1110" y="80" width="210" height="120" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="1122" y="102.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Generation cache</text>
+<text x="1122" y="125.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">key: weights hash + prompt +</text>
+<text x="1122" y="139.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">sampling + seed</text>
+<rect x="1110" y="230" width="210" height="110" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="1122" y="252.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Scorers</text>
+<text x="1122" y="275.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">verifier registry (Design 10)</text>
+<rect x="1110" y="370" width="210" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="1122" y="392.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Results store</text>
+<text x="1122" y="415.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">per question + sample</text>
+<path d="M 1070 260 L 1110 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)" marker-start="url(#a-flow-s)"/>
+<path d="M 1070 285 L 1110 285" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 1215 340 L 1215 370" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="520" width="1290" height="60" rx="10" fill="#ecfdf5" stroke="#047857"/>
+<text x="50" y="556" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">2 million generations: 3 days one-suite-at-a-time → ~4 hours sharded on borrowed GPUs; re-scoring hits the cache, not the GPUs.</text></svg>
