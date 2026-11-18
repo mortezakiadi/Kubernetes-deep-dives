@@ -897,6 +897,25 @@ profiles:
         weight: 2 #!
 ```
 
+> **Note: who decides the plugin weights?**
+>
+> - **The Kubernetes project sets the defaults:** the scheduler's maintainers (the Kubernetes SIG Scheduling group) chose them, and they're built into kube-scheduler's code. Every cluster uses them unless someone overrides them:
+>
+> | Plugin | Default weight |
+> |---|---|
+> | TaintToleration | 3 |
+> | NodeAffinity | 2 |
+> | InterPodAffinity | 2 |
+> | PodTopologySpread | 2 |
+> | NodeResourcesFit | 1 |
+> | BalancedResourceAllocation | 1 |
+> | ImageLocality | 1 |
+>
+> - **The pattern behind the numbers:** things someone asked for explicitly (a `PreferNoSchedule` taint, a preferred affinity, a soft spread) count more than housekeeping the scheduler works out by itself ("prefer emptier nodes", "keep CPU and memory balanced", "the image is already here").
+> - **The cluster operator can override them:** whoever runs the scheduler, usually a platform team, can change any weight in its `KubeSchedulerConfiguration`, as in the YAML above.
+> - **On EKS, AWS runs the default scheduler** and you can't change its configuration, so the defaults always apply to it. Different weights need your own scheduler (a second scheduler, or a profile in it), chosen with `schedulerName`.
+> - **Pod authors can't change plugin weights at all:** the only weights a pod controls are the ones inside its own preferred rules, like the `weight: 80`, and those only rank its preferences inside one plugin's score.
+
 - **Points and the final score:** points = score × weight for each plugin, and the final score is their sum. Node A gets 60 + 0 + 200 = **260**, node B 20 + 90 + 0 = **110**, so node A wins even though node B had the image.
 - **Who wins when plugins disagree:** that's the scenario's question. Here ImageLocality prefers B while the other two prefer A, and the weights settle it. Raise ImageLocality's weight to 3 and B wins, 290 against 260 (the box at the bottom of the picture).
 - **Two different weights, don't mix them up:** the `weight: 80` in the pod's preferred rule only matters *inside* NodeAffinity's own score, to rank the pod's preferences against each other. With a single rule, any weight from 1 to 100 ends up as 100 after scaling; it matters once there are several rules. For example, with rules weighted 80 and 20, a node matching both gets a raw 100 and one matching only the second gets 20, so they scale to 100 and 20. The plugin weight (×2 in the picture) is different: it multiplies NodeAffinity's whole score against the other plugins.
