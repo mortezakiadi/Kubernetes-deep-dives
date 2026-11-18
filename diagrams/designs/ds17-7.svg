@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>Quotas and borrowing</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Nominal quotas, borrowing and lending in one cohort (GPUs)</text>
+<text x="190" y="110" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">llm-team</text>
+<rect x="210" y="88" width="486" height="36" rx="4" fill="#2563eb" fill-opacity=".18" stroke="#2563eb"/>
+<rect x="210" y="96" width="486" height="20" rx="3" fill="#2563eb"/>
+<rect x="696" y="96" width="122" height="20" rx="3" fill="#2563eb" fill-opacity=".55" stroke="#2563eb" stroke-dasharray="4 3"/>
+<line x1="940" y1="82" x2="940" y2="130" stroke="#2563eb" stroke-width="3"/>
+<text x="1250" y="110.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#2563eb">nominal 512 · using 640</text>
+<text x="190" y="190" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">vision-team</text>
+<rect x="210" y="168" width="122" height="36" rx="4" fill="#059669" fill-opacity=".18" stroke="#059669"/>
+<rect x="210" y="176" width="19" height="20" rx="3" fill="#059669"/>
+<rect x="301" y="164" width="30" height="44" fill="none" stroke="#0f172a" stroke-width="2" stroke-dasharray="5 3"/>
+<text x="1250" y="190.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#059669">nominal 128 · using 20</text>
+<text x="190" y="270" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">research-team</text>
+<rect x="210" y="248" width="122" height="36" rx="4" fill="#d97706" fill-opacity=".18" stroke="#d97706"/>
+<rect x="210" y="256" width="122" height="20" rx="3" fill="#d97706"/>
+<rect x="332" y="256" width="78" height="20" rx="3" fill="#d97706" fill-opacity=".55" stroke="#d97706" stroke-dasharray="4 3"/>
+<line x1="453" y1="242" x2="453" y2="290" stroke="#d97706" stroke-width="3"/>
+<text x="1250" y="270.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#d97706">nominal 128 · using 210</text>
+<text x="190" y="350" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">inference-batch</text>
+<rect x="210" y="328" width="243" height="36" rx="4" fill="#7c3aed" fill-opacity=".18" stroke="#7c3aed"/>
+<rect x="210" y="336" width="142" height="20" rx="3" fill="#7c3aed"/>
+<rect x="332" y="324" width="122" height="44" fill="none" stroke="#0f172a" stroke-width="2" stroke-dasharray="5 3"/>
+<text x="1250" y="350.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#7c3aed">nominal 256 · using 150</text>
+<text x="210" y="412" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">solid = used within nominal · faded = borrowed · thick line = borrowing limit · dashed box = kept (not lendable)</text>
+<rect x="30" y="440" width="400" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="463" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Nominal quota</text>
+<text x="42" y="486" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a team's guaranteed share, per flavor; quotas add up to the</text>
+<text x="42" y="501" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fleet</text>
+<rect x="450" y="440" width="400" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="462" y="463" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Borrow + lend</text>
+<text x="462" y="486" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">idle quota works for others; lending limit keeps a floor</text>
+<text x="462" y="501" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">for urgent work</text>
+<rect x="870" y="440" width="400" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="882" y="463" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Reclaim</text>
+<text x="882" y="486" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">an owner returning preempts borrowers to get its nominal</text>
+<text x="882" y="501" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">quota back</text></svg>

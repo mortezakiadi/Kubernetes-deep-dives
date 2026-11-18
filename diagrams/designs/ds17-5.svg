@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Spread vs bin-pack</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Same 12 small pods, two scoring policies, 6 nodes</text>
+<rect x="30" y="60" width="600" height="300" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="44" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">LEAST ALLOCATED (SPREAD)</text>
+<rect x="60" y="110" width="30" height="30" rx="4" fill="#7c3aed" stroke="#94a3b8"/>
+<rect x="93" y="110" width="30" height="30" rx="4" fill="#7c3aed" stroke="#94a3b8"/>
+<rect x="126" y="110" width="30" height="30" rx="4" fill="#7c3aed" stroke="#94a3b8"/>
+<rect x="159" y="110" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="60" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="93" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="126" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="159" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="250" y="110" width="30" height="30" rx="4" fill="#d97706" stroke="#94a3b8"/>
+<rect x="283" y="110" width="30" height="30" rx="4" fill="#d97706" stroke="#94a3b8"/>
+<rect x="316" y="110" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="349" y="110" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="250" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="283" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="316" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="349" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="440" y="110" width="30" height="30" rx="4" fill="#059669" stroke="#94a3b8"/>
+<rect x="473" y="110" width="30" height="30" rx="4" fill="#d97706" stroke="#94a3b8"/>
+<rect x="506" y="110" width="30" height="30" rx="4" fill="#db2777" stroke="#94a3b8"/>
+<rect x="539" y="110" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="440" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="473" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="506" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="539" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="60" y="220" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="93" y="220" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="126" y="220" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="159" y="220" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="60" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="93" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="126" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="159" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="250" y="220" width="30" height="30" rx="4" fill="#db2777" stroke="#94a3b8"/>
+<rect x="283" y="220" width="30" height="30" rx="4" fill="#db2777" stroke="#94a3b8"/>
+<rect x="316" y="220" width="30" height="30" rx="4" fill="#0891b2" stroke="#94a3b8"/>
+<rect x="349" y="220" width="30" height="30" rx="4" fill="#0891b2" stroke="#94a3b8"/>
+<rect x="250" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="283" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="316" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="349" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="440" y="220" width="30" height="30" rx="4" fill="#0891b2" stroke="#94a3b8"/>
+<rect x="473" y="220" width="30" height="30" rx="4" fill="#059669" stroke="#94a3b8"/>
+<rect x="506" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="539" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="440" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="473" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="506" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="539" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="60" y="345" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b91c1c">whole free nodes: 0  ·  an 8-GPU pod does not fit</text>
+<rect x="670" y="60" width="600" height="300" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="684" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">MOST ALLOCATED (BIN-PACK)</text>
+<rect x="700" y="110" width="30" height="30" rx="4" fill="#7c3aed" stroke="#94a3b8"/>
+<rect x="733" y="110" width="30" height="30" rx="4" fill="#d97706" stroke="#94a3b8"/>
+<rect x="766" y="110" width="30" height="30" rx="4" fill="#d97706" stroke="#94a3b8"/>
+<rect x="799" y="110" width="30" height="30" rx="4" fill="#059669" stroke="#94a3b8"/>
+<rect x="700" y="143" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="733" y="143" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="766" y="143" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="799" y="143" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="890" y="110" width="30" height="30" rx="4" fill="#db2777" stroke="#94a3b8"/>
+<rect x="923" y="110" width="30" height="30" rx="4" fill="#db2777" stroke="#94a3b8"/>
+<rect x="956" y="110" width="30" height="30" rx="4" fill="#0891b2" stroke="#94a3b8"/>
+<rect x="989" y="110" width="30" height="30" rx="4" fill="#7c3aed" stroke="#94a3b8"/>
+<rect x="890" y="143" width="30" height="30" rx="4" fill="#7c3aed" stroke="#94a3b8"/>
+<rect x="923" y="143" width="30" height="30" rx="4" fill="#d97706" stroke="#94a3b8"/>
+<rect x="956" y="143" width="30" height="30" rx="4" fill="#059669" stroke="#94a3b8"/>
+<rect x="989" y="143" width="30" height="30" rx="4" fill="#db2777" stroke="#94a3b8"/>
+<rect x="1080" y="110" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="1113" y="110" width="30" height="30" rx="4" fill="#2563eb" stroke="#94a3b8"/>
+<rect x="1146" y="110" width="30" height="30" rx="4" fill="#0891b2" stroke="#94a3b8"/>
+<rect x="1179" y="110" width="30" height="30" rx="4" fill="#0891b2" stroke="#94a3b8"/>
+<rect x="1080" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1113" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1146" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1179" y="143" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="700" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="733" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="766" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="799" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="700" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="733" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="766" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="799" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="890" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="923" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="956" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="989" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="890" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="923" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="956" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="989" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1080" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1113" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1146" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1179" y="220" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1080" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1113" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1146" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<rect x="1179" y="253" width="30" height="30" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="700" y="345" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">whole free nodes: 3  ·  an 8-GPU pod fits</text>
+<rect x="30" y="390" width="400" height="160" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="413" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Weighted by resource</text>
+<text x="42" y="436" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">GPU weight 10, CPU 1, memory 1: GPUs drive placement on GPU</text>
+<text x="42" y="451" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nodes</text>
+<rect x="450" y="390" width="400" height="160" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="462" y="413" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Separate profiles</text>
+<text x="462" y="436" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">gpu-binpack for GPU pools; default spreading for CPU</text>
+<text x="462" y="451" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">services</text>
+<rect x="870" y="390" width="400" height="160" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="882" y="413" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Costs</text>
+<text x="882" y="436" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">packed nodes concentrate failure risk and neighbours; use</text>
+<text x="882" y="451" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">for GPU batch work</text></svg>

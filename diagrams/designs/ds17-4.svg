@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>Topology-aware placement</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Place a gang in the smallest network domain that fits it</text>
+<rect x="60" y="60" width="380" height="320" rx="12" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+<text x="74" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">block 1</text>
+<rect x="74" y="96" width="170" height="270" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="84" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">rack 1</text>
+<rect x="84" y="128" width="150" height="48" rx="6" fill="#bfdbfe" stroke="#2563eb"/>
+<text x="159" y="158.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">8 GPUs · job</text>
+<rect x="84" y="186" width="150" height="48" rx="6" fill="#bfdbfe" stroke="#2563eb"/>
+<text x="159" y="216.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">8 GPUs · job</text>
+<rect x="84" y="244" width="150" height="48" rx="6" fill="#bfdbfe" stroke="#2563eb"/>
+<text x="159" y="274.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">8 GPUs · job</text>
+<rect x="84" y="302" width="150" height="48" rx="6" fill="#bfdbfe" stroke="#2563eb"/>
+<text x="159" y="332.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">8 GPUs · job</text>
+<rect x="256" y="96" width="170" height="270" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="266" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">rack 2</text>
+<rect x="266" y="128" width="150" height="48" rx="6" fill="#bfdbfe" stroke="#2563eb"/>
+<text x="341" y="158.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">8 GPUs · job</text>
+<rect x="266" y="186" width="150" height="48" rx="6" fill="#bfdbfe" stroke="#2563eb"/>
+<text x="341" y="216.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">8 GPUs · job</text>
+<rect x="266" y="244" width="150" height="48" rx="6" fill="#bfdbfe" stroke="#2563eb"/>
+<text x="341" y="274.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">8 GPUs · job</text>
+<rect x="266" y="302" width="150" height="48" rx="6" fill="#bfdbfe" stroke="#2563eb"/>
+<text x="341" y="332.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">8 GPUs · job</text>
+<rect x="470" y="60" width="380" height="320" rx="12" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+<text x="484" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">block 2</text>
+<rect x="484" y="96" width="170" height="270" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="494" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">rack 1</text>
+<rect x="494" y="128" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="569" y="158.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="494" y="186" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="569" y="216.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="494" y="244" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="569" y="274.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="494" y="302" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="569" y="332.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="666" y="96" width="170" height="270" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="676" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">rack 2</text>
+<rect x="676" y="128" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="751" y="158.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="676" y="186" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="751" y="216.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="676" y="244" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="751" y="274.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="676" y="302" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="751" y="332.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="880" y="60" width="380" height="320" rx="12" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+<text x="894" y="84" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">block 3</text>
+<rect x="894" y="96" width="170" height="270" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="904" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">rack 1</text>
+<rect x="904" y="128" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="979" y="158.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="904" y="186" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="979" y="216.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="904" y="244" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="979" y="274.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="904" y="302" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="979" y="332.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="1076" y="96" width="170" height="270" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="1086" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">rack 2</text>
+<rect x="1086" y="128" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1161" y="158.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="1086" y="186" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1161" y="216.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="1086" y="244" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1161" y="274.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<rect x="1086" y="302" width="150" height="48" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1161" y="332.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#94a3b8">8 GPUs</text>
+<text x="250" y="400" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">64-GPU job: one block, 4 pods (32 GPUs) per rack</text>
+<rect x="30" y="440" width="296" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="462.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">podset-required</text>
+<text x="42" y="485.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">wait until one domain fits the whole PodSet</text>
+<rect x="342" y="440" width="296" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="354" y="462.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">podset-preferred</text>
+<text x="354" y="485.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">try the domain, fall back wider</text>
+<rect x="654" y="440" width="296" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="666" y="462.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">podset-slices</text>
+<text x="666" y="485.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">fixed-size slices, each in one rack</text>
+<rect x="966" y="440" width="296" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="978" y="462.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">podset-groups</text>
+<text x="978" y="485.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">leader + workers in one domain</text>
+<text x="1250" y="400.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">Seen: same job across 3 blocks → all-reduce 30% slower</text></svg>
