@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="620px" viewBox="0 0 1300 620" style="background:#ffffff"><title>Sequential, mixed, staged</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="620" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Ordering training across domains (illustrative)</text>
+<text x="30" y="90" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Sequential</text>
+<text x="30" y="110" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#475569">later stages erode earlier ones</text>
+<rect x="260" y="74" width="220" height="36" rx="4" fill="#2563eb" fill-opacity=".85"/>
+<text x="268" y="97" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">math RL</text>
+<rect x="490" y="74" width="220" height="36" rx="4" fill="#059669" fill-opacity=".85"/>
+<text x="498" y="97" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">code RL</text>
+<rect x="720" y="74" width="220" height="36" rx="4" fill="#7c3aed" fill-opacity=".85"/>
+<text x="728" y="97" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">chat RL</text>
+<text x="960" y="96.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">math −8 after chat stage</text>
+<text x="30" y="190" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Mixed</text>
+<text x="30" y="210" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#475569">interference inside every batch</text>
+<rect x="260" y="174" width="680" height="12" fill="#2563eb" fill-opacity=".8"/>
+<rect x="260" y="186" width="680" height="12" fill="#059669" fill-opacity=".8"/>
+<rect x="260" y="198" width="680" height="12" fill="#7c3aed" fill-opacity=".8"/>
+<text x="268" y="222.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#334155">all domains in each batch</text>
+<text x="960" y="196.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">math and chat below their own runs</text>
+<text x="30" y="290" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Staged + refresh</text>
+<text x="30" y="310" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#475569">mixed base, focus, short refresh</text>
+<rect x="260" y="274" width="420" height="12" fill="#2563eb" fill-opacity=".8"/>
+<rect x="260" y="286" width="420" height="12" fill="#059669" fill-opacity=".8"/>
+<rect x="260" y="298" width="420" height="12" fill="#7c3aed" fill-opacity=".8"/>
+<text x="268" y="322.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#334155">mixed RL</text>
+<rect x="690" y="274" width="160" height="36" rx="4" fill="#0891b2" fill-opacity=".85"/>
+<text x="698" y="297" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">agents focus</text>
+<rect x="860" y="274" width="60" height="36" rx="4" fill="#2563eb" fill-opacity=".85"/>
+<text x="868" y="297" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">refresh</text>
+<text x="960" y="296.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">regressed families restored</text>
+<rect x="30" y="370" width="1240" height="80" rx="10" fill="#ecfdf5" stroke="#047857"/>
+<text x="50" y="400.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#047857">Published example: a short math refresh after Code → Math → QA → Creative writing RL</text>
+<text x="50" y="424" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">restored math from about 58 to 66 while largely preserving the other domains.</text>
+<rect x="30" y="480" width="600" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="503" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Keep neighbours in focus stages</text>
+<text x="42" y="526" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">70% agents + 30% related families forgets less than a pure stage</text>
+<rect x="670" y="480" width="600" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="682" y="503" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Mixed with conflict handling</text>
+<text x="682" y="526" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">per-module gradient surgery or per-domain adapters, when interference is measured</text></svg>

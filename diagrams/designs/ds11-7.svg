@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>Merging and distillation</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Folding specialists back into one model</text>
+<rect x="30" y="60" width="610" height="360" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="44" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">WEIGHT MERGING (TIES-STYLE)</text>
+<rect x="60" y="100" width="180" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="72" y="123" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Base</text>
+<text x="72" y="146" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">shared start</text>
+<rect x="60" y="200" width="180" height="44" rx="6" fill="#059669" fill-opacity=".2" stroke="#059669"/>
+<text x="150" y="228" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#059669">code Δ = spec − base</text>
+<path d="M 240 222 L 300 260" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="60" y="260" width="180" height="44" rx="6" fill="#0891b2" fill-opacity=".2" stroke="#0891b2"/>
+<text x="150" y="288" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0891b2">agents Δ = spec − base</text>
+<path d="M 240 282 L 300 260" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="60" y="320" width="180" height="44" rx="6" fill="#2563eb" fill-opacity=".2" stroke="#2563eb"/>
+<text x="150" y="348" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#2563eb">math Δ = spec − base</text>
+<path d="M 240 342 L 300 260" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="300" y="200" width="150" height="120" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="312" y="222.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Trim + sign</text>
+<text x="312" y="245.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">keep top 20%;</text>
+<text x="312" y="259.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">agreeing signs</text>
+<rect x="480" y="200" width="130" height="120" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="492" y="223" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Merged</text>
+<text x="492" y="246" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">base + Σ w·Δ</text>
+<path d="M 450 260 L 480 260" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="60" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">fast · needs shared base + tokenizer · tune w on the multi-family gate</text>
+<rect x="670" y="60" width="600" height="360" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="684" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">MULTI-TEACHER ON-POLICY DISTILLATION</text>
+<rect x="700" y="110" width="220" height="90" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="712" y="132.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Student</text>
+<text x="712" y="155.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">generalist writes answers on</text>
+<text x="712" y="169.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">each domain's prompts</text>
+<rect x="1000" y="100" width="240" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1012" y="122.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">code teacher</text>
+<text x="1012" y="145.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">per-token reverse KL</text>
+<path d="M 920 155 L 1000 132" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1000" y="180" width="240" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1012" y="202.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">agents teacher</text>
+<text x="1012" y="225.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">per-token reverse KL</text>
+<path d="M 920 155 L 1000 212" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1000" y="260" width="240" height="64" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="1012" y="282.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">math teacher</text>
+<text x="1012" y="305.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">per-token reverse KL</text>
+<path d="M 920 155 L 1000 292" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="700" y="260" width="220" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="712" y="282.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Update</text>
+<text x="712" y="305.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">dense signal per token</text>
+<path d="M 810 200 L 810 260" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="700" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">teachers can diverge · student can be smaller · shared tokenizer</text>
+<rect x="30" y="450" width="1240" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="473.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#0f172a">Choose by evidence</text>
+<text x="42" y="497.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">Merge first (cheap); distill when specialists diverged, the student is smaller, or merging shows interference. Merging several generalist checkpoints also reduces trade-offs.</text></svg>

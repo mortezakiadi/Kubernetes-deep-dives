@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Designing the mixture</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">From natural proportions to a designed mixture</text>
+<text x="30" y="100.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">natural proportions</text>
+<rect x="220" y="80" width="645" height="44" fill="#059669" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="228" y="107" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">code 62%</text>
+<rect x="865" y="80" width="146" height="44" fill="#7c3aed" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="872.8" y="107" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">chat 14%</text>
+<rect x="1010" y="80" width="125" height="44" fill="#2563eb" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="1018.4" y="107" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">math 12%</text>
+<rect x="1135" y="80" width="52" height="44" fill="#0891b2" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<rect x="1187" y="80" width="42" height="44" fill="#d97706" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<rect x="1229" y="80" width="26" height="44" fill="#db2777" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<rect x="1255" y="80" width="5" height="44" fill="#dc2626" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="30" y="200.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">designed mixture</text>
+<rect x="220" y="180" width="229" height="44" fill="#2563eb" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="228" y="207" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">math 22%</text>
+<rect x="449" y="180" width="229" height="44" fill="#059669" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="456.8" y="207" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">code 22%</text>
+<rect x="678" y="180" width="146" height="44" fill="#0891b2" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="685.6" y="207" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">agents 14%</text>
+<rect x="823" y="180" width="125" height="44" fill="#d97706" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="831.2" y="207" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">instr 12%</text>
+<rect x="948" y="180" width="125" height="44" fill="#7c3aed" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="956.0" y="207" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">chat 12%</text>
+<rect x="1073" y="180" width="104" height="44" fill="#db2777" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="1080.8" y="207" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">multiling 10%</text>
+<rect x="1177" y="180" width="83" height="44" fill="#dc2626" fill-opacity=".85" stroke="#fff" stroke-width="2"/>
+<text x="1184.8" y="207" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">safety 8%</text>
+<text x="220" y="145.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">safety 0.5%: effectively absent</text>
+<text x="220" y="245.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">every family ≥ 2% floor; weights chosen by proxy runs</text>
+<rect x="30" y="290" width="400" height="105" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Weights</text>
+<text x="42" y="336" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">sampling weight per family, not dataset size</text>
+<rect x="445" y="290" width="400" height="105" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="457" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Temperature</text>
+<text x="457" y="336" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one knob between natural and uniform</text>
+<rect x="860" y="290" width="400" height="105" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="872" y="313" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Epoch caps</text>
+<text x="872" y="336" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">limit repeats of small families</text>
+<rect x="30" y="415" width="400" height="105" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="438" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Per-domain settings</text>
+<text x="42" y="461" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">length, template, loss weight</text>
+<rect x="445" y="415" width="400" height="105" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="457" y="438" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Floors</text>
+<text x="457" y="461" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no family silently disappears</text>
+<rect x="860" y="415" width="400" height="105" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="872" y="438" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Search</text>
+<text x="872" y="461" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fit scores vs weights; maximize the weakest family</text></svg>

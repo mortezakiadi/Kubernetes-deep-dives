@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>RL across domains</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Why a mixed RL batch is lopsided, and how to balance it</text>
+<text x="30" y="76.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#475569">domain</text>
+<text x="170" y="76.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#475569">reward</text>
+<text x="330" y="76.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#475569">signal</text>
+<text x="470" y="76.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#475569">tokens per sample (log)</text>
+<text x="30" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#2563eb">math</text>
+<text x="170" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">0/1 verifier</text>
+<text x="330" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">30% success</text>
+<rect x="470" y="100" width="405" height="26" rx="4" fill="#2563eb" fill-opacity=".8"/>
+<text x="880.737123352144" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#2563eb">16,000</text>
+<text x="30" y="166.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#7c3aed">chat</text>
+<text x="170" y="166.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">judge 0.6–0.8</text>
+<text x="330" y="166.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">low variance</text>
+<rect x="470" y="150" width="267" height="26" rx="4" fill="#7c3aed" fill-opacity=".8"/>
+<text x="743.4569113051555" y="168" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7c3aed">600</text>
+<text x="30" y="216.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0891b2">agents</text>
+<text x="170" y="216.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">0/1 hidden tests</text>
+<text x="330" y="216.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">8% success</text>
+<rect x="470" y="200" width="460" height="26" rx="4" fill="#0891b2" fill-opacity=".8"/>
+<text x="936.0" y="218" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0891b2">60,000</text>
+<text x="30" y="266.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#d97706">instr</text>
+<text x="170" y="266.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">rule checks</text>
+<text x="330" y="266.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">70% success</text>
+<rect x="470" y="250" width="284" height="26" rx="4" fill="#d97706" fill-opacity=".8"/>
+<text x="760.4094887605279" y="268" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#d97706">900</text>
+<rect x="1000" y="80" width="270" height="200" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="1012" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Without care</text>
+<text x="1012" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">math and agents dominate the update by</text>
+<text x="1012" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">scale and length; chat barely moves</text>
+<rect x="30" y="320" width="296" height="120" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="343" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Normalize per group</text>
+<text x="42" y="366" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">advantages within each prompt group; report</text>
+<text x="42" y="381" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">per domain</text>
+<rect x="342" y="320" width="296" height="120" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="354" y="343" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Batch by tokens</text>
+<text x="354" y="366" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each domain's share of the batch measured</text>
+<text x="354" y="381" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">in tokens</text>
+<rect x="654" y="320" width="296" height="120" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="666" y="343" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Filter per domain</text>
+<text x="666" y="366" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">own pass-rate band; drop zero-variance</text>
+<text x="666" y="381" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">groups</text>
+<rect x="966" y="320" width="296" height="120" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="978" y="343" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Plan rollouts per domain</text>
+<text x="978" y="366" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">agent envs cost far more than chat</text>
+<rect x="30" y="470" width="1240" height="90" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="493" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Log effective signal per domain</text>
+<text x="42" y="516" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">mean |advantage| and the share of non-zero-variance groups per domain show which domains are actually being trained each step</text></svg>
