@@ -926,11 +926,40 @@ profiles:
 
 ![When affinity loses to ImageLocality](diagrams/sections/d01-5.svg)
 
-**What the picture shows.** A worked conflict between two plugins, and two ways to fix it.
+**What the picture shows.** Why a *preferred* affinity can lose even though, on its own, it would win, and two ways to fix it. The scoring itself (grade × weight, then add up) is explained in [Score × weight](#d01-4).
 
-- **The setup:** ImageLocality prefers **Node 1** (the image is cached there) and PodAffinity prefers **Node 2** (the cache pod runs there). The scheduler scores each node from 0 to 100 per plugin, multiplies by the plugin's weight, and adds them up.
-- **Default weights:** most plugins have weight 1, affinity and topology spread have 2, and taint toleration has 3.
-- **The conflict:** ImageLocality (weight 1) gives Node 1 a score of 90, which is **90 points**. InterPodAffinity (weight 2) gives Node 2 a weak 40, which is **80 points**. Node 1 wins, even though you asked for affinity.
+- **The setup:** the `api` pod has a *preferred* pod affinity for the cache pod (same node). Node 2 runs the cache pod and already one `api` replica; node 1 is emptier and has the `api` image cached.
+
+```yaml
+# The starting point: a PREFERRED affinity, so it's only a score
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: api}
+  template:
+    metadata:
+      labels: {app: api}
+    spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:   # scored, can be outvoted #!
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels: {app: cache}
+              topologyKey: kubernetes.io/hostname           # "same node as the cache" #!
+      containers:
+      - name: api
+        image: my-company/api:1.4
+```
+
+- **Affinity on its own would win:** InterPodAffinity gives node 2 a grade of 100 (the only node with a cache pod), and with its default weight of 2 that's 200 points against node 1's 0.
+- **But four other plugins prefer node 1:** node 2 is busier because the cache pod and a replica already use its CPU and memory. So NodeResourcesFit (80 vs 30), BalancedResourceAllocation (90 vs 60), ImageLocality (90 vs 0) and the default topology spread (100 × 2 vs 0, since node 2 already has a replica) all favor node 1.
+- **The result:** node 1 gets 80 + 90 + 90 + 200 + 0 = **460**, node 2 gets 30 + 60 + 0 + 0 + 200 = **290**. Node 1 wins, and the affinity seems to be ignored. No single plugin beat it; several small ones added up.
 - **Choice A, the hard rule (filtering):** change `preferredDuringSchedulingIgnoredDuringExecution` to `requiredDuringSchedulingIgnoredDuringExecution`. The rule moves from the scoring phase to the filtering phase, so Node 1 is never even considered.
 
 ```yaml
@@ -957,7 +986,7 @@ spec:
         image: my-company/api:1.4
 ```
 
-- **Choice B, scheduler configuration (advanced):** write a `KubeSchedulerConfiguration` profile with different weights, for example InterPodAffinity 100 and ImageLocality 1, so even a weak affinity match beats an image cache. On a managed control plane like EKS you can't change the default scheduler, so you run this as a second scheduler and point pods at it with `schedulerName`.
+- **Choice B, scheduler configuration (advanced):** write a `KubeSchedulerConfiguration` profile that gives InterPodAffinity a higher weight, for example 5 instead of 2. Node 2 then gets 90 + 100 × 5 = 590 and beats node 1's 460, while the affinity stays a preference (the pod can still run elsewhere if node 2 is full). The full second-scheduler example in [Appendix A](#appendix-second-scheduler) goes further and uses weight 100, so affinity beats everything else. On a managed control plane like EKS you can't change the default scheduler, so you run this as a second scheduler and point pods at it with `schedulerName`.
 
 ```yaml
 # config file passed to a kube-scheduler you run yourself (--config)
@@ -968,10 +997,8 @@ profiles:
   plugins:
     score:
       enabled:
-      - name: InterPodAffinity #!
-        weight: 100 #!
-      - name: ImageLocality #!
-        weight: 1 #!
+      - name: InterPodAffinity
+        weight: 5                       # was 2: node 2 now gets 90 + 100 x 5 = 590 > 460 #!
 ```
 
 ### A worked example
