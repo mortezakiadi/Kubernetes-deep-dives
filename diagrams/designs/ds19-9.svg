@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Team scorecard</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">A team's weekly scorecard (illustrative)</text>
+<rect x="30" y="60" width="1240" height="490" rx="12" fill="#f8fafc" stroke="#94a3b8"/>
+<text x="50" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">vision-team · week 2026-W50</text>
+<rect x="50" y="110" width="186" height="90" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="62" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Guaranteed</text>
+<text x="62" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">128 GPUs</text>
+<rect x="250" y="110" width="186" height="90" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="262" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1e40af">Allocated avg</text>
+<text x="262" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">104</text>
+<rect x="450" y="110" width="186" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="462" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Active avg</text>
+<text x="462" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">88 (85%)</text>
+<rect x="650" y="110" width="186" height="90" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="662" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#991b1b">Idle cost</text>
+<text x="662" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">$4,370</text>
+<rect x="850" y="110" width="186" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="862" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#065f46">Lent</text>
+<text x="862" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">1,900 GPU-h</text>
+<rect x="1050" y="110" width="186" height="90" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="1062" y="134" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#92400e">Borrowed</text>
+<text x="1062" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">120 GPU-h</text>
+<rect x="50" y="230" width="580" height="290" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="70" y="256.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">Activity rate, last 12 weeks</text>
+<path d="M 80 430 L 128 420 L 176 435 L 224 410 L 272 390 L 320 370 L 368 345 L 416 335 L 464 325 L 512 320 L 560 315 L 608 315" fill="none" stroke="#059669" stroke-width="3"/>
+<text x="272" y="300.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#047857">idle reclaim on</text>
+<line x1="272" y1="306" x2="272" y2="495" stroke="#047857" stroke-dasharray="4 4"/>
+<rect x="660" y="230" width="590" height="290" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="680" y="256.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">Service received</text>
+<text x="680" y="296" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">p90 wait 1–8 GPUs</text>
+<text x="1230" y="296" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">0.6 h</text>
+<text x="680" y="336" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">p90 wait 9–64 GPUs</text>
+<text x="1230" y="336" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">5.2 h</text>
+<text x="680" y="376" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">preemptions suffered</text>
+<text x="1230" y="376" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">3 (11 GPU-h lost)</text>
+<text x="680" y="416" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">fairness ratio</text>
+<text x="1230" y="416" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">0.94</text>
+<text x="680" y="456" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">exemptions active</text>
+<text x="1230" y="456" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">1 (expires Thu)</text>
+<text x="650" y="580" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">Compared with the team's own baseline, not with other teams. Lent GPU-hours are credited.</text></svg>

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Measurement pipeline</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">The measurement pipeline and a four-week baseline</text>
+<rect x="30" y="60" width="270" height="64" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="82" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">DCGM exporter</text>
+<text x="42" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">GPU activity per pod, 30 s</text>
+<path d="M 300 92 L 360 200" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="136" width="270" height="64" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">kube-state-metrics</text>
+<text x="42" y="180" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">GPU requests of running pods</text>
+<path d="M 300 168 L 360 200" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="212" width="270" height="64" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="42" y="234" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Kueue metrics</text>
+<text x="42" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">quota usage, pending, admission wait</text>
+<path d="M 300 244 L 360 200" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="288" width="270" height="64" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="310" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Job events</text>
+<text x="42" y="332" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">submissions, sizes, demand</text>
+<path d="M 300 320 L 360 200" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="360" y="150" width="240" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="372" y="172.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Recording rules</text>
+<text x="372" y="195.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">per minute, by team, pool, GPU type</text>
+<rect x="660" y="150" width="240" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="672" y="172" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Warehouse</text>
+<text x="672" y="194" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">raw aggregates kept: recompute</text>
+<text x="672" y="208" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">history if definitions change</text>
+<path d="M 600 200 L 660 200" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="940" y="60" width="330" height="300" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="960" y="86" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Context needed to interpret</text>
+<text x="960" y="116.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">• submitted GPU-hours per team</text>
+<text x="960" y="144.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">• pending GPU-hours</text>
+<text x="960" y="172.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">• job size mix</text>
+<text x="960" y="200.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">• unhealthy capacity</text>
+<text x="960" y="228.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">• policy change log</text>
+<rect x="30" y="390" width="1240" height="190" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="50" y="414.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">Baseline: daily active utilization, 28 days, no changes (illustrative)</text>
+<path d="M 60 493 L 102 488 L 144 483 L 186 484 L 228 509 L 270 492 L 312 507 L 354 485 L 396 479 L 438 472 L 480 485 L 522 489 L 564 500 L 606 503 L 648 491 L 690 471 L 732 476 L 774 481 L 816 491 L 858 497 L 900 514 L 942 482 L 984 477 L 1026 482 L 1068 475 L 1110 488 L 1152 504 L 1194 513" fill="none" stroke="#2563eb" stroke-width="3"/>
+<circle cx="60" cy="493" r="3.5" fill="#2563eb"/>
+<circle cx="102" cy="488" r="3.5" fill="#2563eb"/>
+<circle cx="144" cy="483" r="3.5" fill="#2563eb"/>
+<circle cx="186" cy="484" r="3.5" fill="#2563eb"/>
+<circle cx="228" cy="509" r="3.5" fill="#2563eb"/>
+<circle cx="270" cy="492" r="3.5" fill="#2563eb"/>
+<circle cx="312" cy="507" r="3.5" fill="#2563eb"/>
+<circle cx="354" cy="485" r="3.5" fill="#2563eb"/>
+<circle cx="396" cy="479" r="3.5" fill="#2563eb"/>
+<circle cx="438" cy="472" r="3.5" fill="#2563eb"/>
+<circle cx="480" cy="485" r="3.5" fill="#2563eb"/>
+<circle cx="522" cy="489" r="3.5" fill="#2563eb"/>
+<circle cx="564" cy="500" r="3.5" fill="#2563eb"/>
+<circle cx="606" cy="503" r="3.5" fill="#2563eb"/>
+<circle cx="648" cy="491" r="3.5" fill="#2563eb"/>
+<circle cx="690" cy="471" r="3.5" fill="#2563eb"/>
+<circle cx="732" cy="476" r="3.5" fill="#2563eb"/>
+<circle cx="774" cy="481" r="3.5" fill="#2563eb"/>
+<circle cx="816" cy="491" r="3.5" fill="#2563eb"/>
+<circle cx="858" cy="497" r="3.5" fill="#2563eb"/>
+<circle cx="900" cy="514" r="3.5" fill="#2563eb"/>
+<circle cx="942" cy="482" r="3.5" fill="#2563eb"/>
+<circle cx="984" cy="477" r="3.5" fill="#2563eb"/>
+<circle cx="1026" cy="482" r="3.5" fill="#2563eb"/>
+<circle cx="1068" cy="475" r="3.5" fill="#2563eb"/>
+<circle cx="1110" cy="488" r="3.5" fill="#2563eb"/>
+<circle cx="1152" cy="504" r="3.5" fill="#2563eb"/>
+<circle cx="1194" cy="513" r="3.5" fill="#2563eb"/>
+<text x="1250" y="440" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">weekend dips are part of the baseline</text>
+<text x="1250" y="460" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">mean 0.58 · weekly range 0.49–0.64</text></svg>
