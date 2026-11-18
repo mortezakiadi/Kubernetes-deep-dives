@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="540px" viewBox="0 0 1300 540" style="background:#ffffff"><title>Capacity planning</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="540" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Reserve for the realistic run, not the ideal one</text>
+<text x="80" y="90" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">days of 1,024 GPUs</text>
+<rect x="80" y="100" width="807" height="50" fill="#2563eb" fill-opacity=".85"/>
+<text x="88" y="130" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">ideal compute 6.6</text>
+<rect x="887" y="100" width="37" height="50" fill="#dc2626" fill-opacity=".85"/>
+<text x="905.0" y="92" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#dc2626">restarts 0.3</text>
+<rect x="923" y="100" width="49" height="50" fill="#7c3aed" fill-opacity=".85"/>
+<text x="947.7777777777777" y="168" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#7c3aed">evals 0.4</text>
+<rect x="972" y="100" width="134" height="50" fill="#94a3b8" fill-opacity=".85"/>
+<text x="980.2222222222222" y="130" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">safety margin 1.1</text>
+<line x1="936" y1="85" x2="936" y2="170" stroke="#b91c1c" stroke-width="3"/>
+<text x="929.5555555555555" y="188" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">old reservation ended here (7.0 days)</text>
+<text x="1106.6666666666665" y="210.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">reserve ≈ 8.4 days</text>
+<rect x="30" y="240" width="232" height="120" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="263" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Estimate</text>
+<text x="42" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tokens per GPU hour from the</text>
+<text x="42" y="301" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">latest rung</text>
+<path d="M 262 300 L 282 300" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="282" y="240" width="232" height="120" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="294" y="263" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Match sources</text>
+<text x="294" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reserved blocks; on-demand only</text>
+<text x="294" y="301" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">for overflow</text>
+<path d="M 514 300 L 534 300" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="534" y="240" width="232" height="120" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="546" y="263" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Reserve in the queue</text>
+<text x="546" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">guaranteed quota for the window</text>
+<path d="M 766 300 L 786 300" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="786" y="240" width="232" height="120" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="798" y="263" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Reserve dependencies</text>
+<text x="798" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">verifiers, sandboxes, checkpoint</text>
+<text x="798" y="301" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">storage</text>
+<path d="M 1018 300 L 1038 300" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1038" y="240" width="232" height="120" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="1050" y="263" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Dry run</text>
+<text x="1050" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">short run on the actual reserved</text>
+<text x="1050" y="301" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nodes</text>
+<rect x="30" y="400" width="1240" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="423" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Calibrate estimates, don't pad them</text>
+<text x="42" y="446" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">compare each run's estimate with its actual; fix tokens-per-GPU-hour from the latest rung; release reservations early when runs finish early</text></svg>

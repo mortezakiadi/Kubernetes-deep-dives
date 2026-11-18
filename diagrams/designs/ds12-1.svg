@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Noise sources</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Where the spread in a reported score comes from (illustrative)</text>
+<text x="300" y="106.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">question sampling</text>
+<rect x="320" y="86" width="360" height="30" rx="4" fill="#2563eb" fill-opacity=".85"/>
+<text x="688.0" y="107.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#2563eb">±2.0 pts</text>
+<text x="820" y="107" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">→ more / better questions</text>
+<text x="300" y="168.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">generation sampling</text>
+<rect x="320" y="148" width="162" height="30" rx="4" fill="#7c3aed" fill-opacity=".85"/>
+<text x="490.0" y="169.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#7c3aed">±0.9 pts</text>
+<text x="820" y="169" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">→ more samples per question</text>
+<text x="300" y="230.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">training seed + data order</text>
+<rect x="320" y="210" width="252" height="30" rx="4" fill="#dc2626" fill-opacity=".85"/>
+<text x="580.0" y="231.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#dc2626">±1.4 pts</text>
+<text x="820" y="231" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">→ more seeds per arm</text>
+<text x="300" y="292.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">kernels + infrastructure</text>
+<rect x="320" y="272" width="72" height="30" rx="4" fill="#64748b" fill-opacity=".85"/>
+<text x="400.0" y="293.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#64748b">±0.4 pts</text>
+<text x="820" y="293" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">→ pin layouts and images</text>
+<text x="300" y="354.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">checkpoint selection</text>
+<rect x="320" y="334" width="144" height="30" rx="4" fill="#d97706" fill-opacity=".85"/>
+<text x="472.0" y="355.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#d97706">±0.8 pts</text>
+<text x="820" y="355" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">→ select on a separate split</text>
+<rect x="30" y="400" width="1240" height="130" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="50" y="428.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Same recipe, three seeds</text>
+<circle cx="516" cy="470" r="9" fill="#dc2626"/>
+<text x="516.0000000000005" y="500.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">61.2</text>
+<circle cx="822" cy="470" r="9" fill="#dc2626"/>
+<text x="821.9999999999998" y="500.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">62.9</text>
+<circle cx="426" cy="470" r="9" fill="#dc2626"/>
+<text x="426.0000000000005" y="500.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">60.7</text>
+<line x1="120" y1="470" x2="840" y2="470" stroke="#cbd5e1" stroke-width="2"/>
+<path d="M 426 450 L 750 450" stroke="#2563eb" stroke-width="4" marker-end="url(#a-blue)"/>
+<text x="588.0000000000005" y="442.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8">a “+1.8” claim</text>
+<text x="900" y="470.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">inside the seed spread → not evidence</text></svg>

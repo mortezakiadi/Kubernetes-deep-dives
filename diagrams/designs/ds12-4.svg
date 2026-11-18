@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Bisection</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Bisect the changes between a good and a bad candidate</text>
+<text x="30" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">rc1 (good)</text>
+<text x="1270" y="92" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b91c1c">rc5 (bad)</text>
+<rect x="130" y="70" width="110" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8"/>
+<text x="185" y="95" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#334155">data v5→v6</text>
+<rect x="248" y="70" width="110" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8"/>
+<text x="303" y="95" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#334155">recipe: lr</text>
+<rect x="366" y="70" width="110" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8"/>
+<text x="421" y="95" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#334155">verifier 3.1→3.2</text>
+<rect x="484" y="70" width="110" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8"/>
+<text x="539" y="95" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#334155">recipe: clip</text>
+<rect x="602" y="70" width="110" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8"/>
+<text x="657" y="95" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#334155">trainer upgrade</text>
+<rect x="720" y="70" width="110" height="40" rx="6" fill="#fee2e2" stroke="#dc2626"/>
+<text x="775" y="95" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#b91c1c">data v6→v7</text>
+<rect x="838" y="70" width="110" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8"/>
+<text x="893" y="95" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#334155">recipe: mix</text>
+<rect x="956" y="70" width="110" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8"/>
+<text x="1011" y="95" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#334155">image bump</text>
+<rect x="1074" y="70" width="110" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8"/>
+<text x="1129" y="95" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#334155">recipe: len</text>
+<rect x="130" y="150" width="1054" height="30" rx="6" fill="#dbeafe" stroke="#2563eb"/>
+<line x1="598" y1="144" x2="598" y2="186" stroke="#b91c1c" stroke-width="3"/>
+<text x="30" y="170.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">round 1</text>
+<text x="130" y="202" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">apply 1–4: no regression → culprit in 5–9</text>
+<rect x="602" y="220" width="582" height="30" rx="6" fill="#dbeafe" stroke="#2563eb"/>
+<line x1="834" y1="214" x2="834" y2="256" stroke="#b91c1c" stroke-width="3"/>
+<text x="30" y="240.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">round 2</text>
+<text x="130" y="272" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">apply 1–6: regression → in 5–6</text>
+<rect x="602" y="290" width="228" height="30" rx="6" fill="#dbeafe" stroke="#2563eb"/>
+<line x1="716" y1="284" x2="716" y2="326" stroke="#b91c1c" stroke-width="3"/>
+<text x="30" y="310.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">round 3</text>
+<text x="844" y="342" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">apply 1–5: no regression → it's #6</text>
+<rect x="30" y="380" width="400" height="140" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="403.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#065f46">Confirm by reverting</text>
+<text x="42" y="427.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">revert only data v6→v7 on rc5; tool formatting returns</text>
+<rect x="450" y="380" width="400" height="140" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="462" y="403.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#92400e">Reproduce at proxy first</text>
+<text x="462" y="427.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">if it only shows at full scale, bisect checkpoints and</text>
+<text x="462" y="442.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">data shards instead</text>
+<rect x="870" y="380" width="400" height="140" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="882" y="403.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#0f172a">Interactions</text>
+<text x="882" y="427.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">if two changes are needed together, bisect the rest with</text>
+<text x="882" y="442.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#334155">the first applied</text></svg>

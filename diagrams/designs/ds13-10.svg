@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1340px" height="620px" viewBox="0 0 1340 620" style="background:#ffffff"><title>End-to-end platform</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1340" height="620" fill="#ffffff"/><text x="670" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">One identifier from idea to recipe</text>
+<rect x="30" y="80" width="280" height="120" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Experiment tracker</text>
+<text x="42" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">stage, owners, contracts, gates</text>
+<rect x="380" y="80" width="280" height="120" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="392" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Contract CI</text>
+<text x="392" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">run specs, data, verifier, manifests</text>
+<text x="392" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">validated</text>
+<rect x="730" y="80" width="280" height="120" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="742" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Launcher</text>
+<text x="742" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pre-flight checks; Kueue jobs; refuses</text>
+<text x="742" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">failing launches</text>
+<path d="M 310 140 L 380 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 660 140 L 730 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1070" y="80" width="240" height="120" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="1082" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Training infra</text>
+<text x="1082" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">queues, reserved capacity,</text>
+<text x="1082" y="141" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">JobSets, RayJobs</text>
+<path d="M 1010 140 L 1070 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="280" width="400" height="120" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="42" y="303" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Data platform</text>
+<text x="42" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">validated, versioned snapshots + lineage</text>
+<rect x="470" y="280" width="400" height="120" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="482" y="303" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Reward platform</text>
+<text x="482" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">verifier registry + pools (Design 10)</text>
+<rect x="910" y="280" width="400" height="120" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="922" y="303" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Run operations</text>
+<text x="922" y="326" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">dashboards, alerts, controllers, incident + decision logs</text>
+<path d="M 230 280 L 800 200" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-muted)"/>
+<path d="M 670 280 L 840 200" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-muted)"/>
+<path d="M 1190 200 L 1110 280" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="460" width="640" height="120" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="483" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Recipe registry</text>
+<text x="42" y="506" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">releases and manifests; lifecycle</text>
+<rect x="710" y="460" width="600" height="120" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="722" y="483" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Reproduction CI</text>
+<text x="722" y="506" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">weekly reference runs vs expected bands</text>
+<path d="M 1110 400 L 350 460" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 670 520 L 710 520" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)" marker-start="url(#a-flow-s)"/></svg>
