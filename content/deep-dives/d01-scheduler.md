@@ -875,7 +875,7 @@ spec:
 - **The score (0 to 100), one per plugin per node:** each plugin asks its own question and grades every node from 0 to 100. It's a measure of *quality*: how good this node is by that plugin's standard. (Older material calls it a "priority"; that's the name from before Kubernetes 1.19.)
 - **NodeResourcesFit (LeastAllocated):** counts the node's requests *including this pod's*. Node A would have 4 of 10 cores requested, so it's 60% free and scores 60; node B would have 8 of 10, so 20% free and 20. In a real cluster it does this for CPU and memory and averages them; the example uses CPU only.
 - **ImageLocality:** node B already has the 1.2 GB image, so it scores high (90); node A has nothing cached, so 0. Spread scaling would lower B's score if only a few nodes had the image.
-- **NodeAffinity:** adds up the `weight`s of the pod's preferred rules that each node matches, then scales so the best node gets 100. Node A is in zone a and gets 100; node B gets 0.
+- **NodeAffinity:** works in two steps. First it adds up the `weight`s of the pod's preferred rules that each node matches: node A matches the zone-a rule (`weight: 80`), so its raw score is **80**; node B matches nothing, so **0**. Then it scales the raw scores so the best node gets 100: node A's 80 becomes **100**, node B stays 0. That's why the 80 from the YAML shows up as 100 in the picture.
 - **The weight (the multiplier):** a measure of *importance*, set per plugin in the scheduler's configuration, not in the pod. The defaults here are NodeResourcesFit 1, ImageLocality 1, NodeAffinity 2.
 
 ```yaml
@@ -899,7 +899,7 @@ profiles:
 
 - **Points and the final score:** points = score × weight for each plugin, and the final score is their sum. Node A gets 60 + 0 + 200 = **260**, node B 20 + 90 + 0 = **110**, so node A wins even though node B had the image.
 - **Who wins when plugins disagree:** that's the scenario's question. Here ImageLocality prefers B while the other two prefer A, and the weights settle it. Raise ImageLocality's weight to 3 and B wins, 290 against 260 (the box at the bottom of the picture).
-- **Two different weights, don't mix them up:** the `weight: 80` in the pod's preferred rule only matters *inside* NodeAffinity's own score, to rank the pod's preferences against each other. The plugin weight multiplies NodeAffinity's whole score against the other plugins.
+- **Two different weights, don't mix them up:** the `weight: 80` in the pod's preferred rule only matters *inside* NodeAffinity's own score, to rank the pod's preferences against each other. With a single rule, any weight from 1 to 100 ends up as 100 after scaling; it matters once there are several rules. For example, with rules weighted 80 and 20, a node matching both gets a raw 100 and one matching only the second gets 20, so they scale to 100 and 20. The plugin weight (×2 in the picture) is different: it multiplies NodeAffinity's whole score against the other plugins.
 
 ### When affinity loses to ImageLocality
 
