@@ -843,13 +843,63 @@ spec:
 
 ![Score × weight](diagrams/sections/d01-4.svg)
 
-**What the picture shows.** Every node's final score is built from two ingredients per plugin.
+**What the picture shows.** A worked example: one pod, two nodes, and three of the scoring plugins. The real scheduler runs all seven, but three are enough to see how it works.
 
-- **The priority (score, or "grade"):** a measure of *quality*, from 0 to 100. For example, "how empty is this node?" or "how many matching pods are already here?"
-- **The weight (the "multiplier"):** a measure of *importance*, set per plugin.
-- **Adding it up:** for each plugin, score × weight gives that plugin's points, and the node's points from all plugins are added together. The highest total wins.
-- **Example, LeastAllocated:** a node with 10 cores and 2 cores requested is 80% free, so the plugin gives it a score of 80. With the default weight of 1, that's 80 × 1 = **80 points**.
-- **Example, ImageLocality:** the score grows with the total size of the images already cached, scaled down when only a few nodes have them. A big image (around 1 GB or more) cached scores close to 100; nothing cached, or only tiny images, scores 0.
+- **The pod and the two nodes:** `web-api` requests 2 CPU, uses a 1.2 GB image and has a *preferred* rule for zone `us-east-1a`. Node A is in zone a, fairly empty, without the image; node B is in zone b, busier, with the image cached. Both pass filtering, so scoring decides.
+
+```yaml
+# The pod from the picture: what each plugin reads from it
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-api
+spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:   # read by NodeAffinity #!
+      - weight: 80                                      # ranks this preference INSIDE NodeAffinity #!
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["us-east-1a"]
+  containers:
+  - name: api
+    image: my-company/web-api:2.3        # 1.2 GB; read by ImageLocality #!
+    resources:
+      requests:
+        cpu: "2"                         # read by NodeResourcesFit #!
+        memory: 2Gi
+```
+
+- **The score (0 to 100), one per plugin per node:** each plugin asks its own question and grades every node from 0 to 100. It's a measure of *quality*: how good this node is by that plugin's standard. (Older material calls it a "priority"; that's the name from before Kubernetes 1.19.)
+- **NodeResourcesFit (LeastAllocated):** counts the node's requests *including this pod's*. Node A would have 4 of 10 cores requested, so it's 60% free and scores 60; node B would have 8 of 10, so 20% free and 20. In a real cluster it does this for CPU and memory and averages them; the example uses CPU only.
+- **ImageLocality:** node B already has the 1.2 GB image, so it scores high (90); node A has nothing cached, so 0. Spread scaling would lower B's score if only a few nodes had the image.
+- **NodeAffinity:** adds up the `weight`s of the pod's preferred rules that each node matches, then scales so the best node gets 100. Node A is in zone a and gets 100; node B gets 0.
+- **The weight (the multiplier):** a measure of *importance*, set per plugin in the scheduler's configuration, not in the pod. The defaults here are NodeResourcesFit 1, ImageLocality 1, NodeAffinity 2.
+
+```yaml
+# Where the plugin weights live: the scheduler's configuration, not the pod.
+# These are the defaults; you don't need to write them. Changing them on EKS
+# needs your own scheduler (see the second-scheduler appendix).
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+profiles:
+- schedulerName: default-scheduler
+  plugins:
+    score:
+      enabled:
+      - name: NodeResourcesFit
+        weight: 1
+      - name: ImageLocality
+        weight: 1                        # the picture's "what if": set 3 and node B wins #!
+      - name: NodeAffinity
+        weight: 2 #!
+```
+
+- **Points and the final score:** points = score × weight for each plugin, and the final score is their sum. Node A gets 60 + 0 + 200 = **260**, node B 20 + 90 + 0 = **110**, so node A wins even though node B had the image.
+- **Who wins when plugins disagree:** that's the scenario's question. Here ImageLocality prefers B while the other two prefer A, and the weights settle it. Raise ImageLocality's weight to 3 and B wins, 290 against 260 (the box at the bottom of the picture).
+- **Two different weights, don't mix them up:** the `weight: 80` in the pod's preferred rule only matters *inside* NodeAffinity's own score, to rank the pod's preferences against each other. The plugin weight multiplies NodeAffinity's whole score against the other plugins.
 
 ### When affinity loses to ImageLocality
 
