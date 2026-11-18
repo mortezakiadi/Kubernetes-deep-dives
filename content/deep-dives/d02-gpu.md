@@ -97,7 +97,74 @@ spec:
   - **several GPU types:** the device plugin plus a way to label the model, either GPU Feature Discovery (which brings Node Feature Discovery) or labels you already have;
   - **with the GPU Operator:** you get all three by default, whether you need them or not.
 - **On EKS you may not need GPU Feature Discovery:** every node already has `node.kubernetes.io/instance-type`, and on AWS the instance type tells you the GPU (a p4de.24xlarge has 8 × A100 80 GB, a g5 has A10Gs). With Karpenter you also get `karpenter.k8s.aws/instance-gpu-name` and `instance-gpu-memory`. A `nodeSelector` or affinity on those picks the GPU model without GFD. GFD earns its place on on-prem or mixed hardware, where nothing else describes the GPU.
-- A minimal vLLM Deployment on such a node still needs a GPU limit, a toleration for the GPU taint, and a PVC as a model cache, so restarts don't re-download the weights.
+- A minimal vLLM Deployment on such a node still needs a GPU limit, a toleration for the GPU taint, and a PVC as a model cache, so restarts don't re-download the weights. The `Recreate` strategy matters too: the cache is a single-node volume, so a rolling update would start the new pod while the old one still holds it, and the new pod would wait.
+
+```yaml
+# 1. The model cache: survives pod restarts, so weights aren't re-downloaded
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-cache
+spec:
+  accessModes: ["ReadWriteOnce"]           # one node at a time (an EBS volume on EKS)
+  storageClassName: gp3
+  resources:
+    requests:
+      storage: 100Gi
+---
+# 2. The inference server
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate                         # RWO volume: the old pod must let go first
+  selector:
+    matchLabels: {app: vllm}
+  template:
+    metadata:
+      labels: {app: vllm}
+    spec:
+      tolerations:
+      - key: nvidia.com/gpu                # allowed onto the tainted GPU nodes #!
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: server
+        image: vllm/vllm-openai:latest      # pin a version in production
+        args: ["--model", "Qwen/Qwen2.5-7B-Instruct", "--port", "8000"]
+        env:
+        - name: HF_HOME                    # Hugging Face downloads go to the cache volume
+          value: /models #!
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            nvidia.com/gpu: 1              # the device plugin hands over one GPU #!
+          requests:
+            cpu: "4"
+            memory: 24Gi
+        volumeMounts:
+        - name: model-cache
+          mountPath: /models
+        - name: shm                        # vLLM uses shared memory between processes
+          mountPath: /dev/shm
+        readinessProbe:                    # no traffic until the model is loaded
+          httpGet: {path: /health, port: 8000}
+          initialDelaySeconds: 60
+          periodSeconds: 10
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: model-cache #!
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 8Gi
+```
+
 - Plugins expose counts, not topology: the scheduler doesn't know which GPUs share an NVLink or a PCIe switch. That gap is why topology labels, [Dynamic Resource Allocation](#d06-4) and topology-aware schedulers ([topology bin-packing](#d02-3)) exist.
 
 ### How GPUs are advertised
