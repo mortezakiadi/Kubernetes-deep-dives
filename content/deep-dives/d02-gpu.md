@@ -81,7 +81,16 @@ spec:
   - it advertises them as `nvidia.com/gpu` for scheduling;
   - it allocates them exclusively to containers;
   - it monitors their health, and an unhealthy GPU is taken out of the node's allocatable count.
-- Two labeling tools often run next to it: Node Feature Discovery and GPU Feature Discovery. They describe the GPUs but don't hand them out; see [How GPUs are advertised](#d06-2).
+- **Two labeling tools usually run next to it:** on a typical GPU node there are three separate NVIDIA-related pods. All three are DaemonSets (one pod per GPU node), and the NVIDIA GPU Operator usually installs them together:
+
+| Tool | What it does | What it produces |
+|---|---|---|
+| **Device plugin** | Counts the GPUs, and **gives one to a container** when a pod asks | A count in the node's capacity (`nvidia.com/gpu: 8`), plus the actual GPU device inside the container |
+| **Node Feature Discovery** | Scans the hardware | Generic labels such as `feature.node.kubernetes.io/pci-10de.present=true` ("an NVIDIA card is here") |
+| **GPU Feature Discovery** | Reads the GPU details | Labels such as `nvidia.com/gpu.product=…A100…` and `nvidia.com/gpu.memory=81920` |
+
+- **They describe the GPUs; only the device plugin hands them out:** Node Feature Discovery and GPU Feature Discovery only write *information* onto the Node object as labels, like a sign on the door saying "this room has A100s with 80 GB". The device plugin is the only one that *gives* a GPU to a container: when a pod asks for `nvidia.com/gpu: 1`, the kubelet asks the device plugin for a GPU, and the plugin hands one over.
+- **Why it matters:** a pod that only uses the labels (`nodeSelector: nvidia.com/gpu.product: …A100…`) lands on an A100 node but **gets no GPU**. It still needs `nvidia.com/gpu: 1` so the device plugin hands one over. Labels choose the node; the device plugin gives the GPU. More on the labels in [How GPUs are advertised](#d06-2).
 - A minimal vLLM Deployment on such a node still needs a GPU limit, a toleration for the GPU taint, and a PVC as a model cache, so restarts don't re-download the weights.
 - Plugins expose counts, not topology: the scheduler doesn't know which GPUs share an NVLink or a PCIe switch. That gap is why topology labels, [Dynamic Resource Allocation](#d06-4) and topology-aware schedulers ([topology bin-packing](#d02-3)) exist.
 
