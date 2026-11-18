@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Off-policy diagnostics</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Off-policy metrics on every step: two runs with the same reward</text>
+<rect x="30" y="60" width="400" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="44" y="84.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Ratio &gt; 3 fraction</text>
+<path d="M 50 200 L 83 200 L 115 200 L 148 200 L 181 200 L 214 200 L 246 200 L 279 200 L 312 200 L 345 200 L 377 200 L 410 200" fill="none" stroke="#059669" stroke-width="3"/>
+<path d="M 50 200 L 83 199 L 115 197 L 148 195 L 181 191 L 214 185 L 246 177 L 279 169 L 312 160 L 345 150 L 377 135 L 410 115" fill="none" stroke="#dc2626" stroke-width="3"/>
+<text x="44" y="222.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#475569">growing tail: earliest warning</text>
+<rect x="450" y="60" width="400" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="464" y="84.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">ESS / N</text>
+<path d="M 470 113 L 503 113 L 535 113 L 568 113 L 601 113 L 634 113 L 666 113 L 699 113 L 732 113 L 765 113 L 797 113 L 830 113" fill="none" stroke="#059669" stroke-width="3"/>
+<path d="M 470 113 L 503 115 L 535 117 L 568 120 L 601 125 L 634 131 L 666 137 L 699 145 L 732 153 L 765 160 L 797 167 L 830 175" fill="none" stroke="#dc2626" stroke-width="3"/>
+<text x="464" y="222.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#475569">a few samples dominate</text>
+<rect x="870" y="60" width="400" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="884" y="84.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Behavior KL</text>
+<path d="M 890 190 L 923 190 L 955 190 L 988 190 L 1021 190 L 1054 190 L 1086 190 L 1119 190 L 1152 190 L 1185 190 L 1217 190 L 1250 190" fill="none" stroke="#059669" stroke-width="3"/>
+<path d="M 890 190 L 923 189 L 955 187 L 988 183 L 1021 178 L 1054 172 L 1086 165 L 1119 157 L 1152 149 L 1185 140 L 1217 130 L 1250 120" fill="none" stroke="#dc2626" stroke-width="3"/>
+<text x="884" y="222.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#475569">distance from data to policy</text>
+<rect x="30" y="250" width="400" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="44" y="274.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Clipped + masked fraction</text>
+<path d="M 50 385 L 83 385 L 115 385 L 148 385 L 181 385 L 214 385 L 246 385 L 279 385 L 312 385 L 345 385 L 377 385 L 410 385" fill="none" stroke="#059669" stroke-width="3"/>
+<path d="M 50 385 L 83 384 L 115 382 L 148 379 L 181 375 L 214 370 L 246 363 L 279 355 L 312 347 L 345 339 L 377 330 L 410 320" fill="none" stroke="#dc2626" stroke-width="3"/>
+<text x="44" y="412.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#475569">how much of the batch is cut</text>
+<rect x="450" y="250" width="400" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="464" y="274.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Version age histogram (trained on)</text>
+<rect x="480" y="305" width="50" height="90" fill="#2563eb"/>
+<text x="505" y="412.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">0</text>
+<rect x="550" y="325" width="50" height="70" fill="#2563eb"/>
+<text x="575" y="412.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">1</text>
+<rect x="620" y="350" width="50" height="45" fill="#2563eb"/>
+<text x="645" y="412.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">2</text>
+<rect x="690" y="365" width="50" height="30" fill="#2563eb"/>
+<text x="715" y="412.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">3</text>
+<rect x="760" y="375" width="50" height="20" fill="#2563eb"/>
+<text x="785" y="412.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#334155">4</text>
+<rect x="870" y="250" width="400" height="170" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="884" y="274.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Behavior KL by age</text>
+<path d="M 900 377 L 985 371 L 1070 365 L 1155 359 L 1240 353" fill="none" stroke="#059669" stroke-width="3"/>
+<path d="M 900 353 L 985 339 L 1070 324 L 1155 310 L 1240 295" fill="none" stroke="#dc2626" stroke-width="3"/>
+<text x="884" y="412.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#475569">high at age 0 → engine mismatch, not staleness</text>
+<rect x="30" y="450" width="16" height="16" fill="#059669"/>
+<text x="52" y="463" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">run A: survives</text>
+<rect x="230" y="450" width="16" height="16" fill="#dc2626"/>
+<text x="252" y="463" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b91c1c">run B: same reward so far, collapses later</text>
+<rect x="30" y="490" width="1240" height="80" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="513" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Compute at token and sequence level</text>
+<text x="42" y="536" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Per-token ESS can mislead for long answers; sequence-level metrics match sequence-level objectives. Plot every metric against age.</text></svg>

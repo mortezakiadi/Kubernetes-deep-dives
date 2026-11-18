@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Bounded staleness</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Versions flow through the pipeline; staleness is enforced twice</text>
+<text x="30" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">trainer version</text>
+<rect x="200" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="245" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v122</text>
+<rect x="300" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="345" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v123</text>
+<rect x="400" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="445" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v124</text>
+<rect x="500" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="545" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v125</text>
+<rect x="600" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="645" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v126</text>
+<rect x="700" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="745" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v127</text>
+<rect x="800" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="845" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v128</text>
+<rect x="900" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="945" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v129</text>
+<rect x="1000" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="1045" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v130</text>
+<rect x="1100" y="72" width="90" height="32" rx="6" fill="#2563eb"/>
+<text x="1145" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">v131</text>
+<text x="30" y="162" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">engine A</text>
+<rect x="200" y="140" width="790" height="30" rx="6" fill="#fef3c7" stroke="#d97706"/>
+<text x="210" y="160" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">serving v129</text>
+<text x="30" y="212" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">engine B</text>
+<rect x="200" y="190" width="890" height="30" rx="6" fill="#fef3c7" stroke="#d97706"/>
+<text x="210" y="210" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">serving v130</text>
+<text x="30" y="262" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">engine C</text>
+<rect x="200" y="240" width="690" height="30" rx="6" fill="#fef3c7" stroke="#d97706"/>
+<text x="210" y="260" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">serving v128</text>
+<text x="30" y="312" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">engine D</text>
+<rect x="200" y="290" width="60" height="30" rx="6" fill="#fee2e2" stroke="#dc2626"/>
+<text x="210" y="310" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">serving v112   ← 19 behind: no new prompts until it reloads</text>
+<line x1="1195" y1="64" x2="1195" y2="350" stroke="#047857" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="1188" y="120.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">now: v131</text>
+<line x1="697" y1="64" x2="697" y2="350" stroke="#b91c1c" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="706" y="355.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">k = 4: oldest allowed v127</text>
+<rect x="30" y="400" width="296" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="423" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Scheduler gate</text>
+<text x="42" y="446" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">engines &gt; k behind get no new prompts</text>
+<rect x="342" y="400" width="296" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="354" y="423" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Buffer gate</text>
+<text x="354" y="446" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">samples older than k → rejected or replay</text>
+<text x="354" y="461" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pool</text>
+<rect x="654" y="400" width="296" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="666" y="423" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Batch mix</text>
+<text x="666" y="446" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">≥50% age 0–1; ≤30% at max age</text>
+<rect x="966" y="400" width="296" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="978" y="423" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Adaptive</text>
+<text x="978" y="446" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">controller tightens k when metrics degrade</text></svg>

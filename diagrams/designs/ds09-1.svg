@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="520px" viewBox="0 0 1300 520" style="background:#ffffff"><title>Sources of off-policy data</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="520" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Sources of off-policy data, from mild to strong</text>
+<defs><linearGradient id="g9" x1="0" x2="1"><stop offset="0" stop-color="#d1fae5"/><stop offset=".5" stop-color="#fef3c7"/><stop offset="1" stop-color="#fee2e2"/></linearGradient></defs>
+<rect x="30" y="70" width="1240" height="40" rx="20" fill="url(#g9)" stroke="#cbd5e1"/>
+<text x="50" y="96.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">mild: same policy, small distance</text>
+<text x="1250" y="96.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">strong: different policy, large distance</text>
+<rect x="30" y="140" width="196" height="140" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="163" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Engine mismatch</text>
+<text x="42" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">same weights, different</text>
+<text x="42" y="201" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">engines; always present</text>
+<line x1="128" y1="110" x2="128" y2="140" stroke="#94a3b8" stroke-width="2"/>
+<rect x="238" y="140" width="196" height="140" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="250" y="163" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Async staleness</text>
+<text x="250" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">k updates behind; grows</text>
+<text x="250" y="201" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">with k and LR</text>
+<line x1="336" y1="110" x2="336" y2="140" stroke="#94a3b8" stroke-width="2"/>
+<rect x="446" y="140" width="196" height="140" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="458" y="163" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Partial rollouts</text>
+<text x="458" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one answer spans several</text>
+<text x="458" y="201" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">versions</text>
+<line x1="544" y1="110" x2="544" y2="140" stroke="#94a3b8" stroke-width="2"/>
+<rect x="654" y="140" width="196" height="140" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="666" y="163" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Filtering / selection</text>
+<text x="666" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">own tokens, but a filtered</text>
+<text x="666" y="201" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">distribution</text>
+<line x1="752" y1="110" x2="752" y2="140" stroke="#94a3b8" stroke-width="2"/>
+<rect x="862" y="140" width="196" height="140" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="874" y="163" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Replay of older data</text>
+<text x="874" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tens to hundreds of updates</text>
+<text x="874" y="201" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">old</text>
+<line x1="960" y1="110" x2="960" y2="140" stroke="#94a3b8" stroke-width="2"/>
+<rect x="1070" y="140" width="196" height="140" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="1082" y="163" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Other policies</text>
+<text x="1082" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">teacher, other checkpoints,</text>
+<text x="1082" y="201" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">humans</text>
+<line x1="1168" y1="110" x2="1168" y2="140" stroke="#94a3b8" stroke-width="2"/>
+<rect x="30" y="320" width="610" height="160" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="344" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Off-policyness is a distance</text>
+<text x="42" y="368" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Measured per token as log π_current − log π_behavior. It differs between tokens of</text>
+<text x="42" y="384" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">the same answer, and between runs with the same version gap.</text>
+<rect x="660" y="320" width="610" height="160" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="672" y="344" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Same staleness, different risk</text>
+<text x="672" y="368" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">Five updates at a tiny LR in a stable phase can move the policy less than one update</text>
+<text x="672" y="384" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#334155">with a large LR in a fast phase. Limit the distance, not only the age.</text></svg>
