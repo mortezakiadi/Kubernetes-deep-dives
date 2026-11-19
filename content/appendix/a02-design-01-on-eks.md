@@ -5,7 +5,7 @@ short: "B. Design 01 on EKS (built and tested)"
 ---
 This appendix describes a working implementation of [Design 01: Sandboxing and secure execution for agents and untrusted code](#design-sandboxing). I built it with Terraform on Amazon EKS in one AWS account, tested every claim in the design that can be tested on this platform, recorded the evidence, and removed it again with one command. Everything here ran on a real cluster. Every command, output and pass or fail result in section 5 is copied from the recorded test run, not written from memory.
 
-The order is the one a reader needs: first the context (the problem, who the actors are and who talks to whom), then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.
+The order is the one a reader needs: first the context (the problem, who the actors are and who talks to whom), then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them. The last section is an alternative egress gateway on Envoy, which I tested in a lab and not on the cluster.
 
 12 of 12 scenarios passed, 75 of 75 checks.
 
@@ -123,6 +123,7 @@ In total I wrote about 1,150 lines of Python for the services, 870 lines of Kube
 
 - **One image for every service.** All the Python services are built into one container image, `ds01-platform`, for `linux/amd64`. Each Deployment picks its program with a command. Terraform builds and pushes the image to a private ECR repository, and tags it with a hash of the source, so changing a line of code rolls out a new image.
 - **Where each service gets its secrets.** Each Kubernetes Secret lives only in the namespace that needs it, and each pod mounts only the keys it needs. The `sandboxes` namespace contains no Secret at all. S03 checks that.
+- **Why mitmproxy, and what else could do the job.** mitmproxy suits a test because the policy is easy to write on it, but it is a debugging proxy and not a CNCF project. Section 9 builds the same gateway on Envoy, which is a graduated CNCF project, and tests it in a lab.
 - **Why a stand-in orchestrator.** A real orchestrator is an LLM loop. For a test, an LLM adds randomness and cost and proves nothing about the platform. The stand-in makes the same calls, deterministically.
 
 ### 2. EKS topology and instances
@@ -1251,3 +1252,265 @@ The terminal screenshots above are rendered from recorded command output. I coul
 - VPC, Subnets: the two sandbox subnets with the `ds01/tier=sandbox` tag.
 - IAM, Roles: the sandbox node role with its two policies.
 - ECR: the `ds01-platform` repository.
+### 9. An alternative egress gateway on Envoy
+
+**Scenario.** The tested egress gateway runs on mitmproxy. That was a good fit for a test, because the policy is easy to write on it. It is a less obvious choice for a platform that other people will operate. mitmproxy describes itself as an interactive HTTPS proxy for debugging, testing and penetration testing, and it does not appear in the CNCF landscape data. [Envoy](https://www.envoyproxy.io) does, and the same data lists it as a graduated CNCF project ([landscape data](https://github.com/cncf/landscape/blob/master/landscape.yml), read on the day of writing). So I wrote the same gateway on Envoy, in case the platform ever needs it, and ran it in a lab.
+
+**What I did and did not test.** I ran this in Docker on one machine, with test host names and a policy service that reads a table of sessions. It did not run on EKS, it did not call the real Manager or credential broker, and it is not part of the 12 scenarios or the 75 checks above. What it shows is that the plumbing works: Envoy can do the two jobs from section 1 (an untouched tunnel for ordinary hosts, and TLS ending for the one host that needs a key) and can hand every decision to a separate policy service.
+
+**How the work is split.** Envoy carries the traffic. A small policy service makes the decisions. That is the main difference from the tested gateway, where one add-on did both.
+
+| Job | In the tested gateway (mitmproxy add-on) | On Envoy |
+|---|---|---|
+| Accept the sandbox's request | An HTTP proxy port | A listener on port 3128 that accepts `CONNECT` and builds the tunnel |
+| Find the session that owns the source address | The add-on asks the Manager | Envoy asks the policy service (the `ext_authz` filter, over gRPC) and passes it the source address. The service asks the Manager. |
+| Check the host against the session's allowlist | The add-on | The policy service. A refusal becomes a 403 on the `CONNECT`. |
+| Rate limit | Counters in the add-on | Counters in the policy service. A refusal becomes a 429. |
+| Byte budget per session | Counted in the add-on | Not built in the lab. Envoy logs the bytes of every tunnel, but enforcing a budget would need another component. |
+| Pass TLS through for ordinary hosts | The add-on tells mitmproxy to ignore the connection | A route to a dynamic forward proxy cluster, which resolves the host name and opens a plain TCP tunnel |
+| End TLS for the one host that needs a key | The add-on terminates TLS and edits the request | A route sends that host's tunnel to a loopback-only listener that ends TLS. A PROXY protocol header on that hop keeps the sandbox's address, so the second policy check still knows the session. |
+| Supply the credential | The add-on asks the broker and sets the header | The second policy check asks the broker and returns the `Authorization` header, and Envoy overwrites the sandbox's placeholder with it |
+| Audit line with the session ID | The add-on writes it | Envoy's access log, with the session ID that the policy service returns as metadata |
+
+![Egress gateway on Envoy: one listener, a pass-through tunnel, and a loopback listener that injects the credential](diagrams/appendix/a02-8.svg)
+
+**What the picture shows.** The tunnel from a sandbox arrives at Envoy's listener (1). Envoy asks the policy service about the session (2). For an ordinary host the tunnel goes straight to the site (3). For the one internal host, the tunnel goes to a loopback listener that ends TLS (4), asks the policy service again for the credential (5), and calls the internal API (6).
+
+**Commands I ran and what they printed** (the whole run is `lab/run-lab.sh`; output shortened).
+
+```text
+$ curl -x http://envoy:3128 --cacert ca.pem https://allowed.test/          # run in the sandbox container
+{"server_host": "allowed.test", "authorization_seen": ""}
+$ curl -x http://envoy:3128 --cacert ca.pem https://blocked.test/          # a host not on the session's list
+tunnel status: 403
+$ curl -x http://envoy:3128 --cacert ca.pem -H "Authorization: Bearer placeholder" https://metrics.test/v1/metrics
+{"server_host": "metrics.test", "authorization_seen": "Bearer real-credential-for-sess-lab-0001"}
+$ (same call from a container that owns no session)
+tunnel status: 403
+$ (eight calls in a row to the allowed host, with a lab limit of five a minute)
+tunnel status: 200 for the first calls, then 429
+$ curl https://envoy:8443/                                                  # the loopback listener, from another container
+curl: exit code 7 (could not connect)
+$ docker logs lab-envoy | grep egress.decision
+{"component":"egress-gateway","detail":"ext_authz_denied","event":"egress.decision","host":"blocked.test:443","session_id":"sess-lab-0001","status":403,...}
+{"component":"egress-gateway","event":"egress.request","host":"metrics.test","injected":"true","method":"GET","path":"/v1/metrics","session_id":"sess-lab-0001","status":200}
+```
+
+**What each check proved, and why the output is what it is:**
+
+| Result | Check | Why this output |
+|---|---|---|
+| PASS | Envoy validates the configuration | Envoy's own validation mode accepts it. |
+| PASS | an allowlisted host is reached through a tunnel, and the sandbox verifies the site's own certificate | The tunnel is plain TCP, so the TLS handshake runs between the sandbox and the site and Envoy never sees inside it. |
+| PASS | a host that is not on the session's allowlist is refused with 403 | The policy service refuses it, and Envoy turns that into a 403 on the `CONNECT`, before any connection to the host is opened. |
+| PASS | the internal host receives the real credential although the sandbox sent only a placeholder | The tunnel for that host ends in the loopback listener. The second policy check returns the real header, and Envoy replaces the sandbox's header with it. |
+| PASS | a source address that owns no session is refused with 403 | The policy service finds no session for that address. |
+| PASS | a session over its rate limit is refused with 429 | The policy service counts the session's tunnels in the last minute. |
+| PASS | the TLS-terminating listener cannot be reached from the network | It listens on the loopback address only, so only Envoy itself can send traffic to it. |
+| PASS | the audit log names the session on a refused request | The policy service returns the session ID as metadata with every answer, refusals included, and the log line carries it. |
+| PASS | the audit log records the injected request | The loopback listener logs each decrypted request with `injected` set. |
+
+**What I found.**
+
+- **The HTTP form of the check does not work for `CONNECT`.** My first version used `ext_authz` over plain HTTP. Every tunnel failed with the error `ext_authz_error`, and the policy service logged that it had been sent a `CONNECT` request. Switching the same filter to gRPC fixed it with no other change. I did not find out why the HTTP form fails.
+- **The source address needs the PROXY protocol on the hop to the loopback listener.** Without it, the second check would see Envoy's own address and could not tell which session is calling. The lab shows that with it, the second check sees the sandbox's address.
+- **The list of hosts that get a credential is fixed in Envoy's configuration.** Each such host needs a route, a certificate and an upstream cluster. In the tested gateway the Manager supplies that list per session. On Envoy the per-session part stays in the policy service, which adds the header only when the session is entitled to it, but adding a new internal host means changing the configuration.
+- **The rate limit has the same weakness as before.** The counters live in the policy service's memory. Two replicas would each see half the calls, as in section 4, so the Service in front of it needs the same session pinning, or the counters need a shared store.
+- **Envoy warns that no limit on downstream connections is set.** The lab ran with that warning. A real deployment should set one.
+- **A dynamic forward proxy needs a firewall around it.** Envoy's own documentation says dynamic forward proxy servers should be protected by network firewalls and default-deny rules. In this design the sandbox's network policy and the gateway's domain ceiling (S05, S06) play that part.
+
+**What it would take to use it.** Replace the lab's session table in the policy service with the calls the tested gateway makes: ask the Manager which session owns an address, and ask the broker for a credential. Run Envoy as the gateway Deployment on the same address and port, behind the same Service. Keep the sandbox template unchanged, because it already points at that address. Then run S05, S06 and S07 against it. I have not done any of those steps.
+
+**The configuration** (`alternatives/envoy-egress/envoy.yaml`, as tested with Envoy v1.40.2).
+
+```yaml
+# Egress gateway on Envoy: the sandbox's one way out. Mirrors what the mitmproxy gateway does.
+#   :3128  CONNECT proxy. ext_authz asks the policy service: which session owns this source address,
+#          is the host on its allowlist, is it over its rate limit.
+#          Ordinary hosts: a pass-through TCP tunnel (TLS stays end to end between sandbox and site).
+#          The one injected host: the tunnel goes to a loopback listener that ends TLS and adds the credential.
+#   :8443  (loopback only) TLS-terminating listener for the injected host. The PROXY protocol header on the
+#          hop to it carries the sandbox's address, so the second policy check still knows the session.
+#
+# Tested in lab/run-lab.sh with Envoy v1.40.2. Lab names to replace in a real deployment:
+#   metrics.test            the internal host that needs a credential (route, listener certificate, upstream cluster)
+#   /certs/*                the certificate Envoy presents for that host, and the CA that signed the upstream's
+#   authz                   the policy service's address (policy_service.py is a lab version that reads a table)
+admin:
+  address: { socket_address: { address: 127.0.0.1, port_value: 9901 } }
+static_resources:
+  listeners:
+  - name: egress
+    address: { socket_address: { address: 0.0.0.0, port_value: 3128 } }
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: egress
+          use_remote_address: true
+          http_protocol_options: {}
+          access_log:
+          - name: envoy.access_loggers.stdout
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+              log_format:
+                json_format:
+                  component: egress-gateway
+                  event: egress.decision
+                  session_id: "%DYNAMIC_METADATA(envoy.filters.http.ext_authz:session_id)%"
+                  host: "%REQ(:AUTHORITY)%"
+                  status: "%RESPONSE_CODE%"
+                  detail: "%RESPONSE_CODE_DETAILS%"
+                  source: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+                  bytes_sent: "%BYTES_SENT%"
+                  bytes_received: "%BYTES_RECEIVED%"
+          route_config:
+            name: egress_routes
+            virtual_hosts:
+            - name: all
+              domains: ["*"]
+              routes:
+              # The host that needs a credential: tunnel into the TLS-terminating listener.
+              - match:
+                  connect_matcher: {}
+                  headers:
+                  - name: ":authority"
+                    string_match: { exact: "metrics.test:443" }
+                route:
+                  cluster: inject_listener
+                  upgrade_configs:
+                  - upgrade_type: CONNECT
+                    connect_config: {}
+              # Everything else that the policy service allows: a pass-through tunnel to the named host.
+              - match: { connect_matcher: {} }
+                route:
+                  cluster: any_host
+                  upgrade_configs:
+                  - upgrade_type: CONNECT
+                    connect_config: {}
+          http_filters:
+          - name: envoy.filters.http.ext_authz
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+              failure_mode_allow: false
+              grpc_service:
+                envoy_grpc: { cluster_name: authz }
+                timeout: 2s
+                initial_metadata: [ { key: x-ds01-mode, value: check } ]
+          - name: envoy.filters.http.dynamic_forward_proxy
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
+              dns_cache_config: &dns
+                name: egress_dns
+                dns_lookup_family: V4_ONLY
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  - name: inject
+    address: { socket_address: { address: 127.0.0.1, port_value: 8443 } }
+    listener_filters:
+    - name: envoy.filters.listener.proxy_protocol
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.filters.listener.proxy_protocol.v3.ProxyProtocol
+    filter_chains:
+    - transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+            - certificate_chain: { filename: /certs/metrics.test.pem }
+              private_key: { filename: /certs/metrics.test.key }
+      filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: inject
+          use_remote_address: true
+          access_log:
+          - name: envoy.access_loggers.stdout
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+              log_format:
+                json_format:
+                  component: egress-gateway
+                  event: egress.request
+                  session_id: "%DYNAMIC_METADATA(envoy.filters.http.ext_authz:session_id)%"
+                  host: "%REQ(:AUTHORITY)%"
+                  method: "%REQ(:METHOD)%"
+                  path: "%REQ(:PATH)%"
+                  status: "%RESPONSE_CODE%"
+                  injected: "true"
+          route_config:
+            name: inject_routes
+            virtual_hosts:
+            - name: metrics
+              domains: ["metrics.test", "metrics.test:443"]
+              routes:
+              - match: { prefix: "/" }
+                route: { cluster: metrics_upstream }
+          http_filters:
+          - name: envoy.filters.http.ext_authz
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+              failure_mode_allow: false
+              grpc_service:
+                envoy_grpc: { cluster_name: authz }
+                timeout: 2s
+                initial_metadata: [ { key: x-ds01-mode, value: inject } ]
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+  - name: any_host
+    lb_policy: CLUSTER_PROVIDED
+    cluster_type:
+      name: envoy.clusters.dynamic_forward_proxy
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.clusters.dynamic_forward_proxy.v3.ClusterConfig
+        dns_cache_config: *dns
+  - name: inject_listener
+    type: STATIC
+    connect_timeout: 2s
+    load_assignment:
+      cluster_name: inject_listener
+      endpoints: [ { lb_endpoints: [ { endpoint: { address: { socket_address: { address: 127.0.0.1, port_value: 8443 } } } } ] } ]
+    transport_socket:
+      name: envoy.transport_sockets.upstream_proxy_protocol
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.proxy_protocol.v3.ProxyProtocolUpstreamTransport
+        config: { version: V1 }
+        transport_socket:
+          name: envoy.transport_sockets.raw_buffer
+          typed_config: { "@type": type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer }
+  - name: metrics_upstream
+    type: STRICT_DNS
+    connect_timeout: 2s
+    load_assignment:
+      cluster_name: metrics_upstream
+      endpoints: [ { lb_endpoints: [ { endpoint: { address: { socket_address: { address: metrics.test, port_value: 443 } } } } ] } ]
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+        sni: metrics.test
+        common_tls_context:
+          validation_context:
+            trusted_ca: { filename: /certs/ca.pem }
+            match_typed_subject_alt_names:
+            - san_type: DNS
+              matcher: { exact: metrics.test }
+  - name: authz
+    type: STRICT_DNS
+    connect_timeout: 1s
+    typed_extension_protocol_options:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicit_http_config: { http2_protocol_options: {} }
+    load_assignment:
+      cluster_name: authz
+      endpoints: [ { lb_endpoints: [ { endpoint: { address: { socket_address: { address: authz, port_value: 9000 } } } } ] } ]
+```
+
+**The files.** `alternatives/envoy-egress/` holds `envoy.yaml`, `policy_service.py` (the lab policy service, about 60 lines) and `lab/run-lab.sh`, which builds the lab, runs the nine checks and removes everything it started. It needs Docker and nothing else. `up.sh` does not use any of it.

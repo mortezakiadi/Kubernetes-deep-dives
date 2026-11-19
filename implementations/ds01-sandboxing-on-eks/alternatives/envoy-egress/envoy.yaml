@@ -1,0 +1,187 @@
+# Egress gateway on Envoy: the sandbox's one way out. Mirrors what the mitmproxy gateway does.
+#   :3128  CONNECT proxy. ext_authz asks the policy service: which session owns this source address,
+#          is the host on its allowlist, is it over its rate limit.
+#          Ordinary hosts: a pass-through TCP tunnel (TLS stays end to end between sandbox and site).
+#          The one injected host: the tunnel goes to a loopback listener that ends TLS and adds the credential.
+#   :8443  (loopback only) TLS-terminating listener for the injected host. The PROXY protocol header on the
+#          hop to it carries the sandbox's address, so the second policy check still knows the session.
+#
+# Tested in lab/run-lab.sh with Envoy v1.40.2. Lab names to replace in a real deployment:
+#   metrics.test            the internal host that needs a credential (route, listener certificate, upstream cluster)
+#   /certs/*                the certificate Envoy presents for that host, and the CA that signed the upstream's
+#   authz                   the policy service's address (policy_service.py is a lab version that reads a table)
+admin:
+  address: { socket_address: { address: 127.0.0.1, port_value: 9901 } }
+static_resources:
+  listeners:
+  - name: egress
+    address: { socket_address: { address: 0.0.0.0, port_value: 3128 } }
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: egress
+          use_remote_address: true
+          http_protocol_options: {}
+          access_log:
+          - name: envoy.access_loggers.stdout
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+              log_format:
+                json_format:
+                  component: egress-gateway
+                  event: egress.decision
+                  session_id: "%DYNAMIC_METADATA(envoy.filters.http.ext_authz:session_id)%"
+                  host: "%REQ(:AUTHORITY)%"
+                  status: "%RESPONSE_CODE%"
+                  detail: "%RESPONSE_CODE_DETAILS%"
+                  source: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+                  bytes_sent: "%BYTES_SENT%"
+                  bytes_received: "%BYTES_RECEIVED%"
+          route_config:
+            name: egress_routes
+            virtual_hosts:
+            - name: all
+              domains: ["*"]
+              routes:
+              # The host that needs a credential: tunnel into the TLS-terminating listener.
+              - match:
+                  connect_matcher: {}
+                  headers:
+                  - name: ":authority"
+                    string_match: { exact: "metrics.test:443" }
+                route:
+                  cluster: inject_listener
+                  upgrade_configs:
+                  - upgrade_type: CONNECT
+                    connect_config: {}
+              # Everything else that the policy service allows: a pass-through tunnel to the named host.
+              - match: { connect_matcher: {} }
+                route:
+                  cluster: any_host
+                  upgrade_configs:
+                  - upgrade_type: CONNECT
+                    connect_config: {}
+          http_filters:
+          - name: envoy.filters.http.ext_authz
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+              failure_mode_allow: false
+              grpc_service:
+                envoy_grpc: { cluster_name: authz }
+                timeout: 2s
+                initial_metadata: [ { key: x-ds01-mode, value: check } ]
+          - name: envoy.filters.http.dynamic_forward_proxy
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.dynamic_forward_proxy.v3.FilterConfig
+              dns_cache_config: &dns
+                name: egress_dns
+                dns_lookup_family: V4_ONLY
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  - name: inject
+    address: { socket_address: { address: 127.0.0.1, port_value: 8443 } }
+    listener_filters:
+    - name: envoy.filters.listener.proxy_protocol
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.filters.listener.proxy_protocol.v3.ProxyProtocol
+    filter_chains:
+    - transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+            - certificate_chain: { filename: /certs/metrics.test.pem }
+              private_key: { filename: /certs/metrics.test.key }
+      filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: inject
+          use_remote_address: true
+          access_log:
+          - name: envoy.access_loggers.stdout
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+              log_format:
+                json_format:
+                  component: egress-gateway
+                  event: egress.request
+                  session_id: "%DYNAMIC_METADATA(envoy.filters.http.ext_authz:session_id)%"
+                  host: "%REQ(:AUTHORITY)%"
+                  method: "%REQ(:METHOD)%"
+                  path: "%REQ(:PATH)%"
+                  status: "%RESPONSE_CODE%"
+                  injected: "true"
+          route_config:
+            name: inject_routes
+            virtual_hosts:
+            - name: metrics
+              domains: ["metrics.test", "metrics.test:443"]
+              routes:
+              - match: { prefix: "/" }
+                route: { cluster: metrics_upstream }
+          http_filters:
+          - name: envoy.filters.http.ext_authz
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+              failure_mode_allow: false
+              grpc_service:
+                envoy_grpc: { cluster_name: authz }
+                timeout: 2s
+                initial_metadata: [ { key: x-ds01-mode, value: inject } ]
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+  - name: any_host
+    lb_policy: CLUSTER_PROVIDED
+    cluster_type:
+      name: envoy.clusters.dynamic_forward_proxy
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.clusters.dynamic_forward_proxy.v3.ClusterConfig
+        dns_cache_config: *dns
+  - name: inject_listener
+    type: STATIC
+    connect_timeout: 2s
+    load_assignment:
+      cluster_name: inject_listener
+      endpoints: [ { lb_endpoints: [ { endpoint: { address: { socket_address: { address: 127.0.0.1, port_value: 8443 } } } } ] } ]
+    transport_socket:
+      name: envoy.transport_sockets.upstream_proxy_protocol
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.proxy_protocol.v3.ProxyProtocolUpstreamTransport
+        config: { version: V1 }
+        transport_socket:
+          name: envoy.transport_sockets.raw_buffer
+          typed_config: { "@type": type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer }
+  - name: metrics_upstream
+    type: STRICT_DNS
+    connect_timeout: 2s
+    load_assignment:
+      cluster_name: metrics_upstream
+      endpoints: [ { lb_endpoints: [ { endpoint: { address: { socket_address: { address: metrics.test, port_value: 443 } } } } ] } ]
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+        sni: metrics.test
+        common_tls_context:
+          validation_context:
+            trusted_ca: { filename: /certs/ca.pem }
+            match_typed_subject_alt_names:
+            - san_type: DNS
+              matcher: { exact: metrics.test }
+  - name: authz
+    type: STRICT_DNS
+    connect_timeout: 1s
+    typed_extension_protocol_options:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicit_http_config: { http2_protocol_options: {} }
+    load_assignment:
+      cluster_name: authz
+      endpoints: [ { lb_endpoints: [ { endpoint: { address: { socket_address: { address: authz, port_value: 9000 } } } } ] } ]

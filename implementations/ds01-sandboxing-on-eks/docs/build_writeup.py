@@ -91,6 +91,8 @@ def main():
 
     head = (HERE / "writeup_head.md").read_text()
     tail = (HERE / "writeup_tail.md").read_text()
+    # The Envoy configuration in section 9 comes straight from the tested file, so the page cannot drift from it.
+    tail = tail.replace("{{ENVOY_CONFIG}}", (HERE.parent / "alternatives" / "envoy-egress" / "envoy.yaml").read_text().rstrip())
     passed = sum(1 for e in evs if e["passed"])
     total_checks = sum(len(e["checks"]) for e in evs)
     passed_checks = sum(1 for e in evs for c in e["checks"] if c["passed"])

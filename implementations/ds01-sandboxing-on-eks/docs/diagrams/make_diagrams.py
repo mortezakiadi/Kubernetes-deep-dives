@@ -296,10 +296,38 @@ def context_components():
     s.text(20, 836, "Green: platform services. Blue: gateway and broker. Red: untrusted. Grey: not built here, or outside the platform.", 11, MUTED)
     s.text(20, 854, "Platform pods run on EKS Auto Mode's general-purpose nodes. Sandboxes run only on the tainted sandbox pool.", 11, MUTED)
     return s.render()
+def envoy_gateway():
+    """Figure for section 9: the egress gateway on Envoy."""
+    s = Svg(1420, 500, "Egress gateway on Envoy: one listener, a pass-through tunnel, and a loopback listener that injects the credential")
+    s.box(20, 200, 200, 120, "Sandbox", ["HTTPS_PROXY = the gateway", "sends CONNECT host:443", "holds only a placeholder"], RED)
+    s.zone(270, 60, 380, 400, "ENVOY (the gateway pod)", BLUE)
+    s.box(290, 100, 340, 110, "Listener :3128", ["accepts CONNECT, asks the policy", "service, then opens a tunnel", "no TLS is ended for ordinary hosts"], BLUE)
+    s.box(290, 300, 340, 130, "Loopback listener :8443", ["only for the host that needs a key", "ends TLS, adds the Authorization header", "reachable from inside the pod only", "PROXY protocol keeps the sandbox's address"], BLUE)
+    s.box(720, 100, 260, 260, "Policy service (gRPC)", ["which session owns this source", "address? is the host on its list?", "over its rate limit?", "returns the session ID, always", "second check: asks the broker and", "returns the Authorization header"], GREEN)
+    s.box(720, 405, 260, 60, "Manager and broker", ["lab: a table of sessions"], GREY)
+    s.box(1050, 100, 330, 110, "Allowlisted site", ["TLS runs between the sandbox", "and the site. Envoy cannot read it."], GREY)
+    s.box(1050, 300, 330, 130, "Internal API", ["sees the real credential,", "never the placeholder", "refuses a call without one"], GREY)
+    s.arrow([(220, 255), (255, 255), (255, 155), (290, 155)], "flow")
+    s.badge(255, 205, 1)
+    s.arrow([(630, 155), (720, 155)], "blue", both=True)
+    s.badge(675, 155, 2)
+    s.arrow([(460, 100), (460, 40), (1215, 40), (1215, 100)], "ok", "pass-through tunnel", 840, 43)
+    s.badge(1100, 40, 3)
+    s.arrow([(460, 210), (460, 300)], "blue", "PROXY protocol", 460, 258)
+    s.badge(445, 235, 4)
+    s.arrow([(630, 330), (720, 330)], "blue", both=True)
+    s.badge(675, 330, 5)
+    s.arrow([(630, 385), (1050, 385)], "ok", "real key added", 740, 378)
+    s.badge(1000, 385, 6)
+    s.arrow([(850, 360), (850, 405)], "muted", both=True)
+    s.text(20, 380, "Numbers match the text under the picture.", 11, MUTED)
+    s.text(20, 398, "Blue: the gateway. Green: its policy service.", 11, MUTED)
+    return s.render()
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
     for name, fn in (("a02-1", architecture), ("a02-2", topology), ("a02-3", network_paths), ("a02-4", credential_flow),
-                     ("a02-5", context_overview), ("a02-6", context_sequence), ("a02-7", context_components)):
+                     ("a02-5", context_overview), ("a02-6", context_sequence), ("a02-7", context_components),
+                     ("a02-8", envoy_gateway)):
         (out / f"{name}.svg").write_text(fn())
         print("wrote", out / f"{name}.svg")
