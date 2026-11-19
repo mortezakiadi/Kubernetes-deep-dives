@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Opportunity sizing</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Waste by category and what is realistically recoverable ($k / month, illustrative)</text>
+<text x="248" y="94" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Idle capacity</text>
+<rect x="260" y="76" width="616" height="30" rx="3" fill="#cbd5e1" fill-opacity="1" stroke="none"/>
+<rect x="260" y="76" width="216" height="30" rx="3" fill="#059669" fill-opacity="0.9" stroke="none"/>
+<text x="884.0" y="96.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">770k · recoverable 270k (35%)</text>
+<text x="248" y="146" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Held but idle</text>
+<rect x="260" y="128" width="248" height="30" rx="3" fill="#cbd5e1" fill-opacity="1" stroke="none"/>
+<rect x="260" y="128" width="149" height="30" rx="3" fill="#059669" fill-opacity="0.9" stroke="none"/>
+<text x="516.0" y="148.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">310k · recoverable 186k (60%)</text>
+<text x="248" y="198" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Serving over-provisioning</text>
+<rect x="260" y="180" width="192" height="30" rx="3" fill="#cbd5e1" fill-opacity="1" stroke="none"/>
+<rect x="260" y="180" width="134" height="30" rx="3" fill="#059669" fill-opacity="0.9" stroke="none"/>
+<text x="460.0" y="200.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">240k · recoverable 168k (70%)</text>
+<text x="248" y="250" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">On-demand while base idle</text>
+<rect x="260" y="232" width="120" height="30" rx="3" fill="#cbd5e1" fill-opacity="1" stroke="none"/>
+<rect x="260" y="232" width="84" height="30" rx="3" fill="#059669" fill-opacity="0.9" stroke="none"/>
+<text x="388.0" y="252.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">150k · recoverable 105k (70%)</text>
+<text x="248" y="302" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Oversized hardware</text>
+<rect x="260" y="284" width="96" height="30" rx="3" fill="#cbd5e1" fill-opacity="1" stroke="none"/>
+<rect x="260" y="284" width="48" height="30" rx="3" fill="#059669" fill-opacity="0.9" stroke="none"/>
+<text x="364.0" y="304.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">120k · recoverable 60k (50%)</text>
+<text x="248" y="354" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Unused commitments</text>
+<rect x="260" y="336" width="72" height="30" rx="3" fill="#cbd5e1" fill-opacity="1" stroke="none"/>
+<rect x="260" y="336" width="36" height="30" rx="3" fill="#059669" fill-opacity="0.9" stroke="none"/>
+<text x="340.0" y="356.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">90k · recoverable 45k (50%)</text>
+<text x="248" y="406" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Orphaned resources</text>
+<rect x="260" y="388" width="46" height="30" rx="3" fill="#cbd5e1" fill-opacity="1" stroke="none"/>
+<rect x="260" y="388" width="42" height="30" rx="3" fill="#059669" fill-opacity="0.9" stroke="none"/>
+<text x="314.4" y="408.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">58k · recoverable 52k (90%)</text>
+<text x="260" y="450" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">grey = waste found in the warehouse · green = expected recoverable</text>
+<rect x="30" y="480" width="400" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="503" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Addressable ≈ $886k / month</text>
+<text x="42" y="526" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">against a target of 15% of $4.08M = $612k</text>
+<rect x="450" y="480" width="400" height="90" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="462" y="502.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Order by $ per engineering week</text>
+<text x="462" y="525.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">not by how interesting the lever is</text>
+<rect x="870" y="480" width="400" height="90" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="882" y="502.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Count each dollar once</text>
+<text x="882" y="525.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">recovered held-idle becomes idle capacity unless capacity</text>
+<text x="882" y="539.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">shrinks</text></svg>

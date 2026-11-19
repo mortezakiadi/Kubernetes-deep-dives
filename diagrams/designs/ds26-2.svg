@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Counterfactual</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Savings = what the same work would have cost minus what it cost (illustrative)</text>
+<rect x="90" y="80" width="760" height="320" rx="0" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<path d="M 130 250 L 227 242 L 324 229 L 421 208 L 519 191 L 616 174 L 713 153 L 810 132 L 810 302 L 713 299 L 616 299 L 519 290 L 421 263 L 324 231 L 227 240 L 130 249" fill="#059669" stroke="#059669" stroke-width="0" fill-opacity=".2"/>
+<path d="M 130 250 L 227 242 L 324 229 L 421 208 L 519 191 L 616 174 L 713 153 L 810 132" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="8 5"/>
+<path d="M 130 249 L 227 240 L 324 231 L 421 263 L 519 290 L 616 299 L 713 299 L 810 302" fill="none" stroke="#0f172a" stroke-width="3"/>
+<line x1="373" y1="80" x2="373" y2="400" stroke="#94a3b8" stroke-dasharray="4 4"/>
+<text x="378.8571428571429" y="98" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">autoscaling on</text>
+<text x="804.0" y="120.29714285714283" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">counterfactual: traffic × 0.92 GPU-h per M tokens</text>
+<text x="804.0" y="323.7142857142857" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">actual GPU-hours (k)</text>
+<text x="712.8571428571429" y="217.14285714285717" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">realized</text>
+<text x="470.0" y="424" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">months · traffic grew 31% over the period</text>
+<rect x="880" y="70" width="390" height="330" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="900" y="98.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Month 8, chat-70b</text>
+<text x="900" y="134.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#475569">traffic</text>
+<text x="1250" y="134.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">118,000 M tokens</text>
+<text x="900" y="170.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#475569">counterfactual</text>
+<text x="1250" y="170.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">108,560 GPU-h · $271,400</text>
+<text x="900" y="206.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#475569">actual</text>
+<text x="1250" y="206.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">71,500 GPU-h · $178,750</text>
+<text x="900" y="242.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#475569">realized (cash)</text>
+<text x="1250" y="242.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">$92,650 · −34%</text>
+<text x="900" y="300" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">bill-minus-last-bill would show +$0:</text>
+<text x="900" y="320" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">growth hides the saving</text>
+<text x="900" y="356" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">requests × list price would claim</text>
+<text x="900" y="376" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">GPUs that were never paid for</text>
+<rect x="30" y="450" width="230" height="50" rx="8" fill="#94a3b8" fill-opacity="0.15" stroke="none"/>
+<rect x="30" y="450" width="230" height="50" rx="8" fill="none" stroke="#94a3b8" stroke-width="2"/>
+<text x="145" y="481" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#94a3b8">proposed</text>
+<path d="M 260 475 L 280 475" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="280" y="450" width="230" height="50" rx="8" fill="#2563eb" fill-opacity="0.15" stroke="none"/>
+<rect x="280" y="450" width="230" height="50" rx="8" fill="none" stroke="#2563eb" stroke-width="2"/>
+<text x="395" y="481" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2563eb">committed</text>
+<path d="M 510 475 L 530 475" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="530" y="450" width="230" height="50" rx="8" fill="#059669" fill-opacity="0.15" stroke="none"/>
+<rect x="530" y="450" width="230" height="50" rx="8" fill="none" stroke="#059669" stroke-width="2"/>
+<text x="645" y="481" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#059669">realized</text>
+<path d="M 760 475 L 780 475" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="780" y="450" width="230" height="50" rx="8" fill="#047857" fill-opacity="0.15" stroke="none"/>
+<rect x="780" y="450" width="230" height="50" rx="8" fill="none" stroke="#047857" stroke-width="2"/>
+<text x="895" y="481" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#047857">sustained</text>
+<path d="M 1010 475 L 1030 475" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="1030" y="450" width="230" height="50" rx="8" fill="#dc2626" fill-opacity="0.15" stroke="none"/>
+<rect x="1030" y="450" width="230" height="50" rx="8" fill="none" stroke="#dc2626" stroke-width="2"/>
+<text x="1145" y="481" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#dc2626">decayed</text>
+<text x="650" y="540" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">cash = lower invoice · avoided = growth absorbed, booked only when a purchase is actually deferred</text></svg>

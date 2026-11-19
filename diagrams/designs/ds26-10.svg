@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Savings ledger</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">The monthly ledger: bookable savings by kind, and decay (illustrative)</text>
+<rect x="90" y="80" width="760" height="320" rx="0" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<rect x="120" y="382" width="64" height="18" rx="2" fill="#059669" fill-opacity="0.88" stroke="none"/>
+<rect x="120" y="382" width="64" height="0" rx="2" fill="#2563eb" fill-opacity="0.75" stroke="none"/>
+<text x="152" y="373.7142857142857" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">40k</text>
+<text x="152" y="418.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">Nov</text>
+<rect x="224" y="327" width="64" height="73" rx="2" fill="#059669" fill-opacity="0.88" stroke="none"/>
+<rect x="224" y="327" width="64" height="0" rx="2" fill="#2563eb" fill-opacity="0.75" stroke="none"/>
+<text x="256" y="318.8571428571429" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">160k</text>
+<text x="256" y="418.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">Dec</text>
+<rect x="328" y="267" width="64" height="133" rx="2" fill="#059669" fill-opacity="0.88" stroke="none"/>
+<rect x="328" y="249" width="64" height="18" rx="2" fill="#2563eb" fill-opacity="0.75" stroke="none"/>
+<text x="360" y="241.14285714285717" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">330k</text>
+<text x="360" y="418.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">Jan</text>
+<rect x="432" y="226" width="64" height="174" rx="2" fill="#059669" fill-opacity="0.88" stroke="none"/>
+<rect x="432" y="185" width="64" height="41" rx="2" fill="#2563eb" fill-opacity="0.75" stroke="none"/>
+<text x="464" y="177.14285714285717" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">470k</text>
+<text x="464" y="418.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">Feb</text>
+<rect x="536" y="199" width="64" height="201" rx="2" fill="#059669" fill-opacity="0.88" stroke="none"/>
+<rect x="536" y="139" width="64" height="59" rx="2" fill="#2563eb" fill-opacity="0.75" stroke="none"/>
+<text x="568" y="131.42857142857144" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">570k</text>
+<text x="568" y="418.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">Mar</text>
+<rect x="640" y="187" width="64" height="213" rx="2" fill="#059669" fill-opacity="0.88" stroke="none"/>
+<rect x="640" y="114" width="64" height="73" rx="2" fill="#2563eb" fill-opacity="0.75" stroke="none"/>
+<text x="672" y="106.2857142857143" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">625k</text>
+<text x="672" y="418.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">Apr</text>
+<rect x="744" y="185" width="64" height="215" rx="2" fill="#059669" fill-opacity="0.88" stroke="none"/>
+<rect x="744" y="107" width="64" height="78" rx="2" fill="#2563eb" fill-opacity="0.75" stroke="none"/>
+<text x="776" y="99.42857142857146" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">640k</text>
+<text x="776" y="418.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">May</text>
+<line x1="90" y1="120" x2="850" y2="120" stroke="#0f172a" stroke-dasharray="6 4"/>
+<text x="98" y="112.2285714285714" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">target $612k / month (15%)</text>
+<rect x="110" y="144" width="14" height="14" rx="4" fill="#059669" fill-opacity="1" stroke="none"/>
+<text x="130" y="156" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">cash</text>
+<rect x="190" y="144" width="14" height="14" rx="4" fill="#2563eb" fill-opacity="1" stroke="none"/>
+<text x="210" y="156" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">avoided (purchase deferred)</text>
+<rect x="880" y="60" width="390" height="340" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="900" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">May: initiatives by state</text>
+<text x="900" y="112" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">serving autoscaling</text>
+<text x="1160" y="112" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">$168k</text>
+<text x="1250" y="112.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#047857">sustained</text>
+<text x="900" y="145" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">dev scale-to-zero</text>
+<text x="1160" y="145" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">$96k</text>
+<text x="1250" y="145.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#047857">sustained</text>
+<text x="900" y="178" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">adapter consolidation</text>
+<text x="1160" y="178" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">$71k</text>
+<text x="1250" y="178.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#047857">sustained</text>
+<text x="900" y="211" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">orphan sweeps</text>
+<text x="1160" y="211" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">$52k</text>
+<text x="1250" y="211.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#047857">sustained</text>
+<text x="900" y="244" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">on-demand consolidation</text>
+<text x="1160" y="244" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">$83k</text>
+<text x="1250" y="244.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">realized</text>
+<text x="900" y="277" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">commitment fill</text>
+<text x="1160" y="277" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">$40k</text>
+<text x="1250" y="277.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">realized</text>
+<text x="900" y="310" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">rightsizing</text>
+<text x="1160" y="310" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">$18k</text>
+<text x="1250" y="310.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">decayed</text>
+<text x="900" y="343" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">purchase deferred (avoided)</text>
+<text x="1160" y="343" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">$112k</text>
+<text x="1250" y="343.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">realized</text>
+<text x="900" y="390.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">rightsizing decayed: CPU requests crept back</text>
+<rect x="30" y="440" width="296" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="462.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Weekly</text>
+<text x="42" y="485.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">backlog by $ per eng-week, guardrails</text>
+<rect x="342" y="440" width="296" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="354" y="462.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Monthly</text>
+<text x="354" y="485.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">ledger reviewed with finance; cash vs</text>
+<text x="354" y="499.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">avoided</text>
+<rect x="654" y="440" width="296" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="666" y="462.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Sustainment</text>
+<text x="666" y="485.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">re-measure; &lt; 50% of peak = decayed,</text>
+<text x="666" y="499.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">reopened</text>
+<rect x="966" y="440" width="296" height="100" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="978" y="462.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Drift checks</text>
+<text x="978" y="485.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">PRs that undo savings flagged with $</text></svg>
