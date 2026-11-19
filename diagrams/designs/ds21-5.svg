@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>P/D disaggregation</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Prefill and decode on separate pools, KV transferred over RDMA</text>
+<rect x="30" y="210" width="200" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="233" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Gateway + EPP</text>
+<text x="42" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">picks a prefill and a decode</text>
+<text x="42" y="271" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pod</text>
+<rect x="280" y="60" width="400" height="300" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="294" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">PREFILL POOL · TP=4</text>
+<rect x="300" y="110" width="360" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="312" y="132" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">prefill-0</text>
+<text x="312" y="154" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">budget 32k tokens · compute-bound · produces KV + first</text>
+<text x="312" y="168" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">token</text>
+<rect x="300" y="230" width="360" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="312" y="252" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">prefill-1</text>
+<text x="312" y="274" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">budget 32k tokens · compute-bound · produces KV + first</text>
+<text x="312" y="288" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">token</text>
+<rect x="840" y="60" width="430" height="300" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="854" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">DECODE POOL · TP=2</text>
+<rect x="860" y="100" width="390" height="72" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="872" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">decode-0</text>
+<text x="872" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">256 running requests · never interrupted by prefill</text>
+<rect x="860" y="185" width="390" height="72" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="872" y="207" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">decode-1</text>
+<text x="872" y="229" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">256 running requests · never interrupted by prefill</text>
+<rect x="860" y="270" width="390" height="72" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="872" y="292" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">decode-2</text>
+<text x="872" y="314" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">256 running requests · never interrupted by prefill</text>
+<path d="M 230 240 L 300 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="218.12" y="171" width="63.760000000000005" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="250" y="185" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">1 prompt</text>
+<path d="M 660 160 L 860 136" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="760" y="196" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">2 · KV blocks</text>
+<text x="760" y="214.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#1d4ed8">NIXL / UCX, GPU → GPU</text>
+<path d="M 1055 360 L 1055 376 L 130 376 L 130 310" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 5" marker-end="url(#a-muted)"/>
+<text x="600" y="370.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">3 · streamed tokens back to the client</text>
+<rect x="30" y="390" width="610" height="180" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="50" y="418" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Chat p95 ITL during coding bursts (illustrative)</text>
+<text x="50" y="456.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">shared GPUs, chunked prefill</text>
+<rect x="50" y="464" width="472" height="22" rx="4" fill="#dc2626" fill-opacity="1" stroke="none"/>
+<text x="528" y="481.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">118 ms</text>
+<text x="50" y="512.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">disaggregated</text>
+<rect x="50" y="520" width="152" height="22" rx="4" fill="#059669" fill-opacity="1" stroke="none"/>
+<text x="208" y="537.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">38 ms</text>
+<line x1="250" y1="440" x2="250" y2="552" stroke="#0f172a" stroke-dasharray="4 4"/>
+<text x="254" y="562.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#0f172a">SLO 50 ms</text>
+<rect x="660" y="390" width="610" height="85" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="672" y="412.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Transfer cost is real</text>
+<text x="672" y="435.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">20k-token prompt × 160 KiB/token (FP8) ≈ 3.3 GB per request: needs RDMA bandwidth</text>
+<rect x="660" y="485" width="610" height="85" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="672" y="507.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">When it doesn't pay</text>
+<text x="672" y="530.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">short prompts, small models or slow networks: transfer costs more than interference</text></svg>
