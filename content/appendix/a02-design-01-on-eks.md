@@ -149,6 +149,16 @@ In total I wrote about 1,150 lines of Python for the services, 870 lines of Kube
 | **Registry** | Private ECR repository `ds01-platform`, scan on push, `force_delete` so teardown removes the images | One place for the platform image. |
 | **State** | Terraform state is local and git-ignored | The repository is public; state holds identifiers. |
 
+![One VPC, one address range, cut into public, platform and sandbox blocks](diagrams/appendix/a02-9.svg)
+
+**What the picture shows.** The VPC has one address range, 10.20.0.0/16, and no second range is attached to it. I cut that range into six blocks (subnets), two in each zone: two small public blocks for the NAT gateway, two platform blocks and two sandbox blocks. The platform blocks and the sandbox blocks are the same size and differ only in their tag. Everything outside those six blocks is unassigned.
+
+**Why two kinds of private block.**
+
+- **Placement.** The sandbox node pool picks its subnets by the sandbox tag, so a sandbox node cannot be started in a platform block. The platform nodes come from the cluster's own subnet list, which names only the platform blocks.
+- **A boundary of its own.** The sandbox blocks have their own security group, which accepts traffic only from the cluster security group, and their nodes use a separate IAM role. If a sandbox were ever escaped, it would start from a separate range, group and role, not from among the platform services.
+- **Room for VPC-level rules.** The design asks for separate subnets "so VPC-level rules can treat them differently". A separate range is what such a rule can name. This build adds no rule of that kind yet: both kinds of private block share one route table, and the security group is the only VPC-level difference.
+
 **Going deeper.**
 
 - **Why not gVisor or Kata.** The design offers four tiers. EKS Auto Mode does not allow the containerd shim that gVisor needs, and Kata needs nested virtualization on self-managed nodes. Nitro Sandboxes are the design's default tier and the one Auto Mode supports, so Tiers 2 and 3 are built and tested here. Tier 0 (a hardened ordinary container) is used in S02 as the comparison.

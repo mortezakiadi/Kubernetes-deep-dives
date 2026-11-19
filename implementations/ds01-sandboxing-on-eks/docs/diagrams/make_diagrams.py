@@ -323,11 +323,58 @@ def envoy_gateway():
     s.text(20, 380, "Numbers match the text under the picture.", 11, MUTED)
     s.text(20, 398, "Blue: the gateway. Green: its policy service.", 11, MUTED)
     return s.render()
+def address_plan():
+    """Figure for section 2: one VPC range cut into blocks, and what differs between the platform and sandbox blocks."""
+    s = Svg(1420, 740, "One VPC, one address range, cut into public, platform and sandbox blocks")
+    s.text(20, 28, "ONE VPC, ONE RANGE: 10.20.0.0/16 (65,536 addresses), cut into blocks. Nothing else is attached to the VPC.", 13, INK, "700")
+    x0, width, total = 20, 1380, 65536
+    def px(offset):
+        return x0 + offset * width / total
+    s.parts.append(f'<rect x="{x0}" y="60" width="{width}" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2"/>')
+    s.text(x0 + width - 8, 84, "the rest of the /16 is unassigned", 11, MUTED, "400", "end")
+    segs = [(0, 256, GREY), (256, 256, GREY), (4096, 4096, GREEN), (8192, 4096, GREEN), (16384, 4096, RED), (20480, 4096, RED)]
+    for off, size, c in segs:
+        s.parts.append(f'<rect x="{px(off)}" y="60" width="{size * width / total}" height="40" fill="{c["stroke"]}" fill-opacity=".55" stroke="{c["stroke"]}" stroke-width="1.2"/>')
+    s.text(x0, 54, "10.20.0.0", 11, MUTED)
+    s.text(x0 + width, 54, "10.20.255.255", 11, MUTED, "400", "end")
+    cards = [
+        (20, GREY, "Public blocks: 2 x /24", ["10.20.0.0/24 and 10.20.1.0/24, one per zone", "hold the NAT gateway and nothing else", "the only blocks with a route to the internet gateway"]),
+        (490, GREEN, "Platform blocks: 2 x /20 (tag ds01/tier=system)", ["10.20.16.0/20 and 10.20.32.0/20, one per zone", "about 4,000 addresses each", "Manager, Router, tool gateway, egress gateway,", "credential broker, controller, orchestrator"]),
+        (960, RED, "Sandbox blocks: 2 x /20 (tag ds01/tier=sandbox)", ["10.20.64.0/20 and 10.20.80.0/20, one per zone", "about 4,000 addresses each", "sandbox nodes only, and nothing else lands here", "the untrusted code runs in these"]),
+    ]
+    for x, c, title, lines in cards:
+        s.box(x, 190, 440, 112, title, lines, c)
+    s.parts.append(f'<path d="M{px(128)} 100 L{px(128)} 170 L240 170 L240 190" fill="none" stroke="{GREY["stroke"]}" stroke-width="1.6"/>')
+    s.parts.append(f'<path d="M{px(8192 + 2048)} 100 L{px(8192 + 2048)} 150 L710 150 L710 190" fill="none" stroke="{GREEN["stroke"]}" stroke-width="1.6"/>')
+    s.parts.append(f'<path d="M{px(20480 + 2048)} 100 L{px(20480 + 2048)} 130 L1180 130 L1180 190" fill="none" stroke="{RED["stroke"]}" stroke-width="1.6"/>')
+    # comparison grid
+    s.text(20, 336, "What differs between the two kinds of private block", 13, INK, "700")
+    cols = [(20, 200, ""), (220, 590, "Platform blocks"), (810, 590, "Sandbox blocks")]
+    top, head_h, row_h = 350, 34, 46
+    for (x, w, label), c in zip(cols, (GREY, GREEN, RED)):
+        if label:
+            s.parts.append(f'<rect x="{x}" y="{top}" width="{w}" height="{head_h}" fill="{c["fill"]}" stroke="{c["stroke"]}" stroke-width="1.2"/>')
+            s.text(x + 12, top + 22, label, 13, c["ink"], "700")
+    rows = [
+        ("Who lives there", "platform pods, on EKS Auto Mode's general-purpose nodes", "sandbox pods only, on the tainted sandbox node pool"),
+        ("How nodes get there", "the cluster's own subnet list names the platform blocks", "a dedicated node class selects blocks by the sandbox tag"),
+        ("Security group", "the cluster's default node security group", "its own group, which accepts only the cluster security group"),
+        ("Node IAM role", "the platform node role", "a separate sandbox node role, with the same two minimal policies"),
+        ("Route table", "one shared private table: all outbound traffic to the NAT gateway", "the same shared table (the split does not change routing)"),
+    ]
+    for i, (label, a, b) in enumerate(rows):
+        y = top + head_h + i * row_h
+        for (x, w, _), text, bold in zip(cols, (label, a, b), ("700", "400", "400")):
+            s.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{row_h}" fill="{"#ffffff" if i % 2 == 0 else "#f8fafc"}" stroke="#cbd5e1" stroke-width="1"/>')
+            s.text(x + 12, y + 28, text, 12, INK, bold)
+    ny = top + head_h + len(rows) * row_h + 24
+    s.box(20, ny, 1380, 80, "Why two kinds of block", ["The split is what lets the sandbox pool have its own placement, security group and role, so the sandbox node class can only place nodes in the sandbox blocks, never among the platform services.", "It also gives VPC-level rules a range they can target on its own. This build adds none of those rules yet: both private kinds share one route table."], AMBER)
+    return s.render()
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
     for name, fn in (("a02-1", architecture), ("a02-2", topology), ("a02-3", network_paths), ("a02-4", credential_flow),
                      ("a02-5", context_overview), ("a02-6", context_sequence), ("a02-7", context_components),
-                     ("a02-8", envoy_gateway)):
+                     ("a02-8", envoy_gateway), ("a02-9", address_plan)):
         (out / f"{name}.svg").write_text(fn())
         print("wrote", out / f"{name}.svg")
