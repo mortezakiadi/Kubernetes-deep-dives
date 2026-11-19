@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>Health metrics</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Is the health system working? (illustrative, one quarter)</text>
+<rect x="30" y="60" width="196" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">MTTD p50</text>
+<text x="42" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">2 min (was 4 h)</text>
+<rect x="238" y="60" width="196" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="250" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">MTTR p50</text>
+<text x="250" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reset 3 m · reboot 35 m</text>
+<rect x="446" y="60" width="196" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="458" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Automation rate</text>
+<text x="458" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">82%</text>
+<rect x="654" y="60" width="196" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="666" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Recurrence 7d</text>
+<text x="666" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">35% → 9%</text>
+<rect x="862" y="60" width="196" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="874" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">False positives</text>
+<text x="874" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">4% of verdicts</text>
+<rect x="1070" y="60" width="196" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1082" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Capacity lost</text>
+<text x="1082" y="106" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">1.6% of GPU-hours</text>
+<rect x="30" y="170" width="620" height="320" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="198" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Remediations per node (top 20 of 256)</text>
+<rect x="60" y="252" width="22" height="218" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="88" y="274" width="22" height="196" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="116" y="298" width="22" height="172" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="144" y="309" width="22" height="161" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="172" y="332" width="22" height="138" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="200" y="344" width="22" height="127" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="228" y="355" width="22" height="115" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="256" y="366" width="22" height="104" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="284" y="366" width="22" height="104" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="312" y="378" width="22" height="92" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="340" y="378" width="22" height="92" rx="2" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="368" y="436" width="22" height="34" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="396" y="436" width="22" height="34" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="424" y="447" width="22" height="23" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="452" y="447" width="22" height="23" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="480" y="447" width="22" height="23" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="508" y="447" width="22" height="23" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="536" y="458" width="22" height="12" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="564" y="458" width="22" height="12" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="592" y="458" width="22" height="12" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<text x="60" y="222.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">11 nodes = half of all remediations → repair queue</text>
+<rect x="680" y="170" width="590" height="320" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="700" y="198" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Recurrence within 7 days by fault class</text>
+<text x="700" y="234" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">GSP timeout (reboot)</text>
+<rect x="700" y="242" width="294" height="14" rx="4" fill="#dc2626" fill-opacity="0.8" stroke="none"/>
+<text x="1000.0" y="254" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">42%</text>
+<rect x="700" y="260" width="56" height="14" rx="4" fill="#059669" fill-opacity="0.8" stroke="none"/>
+<text x="762.0" y="272" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">8%</text>
+<text x="700" y="298" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">row remap (reset)</text>
+<rect x="700" y="306" width="84" height="14" rx="4" fill="#dc2626" fill-opacity="0.8" stroke="none"/>
+<text x="790.0" y="318" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">12%</text>
+<rect x="700" y="324" width="35" height="14" rx="4" fill="#059669" fill-opacity="0.8" stroke="none"/>
+<text x="741.0" y="336" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">5%</text>
+<text x="700" y="362" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">NVLink CRC (reset)</text>
+<rect x="700" y="370" width="357" height="14" rx="4" fill="#dc2626" fill-opacity="0.8" stroke="none"/>
+<text x="1063.0" y="382" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">51%</text>
+<rect x="700" y="388" width="70" height="14" rx="4" fill="#059669" fill-opacity="0.8" stroke="none"/>
+<text x="776.0" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">10%</text>
+<text x="700" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">PCIe AER (reboot)</text>
+<rect x="700" y="434" width="231" height="14" rx="4" fill="#dc2626" fill-opacity="0.8" stroke="none"/>
+<text x="937.0" y="446" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">33%</text>
+<rect x="700" y="452" width="84" height="14" rx="4" fill="#059669" fill-opacity="0.8" stroke="none"/>
+<text x="790.0" y="464" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f172a">12%</text>
+<text x="700" y="478.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#475569">red: before · green: after starting those classes one step higher</text>
+<rect x="30" y="510" width="1240" height="50" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="541" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b91c1c">Before: “automation handles most things”; data showed 35% of repaired nodes failed again within a week.</text></svg>
