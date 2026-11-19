@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Team statement</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">A team's monthly statement, with the change explained (illustrative)</text>
+<rect x="30" y="60" width="640" height="500" rx="12" fill="#f8fafc" fill-opacity="1" stroke="#94a3b8"/>
+<text x="50" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">vision-team · November 2026 · estimate (invoice open)</text>
+<text x="50" y="130" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#0f172a">Direct: on-prem H100</text>
+<text x="440" y="130.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569">118,000 GPU-h</text>
+<text x="650" y="130" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">$194,700</text>
+<text x="50" y="168" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#0f172a">Direct: neocloud B200</text>
+<text x="440" y="168.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569">9,200 GPU-h</text>
+<text x="650" y="168" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">$35,000</text>
+<text x="50" y="206" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#0f172a">Idle share (quota 6%)</text>
+<text x="440" y="206.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569"></text>
+<text x="650" y="206" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">$21,000</text>
+<text x="50" y="244" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#0f172a">Shared: storage + egress</text>
+<text x="440" y="244.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569"></text>
+<text x="650" y="244" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">$12,400</text>
+<text x="50" y="282" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#0f172a">Platform overhead 4%</text>
+<text x="440" y="282.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569"></text>
+<text x="650" y="282" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">$9,200</text>
+<line x1="50" y1="296" x2="650" y2="296" stroke="#94a3b8"/>
+<text x="50" y="320" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Total</text>
+<text x="440" y="320.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#475569"></text>
+<text x="650" y="320" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">$272,300</text>
+<text x="50" y="370" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Top workloads</text>
+<text x="50" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">eval-sweep-holiday (64 GPUs, 11 days, 3% active)</text>
+<text x="650" y="400.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">$56,900</text>
+<text x="50" y="430" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">vit-g-pretrain-run3</text>
+<text x="650" y="430.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">$48,200</text>
+<text x="50" y="460" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">detector-finetune-*</text>
+<text x="650" y="460.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">$22,100</text>
+<text x="50" y="520" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">every line links to its workloads and GPU-hours</text>
+<rect x="700" y="60" width="570" height="300" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="720" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Month-over-month: +$150k explained</text>
+<text x="720" y="126.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">volume (+57k GPU-h)</text>
+<rect x="720" y="134" width="395" height="26" rx="4" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="1121.1" y="153.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">+$132k</text>
+<text x="720" y="190.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">rate (pool mix)</text>
+<rect x="1115" y="198" width="46" height="26" rx="4" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<text x="1167.0" y="217.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">+$15k</text>
+<text x="720" y="254.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">idle share</text>
+<rect x="1161" y="262" width="9" height="26" rx="4" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="1176.0" y="281.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">+$3k</text>
+<text x="720" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">a doubling now arrives with its reason attached</text>
+<rect x="700" y="390" width="570" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="712" y="412.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Budget alerts</text>
+<text x="712" y="435.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">forecast &gt; budget, or one workload &gt; $/day threshold → team owner</text>
+<rect x="700" y="480" width="570" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="712" y="502.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Closed statements are frozen</text>
+<text x="712" y="525.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">with model + rate versions; corrections come as later adjustments</text></svg>

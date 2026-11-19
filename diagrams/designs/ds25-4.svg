@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Attribution</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Where a month's GPU cost goes (illustrative)</text>
+<rect x="30" y="70" width="384" height="60" rx="0" fill="#2563eb" fill-opacity="0.88" stroke="none"/>
+<text x="222.2" y="105" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">llm 31%</text>
+<rect x="414" y="70" width="223" height="60" rx="0" fill="#7c3aed" fill-opacity="0.88" stroke="none"/>
+<text x="526.0" y="105" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">pretrain 18%</text>
+<rect x="638" y="70" width="112" height="60" rx="0" fill="#059669" fill-opacity="0.88" stroke="none"/>
+<text x="693.3999999999999" y="105" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">vision 9%</text>
+<rect x="749" y="70" width="149" height="60" rx="0" fill="#0891b2" fill-opacity="0.88" stroke="none"/>
+<text x="823.5999999999999" y="105" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">serving 12%</text>
+<rect x="898" y="70" width="74" height="60" rx="0" fill="#64748b" fill-opacity="0.88" stroke="none"/>
+<text x="935.1999999999999" y="105" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">other teams 6%</text>
+<rect x="972" y="70" width="25" height="60" rx="0" fill="#f59e0b" fill-opacity="0.88" stroke="none"/>
+<rect x="997" y="70" width="273" height="60" rx="0" fill="#dc2626" fill-opacity="0.88" stroke="none"/>
+<text x="1133.6" y="105" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">idle capacity 22%</text>
+<text x="1241.2" y="150.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">idle is a visible line owned by the platform</text>
+<rect x="30" y="180" width="296" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="202.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Direct</text>
+<text x="42" y="225.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">workload × held GPU-hours × pool rate (held,</text>
+<text x="42" y="239.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">used or not)</text>
+<rect x="342" y="180" width="296" height="110" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="354" y="202.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Idle</text>
+<text x="354" y="225.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">healthy hours nobody held; platform line, or</text>
+<text x="354" y="239.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">spread by quota share</text>
+<rect x="654" y="180" width="296" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="666" y="202.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Shared</text>
+<text x="666" y="225.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">storage by bytes, egress by bytes, platform</text>
+<text x="666" y="239.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">overhead as % of direct</text>
+<rect x="966" y="180" width="296" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="978" y="202.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Unattributed</text>
+<text x="978" y="225.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">namespace had no owner at that hour; target</text>
+<text x="978" y="239.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">zero</text>
+<rect x="30" y="320" width="1240" height="110" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="352.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: cost ÷ headcount charged a 3-person team with one notebook GPU like the 40-person pre-training team.</text>
+<text x="50" y="378" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">Then “by GPU-hours used” hid a 22% idle share inside everyone's rate, so nobody had a reason to reduce it.</text>
+<rect x="30" y="450" width="610" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="472.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Showback first</text>
+<text x="42" y="495.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">a quarter of published numbers before any budget impact</text>
+<rect x="660" y="450" width="610" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="672" y="472.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Policy-caused waste credited</text>
+<text x="672" y="495.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">preemption by the platform's policy: credited from the platform line by rule</text></svg>

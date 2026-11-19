@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Operating cadence</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Operating cadence: daily, monthly, quarterly</text>
+<rect x="30" y="70" width="390" height="60" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="95" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#1e40af">Daily</text>
+<rect x="30" y="145" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="46" y="170.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">ingest + reload open months</text>
+<rect x="30" y="195" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="46" y="220.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">data tests and reconciliation</text>
+<rect x="30" y="245" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="46" y="270.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">team month-to-date + forecast</text>
+<rect x="30" y="295" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="46" y="320.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">budget alerts</text>
+<path d="M 420 100 L 450 100" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="450" y="70" width="390" height="60" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="462" y="95" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#92400e">Monthly</text>
+<rect x="450" y="145" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="466" y="170.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">close after invoices</text>
+<rect x="450" y="195" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="466" y="220.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">frozen statements per team</text>
+<rect x="450" y="245" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="466" y="270.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">rate review per pool</text>
+<rect x="450" y="295" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="466" y="320.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">showback / chargeback</text>
+<path d="M 840 100 L 870 100" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="870" y="70" width="390" height="60" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="882" y="95" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#065f46">Quarterly</text>
+<rect x="870" y="145" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="886" y="170.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">demand forecast vs last forecast</text>
+<rect x="870" y="195" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="886" y="220.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">capacity plan by GPU type</text>
+<rect x="870" y="245" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="886" y="270.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">commitment recommendations</text>
+<rect x="870" y="295" width="390" height="40" rx="8" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="886" y="320.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">review with finance</text>
+<rect x="30" y="370" width="1240" height="160" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text x="50" y="400" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">The same tables answer every question</text>
+<text x="50" y="432" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">“What did run-7 cost?”</text>
+<text x="300" y="432.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">mart_attributed_cost by experiment</text>
+<text x="660" y="432" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">“Why did our bill double?”</text>
+<text x="910" y="432.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">volume / rate / idle breakdown</text>
+<text x="50" y="482" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">“Do we sign for 512 GPUs?”</text>
+<text x="300" y="482.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">demand distribution → commitment level</text>
+<text x="660" y="482" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">“How much is idle?”</text>
+<text x="910" y="482.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#334155">platform:idle line, by pool</text></svg>

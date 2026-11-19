@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Data model</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Sources at their own grain, reshaped into one hourly model</text>
+<rect x="30" y="60" width="330" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="82" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">Utilization</text>
+<text x="42" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">recording rules · per GPU · per minute</text>
+<path d="M 360 95 L 430 260" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="142" width="330" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="42" y="164" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Scheduler</text>
+<text x="42" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">Kueue workloads · ownership chain</text>
+<path d="M 360 177 L 430 260" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="224" width="330" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="246" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Inventory</text>
+<text x="42" y="268" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">nodes, pools, provider, contract</text>
+<path d="M 360 259 L 430 260" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="306" width="330" height="70" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="42" y="328" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Billing</text>
+<text x="42" y="350" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">FOCUS exports · invoices · commitments ·</text>
+<text x="42" y="364" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">daily–monthly</text>
+<path d="M 360 341 L 430 260" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="388" width="330" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="410" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">On-prem cost</text>
+<text x="42" y="432" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">depreciation, power, colo, staff · monthly</text>
+<path d="M 360 423 L 430 260" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="430" y="180" width="320" height="160" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="442" y="203" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">fact_gpu_hour</text>
+<text x="442" y="226" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one row per GPU per hour: pool, workload,</text>
+<text x="442" y="241" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">allocated, active, healthy fractions</text>
+<rect x="810" y="60" width="460" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="822" y="82.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">dim_workload</text>
+<text x="822" y="105.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">kind, project, experiment, namespace, team at start</text>
+<rect x="810" y="160" width="460" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="822" y="182.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">dim_namespace_owner (SCD 2)</text>
+<text x="822" y="205.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">namespace → team with valid_from / valid_to</text>
+<rect x="810" y="260" width="460" height="80" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="822" y="282.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">fact_cost_line (FOCUS)</text>
+<text x="822" y="305.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">billed + effective cost, charge period, SKU, commitment</text>
+<rect x="810" y="360" width="460" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="822" y="382.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">mart_pool_rate</text>
+<text x="822" y="405.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">cost per healthy GPU-hour, per pool and month</text>
+<path d="M 750 260 L 810 100" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<path d="M 750 260 L 810 200" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<path d="M 750 260 L 810 300" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<path d="M 750 260 L 810 395" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="480" width="1240" height="100" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="510.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: monthly invoice totals ÷ monthly average utilization. A team that used 400 GPUs for one week</text>
+<text x="50" y="536" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">appeared to use 100 for the month; the idle three weeks were paid by everyone else.</text>
+<text x="50" y="562" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">Hourly grain + effective-dated ownership make statements reproducible.</text></svg>
