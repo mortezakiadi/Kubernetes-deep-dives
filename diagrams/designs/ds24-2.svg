@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Field selection</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">The reviewed field list, and why GPU_UTIL is not the activity metric</text>
+<rect x="30" y="60" width="296" height="46" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Activity</text>
+<rect x="30" y="116" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="42" y="135" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">GR_ENGINE_ACTIVE ★</text>
+<rect x="30" y="150" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="42" y="169" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">SM_ACTIVE</text>
+<rect x="30" y="184" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="42" y="203" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">SM_OCCUPANCY</text>
+<rect x="30" y="218" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="42" y="237" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">PIPE_TENSOR_ACTIVE</text>
+<rect x="30" y="252" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="42" y="271" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">DRAM_ACTIVE</text>
+<rect x="342" y="60" width="296" height="46" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="354" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Memory + links</text>
+<rect x="342" y="116" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="354" y="135" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">FB_USED / FB_FREE</text>
+<rect x="342" y="150" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="354" y="169" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">NVLINK_TX/RX_BYTES</text>
+<rect x="342" y="184" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="354" y="203" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">PCIE_TX/RX_BYTES</text>
+<rect x="654" y="60" width="296" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="666" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">Power + thermal</text>
+<rect x="654" y="116" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="666" y="135" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">POWER_USAGE</text>
+<rect x="654" y="150" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="666" y="169" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">GPU_TEMP / MEMORY_TEMP</text>
+<rect x="654" y="184" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="666" y="203" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">CLOCK_THROTTLE_REASONS</text>
+<rect x="966" y="60" width="296" height="46" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="978" y="83" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Errors</text>
+<rect x="966" y="116" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="978" y="135" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">XID_ERRORS</text>
+<rect x="966" y="150" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="978" y="169" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">ECC_DBE_VOL_TOTAL</text>
+<rect x="966" y="184" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="978" y="203" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">ROW_REMAP_FAILURE</text>
+<rect x="966" y="218" width="296" height="28" rx="6" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="978" y="237" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">NVLINK_CRC_FLIT_ERRORS</text>
+<rect x="30" y="310" width="760" height="200" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="336" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">A data-loading job: one tiny kernel per second (illustrative)</text>
+<text x="240" y="378.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">DCGM_FI_DEV_GPU_UTIL</text>
+<rect x="255" y="362" width="480" height="26" rx="4" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="742.0" y="381.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">100%</text>
+<text x="240" y="426.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">GR_ENGINE_ACTIVE</text>
+<rect x="255" y="410" width="29" height="26" rx="4" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="290.8" y="429.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">6%</text>
+<text x="240" y="474.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">SM_ACTIVE</text>
+<rect x="255" y="458" width="10" height="26" rx="4" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="271.6" y="477.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">2%</text>
+<text x="50" y="500" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">GPU_UTIL = “a kernel was running during the sample”, not how much of the GPU was used</text>
+<rect x="820" y="310" width="450" height="95" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="832" y="332.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">30 s interval for the fleet</text>
+<text x="832" y="355.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">profiling fields cost GPU-side sampling; minutes-to-months questions</text>
+<text x="832" y="369.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">don't need 1 s</text>
+<rect x="820" y="415" width="450" height="95" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="832" y="437.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Profilers compete</text>
+<text x="832" y="460.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">Nsight with GPU metrics vs DCGM profiling fields: dcgmi profile</text>
+<text x="832" y="474.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">--pause; expect gaps</text>
+<rect x="30" y="530" width="1240" height="50" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="561" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b91c1c">Before: SM_ACTIVE was commented out in the default list, so the field that would have shown idle GPUs wasn't collected.</text></svg>

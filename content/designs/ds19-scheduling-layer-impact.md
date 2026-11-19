@@ -113,7 +113,7 @@ spec:
           * on (namespace) group_left(team) kube_namespace_labels{label_team!=""}
         )
     - record: fleet:gpu_capacity_healthy:sum
-      expr: sum(kube_node_status_allocatable{resource="nvidia_com_gpu"} * on (node) group_left() (kube_node_spec_unschedulable == 0))
+      expr: sum(kube_node_status_allocatable{resource="nvidia_com_gpu"} * on (node) group_left() (kube_node_spec_unschedulable == bool 0))
     - record: fleet:gpu_active_utilization:ratio
       expr: sum(team:gpu_active:sum) / fleet:gpu_capacity_healthy:sum
 ```

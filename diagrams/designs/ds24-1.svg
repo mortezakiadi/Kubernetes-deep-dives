@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>Observability pipeline</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">One pipeline in every cluster: GPU → Prometheus → rules → long-term store → Grafana</text>
+<rect x="30" y="60" width="820" height="330" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="44" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">EACH CLUSTER (× 3)</text>
+<rect x="50" y="100" width="200" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="62" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">DCGM exporter</text>
+<text x="62" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">GPU Operator · shared field</text>
+<text x="62" y="158" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">list · 30 s · pod mapping</text>
+<rect x="50" y="230" width="200" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="62" y="252" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">kube-state-metrics</text>
+<text x="62" y="274" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">namespace + node labels</text>
+<rect x="50" y="310" width="200" height="60" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="62" y="332" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">node exporter</text>
+<text x="62" y="354" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">host metrics</text>
+<rect x="310" y="160" width="220" height="120" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="322" y="182.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Prometheus</text>
+<text x="322" y="205.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">Prometheus Operator ·</text>
+<text x="322" y="219.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">ServiceMonitors · raw kept 7</text>
+<text x="322" y="234.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">days</text>
+<rect x="590" y="100" width="240" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="602" y="122.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Recording rules</text>
+<text x="602" y="145.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">joins + gpu → node → team → fleet</text>
+<rect x="590" y="240" width="240" height="100" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="602" y="262.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Alert rules</text>
+<text x="602" y="285.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">evaluated close to the data</text>
+<path d="M 250 155 L 310 220" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 250 265 L 310 220" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 250 340 L 310 220" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 530 200 L 590 150" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 530 240 L 590 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="900" y="80" width="370" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="912" y="103" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">Long-term store</text>
+<text x="912" y="126" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Mimir / Thanos · rule outputs only · 13 months</text>
+<rect x="900" y="210" width="370" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="912" y="233" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Grafana</text>
+<text x="912" y="256" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fleet views from the store; detail from the cluster</text>
+<rect x="900" y="310" width="370" height="80" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="912" y="333" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#991b1b">Alertmanager</text>
+<text x="912" y="356" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">route by owner + severity; group; inhibit</text>
+<path d="M 830 150 L 900 130" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="819.68" y="114" width="90.64000000000001" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="865" y="128" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">remote write</text>
+<path d="M 830 290 L 900 350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 1085 180 L 1085 210" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="420" width="1240" height="130" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="452.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: DCGM exporter installed three ways (GPU Operator, standalone chart, by hand) with different fields,</text>
+<text x="50" y="478" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">intervals and label names; five dashboards defined “utilization” five ways; the fleet dashboard took 40 s.</text>
+<text x="50" y="512" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">Now: same GPU Operator values and rule bundle everywhere; dashboards read only recording rules.</text></svg>

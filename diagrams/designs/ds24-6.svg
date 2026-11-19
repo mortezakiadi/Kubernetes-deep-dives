@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Testing rules</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Rules and alerts are tested like code</text>
+<rect x="30" y="70" width="230" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Pull request</text>
+<text x="42" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">rule, alert or dashboard change</text>
+<path d="M 260 120 L 280 120" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="280" y="70" width="230" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="292" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">promtool check</text>
+<text x="292" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">syntax + lint: owner, severity,</text>
+<text x="292" y="128" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">summary, runbook</text>
+<path d="M 510 120 L 530 120" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="530" y="70" width="230" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="542" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">promtool test</text>
+<text x="542" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">synthetic series → expected outputs</text>
+<text x="542" y="128" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">and alerts</text>
+<path d="M 760 120 L 780 120" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="780" y="70" width="230" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="792" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Shadow rule</text>
+<text x="792" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">new name next to old for days; diff</text>
+<text x="792" y="128" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">reviewed</text>
+<path d="M 1010 120 L 1030 120" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1030" y="70" width="230" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="1042" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Deploy</text>
+<text x="1042" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">GitOps</text>
+<rect x="30" y="200" width="620" height="230" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="228" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Unit test: 2 allocated GPUs on an 8-GPU node</text>
+<text x="50" y="270" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">GPU 0 activity</text>
+<rect x="180" y="254" width="186" height="24" rx="4" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="372.0" y="272" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">0.62</text>
+<text x="50" y="320" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">GPU 1 activity</text>
+<rect x="180" y="304" width="3" height="24" rx="4" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="189.0" y="322" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">0.01</text>
+<text x="50" y="370.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">expect team:gpu_active:sum{team="llm"} = 1</text>
+<text x="50" y="394.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">expect pool:gpu_active_utilization:ratio = 0.125 (1 of 8)</text>
+<text x="50" y="418.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8">alert test: GpusAllocatedButIdle silent at 60 min, firing at 150 min</text>
+<rect x="680" y="200" width="590" height="230" rx="10" fill="#fef2f2" fill-opacity="1" stroke="#dc2626"/>
+<text x="700" y="230.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Bug this would have caught</text>
+<text x="700" y="260" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">refactor: gr_engine_active &gt; 0.05 → &gt; 5</text>
+<text x="700" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">(assumed a percentage; the field is a ratio)</text>
+<text x="700" y="320.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">fleet utilization → 0 on every dashboard</text>
+<text x="700" y="344.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">idle alert fired for every team at once</text>
+<text x="700" y="386" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">test fails: expected 1, got 0 → PR blocked</text>
+<rect x="30" y="450" width="1240" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="472.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Edge cases in tests</text>
+<text x="42" y="495.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">unlabeled namespaces · idle GPUs without pods · MIG instances · cordoned nodes · missing data · a test per production bug</text></svg>
