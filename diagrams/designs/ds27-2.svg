@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="620px" viewBox="0 0 1300 620" style="background:#ffffff"><title>Tenant operator</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="620" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">One Tenant resource, reconciled into everything a team needs</text>
+<rect x="30" y="230" width="220" height="120" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="252.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Tenant (Git)</text>
+<text x="42" y="275.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">owners · tier · quotas · routes</text>
+<text x="42" y="289.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">· egress · observability</text>
+<rect x="310" y="230" width="230" height="120" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="322" y="252.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Tenant operator</text>
+<text x="322" y="275.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">reconcile continuously; revert</text>
+<text x="322" y="289.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">drift; report status</text>
+<path d="M 250 290 L 310 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="244.76" y="266" width="70.48" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="280" y="280" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">PR merged</text>
+<rect x="620" y="55" width="650" height="470" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="634" y="79" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">RECONCILED FOR EACH ENVIRONMENT</text>
+<path d="M 540 290 L 620 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="640" y="90" width="300" height="66" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="652" y="112.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Namespaces + labels</text>
+<rect x="640" y="176" width="300" height="66" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="652" y="198.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">RBAC from OIDC groups</text>
+<rect x="640" y="262" width="300" height="66" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="652" y="284.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">ResourceQuota + LimitRange</text>
+<rect x="640" y="348" width="300" height="66" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="652" y="370.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Kueue LocalQueue / ClusterQueue</text>
+<rect x="640" y="434" width="300" height="66" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="652" y="456.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">NetworkPolicy + admission</text>
+<rect x="960" y="90" width="300" height="66" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="972" y="112.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Gateway route grants</text>
+<rect x="960" y="176" width="300" height="66" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="972" y="198.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Egress allow-list</text>
+<rect x="960" y="262" width="300" height="66" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="972" y="284.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Observability tenant + limits</text>
+<rect x="960" y="348" width="300" height="66" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="972" y="370.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Grafana folder + dashboards</text>
+<rect x="960" y="434" width="300" height="66" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="972" y="456.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Cost labels</text>
+<rect x="30" y="540" width="1240" height="60" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="576" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b91c1c">Before: a 34-step runbook across six tools; two tenants six months apart differed in 11 ways.</text>
+<text x="30" y="400.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">status.components:</text>
+<text x="30" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">namespaces ✓</text>
+<text x="170" y="426" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">rbac ✓</text>
+<text x="30" y="450" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">quotas ✓</text>
+<text x="170" y="450" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">gpuQueue ✓</text>
+<text x="30" y="474" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">network ✓</text>
+<text x="170" y="474" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">routes ✓</text>
+<text x="30" y="498" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">egress ✓</text>
+<text x="170" y="498" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">observability ✓</text></svg>

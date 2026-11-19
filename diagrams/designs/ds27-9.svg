@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>Service lifecycle</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Every platform service: a gate at each stage</text>
+<rect x="30" y="80" width="196" height="150" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="102" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Architecture review</text>
+<text x="42" y="124" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">design doc: alternatives,</text>
+<text x="42" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">tenancy, failure modes, cost</text>
+<path d="M 226 155 L 240 155" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="240" y="80" width="196" height="150" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="252" y="102" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">Build</text>
+<text x="252" y="124" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">catalog entry, owner, API</text>
+<text x="252" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">versioning, isolation tests</text>
+<path d="M 436 155 L 450 155" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="450" y="80" width="196" height="150" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="462" y="102" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Readiness review</text>
+<text x="462" y="124" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">SLOs, alerts, runbooks,</text>
+<text x="462" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">on-call, load test, restore,</text>
+<text x="462" y="152" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">rollback</text>
+<path d="M 646 155 L 660 155" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="660" y="80" width="196" height="150" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="672" y="102" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Launch</text>
+<text x="672" y="124" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">internal tenants first, then</text>
+<text x="672" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">all; changelog</text>
+<path d="M 856 155 L 870 155" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="870" y="80" width="196" height="150" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="882" y="102" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Operate</text>
+<text x="882" y="124" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">SLO + incident reviews,</text>
+<text x="882" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">capacity, quarterly owner</text>
+<text x="882" y="152" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">check</text>
+<path d="M 1066 155 L 1080 155" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1080" y="80" width="196" height="150" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1092" y="102" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Deprecate</text>
+<text x="1092" y="124" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">notice, migration path, usage</text>
+<text x="1092" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">→ zero, removal</text>
+<rect x="30" y="270" width="760" height="230" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="298" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">26 platform services at the start of the program</text>
+<text x="50" y="334.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">clear owner</text>
+<rect x="260" y="318" width="355" height="26" rx="4" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="621.3846153846155" y="336.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">21 / 26</text>
+<text x="50" y="378.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">runbook</text>
+<rect x="260" y="362" width="389" height="26" rx="4" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="655.2307692307693" y="380.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">23 / 26</text>
+<text x="50" y="422.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">SLO + alerts</text>
+<rect x="260" y="406" width="237" height="26" rx="4" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<text x="502.9230769230769" y="424.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">14 / 26</text>
+<text x="50" y="466.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">passed readiness review</text>
+<rect x="260" y="450" width="152" height="26" rx="4" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="418.30769230769226" y="468.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">9 / 26</text>
+<text x="50" y="494" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">the egress gateway shipped after a demo, without a load test, and failed at its first spike</text>
+<rect x="820" y="270" width="450" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="832" y="292.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Evidence, not promises</text>
+<text x="832" y="315.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">each checklist item links to its dashboard, runbook, test or drill</text>
+<rect x="820" y="390" width="450" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="832" y="412.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Owners checked quarterly</text>
+<text x="832" y="435.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">owner group exists and has members; rotation has people</text></svg>
