@@ -29,8 +29,9 @@ class Svg:
         self.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="14" fill="{c["fill"]}" fill-opacity=".55" stroke="{c["stroke"]}" stroke-width="1.5" stroke-dasharray="7 5"/>')
         self.parts.append(f'<text x="{x + 14}" y="{y + 24}" font-family="{FONT}" font-size="13" font-weight="700" letter-spacing=".06em" fill="{c["ink"]}">{self.esc(label)}</text>')
 
-    def box(self, x, y, w, h, title, lines=(), c=GREY, num=None):
-        self.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="#ffffff" stroke="{c["stroke"]}" stroke-width="1.6"/>')
+    def box(self, x, y, w, h, title, lines=(), c=GREY, num=None, dash=False):
+        dash_attr = ' stroke-dasharray="6 4"' if dash else ""
+        self.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="#ffffff" stroke="{c["stroke"]}" stroke-width="1.6"{dash_attr}/>')
         self.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="30" rx="10" fill="{c["fill"]}" stroke="{c["stroke"]}" stroke-width="1.6"/>')
         self.parts.append(f'<rect x="{x + 1}" y="{y + 18}" width="{w - 2}" height="12" fill="{c["fill"]}"/>')
         self.parts.append(f'<text x="{x + 12}" y="{y + 20}" font-family="{FONT}" font-size="13.5" font-weight="700" fill="{c["ink"]}">{self.esc(title)}</text>')
@@ -184,9 +185,121 @@ def credential_flow():
     return s.render()
 
 
+def context_overview():
+    """Figure 1: the path of one question, in plain terms (user, agent, platform, sandbox, outside world)."""
+    s = Svg(1420, 450, "The path of one question: user, agent, platform, sandbox and the outside world")
+    s.box(20, 190, 170, 100, "User", ["types in the agent's", "chat window", "(not built here)"], GREY, dash=True)
+    s.box(260, 190, 220, 120, "Agent (orchestrator)", ["software in an ordinary pod", "decides what to do next", "and calls the platform"], GREEN)
+    s.box(260, 30, 220, 100, "Language model", ["asked what to do next", "(not in this test)"], GREY, dash=True)
+    s.box(550, 150, 300, 260, "Platform", ["trusted services the company runs", "Manager: opens and closes sessions", "Router: carries code in, output back", "Tool gateway: tools and approvals", "Egress gateway: the one way out", "Credential broker: short-lived keys", "Controller: keeps sandboxes ready", "Audit log: one line per event"], GREEN)
+    s.box(910, 190, 200, 120, "Sandbox", ["its own microVM and kernel", "runs the agent's script", "no secrets inside"], RED)
+    s.box(1180, 150, 220, 100, "Company services", ["internal APIs; the test", "uses a metrics API"], GREY)
+    s.box(1180, 290, 220, 90, "Internet", ["approved sites only"], GREY)
+    s.arrow([(190, 225), (260, 225)], "muted", dash=True)
+    s.badge(225, 225, 1)
+    s.arrow([(260, 265), (190, 265)], "muted", dash=True)
+    s.badge(225, 265, 8)
+    s.arrow([(370, 190), (370, 130)], "muted", dash=True, both=True)
+    s.badge(370, 160, 2)
+    s.arrow([(480, 225), (550, 225)], "flow")
+    s.badge(515, 225, 3)
+    s.arrow([(480, 265), (550, 265)], "flow")
+    s.badge(515, 265, 4)
+    s.arrow([(850, 265), (910, 265)], "flow")
+    s.badge(880, 265, 5)
+    s.arrow([(910, 225), (850, 225)], "blue")
+    s.badge(880, 225, 6)
+    s.arrow([(850, 170), (1180, 170)], "ok")
+    s.badge(1015, 170, 7)
+    s.arrow([(850, 350), (1180, 350)], "ok")
+    s.badge(1015, 350, 7)
+    s.text(20, 360, "Dashed boxes are outside what this appendix builds.", 11, MUTED)
+    s.text(20, 378, "Green arrows: calls the platform lets through.", 11, MUTED)
+    s.text(20, 396, "Numbers match the steps below the picture.", 11, MUTED)
+    return s.render()
+def context_sequence():
+    """Figure 2: the same request as a sequence of calls between components."""
+    s = Svg(1420, 960, "One request as calls between components")
+    names = [("User", GREY), ("Agent", GREEN), ("Manager", GREEN), ("Router", GREEN), ("Sandbox", RED),
+             ("Egress gateway", BLUE), ("Credential broker", BLUE), ("Tool gateway", GREEN), ("Company API", GREY)]
+    xs = [160 + i * 142 for i in range(len(names))]
+    first_y, step = 130, 46
+    def ry(row):
+        return first_y + (row - 1) * step
+    bands = [(1, 1, ["ASK"]), (2, 3, ["OPEN A", "SESSION"]), (4, 11, ["RUN THE", "CODE"]), (12, 16, ["USE A", "TOOL"]), (17, 18, ["CLOSE AND", "ANSWER"])]
+    for i, (a, b, label) in enumerate(bands):
+        top, bottom = ry(a) - step / 2, ry(b) + step / 2
+        s.parts.append(f'<rect x="0" y="{top}" width="1420" height="{bottom - top}" fill="{"#f8fafc" if i % 2 == 0 else "#ffffff"}"/>')
+        for j, line in enumerate(label):
+            s.text(16, (top + bottom) / 2 + j * 14 - (len(label) - 1) * 7 + 4, line, 11, MUTED, "700")
+    for x, (n, c) in zip(xs, names):
+        s.box(x - 68, 24, 136, 40, n, [], c, dash=(n == "User"))
+        s.parts.append(f'<line x1="{x}" y1="64" x2="{x}" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>')
+    # (row, from, to, label, kind, dashed, both)
+    rows = [
+        (1, 0, 1, "The question", "muted", True, False),
+        (2, 1, 2, "Open a session", "flow", False, False),
+        (3, 2, 1, "Session ID and token", "muted", True, False),
+        (4, 1, 3, "Run this script", "flow", False, False),
+        (5, 3, 4, "Run it inside", "flow", False, False),
+        (6, 4, 5, "Call the API", "blue", False, False),
+        (7, 5, 2, "Whose session? Allowed?", "blue", False, True),
+        (8, 5, 6, "Mint a 15-minute key", "blue", False, False),
+        (9, 5, 8, "Request with the real key", "ok", False, False),
+        (10, 5, 4, "Reply, no key in it", "muted", True, False),
+        (11, 3, 1, "Output and exit code", "muted", True, False),
+        (12, 1, 7, "Call a tool, with the token", "flow", False, False),
+        (13, 7, 2, "Session still active?", "flow", False, True),
+        (14, 7, 6, "Mint a 60-second key", "blue", False, False),
+        (15, 7, 8, "Read the metric", "ok", False, False),
+        (16, 7, 1, "Result", "muted", True, False),
+        (17, 1, 2, "Close the session", "flow", False, False),
+        (18, 1, 0, "Answer", "muted", True, False),
+    ]
+    for row, a, b, label, kind, dashed, both in rows:
+        y = ry(row)
+        sign = 1 if b > a else -1
+        start, end = xs[a] + sign * 13, xs[b] - sign * 2
+        s.arrow([(start, y), (end, y)], kind, label, (xs[a] + xs[b]) / 2, y - 7, dash=dashed, both=both)
+        s.badge(xs[a], y, row)
+    s.text(16, 950, "Dashed arrows are replies. Every component also writes one log line per step, carrying the session ID.", 11, MUTED)
+    return s.render()
+def context_components():
+    """Figure 3: components view, where each one runs and which paths exist."""
+    s = Svg(1420, 880, "Components view: where each service runs and who calls whom")
+    s.box(160, 50, 230, 90, "User", ["chat window, outside this", "appendix"], GREY, dash=True)
+    s.box(560, 40, 300, 110, "Agent (orchestrator)", ["pod on the platform nodes", "decides, then calls the platform", "no cloud or Kubernetes access"], GREEN)
+    s.box(1030, 50, 230, 90, "Language model", ["a real agent calls one here;", "the stand-in has none"], GREY, dash=True)
+    s.box(260, 230, 260, 120, "Sandbox Manager", ["2 replicas, platform nodes", "the only creator of sandboxes", "3 sessions per customer", "issues the session token"], GREEN)
+    s.box(580, 230, 260, 120, "Sandbox Router", ["2 replicas, platform nodes", "the only service that may", "connect to a sandbox", "logs every command"], GREEN)
+    s.box(900, 230, 260, 120, "Tool gateway (MCP)", ["1 replica, platform nodes", "tools per agent, approvals,", "rate limit, revocation"], GREEN)
+    s.box(260, 430, 260, 120, "Kubernetes API + controller", ["agent-sandbox controller", "keeps the warm pools filled", "hands a ready sandbox to a claim", "deletes a claim at its end time"], GREY)
+    s.zone(560, 400, 300, 215, "SANDBOX NODES", RED)
+    s.box(580, 435, 260, 160, "Sandbox (one per session)", ["its own microVM and kernel", "no secrets, no token, no DNS", "one route out: the egress gateway", "reached only by the router"], RED)
+    s.box(900, 430, 260, 120, "Credential broker", ["2 replicas, platform nodes", "short-lived keys, 900 s at most", "only the gateways may ask"], BLUE)
+    s.box(580, 680, 260, 120, "Egress gateway", ["2 replicas, platform nodes", "checks the session's allowlist", "injects the real key", "the only way out of a sandbox"], BLUE)
+    s.box(1200, 650, 200, 100, "Company services", ["metrics API in the test", "refuses calls without a key"], GREY)
+    s.box(1200, 780, 200, 70, "Internet", ["approved sites only"], GREY)
+    s.arrow([(390, 95), (560, 95)], "muted", "chat", 475, 98, dash=True, both=True)
+    s.arrow([(860, 95), (1030, 95)], "muted", "next step", 945, 98, dash=True, both=True)
+    s.arrow([(600, 150), (600, 190), (390, 190), (390, 230)], "flow", "open, close", 495, 193)
+    s.arrow([(710, 150), (710, 230)], "flow", "commands", 710, 193)
+    s.arrow([(820, 150), (820, 190), (1030, 190), (1030, 230)], "flow", "tool calls", 925, 193)
+    s.arrow([(390, 350), (390, 430)], "flow", "claim", 390, 393)
+    s.arrow([(710, 350), (710, 435)], "flow", "run, files", 710, 384)
+    s.arrow([(1030, 350), (1030, 430)], "blue", "60 s key", 1030, 393)
+    s.arrow([(710, 595), (710, 680)], "blue", "only route out", 710, 641)
+    s.arrow([(580, 760), (200, 760), (200, 290), (260, 290)], "blue", "whose session?", 200, 525, both=True)
+    s.arrow([(810, 680), (810, 630), (1030, 630), (1030, 550)], "blue", "mint key", 920, 633)
+    s.arrow([(840, 710), (1200, 710)], "ok", "real key added", 1020, 703)
+    s.arrow([(840, 790), (1200, 790)], "ok", "approved sites", 1020, 783)
+    s.text(20, 836, "Green: platform services. Blue: gateway and broker. Red: untrusted. Grey: not built here, or outside the platform.", 11, MUTED)
+    s.text(20, 854, "Platform pods run on EKS Auto Mode's general-purpose nodes. Sandboxes run only on the tainted sandbox pool.", 11, MUTED)
+    return s.render()
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
-    for name, fn in (("a02-1", architecture), ("a02-2", topology), ("a02-3", network_paths), ("a02-4", credential_flow)):
+    for name, fn in (("a02-1", architecture), ("a02-2", topology), ("a02-3", network_paths), ("a02-4", credential_flow),
+                     ("a02-5", context_overview), ("a02-6", context_sequence), ("a02-7", context_components)):
         (out / f"{name}.svg").write_text(fn())
         print("wrote", out / f"{name}.svg")

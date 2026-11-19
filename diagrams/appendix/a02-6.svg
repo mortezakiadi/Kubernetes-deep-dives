@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="960px" viewBox="0 0 1420 960" style="background:#ffffff"><title>One request as calls between components</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="960" fill="#ffffff"/><rect x="0" y="107.0" width="1420" height="46.0" fill="#f8fafc"/>
+<text x="16" y="134.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">ASK</text>
+<rect x="0" y="153.0" width="1420" height="92.0" fill="#ffffff"/>
+<text x="16" y="196.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">OPEN A</text>
+<text x="16" y="210.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">SESSION</text>
+<rect x="0" y="245.0" width="1420" height="368.0" fill="#f8fafc"/>
+<text x="16" y="426.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">RUN THE</text>
+<text x="16" y="440.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">CODE</text>
+<rect x="0" y="613.0" width="1420" height="230.0" fill="#ffffff"/>
+<text x="16" y="725.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">USE A</text>
+<text x="16" y="739.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">TOOL</text>
+<rect x="0" y="843.0" width="1420" height="92.0" fill="#f8fafc"/>
+<text x="16" y="886.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">CLOSE AND</text>
+<text x="16" y="900.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748b">ANSWER</text>
+<rect x="92" y="24" width="136" height="40" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6 4"/>
+<rect x="92" y="24" width="136" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="93" y="42" width="134" height="12" fill="#f8fafc"/>
+<text x="104" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">User</text>
+<line x1="160" y1="64" x2="160" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="234" y="24" width="136" height="40" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="234" y="24" width="136" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="235" y="42" width="134" height="12" fill="#ecfdf5"/>
+<text x="246" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Agent</text>
+<line x1="302" y1="64" x2="302" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="376" y="24" width="136" height="40" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="376" y="24" width="136" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="377" y="42" width="134" height="12" fill="#ecfdf5"/>
+<text x="388" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Manager</text>
+<line x1="444" y1="64" x2="444" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="518" y="24" width="136" height="40" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="518" y="24" width="136" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="519" y="42" width="134" height="12" fill="#ecfdf5"/>
+<text x="530" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Router</text>
+<line x1="586" y1="64" x2="586" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="660" y="24" width="136" height="40" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="660" y="24" width="136" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="661" y="42" width="134" height="12" fill="#fef2f2"/>
+<text x="672" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Sandbox</text>
+<line x1="728" y1="64" x2="728" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="802" y="24" width="136" height="40" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="802" y="24" width="136" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="803" y="42" width="134" height="12" fill="#eff6ff"/>
+<text x="814" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Egress gateway</text>
+<line x1="870" y1="64" x2="870" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="944" y="24" width="136" height="40" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="944" y="24" width="136" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="945" y="42" width="134" height="12" fill="#eff6ff"/>
+<text x="956" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Credential broker</text>
+<line x1="1012" y1="64" x2="1012" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="1086" y="24" width="136" height="40" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="1086" y="24" width="136" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="1087" y="42" width="134" height="12" fill="#ecfdf5"/>
+<text x="1098" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Tool gateway</text>
+<line x1="1154" y1="64" x2="1154" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="1228" y="24" width="136" height="40" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1228" y="24" width="136" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1229" y="42" width="134" height="12" fill="#f8fafc"/>
+<text x="1240" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Company API</text>
+<line x1="1296" y1="64" x2="1296" y2="935" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<path d="M173 130 L300 130" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-muted)"/>
+<rect x="189.8" y="112" width="82.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="231.0" y="124" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">The question</text>
+<circle cx="160" cy="130" r="12" fill="#1e293b"/><text x="160" y="134.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">1</text>
+<path d="M315 176 L442 176" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="325.6" y="158" width="94.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="373.0" y="170" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">Open a session</text>
+<circle cx="302" cy="176" r="12" fill="#1e293b"/><text x="302" y="180.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">2</text>
+<path d="M431 222 L304 222" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-muted)"/>
+<rect x="307.0" y="204" width="132.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="373.0" y="216" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">Session ID and token</text>
+<circle cx="444" cy="222" r="12" fill="#1e293b"/><text x="444" y="226.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">3</text>
+<path d="M315 268 L584 268" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="393.5" y="250" width="101.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="444.0" y="262" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">Run this script</text>
+<circle cx="302" cy="268" r="12" fill="#1e293b"/><text x="302" y="272.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">4</text>
+<path d="M599 314 L726 314" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="612.7" y="296" width="88.60000000000001" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="657.0" y="308" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">Run it inside</text>
+<circle cx="586" cy="314" r="12" fill="#1e293b"/><text x="586" y="318.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">5</text>
+<path d="M741 360 L868 360" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="757.8" y="342" width="82.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="799.0" y="354" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">Call the API</text>
+<circle cx="728" cy="360" r="12" fill="#1e293b"/><text x="728" y="364.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">6</text>
+<path d="M857 406 L446 406" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)" marker-start="url(#a-blue)"/>
+<rect x="581.7" y="388" width="150.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="657.0" y="400" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">Whose session? Allowed?</text>
+<circle cx="870" cy="406" r="12" fill="#1e293b"/><text x="870" y="410.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">7</text>
+<path d="M883 452 L1010 452" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="875.0" y="434" width="132.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="941.0" y="446" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">Mint a 15-minute key</text>
+<circle cx="870" cy="452" r="12" fill="#1e293b"/><text x="870" y="456.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">8</text>
+<path d="M883 498 L1294 498" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="1001.5" y="480" width="163.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1083.0" y="492" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">Request with the real key</text>
+<circle cx="870" cy="498" r="12" fill="#1e293b"/><text x="870" y="502.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">9</text>
+<path d="M857 544 L730 544" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-muted)"/>
+<rect x="736.1" y="526" width="125.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="799.0" y="538" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">Reply, no key in it</text>
+<circle cx="870" cy="544" r="12" fill="#1e293b"/><text x="870" y="548.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">10</text>
+<path d="M573 590 L304 590" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-muted)"/>
+<rect x="378.0" y="572" width="132.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="444.0" y="584" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">Output and exit code</text>
+<circle cx="586" cy="590" r="12" fill="#1e293b"/><text x="586" y="594.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">11</text>
+<path d="M315 636 L1152 636" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="640.3" y="618" width="175.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="728.0" y="630" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">Call a tool, with the token</text>
+<circle cx="302" cy="636" r="12" fill="#1e293b"/><text x="302" y="640.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">12</text>
+<path d="M1141 682 L446 682" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)" marker-start="url(#a-flow)"/>
+<rect x="729.9" y="664" width="138.20000000000002" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="799.0" y="676" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">Session still active?</text>
+<circle cx="1154" cy="682" r="12" fill="#1e293b"/><text x="1154" y="686.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">13</text>
+<path d="M1141 728 L1014 728" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="1017.0" y="710" width="132.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1083.0" y="722" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">Mint a 60-second key</text>
+<circle cx="1154" cy="728" r="12" fill="#1e293b"/><text x="1154" y="732.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">14</text>
+<path d="M1167 774 L1294 774" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="1174.5" y="756" width="101.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1225.0" y="768" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">Read the metric</text>
+<circle cx="1154" cy="774" r="12" fill="#1e293b"/><text x="1154" y="778.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">15</text>
+<path d="M1141 820 L304 820" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-muted)"/>
+<rect x="705.4" y="802" width="45.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="728.0" y="814" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">Result</text>
+<circle cx="1154" cy="820" r="12" fill="#1e293b"/><text x="1154" y="824.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">16</text>
+<path d="M315 866 L442 866" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="316.3" y="848" width="113.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="373.0" y="860" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">Close the session</text>
+<circle cx="302" cy="866" r="12" fill="#1e293b"/><text x="302" y="870.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">17</text>
+<path d="M289 912 L162 912" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-muted)"/>
+<rect x="208.4" y="894" width="45.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="231.0" y="906" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">Answer</text>
+<circle cx="302" cy="912" r="12" fill="#1e293b"/><text x="302" y="916.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">18</text>
+<text x="16" y="950" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">Dashed arrows are replies. Every component also writes one log line per step, carrying the session ID.</text></svg>

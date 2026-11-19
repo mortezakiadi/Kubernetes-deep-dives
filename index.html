@@ -245,7 +245,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>14 deep dives</li>
         <li>21 designs</li>
-        <li>610 scenario sections</li>
+        <li>613 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -7563,9 +7563,9 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Appendix</span>
     <h2 id="appendix-design-01-eks-h">Appendix B: Design 01 built and tested on Amazon EKS</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#appendix-design-01-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a02-2">2. EKS topology and instances</a></li><li><a href="#a02-1">3. Architecture</a></li><li><a href="#appendix-design-01-eks-4-how-it-is-implemented">4. How it is implemented</a></li><li><a href="#appendix-design-01-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-01-eks-s01-cluster-topology-node-pools-and-the-sandbox-node-pool">S01: Cluster topology, node pools and the sandbox node pool</a></li><li><a href="#appendix-design-01-eks-s02-the-isolation-boundary-a-microvm-per-sandbox-versus-a-shared-kernel">S02: The isolation boundary: a microVM per sandbox versus a shared kernel</a></li><li><a href="#appendix-design-01-eks-s03-pod-hardening-identity-and-kubernetes-permissions">S03: Pod hardening, identity and Kubernetes permissions</a></li><li><a href="#appendix-design-01-eks-s04-warm-pools-and-claims">S04: Warm pools and claims</a></li><li><a href="#appendix-design-01-eks-s05-default-deny-and-one-way-out">S05: Default deny, and one way out</a></li><li><a href="#appendix-design-01-eks-s06-the-egress-gateway-per-session-allowlist-the-global-ceiling-and-rate-limits">S06: The egress gateway: per-session allowlist, the global ceiling and rate limits</a></li><li><a href="#appendix-design-01-eks-s07-credentials-secrets-never-enter-the-sandbox">S07: Credentials: secrets never enter the sandbox</a></li><li><a href="#appendix-design-01-eks-s08-the-tool-gateway-mcp-policy-approvals-rate-limits-and-revocation">S08: The tool gateway (MCP): policy, approvals, rate limits and revocation</a></li><li><a href="#appendix-design-01-eks-s09-tier-3-a-microvm-with-no-network-device">S09: Tier 3: a microVM with no network device</a></li><li><a href="#appendix-design-01-eks-s10-limits-quotas-and-abuse">S10: Limits, quotas and abuse</a></li><li><a href="#appendix-design-01-eks-s11-one-query-for-an-audit">S11: One query for an audit</a></li><li><a href="#appendix-design-01-eks-s12-failure-drills">S12: Failure drills</a></li><li><a href="#appendix-design-01-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-01-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-01-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#a02-5">Context: the problem, the actors and who talks to whom</a></li><li><a href="#appendix-design-01-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a02-2">2. EKS topology and instances</a></li><li><a href="#a02-1">3. Architecture</a></li><li><a href="#appendix-design-01-eks-4-how-it-is-implemented">4. How it is implemented</a></li><li><a href="#appendix-design-01-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-01-eks-s01-cluster-topology-node-pools-and-the-sandbox-node-pool">S01: Cluster topology, node pools and the sandbox node pool</a></li><li><a href="#appendix-design-01-eks-s02-the-isolation-boundary-a-microvm-per-sandbox-versus-a-shared-kernel">S02: The isolation boundary: a microVM per sandbox versus a shared kernel</a></li><li><a href="#appendix-design-01-eks-s03-pod-hardening-identity-and-kubernetes-permissions">S03: Pod hardening, identity and Kubernetes permissions</a></li><li><a href="#appendix-design-01-eks-s04-warm-pools-and-claims">S04: Warm pools and claims</a></li><li><a href="#appendix-design-01-eks-s05-default-deny-and-one-way-out">S05: Default deny, and one way out</a></li><li><a href="#appendix-design-01-eks-s06-the-egress-gateway-per-session-allowlist-the-global-ceiling-and-rate-limits">S06: The egress gateway: per-session allowlist, the global ceiling and rate limits</a></li><li><a href="#appendix-design-01-eks-s07-credentials-secrets-never-enter-the-sandbox">S07: Credentials: secrets never enter the sandbox</a></li><li><a href="#appendix-design-01-eks-s08-the-tool-gateway-mcp-policy-approvals-rate-limits-and-revocation">S08: The tool gateway (MCP): policy, approvals, rate limits and revocation</a></li><li><a href="#appendix-design-01-eks-s09-tier-3-a-microvm-with-no-network-device">S09: Tier 3: a microVM with no network device</a></li><li><a href="#appendix-design-01-eks-s10-limits-quotas-and-abuse">S10: Limits, quotas and abuse</a></li><li><a href="#appendix-design-01-eks-s11-one-query-for-an-audit">S11: One query for an audit</a></li><li><a href="#appendix-design-01-eks-s12-failure-drills">S12: Failure drills</a></li><li><a href="#appendix-design-01-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-01-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-01-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li></ol></nav>
   <div class="prose"><p>This appendix describes a working implementation of <a href="#design-sandboxing">Design 01: Sandboxing and secure execution for agents and untrusted code</a>. I built it with Terraform on Amazon EKS in one AWS account, tested every claim in the design that can be tested on this platform, recorded the evidence, and removed it again with one command. Everything here ran on a real cluster. Every command, output and pass or fail result in section 5 is copied from the recorded test run, not written from memory.</p>
-<p>The order is the one a reader needs: the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.</p>
+<p>The order is the one a reader needs: first the context (the problem, who the actors are and who talks to whom), then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.</p>
 <p>12 of 12 scenarios passed, 75 of 75 checks.</p>
 <table>
 <thead>
@@ -7638,6 +7638,116 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </tr>
 </tbody>
 </table>
+<h3 id="a02-5">Context: the problem, the actors and who talks to whom</h3>
+<p><strong>Scenario.</strong> A company runs an AI agent. A user types a question into its chat window, for example "Why did checkout slow down this morning?" To answer, the agent writes a small script and has to run it. A model wrote that script, so nobody has reviewed it. It might try to read the company's secrets, reach another customer's work, or send data to a stranger. This appendix is about giving that script a place to run where it can do none of those things, and about proving that it can't.</p>
+<p>Five terms are used throughout.</p>
+<ul>
+<li><strong>Agent (orchestrator).</strong> The software that talks to the user and decides what to do next. It runs in an ordinary pod. A real one is a loop around a language model. In my tests it is a stand-in without a model, so every step is visible and repeatable.</li>
+<li><strong>Platform.</strong> The services the company runs around the sandboxes: the Manager, the Router, the tool gateway, the egress gateway, the credential broker and the controller. They are trusted. They are separate pods on EKS, not one program.</li>
+<li><strong>Sandbox.</strong> A pod that runs as its own small virtual machine with its own kernel, on nodes that run nothing else. It is the only place untrusted code runs.</li>
+<li><strong>Session.</strong> One job of the agent, with its own sandbox. A session ties together a user, a customer (tenant), an agent, a sandbox, a list of sites it may reach, an end time and a token. It is not the chat. A chat may never need a sandbox, or it may open a session when code has to run. How a chat maps onto sessions is outside this appendix.</li>
+<li><strong>Company services.</strong> The internal APIs an agent is allowed to use. The test uses one, a metrics API.</li>
+</ul>
+<figure class="diagram"><button aria-label="Open diagram full screen: The path of one question: user, agent, platform, sandbox and the outside world" class="open" data-src="diagrams/appendix/a02-5.svg" data-title="The path of one question: user, agent, platform, sandbox and the outside world" type="button"><img alt="Diagram: The path of one question: user, agent, platform, sandbox and the outside world" decoding="async" loading="lazy" src="diagrams/appendix/a02-5.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The path of one question, from the user to the answer. Dashed boxes are not built or tested here: the user's chat window and the language model. Everything else is the subject of this appendix.</p>
+<p><strong>The path of one question.</strong></p>
+<ol>
+<li>The user asks the question in the agent's chat window. <em>Not built here.</em></li>
+<li>The agent asks a language model what to do next and decides that code has to run. <em>Not in the test; the stand-in has no model.</em></li>
+<li>The agent asks the platform for a session for this user, customer and agent. The platform hands back a ready sandbox and a token.</li>
+<li>The agent sends its script to the platform.</li>
+<li>The platform forwards the script into that session's sandbox and brings the output back.</li>
+<li>If the script needs data from outside, it has exactly one door: the platform's egress gateway.</li>
+<li>The gateway checks the destination against this session's list, adds the real key itself, and passes on only the calls that are allowed. The sandbox never holds the key.</li>
+<li>The agent turns the output into an answer for the user and closes the session. The sandbox is deleted.</li>
+</ol>
+<figure class="diagram"><button aria-label="Open diagram full screen: One request as calls between components" class="open" data-src="diagrams/appendix/a02-6.svg" data-title="One request as calls between components" type="button"><img alt="Diagram: One request as calls between components" decoding="async" loading="lazy" src="diagrams/appendix/a02-6.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The same request as calls between the components. Time runs from top to bottom. Each arrow is one call, and its number matches the list below. Dashed arrows are replies.</p>
+<p><strong>Who talks to whom, and why.</strong></p>
+<ol>
+<li><strong>User to Agent.</strong> The user types the question. <em>Why:</em> this is how the work starts. This link is not built or tested here, and neither is the model call the agent makes to decide what to do.</li>
+<li><strong>Agent to Manager.</strong> The agent asks for a session and names the user, the customer, the agent, the kind of sandbox and any extra sites it needs. <em>Why:</em> only the Manager may create sandboxes, so the agent cannot give itself one with settings of its own choosing. The Manager enforces three open sessions per customer and puts an end time on every session.</li>
+<li><strong>Manager to Agent.</strong> The Manager returns the session ID and a signed token once the sandbox is ready, about 0.4 seconds when it comes from a <mark class="kw">warm pool</mark>. <em>Why:</em> the ID names the session in every log line, and the token is what the tool gateway checks later.</li>
+<li><strong>Agent to Router.</strong> The agent sends the script and the command to run, with the session ID. <em>Why:</em> the Router is the only service that may connect to a sandbox, so the agent needs no network path to one. The Router logs every command with its exit code and duration.</li>
+<li><strong>Router to Sandbox.</strong> The Router runs the command inside that session's sandbox. <em>Why:</em> untrusted code must only ever run inside the microVM.</li>
+<li><strong>Sandbox to Egress gateway.</strong> The script calls the company's metrics API and carries only the word <code>placeholder</code> as its key. <em>Why:</em> the sandbox's network policy allows exactly one destination, the gateway, on one port. There is no DNS and no other route.</li>
+<li><strong>Egress gateway and Manager.</strong> The gateway asks which session owns the source address and which hosts that session may reach, then checks the host. <em>Why:</em> the allowlist is per session and the Manager stores it. A host that is not on the list is refused with a 403 before any connection is opened.</li>
+<li><strong>Egress gateway to Credential broker.</strong> For the one internal host, the gateway asks for a key for this session and this destination, valid for 900 seconds at most. <em>Why:</em> the real key is made outside the sandbox and is never sent back to it.</li>
+<li><strong>Egress gateway to Company API.</strong> The gateway terminates TLS for that host, replaces the placeholder with the real key and sends the request. <em>Why:</em> the API refuses any request without a valid key, and the sandbox has no route to the API except through the gateway (S07).</li>
+<li><strong>Egress gateway to Sandbox.</strong> The reply goes back to the script. The key does not. <em>Why:</em> a script cannot leak a key it never held.</li>
+<li><strong>Router to Agent.</strong> The Router returns the output and the exit code. <em>Why:</em> the agent decides its next step from them.</li>
+<li><strong>Agent to Tool gateway.</strong> The agent calls a tool, such as <code>metrics.query</code>, with the session token. <em>Why:</em> tools sit behind a gateway that knows who is asking. It shows an agent only the tools its policy allows. A high-risk tool (<code>ticket.create</code> in the test) first answers "needs approval" and runs only after a person approves, once per approval (S08).</li>
+<li><strong>Tool gateway and Manager.</strong> On every call the gateway asks whether the session is still active. <em>Why:</em> a token must stop working the moment its session ends, even if it has not expired (S08).</li>
+<li><strong>Tool gateway to Credential broker.</strong> The gateway asks for a 60-second key for this session. <em>Why:</em> the key is made for this session and expires within a minute.</li>
+<li><strong>Tool gateway to Company API.</strong> The gateway makes the read call with that key. <em>Why:</em> the API checks the key's signature, audience and expiry (S07).</li>
+<li><strong>Tool gateway to Agent.</strong> The gateway returns the result.</li>
+<li><strong>Agent to Manager.</strong> The agent closes the session. The claim, the sandbox pod and its workspace are deleted, and the token stops working. This also happens on its own at the end time. <em>Why:</em> a sandbox must not outlive its job.</li>
+<li><strong>Agent to User.</strong> The agent writes the answer. <em>Not built here.</em></li>
+</ol>
+<p>A script inside the sandbox can also call the tool gateway, but only through the egress gateway (S08). Every component writes one log line per step with the session ID, so one query rebuilds this list (S11).</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Components view: where each service runs and who calls whom" class="open" data-src="diagrams/appendix/a02-7.svg" data-title="Components view: where each service runs and who calls whom" type="button"><img alt="Diagram: Components view: where each service runs and who calls whom" decoding="async" loading="lazy" src="diagrams/appendix/a02-7.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The components view. Every service is a pod. The platform pods run on EKS Auto Mode's general-purpose nodes. The sandboxes run on their own tainted node pool and nowhere else (S01). The arrows are the calls that exist, and each is enforced by the cluster rather than by good behaviour.</p>
+<table>
+<thead>
+<tr>
+<th>Caller</th>
+<th>Callee</th>
+<th>Why</th>
+<th>What enforces it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agent</td>
+<td>Manager, Router, tool gateway</td>
+<td>Open sessions, run code, use tools</td>
+<td>Per-service ingress policies. In the tests the orchestrator is the pod that calls these three directly.</td>
+</tr>
+<tr>
+<td>Manager</td>
+<td>Kubernetes API</td>
+<td>Create a claim for a warm sandbox</td>
+<td>Its Role can create claims but cannot exec (S03)</td>
+</tr>
+<tr>
+<td>Router</td>
+<td>Sandbox</td>
+<td>Send commands and files in, results out</td>
+<td>The sandbox's ingress rule names the router's namespace and label only (S05). Its Role allows exec only in the sandbox namespace (S03).</td>
+</tr>
+<tr>
+<td>Sandbox</td>
+<td>Egress gateway</td>
+<td>The only way out</td>
+<td>A generated policy allows TCP 3128 to the gateway's fixed address and nothing else (S05)</td>
+</tr>
+<tr>
+<td>Egress gateway</td>
+<td>Manager</td>
+<td>Which session owns this address, and what is its list</td>
+<td>The Manager looks the session up by the sandbox's source address</td>
+</tr>
+<tr>
+<td>Egress gateway</td>
+<td>Credential broker</td>
+<td>A short-lived key for one session and one destination</td>
+<td>Only the two gateways may call the broker</td>
+</tr>
+<tr>
+<td>Egress gateway</td>
+<td>Company services, internet</td>
+<td>Pass on only allowed calls</td>
+<td>The gateway's own network policy names three domains, so a wrong allowlist cannot open the internet (S06)</td>
+</tr>
+<tr>
+<td>Tool gateway</td>
+<td>Manager, Credential broker</td>
+<td>Is the session still active; a 60-second key</td>
+<td>Only the gateways may call the broker. The Manager is asked on every call (S08).</td>
+</tr>
+</tbody>
+</table>
+<p>The sections that follow build on this picture. Section 1 lists each component and what I wrote or reused, section 2 shows the EKS topology, section 3 shows the architecture and the network paths, and section 5 tests each promise.</p>
 <h3 id="appendix-design-01-eks-1-the-software-components-i-implemented">1. The software components I implemented</h3>
 <p><strong>Scenario.</strong> The design draws a trusted control plane, two gateways and an untrusted sandbox pool. To test it, each box in that picture has to be real software that I can start, call and attack. Nothing in the design is left as "assume this exists".</p>
 <p>Some parts I reused as they are, and some I wrote. The table says which is which.</p>

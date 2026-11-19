@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="880px" viewBox="0 0 1420 880" style="background:#ffffff"><title>Components view: where each service runs and who calls whom</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="880" fill="#ffffff"/><rect x="160" y="50" width="230" height="90" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6 4"/>
+<rect x="160" y="50" width="230" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="161" y="68" width="228" height="12" fill="#f8fafc"/>
+<text x="172" y="70" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">User</text>
+<text x="172" y="98" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">chat window, outside this</text>
+<text x="172" y="115" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">appendix</text>
+<rect x="560" y="40" width="300" height="110" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="560" y="40" width="300" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="561" y="58" width="298" height="12" fill="#ecfdf5"/>
+<text x="572" y="60" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Agent (orchestrator)</text>
+<text x="572" y="88" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pod on the platform nodes</text>
+<text x="572" y="105" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">decides, then calls the platform</text>
+<text x="572" y="122" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no cloud or Kubernetes access</text>
+<rect x="1030" y="50" width="230" height="90" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6 4"/>
+<rect x="1030" y="50" width="230" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1031" y="68" width="228" height="12" fill="#f8fafc"/>
+<text x="1042" y="70" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Language model</text>
+<text x="1042" y="98" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a real agent calls one here;</text>
+<text x="1042" y="115" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the stand-in has none</text>
+<rect x="260" y="230" width="260" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="260" y="230" width="260" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="261" y="248" width="258" height="12" fill="#ecfdf5"/>
+<text x="272" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Sandbox Manager</text>
+<text x="272" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">2 replicas, platform nodes</text>
+<text x="272" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the only creator of sandboxes</text>
+<text x="272" y="312" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">3 sessions per customer</text>
+<text x="272" y="329" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">issues the session token</text>
+<rect x="580" y="230" width="260" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="580" y="230" width="260" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="581" y="248" width="258" height="12" fill="#ecfdf5"/>
+<text x="592" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Sandbox Router</text>
+<text x="592" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">2 replicas, platform nodes</text>
+<text x="592" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the only service that may</text>
+<text x="592" y="312" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">connect to a sandbox</text>
+<text x="592" y="329" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">logs every command</text>
+<rect x="900" y="230" width="260" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="900" y="230" width="260" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="901" y="248" width="258" height="12" fill="#ecfdf5"/>
+<text x="912" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Tool gateway (MCP)</text>
+<text x="912" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">1 replica, platform nodes</text>
+<text x="912" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tools per agent, approvals,</text>
+<text x="912" y="312" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">rate limit, revocation</text>
+<rect x="260" y="430" width="260" height="120" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="260" y="430" width="260" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="261" y="448" width="258" height="12" fill="#f8fafc"/>
+<text x="272" y="450" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Kubernetes API + controller</text>
+<text x="272" y="478" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">agent-sandbox controller</text>
+<text x="272" y="495" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">keeps the warm pools filled</text>
+<text x="272" y="512" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">hands a ready sandbox to a claim</text>
+<text x="272" y="529" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">deletes a claim at its end time</text>
+<rect x="560" y="400" width="300" height="215" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="574" y="424" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">SANDBOX NODES</text>
+<rect x="580" y="435" width="260" height="160" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="580" y="435" width="260" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="581" y="453" width="258" height="12" fill="#fef2f2"/>
+<text x="592" y="455" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Sandbox (one per session)</text>
+<text x="592" y="483" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">its own microVM and kernel</text>
+<text x="592" y="500" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no secrets, no token, no DNS</text>
+<text x="592" y="517" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one route out: the egress gateway</text>
+<text x="592" y="534" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reached only by the router</text>
+<rect x="900" y="430" width="260" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="900" y="430" width="260" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="901" y="448" width="258" height="12" fill="#eff6ff"/>
+<text x="912" y="450" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Credential broker</text>
+<text x="912" y="478" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">2 replicas, platform nodes</text>
+<text x="912" y="495" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">short-lived keys, 900 s at most</text>
+<text x="912" y="512" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">only the gateways may ask</text>
+<rect x="580" y="680" width="260" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="580" y="680" width="260" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="581" y="698" width="258" height="12" fill="#eff6ff"/>
+<text x="592" y="700" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Egress gateway</text>
+<text x="592" y="728" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">2 replicas, platform nodes</text>
+<text x="592" y="745" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">checks the session's allowlist</text>
+<text x="592" y="762" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">injects the real key</text>
+<text x="592" y="779" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the only way out of a sandbox</text>
+<rect x="1200" y="650" width="200" height="100" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1200" y="650" width="200" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1201" y="668" width="198" height="12" fill="#f8fafc"/>
+<text x="1212" y="670" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Company services</text>
+<text x="1212" y="698" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">metrics API in the test</text>
+<text x="1212" y="715" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">refuses calls without a key</text>
+<rect x="1200" y="780" width="200" height="70" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1200" y="780" width="200" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1201" y="798" width="198" height="12" fill="#f8fafc"/>
+<text x="1212" y="800" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Internet</text>
+<text x="1212" y="828" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">approved sites only</text>
+<path d="M390 95 L560 95" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-muted)" marker-start="url(#a-muted)"/>
+<rect x="458.6" y="87" width="32.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="475" y="99" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">chat</text>
+<path d="M860 95 L1030 95" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-muted)" marker-start="url(#a-muted)"/>
+<rect x="913.1" y="87" width="63.800000000000004" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="945" y="99" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">next step</text>
+<path d="M600 150 L600 190 L390 190 L390 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="456.9" y="182" width="76.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="495" y="194" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">open, close</text>
+<path d="M710 150 L710 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="681.2" y="182" width="57.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="710" y="194" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">commands</text>
+<path d="M820 150 L820 190 L1030 190 L1030 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="890.0" y="182" width="70.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="925" y="194" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">tool calls</text>
+<path d="M390 350 L390 430" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="370.5" y="382" width="39.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="390" y="394" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">claim</text>
+<path d="M710 350 L710 435" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="675.0" y="373" width="70.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="710" y="385" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">run, files</text>
+<path d="M1030 350 L1030 430" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="1001.2" y="382" width="57.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1030" y="394" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">60 s key</text>
+<path d="M710 595 L710 680" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="662.6" y="630" width="94.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="710" y="642" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">only route out</text>
+<path d="M580 760 L200 760 L200 290 L260 290" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)" marker-start="url(#a-blue)"/>
+<rect x="152.6" y="514" width="94.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="200" y="526" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">whose session?</text>
+<path d="M810 680 L810 630 L1030 630 L1030 550" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="891.2" y="622" width="57.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="920" y="634" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">mint key</text>
+<path d="M840 710 L1200 710" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="972.6" y="692" width="94.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1020" y="704" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">real key added</text>
+<path d="M840 790 L1200 790" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="972.6" y="772" width="94.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1020" y="784" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">approved sites</text>
+<text x="20" y="836" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">Green: platform services. Blue: gateway and broker. Red: untrusted. Grey: not built here, or outside the platform.</text>
+<text x="20" y="854" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">Platform pods run on EKS Auto Mode's general-purpose nodes. Sandboxes run only on the tainted sandbox pool.</text></svg>

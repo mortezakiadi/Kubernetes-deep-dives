@@ -5,7 +5,7 @@ short: "B. Design 01 on EKS (built and tested)"
 ---
 This appendix describes a working implementation of [Design 01: Sandboxing and secure execution for agents and untrusted code](#design-sandboxing). I built it with Terraform on Amazon EKS in one AWS account, tested every claim in the design that can be tested on this platform, recorded the evidence, and removed it again with one command. Everything here ran on a real cluster. Every command, output and pass or fail result in section 5 is copied from the recorded test run, not written from memory.
 
-The order is the one a reader needs: the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.
+The order is the one a reader needs: first the context (the problem, who the actors are and who talks to whom), then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.
 
 12 of 12 scenarios passed, 75 of 75 checks.
 
@@ -23,6 +23,77 @@ The order is the one a reader needs: the software I implemented, the EKS topolog
 | S10 | Limits, quotas and abuse | 6 of 6 |
 | S11 | One query for an audit | 6 of 6 |
 | S12 | Failure drills | 3 of 3 |
+
+### Context: the problem, the actors and who talks to whom
+
+**Scenario.** A company runs an AI agent. A user types a question into its chat window, for example "Why did checkout slow down this morning?" To answer, the agent writes a small script and has to run it. A model wrote that script, so nobody has reviewed it. It might try to read the company's secrets, reach another customer's work, or send data to a stranger. This appendix is about giving that script a place to run where it can do none of those things, and about proving that it can't.
+
+Five terms are used throughout.
+
+- **Agent (orchestrator).** The software that talks to the user and decides what to do next. It runs in an ordinary pod. A real one is a loop around a language model. In my tests it is a stand-in without a model, so every step is visible and repeatable.
+- **Platform.** The services the company runs around the sandboxes: the Manager, the Router, the tool gateway, the egress gateway, the credential broker and the controller. They are trusted. They are separate pods on EKS, not one program.
+- **Sandbox.** A pod that runs as its own small virtual machine with its own kernel, on nodes that run nothing else. It is the only place untrusted code runs.
+- **Session.** One job of the agent, with its own sandbox. A session ties together a user, a customer (tenant), an agent, a sandbox, a list of sites it may reach, an end time and a token. It is not the chat. A chat may never need a sandbox, or it may open a session when code has to run. How a chat maps onto sessions is outside this appendix.
+- **Company services.** The internal APIs an agent is allowed to use. The test uses one, a metrics API.
+
+![The path of one question: user, agent, platform, sandbox and the outside world](diagrams/appendix/a02-5.svg)
+
+**What the picture shows.** The path of one question, from the user to the answer. Dashed boxes are not built or tested here: the user's chat window and the language model. Everything else is the subject of this appendix.
+
+**The path of one question.**
+
+1. The user asks the question in the agent's chat window. *Not built here.*
+2. The agent asks a language model what to do next and decides that code has to run. *Not in the test; the stand-in has no model.*
+3. The agent asks the platform for a session for this user, customer and agent. The platform hands back a ready sandbox and a token.
+4. The agent sends its script to the platform.
+5. The platform forwards the script into that session's sandbox and brings the output back.
+6. If the script needs data from outside, it has exactly one door: the platform's egress gateway.
+7. The gateway checks the destination against this session's list, adds the real key itself, and passes on only the calls that are allowed. The sandbox never holds the key.
+8. The agent turns the output into an answer for the user and closes the session. The sandbox is deleted.
+
+![One request as calls between components](diagrams/appendix/a02-6.svg)
+
+**What the picture shows.** The same request as calls between the components. Time runs from top to bottom. Each arrow is one call, and its number matches the list below. Dashed arrows are replies.
+
+**Who talks to whom, and why.**
+
+1. **User to Agent.** The user types the question. *Why:* this is how the work starts. This link is not built or tested here, and neither is the model call the agent makes to decide what to do.
+2. **Agent to Manager.** The agent asks for a session and names the user, the customer, the agent, the kind of sandbox and any extra sites it needs. *Why:* only the Manager may create sandboxes, so the agent cannot give itself one with settings of its own choosing. The Manager enforces three open sessions per customer and puts an end time on every session.
+3. **Manager to Agent.** The Manager returns the session ID and a signed token once the sandbox is ready, about 0.4 seconds when it comes from a warm pool. *Why:* the ID names the session in every log line, and the token is what the tool gateway checks later.
+4. **Agent to Router.** The agent sends the script and the command to run, with the session ID. *Why:* the Router is the only service that may connect to a sandbox, so the agent needs no network path to one. The Router logs every command with its exit code and duration.
+5. **Router to Sandbox.** The Router runs the command inside that session's sandbox. *Why:* untrusted code must only ever run inside the microVM.
+6. **Sandbox to Egress gateway.** The script calls the company's metrics API and carries only the word `placeholder` as its key. *Why:* the sandbox's network policy allows exactly one destination, the gateway, on one port. There is no DNS and no other route.
+7. **Egress gateway and Manager.** The gateway asks which session owns the source address and which hosts that session may reach, then checks the host. *Why:* the allowlist is per session and the Manager stores it. A host that is not on the list is refused with a 403 before any connection is opened.
+8. **Egress gateway to Credential broker.** For the one internal host, the gateway asks for a key for this session and this destination, valid for 900 seconds at most. *Why:* the real key is made outside the sandbox and is never sent back to it.
+9. **Egress gateway to Company API.** The gateway terminates TLS for that host, replaces the placeholder with the real key and sends the request. *Why:* the API refuses any request without a valid key, and the sandbox has no route to the API except through the gateway (S07).
+10. **Egress gateway to Sandbox.** The reply goes back to the script. The key does not. *Why:* a script cannot leak a key it never held.
+11. **Router to Agent.** The Router returns the output and the exit code. *Why:* the agent decides its next step from them.
+12. **Agent to Tool gateway.** The agent calls a tool, such as `metrics.query`, with the session token. *Why:* tools sit behind a gateway that knows who is asking. It shows an agent only the tools its policy allows. A high-risk tool (`ticket.create` in the test) first answers "needs approval" and runs only after a person approves, once per approval (S08).
+13. **Tool gateway and Manager.** On every call the gateway asks whether the session is still active. *Why:* a token must stop working the moment its session ends, even if it has not expired (S08).
+14. **Tool gateway to Credential broker.** The gateway asks for a 60-second key for this session. *Why:* the key is made for this session and expires within a minute.
+15. **Tool gateway to Company API.** The gateway makes the read call with that key. *Why:* the API checks the key's signature, audience and expiry (S07).
+16. **Tool gateway to Agent.** The gateway returns the result.
+17. **Agent to Manager.** The agent closes the session. The claim, the sandbox pod and its workspace are deleted, and the token stops working. This also happens on its own at the end time. *Why:* a sandbox must not outlive its job.
+18. **Agent to User.** The agent writes the answer. *Not built here.*
+
+A script inside the sandbox can also call the tool gateway, but only through the egress gateway (S08). Every component writes one log line per step with the session ID, so one query rebuilds this list (S11).
+
+![Components view: where each service runs and who calls whom](diagrams/appendix/a02-7.svg)
+
+**What the picture shows.** The components view. Every service is a pod. The platform pods run on EKS Auto Mode's general-purpose nodes. The sandboxes run on their own tainted node pool and nowhere else (S01). The arrows are the calls that exist, and each is enforced by the cluster rather than by good behaviour.
+
+| Caller | Callee | Why | What enforces it |
+|---|---|---|---|
+| Agent | Manager, Router, tool gateway | Open sessions, run code, use tools | Per-service ingress policies. In the tests the orchestrator is the pod that calls these three directly. |
+| Manager | Kubernetes API | Create a claim for a warm sandbox | Its Role can create claims but cannot exec (S03) |
+| Router | Sandbox | Send commands and files in, results out | The sandbox's ingress rule names the router's namespace and label only (S05). Its Role allows exec only in the sandbox namespace (S03). |
+| Sandbox | Egress gateway | The only way out | A generated policy allows TCP 3128 to the gateway's fixed address and nothing else (S05) |
+| Egress gateway | Manager | Which session owns this address, and what is its list | The Manager looks the session up by the sandbox's source address |
+| Egress gateway | Credential broker | A short-lived key for one session and one destination | Only the two gateways may call the broker |
+| Egress gateway | Company services, internet | Pass on only allowed calls | The gateway's own network policy names three domains, so a wrong allowlist cannot open the internet (S06) |
+| Tool gateway | Manager, Credential broker | Is the session still active; a 60-second key | Only the gateways may call the broker. The Manager is asked on every call (S08). |
+
+The sections that follow build on this picture. Section 1 lists each component and what I wrote or reused, section 2 shows the EKS topology, section 3 shows the architecture and the network paths, and section 5 tests each promise.
 
 ### 1. The software components I implemented
 
