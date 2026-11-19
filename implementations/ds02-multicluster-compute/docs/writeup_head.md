@@ -5,11 +5,82 @@ short: "C. Design 02 on EKS (built and tested)"
 ---
 This appendix describes a working, scaled-down implementation of [Design 02: Operating CPU and GPU clusters as one compute platform](#design-multicluster). I built it with Terraform on Amazon EKS in one AWS account: a hub cluster and three worker clusters (two CPU, one GPU), one front door for batch jobs, fair sharing between three teams, GPU capacity that is bought only when a queued job needs it, and walls between teams. I tested every claim of the design that this scale can test, recorded the evidence, and removed it again with one command. Every command, output and pass or fail result in section 5 is copied from the recorded test run, not written from memory.
 
-The order is the one a reader needs: the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.
+The order is the one a reader needs: first the context (the problem, who the actors are and who talks to whom), then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.
 
 **What "scaled down" means here.** The design has a hub, CPU clusters, large GPU training clusters with Capacity Blocks and EFA, and inference clusters in several regions, with hundreds of GPUs. This build has one hub, two CPU workers of four vCPUs each, and one GPU worker that can run up to two single-GPU nodes on-demand and two on Spot, all in one region. The mechanisms are the same ones: the same Kueue and MultiKueue, the same quota model, the same node-pool rules. Only the numbers are small, and section 6 lists what I did not build.
 
 {{RESULT_SUMMARY}}
+
+### Context: the problem, the actors and who talks to whom
+
+**Scenario.** A company has grown several Kubernetes clusters by accident. Each has its own quotas and its own chat channel for "who is using the GPUs?" A training job waits for days in one cluster while reserved GPUs sit idle in another, and two teams have started buying their own capacity. Leadership asks the platform team to make it one platform. A researcher should be able to submit a job once, without knowing which cluster has room, who owns the GPUs or how the machines get bought. This appendix builds a small version of that platform and tests whether it behaves that way.
+
+Five terms are used throughout.
+
+- **Team.** A group that owns a share of the fleet. The test has three: `llm`, `vision` and `research`. Each has a namespace in every cluster, a guaranteed share, and limits on how much it lends and borrows.
+- **Job.** A batch job such as a training run. It is what a team submits.
+- **Hub cluster.** The front door. Teams submit jobs here and nowhere else. It holds each team's share of the whole fleet, decides which worker to offer a job to, and runs no user pods.
+- **Worker clusters.** The clusters that run the jobs: `cpu-a` (On-Demand), `cpu-b` (Spot) and `gpu`. Each is a complete cluster with its own queues.
+- **Queue manager and node pools.** The queue manager is Kueue, which runs on every cluster. On the hub it chooses a worker. On a worker it decides whether a job may start. A node pool says which machines may be bought, and buys one only when an admitted pod needs it.
+
+![The path of one job: team, hub, worker, node pool and AWS](diagrams/appendix/a03-5.svg)
+
+**What the picture shows.** The path of one job from the team to AWS. The dashed box is not built here: teams submit with `kubectl`, and I did not build a portal.
+
+**The path of one job.**
+
+1. A team member submits a job to the hub, into the team's own queue.
+2. The hub's queue manager checks the team's share of the whole fleet (layer 1). The job is held, with no pods created, until the share allows it.
+3. The hub offers the job to the workers that suit it, CPU or GPU. Each of them gets a copy.
+4. Each worker checks its own queue for that team (layer 2): the quota, its own or borrowed, and room for all of the job's pods at once. The first worker that can admit the job wins, and the hub deletes the other copies.
+5. The winning worker starts the pods and its scheduler places them. If no node fits, the worker's node pool asks AWS for one. GPU nodes exist only while a job needs them.
+6. The job runs. Its pods can read their own team's data in S3 and no other team's.
+7. The hub copies the job's status back, so the team sees it on the hub. When the job ends, the copy in the worker is deleted and the empty nodes are removed.
+
+![One job as calls between components](diagrams/appendix/a03-6.svg)
+
+**What the picture shows.** One CPU job as calls between the components. Time runs from top to bottom. Each arrow is one call and its number matches the list below. Boxes on a line are decisions a component makes. Dashed arrows are replies.
+
+**Who talks to whom, and why.**
+
+1. **Team to Hub.** The team creates a Job in its own namespace with a queue label. *Why:* there is one front door, and the team never needs to know which cluster will run the job. A pod created directly on the hub is refused (S02).
+2. **Hub, layer 1.** The hub's queue manager reserves quota in the team's fleet-wide queue and keeps the Job suspended. *Why:* quota is decided before any pod exists. A job larger than the team's fleet share waits here, and its status says so (S03).
+3. **Hub to the worker that will win.** The hub copies the job's Workload to a candidate worker over the private network, using the narrow identity it holds for that worker. *Why:* the hub does not need to know in advance which worker has room. It only offers work to workers whose connection is up (S06, S09).
+4. **Hub to the other worker.** The same copy goes to the other candidate. *Why:* whichever worker can admit the job first should win (S06).
+5. **Worker, layer 2.** The worker's queue manager checks the team's queue in this cluster: its own share plus what it may borrow, and whether all of the job's pods fit at once. *Why:* it is all or nothing, so a job never starts three of four pods and holds resources while waiting for the fourth (S04). A team's borrowed capacity can be taken back by its owner (S05).
+6. **Worker to Hub.** The worker reports that it admitted the job. *Why:* the hub has to know which worker won.
+7. **Hub to the other worker.** The hub deletes the other copy (S06).
+8. **Worker to kube-scheduler.** The job is released, its pods are created and the scheduler places them (layer 3). *Why:* pods exist only for work that already has quota (S03).
+9. **kube-scheduler to Node pool.** A pod that fits on no node waits, and the node pool (layer 4) sees it. *Why:* capacity is bought only for admitted work. A GPU pod carries the toleration its flavor adds, which is the only way onto the tainted GPU nodes (S07).
+10. **Node pool to AWS.** The pool launches an instance of a type it allows. *Why:* the pools have limits and start empty. The GPU worker may use two GPUs On-Demand and two on Spot, and Auto Mode picks whichever allowed family has capacity (S07).
+11. **AWS to Worker.** The node joins the cluster and the pods run.
+12. **Worker to Hub.** The hub watches the job in the worker and copies its status back. *Why:* the team never needs credentials for a worker (S02).
+13. **Hub to Team.** The team sees the status on the hub.
+14. **Hub to Worker.** After the final status copy, the hub deletes the job in the worker (S02).
+15. **Node pool to AWS.** The empty node is removed, after one minute for CPU nodes and two minutes for GPU nodes. *Why:* idle capacity should not cost money (S07).
+
+Three rules decide what a job gets.
+
+- **Where it runs:** the first worker that can admit the whole job (S06).
+- **When it runs:** each team has a guaranteed share, can borrow what others are not using, and gets it back when the owner asks. Borrowed work is preempted and requeued (S05).
+- **What capacity it gets:** the flavors in the team's queue, in order. `llm` gets On-Demand GPU first and Spot after, `research` gets Spot only, and a GPU can be reached only through a queue (S07).
+
+![Components view: where each piece runs and who calls whom](diagrams/appendix/a03-7.svg)
+
+**What the picture shows.** The components view. The hub holds the front door, the fleet-wide queues and one narrow credential per worker. Each worker is a full cluster with its own queue manager, team namespaces and node pools. AWS sits underneath: the instances the node pools buy, and one bucket with a prefix per team.
+
+| Caller | Callee | Why | What enforces it |
+|---|---|---|---|
+| Team | Hub API server | Submit a job to the team's queue | A namespace per team with Pod Security, a resource quota and a network policy (S08). The hub refuses any pod in a team namespace (S02). |
+| Hub queue manager | Each worker's API server | Copy jobs, watch their status, delete the copies | One kubeconfig Secret per worker, holding a narrow identity limited to Jobs, pods and Kueue's own objects. Private endpoint inside the VPC (S01, S09). |
+| Hub queue manager | Fleet queues | Layer 1 quota for each team | The hub's queues and the workers' queues are generated from one team table, so the hub's quota is the sum of the workers' (S01). |
+| Worker queue manager | Team queues in the worker | Layer 2: admit the whole job, borrow, preempt | The same table (S04, S05). |
+| Worker | kube-scheduler | Place the pods of an admitted job | Kueue manages every Job and Pod in a team namespace. A pod with no queue is held by a scheduling gate (S07). |
+| Node pool | EC2 | Buy and remove nodes | Pool limits. GPU pools start empty, are limited to two GPUs each and are tainted (S07). |
+| Job pod | S3 | Read the team's own data | One role per team limited to its prefix, assumed through EKS Pod Identity in every worker (S08). |
+| Team's pods | Another team's pods | Nothing | A network policy admits traffic only from the same namespace (S08). |
+
+The sections that follow build on this picture. Section 1 lists each component and what I wrote or reused, section 2 shows the topology, section 3 shows the architecture and the four layers, and section 5 tests each promise.
 
 ### 1. The software components I implemented
 

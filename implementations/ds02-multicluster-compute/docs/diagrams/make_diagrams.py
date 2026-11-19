@@ -29,8 +29,9 @@ class Svg:
         self.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="14" fill="{c["fill"]}" fill-opacity=".55" stroke="{c["stroke"]}" stroke-width="1.5" stroke-dasharray="7 5"/>')
         self.parts.append(f'<text x="{x + 14}" y="{y + 24}" font-family="{FONT}" font-size="13" font-weight="700" letter-spacing=".06em" fill="{c["ink"]}">{self.esc(label)}</text>')
 
-    def box(self, x, y, w, h, title, lines=(), c=GREY, num=None):
-        self.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="#ffffff" stroke="{c["stroke"]}" stroke-width="1.6"/>')
+    def box(self, x, y, w, h, title, lines=(), c=GREY, num=None, dash=False):
+        dash_attr = ' stroke-dasharray="6 4"' if dash else ""
+        self.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="#ffffff" stroke="{c["stroke"]}" stroke-width="1.6"{dash_attr}/>')
         self.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="30" rx="10" fill="{c["fill"]}" stroke="{c["stroke"]}" stroke-width="1.6"/>')
         self.parts.append(f'<rect x="{x + 1}" y="{y + 18}" width="{w - 2}" height="12" fill="{c["fill"]}"/>')
         self.parts.append(f'<text x="{x + 12}" y="{y + 20}" font-family="{FONT}" font-size="13.5" font-weight="700" fill="{c["ink"]}">{self.esc(title)}</text>')
@@ -154,9 +155,123 @@ def fair_share():
     return s.render()
 
 
+def context_overview():
+    """Figure 1: the path of one job, in plain terms."""
+    s = Svg(1420, 470, "The path of one job: team, hub, worker, node pool and AWS")
+    s.box(20, 170, 170, 110, "Team", ["a researcher on team llm,", "vision or research", "submits with kubectl", "(no portal built here)"], GREY, dash=True)
+    s.box(260, 150, 240, 150, "Hub cluster", ["the one front door", "holds each team's share of the", "whole fleet; decides which worker", "to offer a job to; runs no", "user pods"], GREEN)
+    s.box(570, 40, 240, 120, "Worker: cpu-a", ["On-Demand CPU capacity", "own queues for each team", "decides: room for the whole job?"], BLUE)
+    s.box(570, 180, 240, 120, "Worker: cpu-b", ["Spot CPU capacity", "own queues for each team", "decides: room for the whole job?"], BLUE)
+    s.box(570, 320, 240, 120, "Worker: gpu", ["GPU capacity, starts empty", "own queues for each team", "decides: room for the whole job?"], RED)
+    s.box(880, 150, 240, 150, "Node pools (Auto Mode)", ["in each worker: buy a node when", "an admitted pod has none that fits", "remove it when it is empty", "GPU nodes only while needed"], GREY)
+    s.box(1180, 150, 220, 150, "AWS", ["EC2 instances", "S3 bucket, one prefix", "per team, readable only", "by that team's role"], GREY)
+    s.arrow([(190, 215), (260, 215)], "flow")
+    s.badge(225, 215, 1)
+    s.arrow([(260, 255), (190, 255)], "muted", dash=True)
+    s.badge(225, 255, 7)
+    s.arrow([(500, 190), (535, 190), (535, 100), (570, 100)], "blue")
+    s.arrow([(500, 225), (570, 225)], "blue")
+    s.arrow([(500, 260), (535, 260), (535, 380), (570, 380)], "blue")
+    s.badge(535, 225, 3)
+    s.arrow([(810, 100), (845, 100), (845, 190), (880, 190)], "flow")
+    s.arrow([(810, 240), (880, 240)], "flow")
+    s.arrow([(810, 380), (845, 380), (845, 260), (880, 260)], "flow")
+    s.badge(845, 215, 5)
+    s.arrow([(1120, 225), (1180, 225)], "ok")
+    s.badge(1150, 225, 6)
+    s.badge(380, 150, 2)
+    s.badge(690, 300, 4)
+    s.text(20, 360, "Dashed box: outside what this appendix builds.", 11, MUTED)
+    s.text(20, 378, "Numbers match the steps below the picture.", 11, MUTED)
+    s.text(20, 396, "Blue arrows: the hub offering a job to workers.", 11, MUTED)
+    s.text(20, 414, "A job is offered to the workers that fit its kind (CPU or GPU).", 11, MUTED)
+    return s.render()
+def context_sequence():
+    """Figure 2: one CPU job as calls between components."""
+    s = Svg(1420, 860, "One job as calls between components")
+    names = [("Team", GREY), ("Hub", GREEN), ("Worker that wins", BLUE), ("Other worker", BLUE),
+             ("kube-scheduler", GREY), ("Node pool", GREY), ("AWS (EC2)", GREY)]
+    xs = [170 + i * 190 for i in range(len(names))]
+    first_y, step = 130, 46
+    def ry(row):
+        return first_y + (row - 1) * step
+    bands = [(1, 2, ["SUBMIT"]), (3, 7, ["OFFER AND", "ADMIT"]), (8, 11, ["RUN"]), (12, 14, ["REPORT"]), (15, 15, ["CLEAN UP"])]
+    for i, (a, b, label) in enumerate(bands):
+        top, bottom = ry(a) - step / 2, ry(b) + step / 2
+        s.parts.append(f'<rect x="0" y="{top}" width="1420" height="{bottom - top}" fill="{"#f8fafc" if i % 2 == 0 else "#ffffff"}"/>')
+        for j, line in enumerate(label):
+            s.text(16, (top + bottom) / 2 + j * 14 - (len(label) - 1) * 7 + 4, line, 11, MUTED, "700")
+    for x, (n, c) in zip(xs, names):
+        s.box(x - 74, 24, 148, 40, n, [], c, dash=(n == "Team"))
+        s.parts.append(f'<line x1="{x}" y1="64" x2="{x}" y2="830" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>')
+    # (row, from, to, label, kind, dashed, both); from == to is a note on that lifeline
+    rows = [
+        (1, 0, 1, "Create a Job", "flow", False, False),
+        (2, 1, 1, "Layer 1: fleet share? Hold the Job.", "ok", False, False),
+        (3, 1, 2, "Offer a copy", "blue", False, False),
+        (4, 1, 3, "Offer a copy", "blue", False, False),
+        (5, 2, 2, "Layer 2: quota, and room for ALL pods?", "ok", False, False),
+        (6, 2, 1, "Admitted", "muted", True, False),
+        (7, 1, 3, "Delete your copy", "blue", False, False),
+        (8, 2, 4, "Release the Job: create pods", "flow", False, False),
+        (9, 4, 5, "Pods need a node", "flow", False, False),
+        (10, 5, 6, "Launch an instance", "blue", False, False),
+        (11, 6, 4, "Node joins, pods run", "muted", True, False),
+        (12, 2, 1, "Status: running, then complete", "muted", True, False),
+        (13, 1, 0, "Status, on the hub", "muted", True, False),
+        (14, 1, 2, "Delete the remote copy", "blue", False, False),
+        (15, 5, 6, "Remove the empty node", "blue", False, False),
+    ]
+    for row, a, b, label, kind, dashed, both in rows:
+        y = ry(row)
+        if a == b:
+            w = len(label) * 5.9 + 12
+            s.parts.append(f'<rect x="{xs[a] + 18}" y="{y - 12}" width="{w}" height="24" rx="5" fill="#ffffff" stroke="{COLORS[kind]}" stroke-width="1.2"/>')
+            s.text(xs[a] + 24, y + 4, label, 11, COLORS[kind], "700")
+            s.badge(xs[a], y, row)
+            continue
+        sign = 1 if b > a else -1
+        start, end = xs[a] + sign * 13, xs[b] - sign * 2
+        s.arrow([(start, y), (end, y)], kind, label, (xs[a] + xs[b]) / 2, y - 7, dash=dashed, both=both)
+        s.badge(xs[a], y, row)
+    s.text(16, 848, "Dashed arrows are replies or notifications. A GPU job follows the same path; its node pool starts at zero and the node is bought only now.", 11, MUTED)
+    return s.render()
+def context_components():
+    """Figure 3: components view, who calls whom."""
+    s = Svg(1420, 880, "Components view: where each piece runs and who calls whom")
+    s.box(20, 100, 190, 120, "Team", ["kubectl against the hub", "a namespace per team in", "every cluster"], GREY, dash=True)
+    s.zone(250, 30, 1130, 310, "HUB CLUSTER (runs no user pods)", GREEN)
+    s.box(270, 70, 250, 100, "Hub API server + guard", ["admission policy refuses pods", "Kueue holds every Job until", "its turn"], AMBER)
+    s.box(550, 70, 250, 100, "Kueue manager + MultiKueue", ["layer 1: fleet quota", "offers jobs to workers", "mirrors status back"], GREEN)
+    s.box(830, 70, 250, 100, "Worker credentials", ["one Secret per worker", "narrow identity: Jobs, pods,", "Kueue objects only"], AMBER)
+    s.box(550, 210, 250, 100, "Fleet queues", ["llm, vision, research x CPU, GPU", "each = the sum of that team's", "share across the workers"], GREEN)
+    s.box(830, 210, 250, 100, "Team table (Terraform)", ["one table of shares", "generates every queue on the", "hub and on every worker"], GREY)
+    s.arrow([(210, 140), (240, 140), (240, 120), (270, 120)], "flow")
+    s.arrow([(520, 120), (550, 120)], "flow", "watches", 535, 112)
+    s.arrow([(800, 120), (830, 120)], "flow", "token", 815, 112)
+    s.arrow([(675, 170), (675, 210)], "flow", "quota", 675, 193)
+    s.arrow([(830, 260), (800, 260)], "muted", dash=True)
+    for i, (name, role, pools, c) in enumerate([
+        ("CPU-A", "On-Demand", ["NodePool cpu-ondemand", "empty nodes removed after 1 min"], BLUE),
+        ("CPU-B", "Spot", ["NodePool cpu-spot", "empty nodes removed after 1 min"], BLUE),
+        ("GPU", "scaled from zero", ["NodePools gpu-ondemand, gpu-spot", "tainted; empty nodes gone in 2 min"], RED)]):
+        x = 250 + i * 390
+        s.zone(x, 380, 360, 300, f"WORKER {name} ({role})", c)
+        s.box(x + 15, 415, 330, 90, "Kueue worker + API server", ["layer 2: team queues, borrow, preempt", "admits the whole job or none"], c)
+        s.box(x + 15, 520, 330, 70, "Team namespaces and walls", ["Pod Security, quota, network policy"], GREY)
+        s.box(x + 15, 600, 330, 70, "Node pool (Auto Mode)", pools, RED if name == "GPU" else GREY)
+        s.arrow([(x + 180, 340), (x + 180, 380)], "blue", "dispatch" if i == 1 else None, x + 180, 363)
+        s.arrow([(x + 180, 680), (x + 180, 715)], "ok")
+    s.box(250, 715, 1130, 55, "Amazon EC2", ["Auto Mode launches and removes the instances; GPU instances exist only while a job needs them"], GREY)
+    s.box(250, 790, 1130, 55, "Amazon S3 and IAM", ["one bucket, a prefix per team, one role per team. Job pods assume it through EKS Pod Identity, in every worker."], GREY)
+    s.text(20, 330, "Green: hub. Blue: CPU workers.", 11, MUTED)
+    s.text(20, 348, "Red: GPU worker. Amber: guard rails.", 11, MUTED)
+    s.text(20, 366, "Grey: outside the clusters.", 11, MUTED)
+    return s.render()
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
-    for name, fn in (("a03-1", architecture), ("a03-2", topology), ("a03-3", layers), ("a03-4", fair_share)):
+    for name, fn in (("a03-1", architecture), ("a03-2", topology), ("a03-3", layers), ("a03-4", fair_share),
+                     ("a03-5", context_overview), ("a03-6", context_sequence), ("a03-7", context_components)):
         (out / f"{name}.svg").write_text(fn())
         print("wrote", out / f"{name}.svg")

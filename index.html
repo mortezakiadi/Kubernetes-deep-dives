@@ -245,7 +245,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>14 deep dives</li>
         <li>21 designs</li>
-        <li>613 scenario sections</li>
+        <li>616 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -8932,9 +8932,9 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
     <span class="tag">Appendix</span>
     <h2 id="appendix-design-02-eks-h">Appendix C: Design 02 built and tested on Amazon EKS</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#appendix-design-02-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a03-2">2. EKS topology and instances</a></li><li><a href="#a03-1">3. Architecture</a></li><li><a href="#appendix-design-02-eks-4-how-it-is-implemented">4. How it is implemented</a></li><li><a href="#appendix-design-02-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-02-eks-s01-the-fleet-four-clusters-made-from-one-definition">S01: The fleet: four clusters made from one definition</a></li><li><a href="#appendix-design-02-eks-s02-one-front-door-and-the-hub-runs-nothing">S02: One front door, and the hub runs nothing</a></li><li><a href="#appendix-design-02-eks-s03-why-is-my-job-pending-one-answer-per-layer">S03: Why is my job pending? One answer per layer</a></li><li><a href="#appendix-design-02-eks-s04-gang-scheduling-all-of-a-job-or-none-of-it">S04: Gang scheduling: all of a job, or none of it</a></li><li><a href="#appendix-design-02-eks-s05-fair-sharing-borrow-idle-capacity-give-it-back-when-asked">S05: Fair sharing: borrow idle capacity, give it back when asked</a></li><li><a href="#appendix-design-02-eks-s06-dispatch-a-full-worker-is-skipped-and-the-job-runs-in-the-other">S06: Dispatch: a full worker is skipped, and the job runs in the other</a></li><li><a href="#appendix-design-02-eks-s07-gpus-only-through-the-queue-from-the-right-capacity-scaled-from-zero">S07: GPUs: only through the queue, from the right capacity, scaled from zero</a></li><li><a href="#appendix-design-02-eks-s08-tenant-isolation-network-and-identity">S08: Tenant isolation: network and identity</a></li><li><a href="#appendix-design-02-eks-s09-failure-drills-a-worker-lost-and-the-hub-down">S09: Failure drills: a worker lost, and the hub down</a></li><li><a href="#appendix-design-02-eks-s10-observability-the-fleet-in-one-place">S10: Observability: the fleet in one place</a></li><li><a href="#appendix-design-02-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-02-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-02-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#a03-5">Context: the problem, the actors and who talks to whom</a></li><li><a href="#appendix-design-02-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a03-2">2. EKS topology and instances</a></li><li><a href="#a03-1">3. Architecture</a></li><li><a href="#appendix-design-02-eks-4-how-it-is-implemented">4. How it is implemented</a></li><li><a href="#appendix-design-02-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-02-eks-s01-the-fleet-four-clusters-made-from-one-definition">S01: The fleet: four clusters made from one definition</a></li><li><a href="#appendix-design-02-eks-s02-one-front-door-and-the-hub-runs-nothing">S02: One front door, and the hub runs nothing</a></li><li><a href="#appendix-design-02-eks-s03-why-is-my-job-pending-one-answer-per-layer">S03: Why is my job pending? One answer per layer</a></li><li><a href="#appendix-design-02-eks-s04-gang-scheduling-all-of-a-job-or-none-of-it">S04: Gang scheduling: all of a job, or none of it</a></li><li><a href="#appendix-design-02-eks-s05-fair-sharing-borrow-idle-capacity-give-it-back-when-asked">S05: Fair sharing: borrow idle capacity, give it back when asked</a></li><li><a href="#appendix-design-02-eks-s06-dispatch-a-full-worker-is-skipped-and-the-job-runs-in-the-other">S06: Dispatch: a full worker is skipped, and the job runs in the other</a></li><li><a href="#appendix-design-02-eks-s07-gpus-only-through-the-queue-from-the-right-capacity-scaled-from-zero">S07: GPUs: only through the queue, from the right capacity, scaled from zero</a></li><li><a href="#appendix-design-02-eks-s08-tenant-isolation-network-and-identity">S08: Tenant isolation: network and identity</a></li><li><a href="#appendix-design-02-eks-s09-failure-drills-a-worker-lost-and-the-hub-down">S09: Failure drills: a worker lost, and the hub down</a></li><li><a href="#appendix-design-02-eks-s10-observability-the-fleet-in-one-place">S10: Observability: the fleet in one place</a></li><li><a href="#appendix-design-02-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-02-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-02-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li></ol></nav>
   <div class="prose"><p>This appendix describes a working, scaled-down implementation of <a href="#design-multicluster">Design 02: Operating CPU and GPU clusters as one compute platform</a>. I built it with Terraform on Amazon EKS in one AWS account: a hub cluster and three worker clusters (two CPU, one GPU), one front door for batch jobs, <mark class="kw">fair sharing</mark> between three teams, GPU capacity that is bought only when a queued job needs it, and walls between teams. I tested every claim of the design that this scale can test, recorded the evidence, and removed it again with one command. Every command, output and pass or fail result in section 5 is copied from the recorded test run, not written from memory.</p>
-<p>The order is the one a reader needs: the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.</p>
+<p>The order is the one a reader needs: first the context (the problem, who the actors are and who talks to whom), then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.</p>
 <p><strong>What "scaled down" means here.</strong> The design has a hub, CPU clusters, large GPU training clusters with <mark class="kw-tool">Capacity Blocks</mark> and <mark class="kw">EFA</mark>, and inference clusters in several regions, with hundreds of GPUs. This build has one hub, two CPU workers of four vCPUs each, and one GPU worker that can run up to two single-GPU nodes on-demand and two on <mark class="kw">Spot</mark>, all in one region. The mechanisms are the same ones: the same <mark class="kw-tool">Kueue</mark> and MultiKueue, the same <mark class="kw">quota</mark> model, the same node-pool rules. Only the numbers are small, and section 6 lists what I did not build.</p>
 <p>10 of 10 scenarios passed, 46 of 46 checks.</p>
 <table>
@@ -8998,6 +8998,113 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </tr>
 </tbody>
 </table>
+<h3 id="a03-5">Context: the problem, the actors and who talks to whom</h3>
+<p><strong>Scenario.</strong> A company has grown several Kubernetes clusters by accident. Each has its own <mark class="kw">quotas</mark> and its own chat channel for "who is using the GPUs?" A training job waits for days in one cluster while reserved GPUs sit idle in another, and two teams have started buying their own capacity. Leadership asks the platform team to make it one platform. A researcher should be able to submit a job once, without knowing which cluster has room, who owns the GPUs or how the machines get bought. This appendix builds a small version of that platform and tests whether it behaves that way.</p>
+<p>Five terms are used throughout.</p>
+<ul>
+<li><strong>Team.</strong> A group that owns a share of the fleet. The test has three: <code>llm</code>, <code>vision</code> and <code>research</code>. Each has a namespace in every cluster, a guaranteed share, and limits on how much it lends and <mark class="kw-act">borrows</mark>.</li>
+<li><strong>Job.</strong> A batch job such as a training run. It is what a team submits.</li>
+<li><strong>Hub cluster.</strong> The front door. Teams submit jobs here and nowhere else. It holds each team's share of the whole fleet, decides which worker to offer a job to, and runs no user pods.</li>
+<li><strong>Worker clusters.</strong> The clusters that run the jobs: <code>cpu-a</code> (<mark class="kw">On-Demand</mark>), <code>cpu-b</code> (<mark class="kw">Spot</mark>) and <code>gpu</code>. Each is a complete cluster with its own queues.</li>
+<li><strong>Queue manager and node pools.</strong> The queue manager is <mark class="kw-tool">Kueue</mark>, which runs on every cluster. On the hub it chooses a worker. On a worker it decides whether a job may start. A node pool says which machines may be bought, and buys one only when an <mark class="kw-act">admitted</mark> pod needs it.</li>
+</ul>
+<figure class="diagram"><button aria-label="Open diagram full screen: The path of one job: team, hub, worker, node pool and AWS" class="open" data-src="diagrams/appendix/a03-5.svg" data-title="The path of one job: team, hub, worker, node pool and AWS" type="button"><img alt="Diagram: The path of one job: team, hub, worker, node pool and AWS" decoding="async" loading="lazy" src="diagrams/appendix/a03-5.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The path of one job from the team to AWS. The dashed box is not built here: teams submit with <code>kubectl</code>, and I did not build a portal.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><p><strong>The path of one job.</strong></p><ol>
+<li>A team member submits a job to the hub, into the team's own queue.</li>
+<li>The hub's queue manager checks the team's share of the whole fleet (layer 1). The job is held, with no pods created, until the share allows it.</li>
+<li>The hub offers the job to the workers that suit it, CPU or GPU. Each of them gets a copy.</li>
+<li>Each worker checks its own queue for that team (layer 2): the <mark class="kw">quota</mark>, its own or <mark class="kw-act">borrowed</mark>, and room for all of the job's pods at once. The first worker that can <mark class="kw-act">admit</mark> the job wins, and the hub deletes the other copies.</li>
+<li>The winning worker starts the pods and its scheduler places them. If no node fits, the worker's node pool asks AWS for one. GPU nodes exist only while a job needs them.</li>
+<li>The job runs. Its pods can read their own team's data in S3 and no other team's.</li>
+<li>The hub copies the job's status back, so the team sees it on the hub. When the job ends, the copy in the worker is deleted and the empty nodes are removed.</li>
+</ol><figure class="diagram"><button aria-label="Open diagram full screen: One job as calls between components" class="open" data-src="diagrams/appendix/a03-6.svg" data-title="One job as calls between components" type="button"><img alt="Diagram: One job as calls between components" decoding="async" loading="lazy" src="diagrams/appendix/a03-6.svg"/><span class="hint">Open full screen</span></button></figure><p><strong>What the picture shows.</strong> One CPU job as calls between the components. Time runs from top to bottom. Each arrow is one call and its number matches the list below. Boxes on a line are decisions a component makes. Dashed arrows are replies.</p><p><strong>Who talks to whom, and why.</strong></p><ol>
+<li><strong>Team to Hub.</strong> The team creates a Job in its own namespace with a queue label. <em>Why:</em> there is one front door, and the team never needs to know which cluster will run the job. A pod created directly on the hub is refused (S02).</li>
+<li><strong>Hub, layer 1.</strong> The hub's queue manager reserves <mark class="kw">quota</mark> in the team's fleet-wide queue and keeps the Job suspended. <em>Why:</em> quota is decided before any pod exists. A job larger than the team's fleet share waits here, and its status says so (S03).</li>
+<li><strong>Hub to the worker that will win.</strong> The hub copies the job's Workload to a candidate worker over the private network, using the narrow identity it holds for that worker. <em>Why:</em> the hub does not need to know in advance which worker has room. It only offers work to workers whose connection is up (S06, S09).</li>
+<li><strong>Hub to the other worker.</strong> The same copy goes to the other candidate. <em>Why:</em> whichever worker can <mark class="kw-act">admit</mark> the job first should win (S06).</li>
+<li><strong>Worker, layer 2.</strong> The worker's queue manager checks the team's queue in this cluster: its own share plus what it may <mark class="kw-act">borrow</mark>, and whether all of the job's pods fit at once. <em>Why:</em> it is all or nothing, so a job never starts three of four pods and holds resources while waiting for the fourth (S04). A team's borrowed capacity can be taken back by its owner (S05).</li>
+<li><strong>Worker to Hub.</strong> The worker reports that it <mark class="kw-act">admitted</mark> the job. <em>Why:</em> the hub has to know which worker won.</li>
+<li><strong>Hub to the other worker.</strong> The hub deletes the other copy (S06).</li>
+<li><strong>Worker to kube-scheduler.</strong> The job is released, its pods are created and the scheduler places them (layer 3). <em>Why:</em> pods exist only for work that already has quota (S03).</li>
+<li><strong>kube-scheduler to Node pool.</strong> A pod that fits on no node waits, and the node pool (layer 4) sees it. <em>Why:</em> capacity is bought only for admitted work. A GPU pod carries the <mark class="kw">toleration</mark> its flavor adds, which is the only way onto the tainted GPU nodes (S07).</li>
+<li><strong>Node pool to AWS.</strong> The pool launches an instance of a type it allows. <em>Why:</em> the pools have limits and start empty. The GPU worker may use two GPUs <mark class="kw">On-Demand</mark> and two on <mark class="kw">Spot</mark>, and Auto Mode picks whichever allowed family has capacity (S07).</li>
+<li><strong>AWS to Worker.</strong> The node joins the cluster and the pods run.</li>
+<li><strong>Worker to Hub.</strong> The hub watches the job in the worker and copies its status back. <em>Why:</em> the team never needs credentials for a worker (S02).</li>
+<li><strong>Hub to Team.</strong> The team sees the status on the hub.</li>
+<li><strong>Hub to Worker.</strong> After the final status copy, the hub deletes the job in the worker (S02).</li>
+<li><strong>Node pool to AWS.</strong> The empty node is removed, after one minute for CPU nodes and two minutes for GPU nodes. <em>Why:</em> idle capacity should not cost money (S07).</li>
+</ol><p>Three rules decide what a job gets.</p><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Where it runs</span></summary><div class="acc-body">the first worker that can admit the whole job (S06).</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">When it runs</span></summary><div class="acc-body">each team has a guaranteed share, can borrow what others are not using, and gets it back when the owner asks. Borrowed work is <mark class="kw-act">preempted</mark> and <mark class="kw-act">requeued</mark> (S05).</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">What capacity it gets</span></summary><div class="acc-body">the flavors in the team's queue, in order. <code>llm</code> gets On-Demand GPU first and Spot after, <code>research</code> gets Spot only, and a GPU can be reached only through a queue (S07).</div></details><figure class="diagram"><button aria-label="Open diagram full screen: Components view: where each piece runs and who calls whom" class="open" data-src="diagrams/appendix/a03-7.svg" data-title="Components view: where each piece runs and who calls whom" type="button"><img alt="Diagram: Components view: where each piece runs and who calls whom" decoding="async" loading="lazy" src="diagrams/appendix/a03-7.svg"/><span class="hint">Open full screen</span></button></figure><p><strong>What the picture shows.</strong> The components view. The hub holds the front door, the fleet-wide queues and one narrow credential per worker. Each worker is a full cluster with its own queue manager, team namespaces and node pools. AWS sits underneath: the instances the node pools buy, and one bucket with a prefix per team.</p><table>
+<thead>
+<tr>
+<th>Caller</th>
+<th>Callee</th>
+<th>Why</th>
+<th>What enforces it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Team</td>
+<td>Hub API server</td>
+<td>Submit a job to the team's queue</td>
+<td>A namespace per team with Pod Security, a resource quota and a network policy (S08). The hub refuses any pod in a team namespace (S02).</td>
+</tr>
+<tr>
+<td>Hub queue manager</td>
+<td>Each worker's API server</td>
+<td>Copy jobs, watch their status, delete the copies</td>
+<td>One kubeconfig Secret per worker, holding a narrow identity limited to Jobs, pods and Kueue's own objects. Private endpoint inside the VPC (S01, S09).</td>
+</tr>
+<tr>
+<td>Hub queue manager</td>
+<td>Fleet queues</td>
+<td>Layer 1 quota for each team</td>
+<td>The hub's queues and the workers' queues are generated from one team table, so the hub's quota is the sum of the workers' (S01).</td>
+</tr>
+<tr>
+<td>Worker queue manager</td>
+<td>Team queues in the worker</td>
+<td>Layer 2: admit the whole job, borrow, preempt</td>
+<td>The same table (S04, S05).</td>
+</tr>
+<tr>
+<td>Worker</td>
+<td>kube-scheduler</td>
+<td>Place the pods of an admitted job</td>
+<td>Kueue manages every Job and Pod in a team namespace. A pod with no queue is held by a scheduling gate (S07).</td>
+</tr>
+<tr>
+<td>Node pool</td>
+<td>EC2</td>
+<td>Buy and remove nodes</td>
+<td>Pool limits. GPU pools start empty, are limited to two GPUs each and are tainted (S07).</td>
+</tr>
+<tr>
+<td>Job pod</td>
+<td>S3</td>
+<td>Read the team's own data</td>
+<td>One role per team limited to its prefix, assumed through EKS Pod Identity in every worker (S08).</td>
+</tr>
+<tr>
+<td>Team's pods</td>
+<td>Another team's pods</td>
+<td>Nothing</td>
+<td>A network policy admits traffic only from the same namespace (S08).</td>
+</tr>
+</tbody>
+</table><p>The sections that follow build on this picture. Section 1 lists each component and what I wrote or reused, section 2 shows the topology, section 3 shows the architecture and the four layers, and section 5 tests each promise.</p></div>
+
+
+
+
+
+
+
+
+
+
+
 <h3 id="appendix-design-02-eks-1-the-software-components-i-implemented">1. The software components I implemented</h3>
 <p><strong>Scenario.</strong> The design draws a hub, worker clusters, queues and node pools. To test it, each of those has to be real software that I can start, call and push to its limits. Nothing is left as "assume this exists".</p>
 <table>
@@ -9289,7 +9396,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>A job borrows another team's on-demand GPU before using its own Spot one, by default.</strong> The default is to stop at the first flavor that can <mark class="kw-act">borrow</mark>. I set <code>whenCanBorrow: TryNextFlavor</code> on the GPU queues so a team uses its own <mark class="kw">Spot</mark> share first, which is the cost behaviour the design asks for.</li>
 <li><strong>GPU capacity is not guaranteed, even in a large region.</strong> <code>g6</code> instances had no capacity in the zones I could use at the time. Listing four GPU families in the NodePool let Auto Mode launch a <code>g4dn</code> node instead. A real platform would use reservations.</li>
 <li><strong>A fresh node's log endpoint is not ready for a few seconds.</strong> <code>kubectl logs</code> against a new node first returns <code>tls: internal error</code>, so the tests wait for the job to finish and then retry.</li>
-<li><strong>Tearing Kueue down can hang.</strong> Kueue puts finalizers on its queues and flavors. Once its controller is removed nothing clears them, and deleting Kueue's custom resource definitions waits forever. <code>down.sh</code> now clears those finalizers first.</li>
+<li><strong>Tearing Kueue down can hang.</strong> Kueue puts finalizers on its queues and flavors. Once its controller is removed nothing clears them, and deleting Kueue's custom resource definitions waits forever. In my teardown I had to clear them by hand. <code>down.sh</code> now clears them repeatedly while the platform layer is destroyed. I have not re-run that new version of the teardown, because the environment was already gone by then.</li>
 <li><strong>Quota groups cannot overlap.</strong> A queue's resource groups cannot cover the same resource twice, so GPU jobs' CPU and memory must be in the GPU queue's group.</li>
 </ul>
 <h3 id="appendix-design-02-eks-5-the-scenarios-i-tested">5. The scenarios I tested</h3>
