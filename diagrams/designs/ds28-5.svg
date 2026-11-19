@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Resumable rollouts</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Long rollouts that survive interruptions</text>
+<rect x="30" y="60" width="560" height="300" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="44" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">ROLLOUT WORKERS (CPU)</text>
+<rect x="50" y="100" width="250" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="62" y="121.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">sandbox 0</text>
+<text x="62" y="143.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">task image + state · harness enforces</text>
+<text x="62" y="156.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">budgets</text>
+<rect x="320" y="100" width="250" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="332" y="121.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">sandbox 1</text>
+<text x="332" y="143.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">task image + state · harness enforces</text>
+<text x="332" y="156.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">budgets</text>
+<rect x="50" y="220" width="250" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="62" y="241.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">sandbox 2</text>
+<text x="62" y="263.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">task image + state · harness enforces</text>
+<text x="62" y="276.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">budgets</text>
+<rect x="320" y="220" width="250" height="100" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="332" y="241.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">sandbox 3</text>
+<text x="332" y="263.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">task image + state · harness enforces</text>
+<text x="332" y="276.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">budgets</text>
+<rect x="650" y="80" width="300" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="662" y="102.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Shared serving pool</text>
+<text x="662" y="125.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">policy-v7 behind the inference gateway</text>
+<rect x="650" y="220" width="300" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="662" y="242.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Snapshot store</text>
+<text x="662" y="265.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">state + history every 20 steps</text>
+<rect x="990" y="80" width="280" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="1002" y="102" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Kueue</text>
+<text x="1002" y="124" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">calibration · collection · online RL share</text>
+<text x="1002" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">capacity</text>
+<rect x="990" y="220" width="280" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="1002" y="242" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Trajectory store</text>
+<text x="1002" y="264" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">steps + blobs (next section)</text>
+<path d="M 590 150 L 650 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="598.2" y="118" width="43.6" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="620" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">act()</text>
+<path d="M 590 260 L 650 275" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 950 275 L 990 275" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="390" width="1240" height="180" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="418" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">A 4-hour rollout, node reclaimed at 3 h (illustrative)</text>
+<text x="50" y="462.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">restart</text>
+<rect x="150" y="446" width="429" height="26" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="579" y="446" width="571" height="26" rx="2" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="1158.0" y="465.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">7 h</text>
+<text x="50" y="518.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#047857">resume</text>
+<rect x="150" y="502" width="429" height="26" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<rect x="571" y="502" width="150" height="26" rx="2" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="729.4285714285714" y="521.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">4 h</text>
+<text x="578.5714285714286" y="436.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">reclaimed</text>
+<text x="50" y="556.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">Before: on busy days 30% of rollout compute repeated work after interruptions.</text></svg>
