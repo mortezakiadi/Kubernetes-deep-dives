@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Restart timeline</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Restart: failure → first training step (70B job)</text>
+<text x="158" y="120" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#b91c1c">before</text>
+<rect x="170" y="90" width="156" height="44" rx="4" fill="#94a3b8" fill-opacity="0.9" stroke="none"/>
+<text x="248.0" y="117.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">reschedule 6m</text>
+<rect x="326" y="90" width="234" height="44" rx="4" fill="#d97706" fill-opacity="0.9" stroke="none"/>
+<text x="443.0" y="117.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">image pull 22 GB 9m</text>
+<rect x="560" y="90" width="468" height="44" rx="4" fill="#dc2626" fill-opacity="0.9" stroke="none"/>
+<text x="794.0" y="117.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">read checkpoint from shared FS 18m</text>
+<rect x="1028" y="90" width="130" height="44" rx="4" fill="#7c3aed" fill-opacity="0.9" stroke="none"/>
+<text x="1093.0" y="117.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">compile + warm-up 5m</text>
+<text x="1168" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">38 min</text>
+<text x="158" y="230" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#047857">after</text>
+<rect x="170" y="200" width="26" height="44" rx="4" fill="#94a3b8" fill-opacity="0.9" stroke="none"/>
+<rect x="196" y="200" width="8" height="44" rx="4" fill="#d97706" fill-opacity="0.9" stroke="none"/>
+<rect x="204" y="200" width="91" height="44" rx="4" fill="#059669" fill-opacity="0.9" stroke="none"/>
+<rect x="295" y="200" width="39" height="44" rx="4" fill="#7c3aed" fill-opacity="0.9" stroke="none"/>
+<text x="343.8" y="228" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">6.3 min</text>
+<text x="170" y="268" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">re-admit 1 m · pull 0.3 m · read 3.5 m (NVMe + one node from object storage) · cached compile 1.5 m</text>
+<rect x="30" y="280" width="296" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="302.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Hot spare / warm reservation</text>
+<text x="42" y="325.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">Kueue re-admits immediately</text>
+<rect x="342" y="280" width="296" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="354" y="302.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Pre-pulled images</text>
+<text x="354" y="325.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">lazy-loading snapshotter or node mirror</text>
+<rect x="654" y="280" width="296" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="666" y="302.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Local + peer restore</text>
+<text x="666" y="325.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">127 nodes read NVMe; new node reads object</text>
+<text x="666" y="339.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">storage or a DP peer</text>
+<rect x="966" y="280" width="296" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="978" y="302.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Compile cache</text>
+<text x="978" y="325.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">shared torch.compile / Triton cache</text>
+<rect x="30" y="410" width="1240" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="433" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Resharding without conversion</text>
+<text x="42" y="456" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">resume on 960 GPUs instead of 1,024: DCP metadata lets each new rank read the byte ranges it now owns; prefer object storage with high concurrency for this case</text></svg>

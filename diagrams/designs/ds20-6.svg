@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="560px" viewBox="0 0 1300 560" style="background:#ffffff"><title>Async checkpointing</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="560" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Stall only for the GPU → pinned host copy; persist and upload in the background</text>
+<text x="200" y="74.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: synchronous save to network filesystem</text>
+<text x="188" y="110" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">training</text>
+<rect x="200" y="90" width="312" height="30" rx="4" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="512" y="90" width="364" height="30" rx="4" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<rect x="876" y="90" width="260" height="30" rx="4" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="694.0" y="110.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">blocked 6 min writing</text>
+<text x="200" y="180.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#047857">After: async, process-based, pinned staging</text>
+<text x="188" y="216" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">training</text>
+<rect x="200" y="196" width="312" height="30" rx="4" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="512" y="196" width="6" height="30" rx="4" fill="#dc2626" fill-opacity="1" stroke="none"/>
+<rect x="518" y="196" width="618" height="30" rx="4" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="524.0" y="252" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">≈ 1–20 s stage to pinned memory</text>
+<text x="188" y="290" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">persist → NVMe</text>
+<rect x="517" y="270" width="104" height="30" rx="4" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<text x="569.2" y="290" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">local write</text>
+<text x="188" y="340" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">upload → object</text>
+<rect x="621" y="320" width="286" height="30" rx="4" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="764.2" y="340" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">parallel multipart + COMPLETE</text>
+<line x1="980.0" y1="186" x2="980.0" y2="360" stroke="#0f172a" stroke-dasharray="5 4"/>
+<text x="980.0" y="378" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">next save due: previous must have staged (one in flight)</text>
+<rect x="30" y="410" width="296" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="432.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Pinned buffer, reused</text>
+<text x="42" y="455.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">direct GPU→host copy; budget it in the pod's</text>
+<text x="42" y="469.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">memory</text>
+<rect x="342" y="410" width="296" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="354" y="432.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Process, not thread</text>
+<text x="354" y="455.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">the writer doesn't compete for the GIL</text>
+<rect x="654" y="410" width="296" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="666" y="432.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Back-pressure</text>
+<text x="666" y="455.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">at most one save in flight</text>
+<rect x="966" y="410" width="296" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="978" y="432.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Megatron</text>
+<text x="978" y="455.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">--async-save with torch_dist</text></svg>
