@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>Percentiles</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Merge first, then take percentiles (illustrative)</text>
+<rect x="30" y="60" width="620" height="330" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">p99 TTFT per generator shard</text>
+<rect x="70" y="275" width="50" height="85" rx="4" fill="#94a3b8" fill-opacity="0.9" stroke="none"/>
+<text x="95" y="292.75" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">0.62</text>
+<rect x="140" y="262" width="50" height="98" rx="4" fill="#94a3b8" fill-opacity="0.9" stroke="none"/>
+<text x="165" y="280.375" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">0.71</text>
+<rect x="210" y="269" width="50" height="91" rx="4" fill="#94a3b8" fill-opacity="0.9" stroke="none"/>
+<text x="235" y="287.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">0.66</text>
+<rect x="280" y="165" width="50" height="195" rx="4" fill="#7c3aed" fill-opacity="0.9" stroke="none"/>
+<text x="305" y="182.75" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">1.42</text>
+<rect x="350" y="265" width="50" height="95" rx="4" fill="#94a3b8" fill-opacity="0.9" stroke="none"/>
+<text x="375" y="283.125" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">0.69</text>
+<rect x="420" y="258" width="50" height="102" rx="4" fill="#94a3b8" fill-opacity="0.9" stroke="none"/>
+<text x="445" y="276.25" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">0.74</text>
+<rect x="490" y="264" width="50" height="96" rx="4" fill="#94a3b8" fill-opacity="0.9" stroke="none"/>
+<text x="515" y="281.75" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">0.70</text>
+<rect x="560" y="198" width="50" height="162" rx="4" fill="#7c3aed" fill-opacity="0.9" stroke="none"/>
+<text x="585" y="215.75000000000003" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">1.18</text>
+<line x1="60" y1="244" x2="630" y2="244" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6 4"/>
+<line x1="330" y1="84" x2="360" y2="84" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6 4"/>
+<text x="366" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">average of p99s = 0.84 s (wrong)</text>
+<line x1="60" y1="180" x2="630" y2="180" stroke="#059669" stroke-width="2.5"/>
+<line x1="330" y1="106" x2="360" y2="106" stroke="#059669" stroke-width="2.5"/>
+<text x="366" y="110" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#047857">p99 of merged data = 1.31 s [1.22, 1.43]</text>
+<text x="50" y="380.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#5b21b6">shards 3 and 7 carried most of the long coding prompts</text>
+<rect x="690" y="60" width="580" height="56" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="702" y="82" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Mergeable histograms</text>
+<text x="702" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">HDR / DDSketch, log-scaled buckets</text>
+<rect x="690" y="126" width="580" height="56" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="702" y="148" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Enough samples</text>
+<text x="702" y="170" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">p99 from 1,000 requests rests on 10</text>
+<rect x="690" y="192" width="580" height="56" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="702" y="214" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">Bootstrap by session</text>
+<text x="702" y="236" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">requests in a session are correlated</text>
+<rect x="690" y="258" width="580" height="56" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="702" y="280" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Drop warm-up + cool-down</text>
+<text x="702" y="302" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">first and last minute of each stage</text>
+<rect x="690" y="324" width="580" height="56" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="702" y="346" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Per bucket too</text>
+<text x="702" y="368" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">mixed p99 hides long-prompt behaviour</text>
+<rect x="30" y="420" width="1240" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="443" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#065f46">Report the n and the interval</text>
+<text x="42" y="466" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">“p99 TTFT 1.31 s [1.22, 1.43], n = 48,200, chat replay w46, stage 4 of 8” is comparable; “p99 = 0.84 s” isn't</text></svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Fingerprint and baseline</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Every number belongs to a fingerprint and a workload</text>
+<rect x="30" y="60" width="360" height="70" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="82" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">model + revision</text>
+<text x="42" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">llama-3.3-70b-fp8@sha256:9c1e</text>
+<path d="M 390 95 L 450 225" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="142" width="360" height="70" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="164" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">engine</text>
+<text x="42" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">vllm==0.32.0</text>
+<path d="M 390 177 L 450 225" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="224" width="360" height="70" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="246" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">resolved flags</text>
+<text x="42" y="268" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">tp=2, kv fp8, budget 4096, …</text>
+<path d="M 390 259 L 450 225" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="306" width="360" height="70" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="328" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">hardware</text>
+<text x="42" y="350" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">2 × H100-SXM, driver 580.95, CUDA 13.0</text>
+<path d="M 390 341 L 450 225" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="450" y="175" width="220" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="462" y="198" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1e40af">fingerprint</text>
+<text x="462" y="221" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">7f3a91c2e05b4d18</text>
+<rect x="30" y="400" width="360" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="421.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">replay dataset</text>
+<text x="42" y="443.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">chat 2026-11-w46 (v3)</text>
+<path d="M 390 427 L 450 400" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="462" width="360" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="483.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">SLOs</text>
+<text x="42" y="505.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">TTFT p99 1 s · ITL p99 50 ms</text>
+<path d="M 390 489 L 450 400" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="524" width="360" height="54" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="545.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">path</text>
+<text x="42" y="567.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#334155">through gateway</text>
+<path d="M 390 551 L 450 400" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="450" y="350" width="220" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="462" y="373" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#92400e">workload</text>
+<text x="462" y="396" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">dataset + SLOs + path</text>
+<rect x="720" y="60" width="550" height="500" rx="10" fill="#0f172a" fill-opacity="1" stroke="none"/>
+<text x="740" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">baseline:</text>
+<text x="740" y="124" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">  fingerprint: 7f3a91c2e05b4d18</text>
+<text x="740" y="156" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">  workload: chat-w46-v3/gateway</text>
+<text x="740" y="188" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">  slo_capacity_rps: 14.6  [14.1, 15.0]</text>
+<text x="740" y="220" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">  max_goodput_tok_s_gpu: 1450</text>
+<text x="740" y="252" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">  stages:</text>
+<text x="740" y="284" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">    - rate: 12  ttft_p99: 0.75  tpot_p99: 0.041</text>
+<text x="740" y="316" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">    - rate: 14  ttft_p99: 0.90  tpot_p99: 0.046</text>
+<text x="740" y="348" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">    …</text>
+<text x="740" y="380" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">  server_context: s3://bench-results/…/prom</text>
+<text x="740" y="412" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">  raw: s3://bench-results/…/requests.parquet</text>
+<text x="740" y="444" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#fbbf24">  replaces: 2c81…  (engine 0.31.2)</text>
+<text x="740" y="476" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#fbbf24">  change: vLLM upgrade, PR #4412</text>
+<text x="740" y="508" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e2e8f0">  noise_pct: 2.8</text>
+<path d="M 670 250 L 720 250" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 670 400 L 720 400" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/></svg>
