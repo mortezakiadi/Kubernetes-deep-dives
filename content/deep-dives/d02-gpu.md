@@ -426,7 +426,7 @@ spec:
 
 - **The four GPU nodes:** GPU Feature Discovery labels each one with its model, memory and family: a g4dn (T4, about 15 GB, Turing), a g5 (A10G, about 23 GB, Ampere), a p4de (A100, 80 GB, Ampere) and a p5 (H100, 80 GB, Hopper).
 - **The taint on every GPU node:** `nvidia.com/gpu=present:NoSchedule` keeps away any pod without a matching toleration. This is the fix for the web team.
-- **Pod A, pin a model (Option 1):** a `nodeSelector` on `nvidia.com/gpu.product` set to the A100 model. Only the p4de passes.
+- **Pod A, pin a model (Option 1):** a `nodeSelector` with `nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB`. `nvidia.com/gpu.product` is the label's key ("which GPU model?") and `NVIDIA-A100-SXM4-80GB` is the value it must equal. A `nodeSelector` is an exact match, so only the p4de passes: the g4dn, g5 and p5 have the same key with other values (`Tesla-T4`, `NVIDIA-A10G`, `NVIDIA-H100-80GB-HBM3`), and the CPU node has no such label. Even a p4d wouldn't match, since its A100s are the 40 GB model (`NVIDIA-A100-SXM4-40GB`).
 - **Pod B, a range plus a preference (Option 2):** a required rule `nvidia.com/gpu.memory` greater than 40000 removes the g4dn and the g5; a preferred rule for the `hopper` family adds points to the p5, so the p5 wins when it has room and the p4de is the fallback.
 - **Pod C, a web pod:** it has no toleration, so every GPU node is filtered out and it runs on a regular CPU node.
 - **The GPU request:** pods A and B still ask for `nvidia.com/gpu: 1`. The labels only choose the node; the count reserves a GPU on it.
