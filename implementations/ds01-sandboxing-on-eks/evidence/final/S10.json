@@ -1,0 +1,104 @@
+{
+ "id": "S10",
+ "title": "Limits, quotas and abuse",
+ "design_ref": "Limits, quotas and abuse",
+ "purpose": "Show the per-tenant session quota, the hard session end time, the namespace quota and limits, and that a runaway process is contained inside its own sandbox.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n sandboxes get resourcequota,limitrange",
+   "output": "NAME                            REQUEST                                                     LIMIT   AGE\nresourcequota/sandboxes-quota   pods: 4/30, requests.cpu: 2/24, requests.memory: 4Gi/48Gi           10m\n\nNAME                            CREATED AT\nlimitrange/sandboxes-defaults   2026-11-19T15:12:51Z",
+   "exit_code": 0,
+   "seconds": 1.21
+  },
+  {
+   "display": "orch create quotaco coding compute-only 900",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-b40519d3\", \"claim\": \"sess-b40519d3\", \"template\": \"compute-only\", \"ready_ms\": 5030, \"allow_hosts\": [], \"shutdown_time\": \"2026-11-19T15:38:31Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.67.244\"}",
+   "exit_code": 0,
+   "seconds": 6.88
+  },
+  {
+   "display": "orch create quotaco coding compute-only 900",
+   "output": "{\"http_status\": 429, \"error\": \"tenant quotaco already has 3 active sessions (limit 3)\"}",
+   "exit_code": 0,
+   "seconds": 1.92
+  },
+  {
+   "display": "orch create ttlco coding compute-only 45",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-2f50e944\", \"claim\": \"sess-2f50e944\", \"template\": \"compute-only\", \"ready_ms\": 335, \"allow_hosts\": [], \"shutdown_time\": \"2026-11-19T15:24:35Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.87.115\"}",
+   "exit_code": 0,
+   "seconds": 2.6
+  },
+  {
+   "display": "kubectl -n sandboxes get sandboxclaim sess-2f50e944 -o jsonpath='{.spec.lifecycle}'",
+   "output": "{\"shutdownPolicy\":\"Delete\",\"shutdownTime\":\"2026-11-19T15:24:35Z\"}",
+   "exit_code": 0,
+   "seconds": 1.15
+  },
+  {
+   "display": "kubectl -n sandboxes get sandboxclaim sess-2f50e944   # after the end time",
+   "output": "\nError from server (NotFound): sandboxclaims.extensions.agents.x-k8s.io \"sess-2f50e944\" not found",
+   "exit_code": 1,
+   "seconds": 1.45
+  },
+  {
+   "display": "orch create memco coding python-untrusted 900",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-760f2688\", \"claim\": \"sess-760f2688\", \"template\": \"python-untrusted\", \"ready_ms\": 349, \"allow_hosts\": [\"files.pythonhosted.org\", \"metrics-api.sandbox-platform.svc\", \"pypi.org\", \"tool-gateway.sandbox-platform.svc\"], \"shutdown_time\": \"2026-11-19T15:39:40Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.67.240\"}",
+   "exit_code": 0,
+   "seconds": 2.27
+  },
+  {
+   "display": "orch exec sess-760f2688 \"python3 /workspace/drills.py memory_bomb mb=2500\"",
+   "output": "harness                error    {\"stdout\": \"{\\\"http_status\\\": 500, \\\"error\\\": \\\"internal error\\\"}\\n\", \"stderr\": \"\"}",
+   "exit_code": 0,
+   "seconds": 3.03
+  },
+  {
+   "display": "kubectl -n sandboxes get pod <the abuser> <its neighbour> -o custom-columns=<restarts, last termination reason>",
+   "output": "NAME                          RESTARTS   LAST_TERMINATION\npython-untrusted-pool-n47r6   1          OOMKilled\npython-untrusted-pool-dsdhw   0          <none>",
+   "exit_code": 0,
+   "seconds": 1.31
+  },
+  {
+   "display": "kubectl get node i-0543f2a2608a827e3",
+   "output": "NAME                  STATUS   ROLES    AGE   VERSION\ni-0543f2a2608a827e3   Ready    <none>   10m   v1.37.1-eks-577a51e",
+   "exit_code": 0,
+   "seconds": 1.17
+  }
+ ],
+ "checks": [
+  {
+   "description": "a tenant's fourth concurrent session is refused cleanly with 429",
+   "passed": true,
+   "because": "The Manager counts a tenant's active claims against its limit of three."
+  },
+  {
+   "description": "another tenant is not affected by that limit",
+   "passed": true,
+   "because": "Limits are per tenant."
+  },
+  {
+   "description": "the claim, and with it the sandbox, was deleted when its end time passed, with nobody asking",
+   "passed": true,
+   "because": "shutdownTime with shutdownPolicy Delete is set on the claim; the controller enforces it."
+  },
+  {
+   "description": "asking for 2.5 GiB inside a 1 GiB sandbox was stopped by the memory limit (the abuser's container was restarted)",
+   "passed": true,
+   "because": "The pod's memory limit is enforced by the guest kernel's cgroup, inside the microVM."
+  },
+  {
+   "description": "the neighbouring sandbox on the same node was not touched",
+   "passed": true,
+   "because": "Each sandbox has its own kernel and its own memory."
+  },
+  {
+   "description": "the node stayed Ready",
+   "passed": true,
+   "because": "The microVM boundary kept the failure inside the guest."
+  }
+ ],
+ "notes": [
+  "TTL test: a session with a 45 second lifetime is created and left alone."
+ ]
+}

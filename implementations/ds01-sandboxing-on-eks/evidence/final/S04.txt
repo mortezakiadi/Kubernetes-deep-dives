@@ -1,0 +1,37 @@
+# S04: Warm pools and claims
+# Design reference: Sandbox lifecycle: templates, warm pools and claims
+
+$ kubectl -n sandboxes get sandboxwarmpool,sandboxtemplate
+NAME                                                               READY   DESIRED   AGE
+sandboxwarmpool.extensions.agents.x-k8s.io/compute-only-pool       1       1         14m
+sandboxwarmpool.extensions.agents.x-k8s.io/python-untrusted-pool   2       2         14m
+
+NAME                                                          AGE
+sandboxtemplate.extensions.agents.x-k8s.io/compute-only       14m
+sandboxtemplate.extensions.agents.x-k8s.io/python-untrusted   14m
+
+$ kubectl -n sandboxes get pods -o wide   # the warm pods, already booted and waiting
+NAME                          READY   STATUS    RESTARTS   AGE     IP             NODE                  NOMINATED NODE   READINESS GATES
+compute-only-pool-sdmjn       1/1     Running   0          3m43s   10.20.87.116   i-0021b8afd01dfb486   <none>           <none>
+python-untrusted-pool-2mxkk   1/1     Running   0          2m22s   10.20.87.112   i-0021b8afd01dfb486   <none>           <none>
+python-untrusted-pool-p2nxv   1/1     Running   0          117s    10.20.87.115   i-0021b8afd01dfb486   <none>           <none>
+
+$ orch create pool coding python-untrusted 600   # x3, started at the same instant (pool size is 2)
+sess-0d575447  ready in 343 ms
+sess-27d2cc6a  ready in 346 ms
+sess-b346d23f  ready in 10097 ms
+
+$ kubectl -n sandboxes get sandboxwarmpool   # after about a minute the pool has refilled
+NAME                    READY   DESIRED   AGE
+compute-only-pool       1       1         14m
+python-untrusted-pool   2       2         14m
+
+$ kubectl get nodeclaims -o custom-columns=<name, pool, instance type, created>   # did the slow start launch a node?
+NAME                    POOL              TYPE         CREATED
+general-purpose-wwhpt   general-purpose   c6a.large    2026-11-19T15:11:57Z
+sandbox-6hlth           sandbox           c7i.xlarge   2026-11-19T15:16:19Z
+sandbox-z887l           sandbox           c7i.xlarge   2026-11-19T15:13:53Z
+
+[PASS] two sessions got a ready sandbox in under 2 seconds
+[PASS] the third session, which found the pool empty, still got a sandbox (a slower cold start)
+[PASS] the warm pool refilled to its desired size

@@ -1,0 +1,221 @@
+# Design 01, "Sandbox lifecycle", "Network: default deny and one way out", "Limits, quotas and abuse".
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sandbox-nobody          # no RBAC, no Pod Identity association, no token mounted
+  namespace: sandboxes
+automountServiceAccountToken: false
+---
+# Namespace-wide default deny. Anything in this namespace that no template policy admits is isolated.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: sandboxes
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: sandboxes-quota
+  namespace: sandboxes
+spec:
+  hard:
+    pods: "30"
+    requests.cpu: "24"
+    requests.memory: 48Gi
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: sandboxes-defaults
+  namespace: sandboxes
+spec:
+  limits:
+    - type: Container
+      default: { cpu: "1", memory: 1Gi }
+      defaultRequest: { cpu: 250m, memory: 256Mi }
+      max: { cpu: "4", memory: 8Gi }
+---
+# Tier 2, with a network: one Nitro Sandbox (microVM) per pod, one way out through the egress gateway.
+apiVersion: extensions.agents.x-k8s.io/v1beta1
+kind: SandboxTemplate
+metadata:
+  name: python-untrusted
+  namespace: sandboxes
+spec:
+  networkPolicyManagement: Managed
+  networkPolicy:
+    ingress:
+      - from:
+          - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-router } }
+            podSelector: { matchLabels: { app: sandbox-router } }
+        ports:
+          - { protocol: TCP, port: 8080 }   # sandboxd files
+          - { protocol: TCP, port: 9090 }   # sandboxd commands
+    egress:
+      # The one way out. No DNS rule: the proxy resolves names, so a sandbox cannot even look one up.
+      - to:
+          - ipBlock: { cidr: ${gateway_ip}/32 }
+        ports:
+          - { protocol: TCP, port: 3128 }
+  podTemplate:
+    metadata:
+      labels:
+        app: sandbox
+        ds01/tier: "2"
+      annotations:
+        karpenter.sh/do-not-disrupt: "true"
+    spec:
+      runtimeClassName: isolated-sandbox      # Tier 2: one microVM per pod
+      serviceAccountName: sandbox-nobody
+      automountServiceAccountToken: false     # no Kubernetes credentials inside
+      enableServiceLinks: false
+      tolerations:
+        - { key: workload, operator: Equal, value: sandbox, effect: NoSchedule }
+      nodeSelector:
+        workload: sandbox
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
+      initContainers:
+        # sandboxd is the exec agent that runs commands and moves files for the router.
+        - name: install-sandboxd
+          image: registry.k8s.io/agent-sandbox/sandboxd:v1.0.10
+          command: ["/bin/sh", "-c", "cp /usr/local/bin/sandboxd /sandboxd-bin/sandboxd"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: sandboxd-bin, mountPath: /sandboxd-bin }
+        # A trust bundle = the system roots plus the gateway's CA, so TLS to ordinary hosts still verifies.
+        - name: build-ca-bundle
+          image: public.ecr.aws/docker/library/python:3.12-slim
+          command: ["/bin/sh", "-c", "cat /etc/ssl/certs/ca-certificates.crt /gateway-ca/gateway-ca.crt > /certs/bundle.pem"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: certs, mountPath: /certs }
+            - { name: gateway-ca, mountPath: /gateway-ca, readOnly: true }
+      containers:
+        - name: hands
+          image: public.ecr.aws/docker/library/python:3.12-slim
+          command:
+            - /sandboxd-bin/sandboxd
+            - --root-dir=/workspace
+            - --rest-port=8080
+            - --grpc-port=9090
+            - --auth-token-sha256=${sandboxd_sha256}   # a digest, not the token
+          env:
+            - { name: HOME, value: /workspace }
+            - { name: HTTP_PROXY, value: "http://${gateway_ip}:3128" }
+            - { name: HTTPS_PROXY, value: "http://${gateway_ip}:3128" }
+            - { name: NO_PROXY, value: "localhost,127.0.0.1" }
+            - { name: SSL_CERT_FILE, value: /certs/bundle.pem }
+            - { name: REQUESTS_CA_BUNDLE, value: /certs/bundle.pem }
+            - { name: PIP_CERT, value: /certs/bundle.pem }
+            - { name: METRICS_API_KEY, value: placeholder }   # the real credential is added outside the sandbox
+          ports:
+            - { name: rest, containerPort: 8080 }
+            - { name: grpc, containerPort: 9090 }
+          readinessProbe:
+            httpGet: { path: /v1/health, port: 8080 }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits: { cpu: "1", memory: 1Gi }
+          volumeMounts:
+            - { name: sandboxd-bin, mountPath: /sandboxd-bin, readOnly: true }
+            - { name: workspace, mountPath: /workspace }
+            - { name: tmp, mountPath: /tmp }
+            - { name: certs, mountPath: /certs, readOnly: true }
+      volumes:
+        - { name: sandboxd-bin, emptyDir: {} }
+        - { name: workspace, emptyDir: { sizeLimit: 2Gi } }
+        - { name: tmp, emptyDir: { sizeLimit: 512Mi } }
+        - { name: certs, emptyDir: {} }
+        - { name: gateway-ca, configMap: { name: gateway-ca-cert } }
+---
+# Tier 3: the same microVM booted with no network device at all. For pure computation.
+apiVersion: extensions.agents.x-k8s.io/v1beta1
+kind: SandboxTemplate
+metadata:
+  name: compute-only
+  namespace: sandboxes
+spec:
+  networkPolicyManagement: Unmanaged        # nothing to filter: the device does not exist
+  podTemplate:
+    metadata:
+      labels:
+        app: sandbox
+        ds01/tier: "3"
+      annotations:
+        karpenter.sh/do-not-disrupt: "true"
+        sandbox.amazonaws.com/network-isolated: "true"
+    spec:
+      runtimeClassName: isolated-sandbox
+      serviceAccountName: sandbox-nobody
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      tolerations:
+        - { key: workload, operator: Equal, value: sandbox, effect: NoSchedule }
+      nodeSelector:
+        workload: sandbox
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: hands
+          image: public.ecr.aws/docker/library/python:3.12-slim
+          command: ["sleep", "infinity"]
+          env:
+            - { name: HOME, value: /workspace }
+          readinessProbe:
+            exec: { command: ["cat", "/proc/1/status"] }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            requests: { cpu: 500m, memory: 512Mi }
+            limits: { cpu: "1", memory: 512Mi }
+          volumeMounts:
+            - { name: workspace, mountPath: /workspace }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: workspace, emptyDir: { sizeLimit: 1Gi } }
+        - { name: tmp, emptyDir: { sizeLimit: 256Mi } }
+---
+apiVersion: extensions.agents.x-k8s.io/v1beta1
+kind: SandboxWarmPool
+metadata:
+  name: python-untrusted-pool
+  namespace: sandboxes
+spec:
+  replicas: ${python_pool_replicas}
+  sandboxTemplateRef:
+    name: python-untrusted
+---
+apiVersion: extensions.agents.x-k8s.io/v1beta1
+kind: SandboxWarmPool
+metadata:
+  name: compute-only-pool
+  namespace: sandboxes
+spec:
+  replicas: ${compute_pool_replicas}
+  sandboxTemplateRef:
+    name: compute-only

@@ -1,0 +1,41 @@
+# S11: One query for an audit
+# Design reference: Observability and audit
+
+$ orch create audit coding python-untrusted 900
+{"http_status": 201, "session_id": "sess-8cfa2d1f", "claim": "sess-8cfa2d1f", "template": "python-untrusted", "ready_ms": 341, "allow_hosts": ["files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:40:11Z", "session_token": "<redacted>", "pod_ip": "10.20.67.241"}
+
+$ orch exec sess-8cfa2d1f "python3 -c \"print(sum(range(10)))\""
+45
+[exit code 0]
+
+$ orch exec sess-8cfa2d1f "python3 /workspace/drills.py approved_host,unapproved_host,credential_injection "
+approved_host          allowed  {"https://pypi.org/simple/": 200, "note": "positive control: allowed is correct"}
+unapproved_host        blocked  {"error": "Tunnel connection failed: 403 Forbidden"}
+credential_injection   blocked  {"METRICS_API_KEY_in_environment": "placeholder", "status": 200, "caller_session": "sess-8cfa2d1f", "credential_expires_in_s": 899, "matches_this_session": false, "note": "positive control: allowed means the gateway injected a real credential"}
+
+$ orch mcp <signed-token-redacted> tools/call '{"name": "metrics.query", "arguments": {"name": "p99_latency_ms"}}'
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "result": {"content": [{"type": "text", "text": "{\"metric\": \"p99_latency_ms\", \"points\": [182, 175, 190, 188, 204, 199], \"caller_session\": \"sess-8cfa2d1f\", \"credential_expires_in\": 59}"}]}}
+
+$ scripts/audit-query.py sess-8cfa2d1f
+15:25:12.204  sandbox-manager    session.created      agent=coding user_hash=8a6fa8f54b0d template=python-untrusted sandbox=python-untrusted-pool-zkp5f node=i-0543f2a2608a827e3 ready_ms=341 launch_type=No
+15:25:14.157  sandbox-router     exec                 backend=sandboxd command=python3 -c "print(sum(range(10)))" exit_code=0 duration_ms=121 stdout_len=3
+15:25:16.119  sandbox-router     file.upload          backend=sandboxd path=drills.py bytes=12756 duration_ms=32
+15:25:18.594  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:25:18.647  egress-gateway     egress.deny          host=api.github.com port=443 status=403 reason=api.github.com is not on this session's allowlist
+15:25:18.657  egress-gateway     egress.allow         host=metrics-api.sandbox-platform.svc port=443 tls_mode=terminate
+15:25:18.675  credential-broker  credential.minted    caller=egress-gateway audience=metrics-api ttl_seconds=900 credential_id=4e84fda7c8
+15:25:18.676  egress-gateway     egress.request       host=metrics-api.sandbox-platform.svc method=GET path=/v1/metrics injected=True credential_id=4e84fda7c8
+15:25:18.677  metrics-api        request.served       metric=orders_per_minute
+15:25:18.722  egress-gateway     egress.response      host=metrics-api.sandbox-platform.svc status=200 bytes=138
+15:25:18.737  sandbox-router     exec                 backend=sandboxd command=python3 /workspace/drills.py approved_host,unapproved_host,credential_injection exit_code=0 duration_ms=647 stdout_len=573
+15:25:20.755  credential-broker  credential.minted    caller=tool-gateway audience=metrics-api ttl_seconds=60 credential_id=3561bae332
+15:25:20.760  metrics-api        request.served       metric=p99_latency_ms
+15:25:20.761  tool-gateway       tool.called          agent=coding tool=metrics.query risk=read ok=True
+-- 14 records from 6 components for sess-8cfa2d1f
+
+[PASS] a single query returns records from at least six components for the session
+[PASS] the timeline contains session.created
+[PASS] the timeline contains exec
+[PASS] the timeline contains egress.deny
+[PASS] the timeline contains credential.minted
+[PASS] the timeline contains tool.called

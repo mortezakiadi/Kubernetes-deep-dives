@@ -1,0 +1,328 @@
+# Design 01, "The architecture at a glance": Sandbox Manager, tool gateway, the internal API the
+# tools reach, the Sandbox Router and the trusted orchestrator.
+
+# ===== Sandbox Manager ==========================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: sandbox-manager, namespace: sandbox-platform }
+automountServiceAccountToken: true
+---
+# The Manager's whole Kubernetes permission: create and read claims, and read pods. Nothing else.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: { name: sandbox-manager, namespace: sandboxes }
+rules:
+  - apiGroups: ["extensions.agents.x-k8s.io"]
+    resources: ["sandboxclaims"]
+    verbs: ["create", "get", "list", "watch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: { name: sandbox-manager, namespace: sandboxes }
+subjects: [{ kind: ServiceAccount, name: sandbox-manager, namespace: sandbox-platform }]
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: sandbox-manager }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: sandbox-manager, namespace: sandbox-platform, labels: { app: sandbox-manager } }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: sandbox-manager } }
+  template:
+    metadata:
+      labels: { app: sandbox-manager, ds01/component: sandbox-manager }
+    spec:
+      serviceAccountName: sandbox-manager
+      nodeSelector: { kubernetes.io/arch: amd64 }
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: manager
+          image: ${image}
+          command: ["python", "-m", "ds01.manager"]
+          env:
+            - { name: HOME, value: /tmp }
+            - { name: MAX_SESSIONS_PER_TENANT, value: "3" }
+          ports: [{ containerPort: 8000 }]
+          readinessProbe: { httpGet: { path: /healthz, port: 8000 } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+          resources: { requests: { cpu: 100m, memory: 96Mi }, limits: { memory: 192Mi } }
+          volumeMounts:
+            - { name: secrets, mountPath: /secrets, readOnly: true }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - name: secrets
+          secret:
+            secretName: platform-secrets
+            items:
+              - { key: orchestrator-token, path: orchestrator-token }
+              - { key: session-key, path: session-key }
+              - { key: egress-gateway-token, path: egress-gateway-token }
+              - { key: tool-gateway-token, path: tool-gateway-token }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: sandbox-manager, namespace: sandbox-platform }
+spec:
+  selector: { app: sandbox-manager }
+  ports: [{ port: 8000, targetPort: 8000 }]
+---
+# ===== Tool gateway (MCP) =========================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: tool-gateway, namespace: sandbox-platform }
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: tool-gateway, namespace: sandbox-platform, labels: { app: tool-gateway } }
+spec:
+  # One replica on purpose: approvals and rate-limit counters are held in memory. A production build
+  # keeps them in a shared store (for example DynamoDB) and runs several replicas.
+  replicas: 1
+  selector: { matchLabels: { app: tool-gateway } }
+  template:
+    metadata:
+      labels: { app: tool-gateway, ds01/component: tool-gateway }
+    spec:
+      serviceAccountName: tool-gateway
+      automountServiceAccountToken: false
+      nodeSelector: { kubernetes.io/arch: amd64 }
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: tool-gateway
+          image: ${image}
+          command: ["python", "-m", "ds01.tool_gateway"]
+          env: [{ name: HOME, value: /tmp }]
+          ports: [{ containerPort: 8003 }]
+          readinessProbe: { httpGet: { path: /healthz, port: 8003 } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { memory: 128Mi } }
+          volumeMounts:
+            - { name: secrets, mountPath: /secrets, readOnly: true }
+            - { name: pki, mountPath: /pki, readOnly: true }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - { name: pki, configMap: { name: internal-ca } }
+        - name: secrets
+          secret:
+            secretName: platform-secrets
+            items:
+              - { key: orchestrator-token, path: orchestrator-token }
+              - { key: session-key, path: session-key }
+              - { key: tool-gateway-token, path: tool-gateway-token }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: tool-gateway, namespace: sandbox-platform }
+spec:
+  selector: { app: tool-gateway }
+  ports: [{ port: 8003, targetPort: 8003 }]
+---
+# ===== Internal metrics API (the thing a tool reaches) =========================================
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: metrics-api, namespace: sandbox-platform }
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: metrics-api, namespace: sandbox-platform, labels: { app: metrics-api } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: metrics-api } }
+  template:
+    metadata:
+      labels: { app: metrics-api, ds01/component: metrics-api }
+    spec:
+      serviceAccountName: metrics-api
+      automountServiceAccountToken: false
+      nodeSelector: { kubernetes.io/arch: amd64 }
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: metrics-api
+          image: ${image}
+          command: ["python", "-m", "ds01.metrics_api"]
+          env: [{ name: HOME, value: /tmp }]
+          ports: [{ containerPort: 8443 }]
+          readinessProbe: { tcpSocket: { port: 8443 } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { memory: 128Mi } }
+          volumeMounts:
+            - { name: secrets, mountPath: /secrets, readOnly: true }
+            - { name: tls, mountPath: /tls, readOnly: true }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - { name: tls, secret: { secretName: metrics-api-tls } }
+        - name: secrets
+          secret:
+            secretName: platform-secrets
+            items: [{ key: broker-key, path: broker-key }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: metrics-api, namespace: sandbox-platform }
+spec:
+  selector: { app: metrics-api }
+  ports: [{ port: 443, targetPort: 8443 }]
+---
+# --- who may call the platform services -------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: sandbox-manager-ingress, namespace: sandbox-platform }
+spec:
+  podSelector: { matchLabels: { app: sandbox-manager } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: agent-orchestrator } }
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-egress } }
+          podSelector: { matchLabels: { app: egress-gateway } }
+        - podSelector: { matchLabels: { app: tool-gateway } }
+      ports: [{ protocol: TCP, port: 8000 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: tool-gateway-ingress, namespace: sandbox-platform }
+spec:
+  podSelector: { matchLabels: { app: tool-gateway } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: agent-orchestrator } }
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-egress } }
+          podSelector: { matchLabels: { app: egress-gateway } }
+      ports: [{ protocol: TCP, port: 8003 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: metrics-api-ingress, namespace: sandbox-platform }
+spec:
+  podSelector: { matchLabels: { app: metrics-api } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-egress } }
+          podSelector: { matchLabels: { app: egress-gateway } }
+        - podSelector: { matchLabels: { app: tool-gateway } }
+      ports: [{ protocol: TCP, port: 8443 }]
+---
+# ===== Sandbox Router =============================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: sandbox-router, namespace: sandbox-router }
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: { name: sandbox-router, namespace: sandboxes }
+rules:
+  - apiGroups: ["extensions.agents.x-k8s.io"]
+    resources: ["sandboxclaims"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["agents.x-k8s.io"]
+    resources: ["sandboxes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  # Needed only for Tier 3 sandboxes, which have no network and are reached through the exec channel.
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create", "get"]   # the websocket exec client upgrades with GET
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: { name: sandbox-router, namespace: sandboxes }
+subjects: [{ kind: ServiceAccount, name: sandbox-router, namespace: sandbox-router }]
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: sandbox-router }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: sandbox-router, namespace: sandbox-router, labels: { app: sandbox-router } }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: sandbox-router } }
+  template:
+    metadata:
+      labels: { app: sandbox-router, ds01/component: sandbox-router }
+    spec:
+      serviceAccountName: sandbox-router
+      nodeSelector: { kubernetes.io/arch: amd64 }
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: router
+          image: ${image}
+          command: ["python", "-m", "ds01.router"]
+          env: [{ name: HOME, value: /tmp }]
+          ports: [{ containerPort: 8004 }]
+          readinessProbe: { httpGet: { path: /healthz, port: 8004 } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+          resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { memory: 256Mi } }
+          volumeMounts:
+            - { name: secrets, mountPath: /secrets, readOnly: true }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - name: secrets
+          secret:
+            secretName: router-secrets
+---
+apiVersion: v1
+kind: Service
+metadata: { name: sandbox-router, namespace: sandbox-router }
+spec:
+  selector: { app: sandbox-router }
+  ports: [{ port: 8004, targetPort: 8004 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: sandbox-router-ingress, namespace: sandbox-router }
+spec:
+  podSelector: { matchLabels: { app: sandbox-router } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: agent-orchestrator } }
+      ports: [{ protocol: TCP, port: 8004 }]
+---
+# ===== Trusted orchestrator (the "brain" stand-in) ================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: orchestrator, namespace: agent-orchestrator }
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: orchestrator, namespace: agent-orchestrator, labels: { app: orchestrator } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: orchestrator } }
+  template:
+    metadata:
+      labels: { app: orchestrator, ds01/component: orchestrator }
+    spec:
+      serviceAccountName: orchestrator
+      automountServiceAccountToken: false
+      nodeSelector: { kubernetes.io/arch: amd64 }
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: orchestrator
+          image: ${image}
+          command: ["sleep", "infinity"]
+          env: [{ name: HOME, value: /tmp }]
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { memory: 128Mi } }
+          volumeMounts:
+            - { name: secrets, mountPath: /secrets, readOnly: true }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - name: secrets
+          secret:
+            secretName: orchestrator-secrets

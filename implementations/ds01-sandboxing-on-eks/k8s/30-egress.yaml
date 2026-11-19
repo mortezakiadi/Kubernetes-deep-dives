@@ -1,0 +1,222 @@
+# Design 01, "Network: default deny and one way out" and "Credentials: secrets never enter the sandbox".
+#
+# The egress gateway is the only route from a sandbox to anything outside it. The credential
+# broker mints short-lived credentials for it. Both run outside the sandbox namespace.
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: egress-gateway, namespace: sandbox-egress }
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: credential-broker, namespace: sandbox-egress }
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: egress-gateway
+  namespace: sandbox-egress
+  labels: { app: egress-gateway }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: egress-gateway }
+  template:
+    metadata:
+      labels: { app: egress-gateway, ds01/component: egress-gateway }
+    spec:
+      serviceAccountName: egress-gateway
+      automountServiceAccountToken: false
+      nodeSelector: { kubernetes.io/arch: amd64 }
+      # Several replicas spread over zones, so a lost node or zone does not remove the way out.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: { matchLabels: { app: egress-gateway } }
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      initContainers:
+        - name: install-ca
+          image: ${image}
+          command: ["sh", "-c", "cp /ca-src/mitmproxy-ca.pem /ca-src/mitmproxy-ca-cert.pem /confdir/"]
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+          volumeMounts:
+            - { name: ca-src, mountPath: /ca-src, readOnly: true }
+            - { name: confdir, mountPath: /confdir }
+      containers:
+        - name: gateway
+          image: ${image}
+          command:
+            - mitmdump
+            - --listen-host=0.0.0.0
+            - --listen-port=3128
+            - --set=confdir=/confdir
+            - --set=block_global=false
+            - --set=ssl_verify_upstream_trusted_ca=/pki/ca.crt
+            - --set=flow_detail=0
+            - --set=termlog_verbosity=warn
+            - -s
+            - /app/ds01/gateway_addon.py
+          env:
+            - { name: HOME, value: /tmp }
+            - { name: MANAGER_URL, value: "http://sandbox-manager.sandbox-platform.svc:8000" }
+            - { name: BROKER_URL, value: "http://credential-broker.sandbox-egress.svc:8001" }
+          ports: [{ name: proxy, containerPort: 3128 }]
+          readinessProbe: { tcpSocket: { port: 3128 }, periodSeconds: 5 }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+          resources:
+            requests: { cpu: 250m, memory: 384Mi }
+            limits: { memory: 768Mi }
+          volumeMounts:
+            - { name: confdir, mountPath: /confdir }
+            - { name: tmp, mountPath: /tmp }
+            - { name: pki, mountPath: /pki, readOnly: true }
+            - { name: token, mountPath: /secrets, readOnly: true }
+      volumes:
+        - { name: confdir, emptyDir: {} }
+        - { name: tmp, emptyDir: {} }
+        - { name: ca-src, secret: { secretName: gateway-ca } }
+        - { name: pki, configMap: { name: internal-ca } }
+        - name: token
+          secret:
+            secretName: egress-secrets
+            items: [{ key: egress-gateway-token, path: egress-gateway-token }]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: egress-gateway, namespace: sandbox-egress }
+spec:
+  minAvailable: 1
+  selector: { matchLabels: { app: egress-gateway } }
+---
+# A fixed address, because sandboxes have no DNS: the proxy setting inside them names this IP.
+apiVersion: v1
+kind: Service
+metadata: { name: egress-gateway, namespace: sandbox-egress }
+spec:
+  clusterIP: ${gateway_ip}
+  # One sandbox always talks to one gateway replica, so the per-session rate and byte counters are exact.
+  sessionAffinity: ClientIP
+  sessionAffinityConfig: { clientIP: { timeoutSeconds: 3600 } }
+  selector: { app: egress-gateway }
+  ports: [{ name: proxy, port: 3128, targetPort: 3128 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: credential-broker
+  namespace: sandbox-egress
+  labels: { app: credential-broker }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: credential-broker }
+  template:
+    metadata:
+      labels: { app: credential-broker, ds01/component: credential-broker }
+    spec:
+      serviceAccountName: credential-broker
+      automountServiceAccountToken: false
+      nodeSelector: { kubernetes.io/arch: amd64 }
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: broker
+          image: ${image}
+          command: ["python", "-m", "ds01.broker"]
+          env: [{ name: HOME, value: /tmp }]
+          ports: [{ containerPort: 8001 }]
+          readinessProbe: { httpGet: { path: /healthz, port: 8001 } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: ["ALL"] } }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { memory: 128Mi }
+          volumeMounts:
+            - { name: secrets, mountPath: /secrets, readOnly: true }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - name: secrets
+          secret:
+            secretName: egress-secrets
+            items:
+              - { key: broker-key, path: broker-key }
+              - { key: egress-gateway-token, path: egress-gateway-token }
+              - { key: tool-gateway-token, path: tool-gateway-token }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: credential-broker, namespace: sandbox-egress }
+spec:
+  selector: { app: credential-broker }
+  ports: [{ port: 8001, targetPort: 8001 }]
+---
+# --- who may talk to whom ------------------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: egress-gateway-ingress, namespace: sandbox-egress }
+spec:
+  podSelector: { matchLabels: { app: egress-gateway } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandboxes } }
+      ports: [{ protocol: TCP, port: 3128 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: credential-broker-ingress, namespace: sandbox-egress }
+spec:
+  podSelector: { matchLabels: { app: credential-broker } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app: egress-gateway } }
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-platform } }
+          podSelector: { matchLabels: { app: tool-gateway } }
+      ports: [{ protocol: TCP, port: 8001 }]
+---
+# The gateway itself may reach only these in-cluster destinations...
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: egress-gateway-cluster-egress, namespace: sandbox-egress }
+spec:
+  podSelector: { matchLabels: { app: egress-gateway } }
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-platform } }
+      ports:
+        - { protocol: TCP, port: 8000 }   # Sandbox Manager
+        - { protocol: TCP, port: 8003 }   # tool gateway
+        - { protocol: TCP, port: 8443 }   # metrics API
+    - to:
+        - podSelector: { matchLabels: { app: credential-broker } }
+      ports: [{ protocol: TCP, port: 8001 }]
+---
+# ...and, on the internet, only these domains. This is the global ceiling: even if a session
+# allowlist is wrong, the gateway cannot reach anything outside this list.
+apiVersion: networking.k8s.aws/v1alpha1
+kind: ApplicationNetworkPolicy
+metadata: { name: egress-gateway-ceiling, namespace: sandbox-egress }
+spec:
+  podSelector: { matchLabels: { app: egress-gateway } }
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock: { cidr: 0.0.0.0/0 }
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    - to:
+        - domainNames:
+            - pypi.org
+            - files.pythonhosted.org
+            - example.com
+      ports: [{ protocol: TCP, port: 443 }]

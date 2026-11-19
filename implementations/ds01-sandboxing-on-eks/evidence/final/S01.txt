@@ -1,0 +1,99 @@
+# S01: Cluster topology, node pools and the sandbox node pool
+# Design reference: The sandbox node pool and pod hardening
+
+$ aws eks describe-cluster --name ds01-sandboxing --query <version, autoMode, endpoint CIDRs, logging>
+{
+    "version": "1.37",
+    "status": "ACTIVE",
+    "autoMode": {
+        "enabled": true,
+        "nodePools": [
+            "general-purpose",
+            "system"
+        ],
+        "nodeRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/ds01-sandboxing-node"
+    },
+    "publicEndpointCidrs": [
+        "<ADMIN_IP>/32"
+    ],
+    "logging": [
+        "api",
+        "audit",
+        "authenticator"
+    ]
+}
+
+$ kubectl get nodes -L workload,node.kubernetes.io/instance-type,topology.kubernetes.io/zone,eks.amazonaws.com/nitro-sandbox
+NAME                  STATUS   ROLES    AGE     VERSION               WORKLOAD   INSTANCE-TYPE   ZONE         NITRO-SANDBOX
+i-0543f2a2608a827e3   Ready    <none>   30s     v1.37.1-eks-577a51e   sandbox    c7i.xlarge      us-east-1a   true
+i-0ab84e37874257700   Ready    <none>   2m23s   v1.37.1-eks-577a51e              c6a.large       us-east-1a   false
+
+$ kubectl get nodepool,nodeclass
+NAME                                    NODECLASS   NODES   READY   AGE
+nodepool.karpenter.sh/general-purpose   default     1       True    5m17s
+nodepool.karpenter.sh/sandbox           sandbox     1       True    112s
+nodepool.karpenter.sh/system            default     0       True    5m17s
+
+NAME                                  ROLE                           READY   AGE
+nodeclass.eks.amazonaws.com/default   ds01-sandboxing-node           True    5m19s
+nodeclass.eks.amazonaws.com/sandbox   ds01-sandboxing-sandbox-node   True    115s
+
+$ kubectl get nodepool sandbox -o jsonpath={.spec.template.spec.taints}
+[{"effect":"NoSchedule","key":"workload","value":"sandbox"}]
+
+$ aws ec2 describe-instances --instance-ids i-0543f2a2608a827e3 --query <type, subnet, security groups, IMDS options, enclave option>
+{
+    "type": "c7i.xlarge",
+    "subnet": "subnet-0e9a98c895b1b0256",
+    "securityGroups": [
+        "ds01-sandboxing-sandbox-nodes"
+    ],
+    "imdsTokens": "required",
+    "imdsHopLimit": 1,
+    "nitroEnclaves": true
+}
+
+$ aws ec2 describe-subnets --subnet-ids <the node's subnet> --query <cidr, tier tag, name>
+{
+    "cidr": "10.20.64.0/20",
+    "tier": "sandbox",
+    "name": "ds01-sandboxing-sandbox-us-east-1a"
+}
+
+$ aws iam list-attached-role-policies --role-name ds01-sandboxing-sandbox-node --query AttachedPolicies[].PolicyName --output json
+[
+    "AmazonEKSWorkerNodeMinimalPolicy",
+    "AmazonEC2ContainerRegistryPullOnly"
+]
+
+$ aws iam list-role-policies --role-name ds01-sandboxing-sandbox-node --query PolicyNames --output json
+[]
+
+$ kubectl get pods -A -o wide --field-selector spec.nodeName=i-0543f2a2608a827e3
+NAMESPACE   NAME                          READY   STATUS    RESTARTS   AGE    IP             NODE                  NOMINATED NODE   READINESS GATES
+sandboxes   compute-only-pool-plgv5       1/1     Running   0          2m1s   10.20.67.242   i-0543f2a2608a827e3   <none>           <none>
+sandboxes   python-untrusted-pool-9xp67   1/1     Running   0          2m2s   10.20.67.241   i-0543f2a2608a827e3   <none>           <none>
+sandboxes   python-untrusted-pool-bq7wl   1/1     Running   0          2m2s   10.20.67.240   i-0543f2a2608a827e3   <none>           <none>
+
+$ kubectl run taint-probe --image=python:3.12-slim --overrides='{nodeSelector: workload=sandbox}'  # a normal pod that asks for a sandbox node
+pod/taint-probe created
+
+$ kubectl get pod taint-probe
+NAME          READY   STATUS    RESTARTS   AGE
+taint-probe   0/1     Pending   0          13s
+
+$ kubectl describe pod taint-probe | grep -A3 Events
+Events:
+  Type     Reason            Age   From                   Message
+  ----     ------            ----  ----                   -------
+  Warning  FailedScheduling  14s   default-scheduler      0/2 nodes are available: 1 node(s) didn't match Pod's node affinity/selector, 1 node(s) had untolerated taint(s). preemption: 0/2 nodes are available: 2 Preemption is not helpful for scheduling.
+  Warning  FailedScheduling  13s   eks-auto-mode/compute  Failed to schedule pod, did not tolerate taint (taint=CriticalAddonsOnly:NoSchedule); did not tolerate taint (taint=workload=sandbox:NoSchedule); incompatible requirements, label "workload" does not have known values
+
+[PASS] a sandbox node exists and is labelled for Nitro Sandboxes
+[PASS] the pool taints its nodes workload=sandbox:NoSchedule
+[PASS] the node sits in a subnet tagged tier=sandbox
+[PASS] the node uses the dedicated sandbox security group
+[PASS] IMDSv2 is required and Nitro Enclaves are enabled
+[PASS] the sandbox node role has only the two minimal managed policies and no inline policy
+[PASS] only the sandboxes namespace has pods on the sandbox node
+[PASS] an ordinary pod that asks for the sandbox pool stays Pending

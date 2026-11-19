@@ -1,0 +1,63 @@
+{
+ "id": "S09",
+ "title": "Tier 3: a microVM with no network device",
+ "design_ref": "Choosing the isolation boundary (Tier 3); Files, state and results",
+ "purpose": "Run an analysis on an uploaded file in a sandbox that has no network at all, and get the result back through the router.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "orch create analytics data-analyst compute-only 900",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-cd4cdd81\", \"claim\": \"sess-cd4cdd81\", \"template\": \"compute-only\", \"ready_ms\": 349, \"allow_hosts\": [], \"shutdown_time\": \"2026-11-19T15:38:07Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.67.242\"}",
+   "exit_code": 0,
+   "seconds": 2.27
+  },
+  {
+   "display": "kubectl -n sandboxes get pod compute-only-pool-plgv5 -o jsonpath='{.metadata.annotations}'",
+   "output": "{\"agents.x-k8s.io/claim-name\":\"sess-cd4cdd81\",\"agents.x-k8s.io/propagated-annotations\":\"karpenter.sh/do-not-disrupt,sandbox.amazonaws.com/network-isolated\",\"agents.x-k8s.io/propagated-labels\":\"app,ds01/tier,sandbox.users.io/session,sandbox.users.io/template,sandbox.users.io/tenant\",\"karpenter.sh/do-not-disrupt\":\"true\",\"sandbox.amazonaws.com/network-isolated\":\"true\"}",
+   "exit_code": 0,
+   "seconds": 1.13
+  },
+  {
+   "display": "orch put-text sess-cd4cdd81 uploads/sales.csv 'region,sales\nnorth,120\nsouth,95\nnorth,80\nwest,60\n'",
+   "output": "{\"http_status\": 200, \"written\": \"uploads/sales.csv\", \"bytes\": 49}",
+   "exit_code": 0,
+   "seconds": 1.99
+  },
+  {
+   "display": "orch exec sess-cd4cdd81 \"python3 -c <sum sales by region from /workspace/uploads/sales.csv>\"",
+   "output": "{'north': 200, 'south': 95, 'west': 60}\n[exit code 0]",
+   "exit_code": 0,
+   "seconds": 2.14
+  },
+  {
+   "display": "orch get sess-cd4cdd81 result.json",
+   "output": "{\"http_status\": 200, \"path\": \"result.json\", \"bytes\": 39, \"content\": \"{\\\"north\\\": 200, \\\"south\\\": 95, \\\"west\\\": 60}\"}",
+   "exit_code": 0,
+   "seconds": 2.12
+  },
+  {
+   "display": "orch exec sess-cd4cdd81 \"python3 /workspace/drills.py no_network_device \"",
+   "output": "no_network_device      blocked  {\"interfaces\": [\"dummy0\", \"lo\"], \"connect_1.1.1.1:443\": \"OSError: [Errno 101] Network is unreachable\"}",
+   "exit_code": 0,
+   "seconds": 2.48
+  }
+ ],
+ "checks": [
+  {
+   "description": "the analysis ran and produced the totals",
+   "passed": true,
+   "because": "The router reached the sandbox through the Kubernetes exec channel, which does not need a network."
+  },
+  {
+   "description": "the result file came back through the router",
+   "passed": true,
+   "because": "File transfer uses the same channel."
+  },
+  {
+   "description": "the sandbox has no network device and no route out",
+   "passed": true,
+   "because": "The annotation boots the microVM without a network interface, so there is nothing to filter and nothing to misconfigure."
+  }
+ ],
+ "notes": []
+}

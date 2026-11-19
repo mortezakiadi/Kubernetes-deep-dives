@@ -1,0 +1,93 @@
+{
+ "id": "S12",
+ "title": "Failure drills",
+ "design_ref": "Failure modes and operations",
+ "purpose": "Take a component away and check that the design fails the way its table says: closed for the gateway, and without disturbing running sessions for the controller.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "orch create fail coding python-untrusted 1200",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-23ff97b4\", \"claim\": \"sess-23ff97b4\", \"template\": \"python-untrusted\", \"ready_ms\": 333, \"allow_hosts\": [\"files.pythonhosted.org\", \"metrics-api.sandbox-platform.svc\", \"pypi.org\", \"tool-gateway.sandbox-platform.svc\"], \"shutdown_time\": \"2026-11-19T15:45:36Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.67.242\"}",
+   "exit_code": 0,
+   "seconds": 2.31
+  },
+  {
+   "display": "orch exec sess-23ff97b4 \"python3 /workspace/drills.py approved_host \"",
+   "output": "approved_host          allowed  {\"https://pypi.org/simple/\": 200, \"note\": \"positive control: allowed is correct\"}",
+   "exit_code": 0,
+   "seconds": 2.95
+  },
+  {
+   "display": "kubectl -n sandbox-egress scale deploy/egress-gateway --replicas=0",
+   "output": "deployment.apps/egress-gateway scaled",
+   "exit_code": 0,
+   "seconds": 1.21
+  },
+  {
+   "display": "orch exec sess-23ff97b4 \"python3 /workspace/drills.py approved_host \"",
+   "output": "approved_host          error    {\"exception\": \"ConnectionRefusedError: [Errno 111] Connection refused\"}",
+   "exit_code": 0,
+   "seconds": 2.15
+  },
+  {
+   "display": "kubectl -n sandbox-egress scale deploy/egress-gateway --replicas=2",
+   "output": "deployment.apps/egress-gateway scaled",
+   "exit_code": 0,
+   "seconds": 1.39
+  },
+  {
+   "display": "kubectl -n sandbox-egress rollout status deploy/egress-gateway --timeout=180s",
+   "output": "Waiting for deployment \"egress-gateway\" rollout to finish: 0 of 2 updated replicas are available...\nWaiting for deployment \"egress-gateway\" rollout to finish: 1 of 2 updated replicas are available...\ndeployment \"egress-gateway\" successfully rolled out",
+   "exit_code": 0,
+   "seconds": 8.29
+  },
+  {
+   "display": "orch exec sess-23ff97b4 \"python3 /workspace/drills.py approved_host \"",
+   "output": "approved_host          allowed  {\"https://pypi.org/simple/\": 200, \"note\": \"positive control: allowed is correct\"}",
+   "exit_code": 0,
+   "seconds": 2.3
+  },
+  {
+   "display": "kubectl -n agent-sandbox-system scale deploy/agent-sandbox-controller --replicas=0",
+   "output": "deployment.apps/agent-sandbox-controller scaled",
+   "exit_code": 0,
+   "seconds": 1.29
+  },
+  {
+   "display": "orch exec sess-23ff97b4 \"echo still running; uname -r\"   # controller is down",
+   "output": "still running\n6.18.62\n[exit code 0]",
+   "exit_code": 0,
+   "seconds": 1.91
+  },
+  {
+   "display": "kubectl -n agent-sandbox-system scale deploy/agent-sandbox-controller --replicas=1",
+   "output": "deployment.apps/agent-sandbox-controller scaled",
+   "exit_code": 0,
+   "seconds": 1.28
+  },
+  {
+   "display": "kubectl -n agent-sandbox-system rollout status deploy/agent-sandbox-controller --timeout=120s",
+   "output": "Waiting for deployment \"agent-sandbox-controller\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"agent-sandbox-controller\" successfully rolled out",
+   "exit_code": 0,
+   "seconds": 2.08
+  }
+ ],
+ "checks": [
+  {
+   "description": "with the gateway down the sandbox loses outbound access (fails closed)",
+   "passed": true,
+   "because": "The only route out is the gateway; with no gateway there is no route."
+  },
+  {
+   "description": "when the gateway returns the same sandbox reaches its allowed host again",
+   "passed": true,
+   "because": "Nothing in the sandbox had to change."
+  },
+  {
+   "description": "with the sandbox controller down, a running session keeps working",
+   "passed": true,
+   "because": "The controller only reconciles claims; the sandbox and its router path do not depend on it."
+  }
+ ],
+ "notes": []
+}

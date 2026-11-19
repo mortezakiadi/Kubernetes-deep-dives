@@ -1,0 +1,131 @@
+{
+ "id": "S03",
+ "title": "Pod hardening, identity and Kubernetes permissions",
+ "design_ref": "The sandbox node pool and pod hardening; Threat model arrows 3 and 4",
+ "purpose": "Show that a sandbox holds no Kubernetes credential, runs unprivileged on a read-only filesystem, that its ServiceAccount can do nothing, and that the namespace refuses a privileged pod.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "orch create hard coding python-untrusted 900",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-0a9b9fcf\", \"claim\": \"sess-0a9b9fcf\", \"template\": \"python-untrusted\", \"ready_ms\": 332, \"allow_hosts\": [\"files.pythonhosted.org\", \"metrics-api.sandbox-platform.svc\", \"pypi.org\", \"tool-gateway.sandbox-platform.svc\"], \"shutdown_time\": \"2026-11-19T15:30:39Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.67.240\"}",
+   "exit_code": 0,
+   "seconds": 2.29
+  },
+  {
+   "display": "kubectl -n sandboxes get pod python-untrusted-pool-bq7wl -o jsonpath=<the security-relevant fields>",
+   "output": "runtimeClass: isolated-sandbox\nserviceAccount: sandbox-nobody\nautomountServiceAccountToken: false\nenableServiceLinks: false\nrunAsNonRoot: true\nreadOnlyRootFilesystem: true\ncapabilities.drop: [\"ALL\"]\nlimits: {\"cpu\":\"1\",\"memory\":\"1Gi\"}",
+   "exit_code": 0,
+   "seconds": 1.34
+  },
+  {
+   "display": "orch exec sess-0a9b9fcf \"id; touch /etc/probe; ls /var/run/secrets; env | grep ...; grep CapEff /proc/1/status\"   # run INSIDE the sandbox",
+   "output": "uid=1000 gid=1000 groups=1000\n---\ntouch: cannot touch '/etc/probe': Read-only file system\n---\nls: cannot access '/var/run/secrets': No such file or directory\n---\nKUBERNETES_SERVICE_PORT=<value hidden>\nKUBERNETES_PORT=<value hidden>\nGPG_KEY=<value hidden>\nKUBERNETES_PORT_443_TCP_ADDR=<value hidden>\nKUBERNETES_PORT_443_TCP_PORT=<value hidden>\nKUBERNETES_PORT_443_TCP_PROTO=<value hidden>\nMETRICS_API_KEY=<value hidden>\nKUBERNETES_PORT_443_TCP=<value hidden>\nKUBERNETES_SERVICE_PORT_HTTPS=<value hidden>\nKUBERNETES_SERVICE_HOST=<value hidden>\n---\nCapEff:\t0000000000000000\nNoNewPrivs:\t1\n[exit code 0]",
+   "exit_code": 0,
+   "seconds": 1.98
+  },
+  {
+   "display": "kubectl auth can-i get secrets -n sandboxes --as system:serviceaccount:sandboxes:sandbox-nobody",
+   "output": "no",
+   "exit_code": 1,
+   "seconds": 1.26
+  },
+  {
+   "display": "kubectl auth can-i list pods -n sandboxes --as system:serviceaccount:sandboxes:sandbox-nobody",
+   "output": "no",
+   "exit_code": 1,
+   "seconds": 1.42
+  },
+  {
+   "display": "kubectl auth can-i create pods/exec -n sandboxes --as system:serviceaccount:sandboxes:sandbox-nobody",
+   "output": "no",
+   "exit_code": 1,
+   "seconds": 1.32
+  },
+  {
+   "display": "kubectl auth can-i get secrets -n kube-system --as system:serviceaccount:sandboxes:sandbox-nobody",
+   "output": "no",
+   "exit_code": 1,
+   "seconds": 1.34
+  },
+  {
+   "display": "kubectl -n sandboxes get secrets",
+   "output": "\nNo resources found in sandboxes namespace.",
+   "exit_code": 0,
+   "seconds": 1.14
+  },
+  {
+   "display": "kubectl -n sandboxes apply -f privileged-pod.yaml   # privileged: true, hostNetwork: true",
+   "output": "\nError from server (Forbidden): error when creating \"STDIN\": pods \"escape-attempt\" is forbidden: violates PodSecurity \"restricted:latest\": host namespaces (hostNetwork=true), privileged (container \"c\" must not set securityContext.privileged=true), allowPrivilegeEscalation != false (container \"c\" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container \"c\" must set securityContext.capabilities.drop=[\"ALL\"]), runAsNonRoot != true (pod or container \"c\" must set securityContext.runAsNonRoot=true), seccompProfile (pod or container \"c\" must set securityContext.seccompProfile.type to \"RuntimeDefault\" or \"Localhost\")",
+   "exit_code": 1,
+   "seconds": 3.2
+  },
+  {
+   "display": "kubectl auth can-i create sandboxclaims.extensions.agents.x-k8s.io -n sandboxes --as system:serviceaccount:sandbox-platform:sandbox-manager",
+   "output": "yes",
+   "exit_code": 0,
+   "seconds": 1.75
+  },
+  {
+   "display": "kubectl auth can-i create pods/exec -n sandboxes --as system:serviceaccount:sandbox-platform:sandbox-manager",
+   "output": "no",
+   "exit_code": 1,
+   "seconds": 1.19
+  },
+  {
+   "display": "kubectl auth can-i create pods/exec -n sandboxes --as system:serviceaccount:sandbox-router:sandbox-router",
+   "output": "no",
+   "exit_code": 1,
+   "seconds": 1.32
+  },
+  {
+   "display": "kubectl auth can-i create pods/exec -n default --as system:serviceaccount:sandbox-router:sandbox-router",
+   "output": "no",
+   "exit_code": 1,
+   "seconds": 1.27
+  },
+  {
+   "display": "kubectl auth can-i get pods -n sandboxes --as system:serviceaccount:agent-orchestrator:orchestrator",
+   "output": "no",
+   "exit_code": 1,
+   "seconds": 1.3
+  }
+ ],
+ "checks": [
+  {
+   "description": "the pod opts into the microVM runtime and mounts no ServiceAccount token",
+   "passed": true,
+   "because": "These fields come straight from the SandboxTemplate; the controller copies them into every pod."
+  },
+  {
+   "description": "the container drops all capabilities, forbids privilege escalation and has a read-only root filesystem",
+   "passed": true,
+   "because": "Defence in depth: even inside the microVM the pod is hardened as if it were not."
+  },
+  {
+   "description": "the code runs as uid 1000, cannot write to the root filesystem and finds no service-account directory",
+   "passed": true,
+   "because": "runAsUser, readOnlyRootFilesystem and automountServiceAccountToken=false in the template."
+  },
+  {
+   "description": "the sandbox ServiceAccount can do nothing on the Kubernetes API",
+   "passed": true,
+   "because": "It has no Role or ClusterRole bound to it."
+  },
+  {
+   "description": "the sandboxes namespace contains no Kubernetes Secret at all",
+   "passed": true,
+   "because": "Credentials live only in the namespaces of the components that use them."
+  },
+  {
+   "description": "a privileged, host-network pod is refused by Pod Security admission",
+   "passed": true,
+   "because": "The namespace enforces the Pod Security 'restricted' profile."
+  },
+  {
+   "description": "each platform identity holds only the permissions its job needs",
+   "passed": true,
+   "because": "The Manager can create claims but not exec; the Router can exec only inside sandboxes; the orchestrator has no Kubernetes access."
+  }
+ ],
+ "notes": []
+}

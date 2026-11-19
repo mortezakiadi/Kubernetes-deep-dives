@@ -1,0 +1,56 @@
+# S06: The egress gateway: per-session allowlist, the global ceiling and rate limits
+# Design reference: Network: default deny and one way out
+
+$ orch create egr coding python-untrusted 900
+{"http_status": 201, "session_id": "sess-a67e3d16", "claim": "sess-a67e3d16", "template": "python-untrusted", "ready_ms": 340, "allow_hosts": ["files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:43:37Z", "session_token": "<redacted>", "pod_ip": "10.20.67.244"}
+
+$ orch exec sess-a67e3d16 "python3 /workspace/drills.py unapproved_host,approved_host,host_probe host=example.com"
+unapproved_host        blocked  {"error": "Tunnel connection failed: 403 Forbidden"}
+approved_host          allowed  {"https://pypi.org/simple/": 200, "note": "positive control: allowed is correct"}
+host_probe             blocked  {"host": "example.com", "error": "Tunnel connection failed: 403 Forbidden"}
+
+$ orch create egr coding python-untrusted 900 example.com
+{"http_status": 201, "session_id": "sess-0475807f", "claim": "sess-0475807f", "template": "python-untrusted", "ready_ms": 337, "allow_hosts": ["example.com", "files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:43:43Z", "session_token": "<redacted>", "pod_ip": "10.20.67.240"}
+
+$ orch exec sess-0475807f "python3 /workspace/drills.py host_probe host=example.com"
+host_probe             allowed  {"host": "example.com", "status": 200}
+
+$ orch create egr coding python-untrusted 900 github.com
+{"http_status": 201, "session_id": "sess-19450cf8", "claim": "sess-19450cf8", "template": "python-untrusted", "ready_ms": 337, "allow_hosts": ["files.pythonhosted.org", "github.com", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:43:51Z", "session_token": "<redacted>", "pod_ip": "10.20.87.115"}
+
+$ orch exec sess-19450cf8 "python3 /workspace/drills.py ceiling_backstop host=github.com"
+ceiling_backstop       blocked  {"error": "timed out"}
+
+$ scripts/audit-query.py sess-19450cf8 | grep -E 'egress|github'
+15:28:55.927  egress-gateway     egress.allow         host=github.com port=443 tls_mode=passthrough
+
+$ kubectl -n sandbox-egress exec <gateway pod> -- python -c "connect to pypi.org:443, then github.com:443"   # the gateway's own network, no sandbox involved
+pypi.org -> connected
+github.com -> TimeoutError: timed out
+
+$ orch exec sess-a67e3d16 "python3 /workspace/drills.py rate_limit n=140"
+rate_limit             blocked  {"requests": 140, "succeeded": 120, "refused_429": 20, "other": 0}
+
+$ scripts/audit-query.py sess-a67e3d16 | grep egress | head -12   # the gateway's own record of what it decided
+15:28:41.996  egress-gateway     egress.deny          host=example.com port=443 status=403 reason=example.com is not on this session's allowlist
+15:28:42.007  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:28:42.062  egress-gateway     egress.deny          host=example.com port=443 status=403 reason=example.com is not on this session's allowlist
+15:29:59.271  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:29:59.317  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:29:59.402  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:29:59.447  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:29:59.499  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:29:59.545  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:29:59.599  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:29:59.694  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+15:29:59.743  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough
+
+[PASS] a host on the allowlist (pypi.org) is reachable through the gateway
+[PASS] a host not on the allowlist (api.github.com) is refused with 403
+[PASS] example.com is refused for session A because A did not ask for it
+[PASS] example.com is reachable for session B, which was approved for it
+[PASS] a session allowlist naming a host outside the network ceiling still cannot reach it (not a 403: the gateway tried and the network refused)
+[PASS] the gateway ALLOWED the github.com request for session C (so the allowlist did not stop it); the network ceiling did
+[PASS] from the gateway's own pod, pypi.org connects and github.com does not (so the network ceiling is what stops it)
+[PASS] a session that opens 140 tunnels in a minute is cut off at the rate limit
+[PASS] the gateway logged both allow and deny decisions for the session

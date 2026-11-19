@@ -1,0 +1,32 @@
+# S02: The isolation boundary: a microVM per sandbox versus a shared kernel
+# Design reference: Choosing the isolation boundary (Tier 0 versus Tier 2)
+
+$ orch create iso coding python-untrusted 900
+{"http_status": 201, "session_id": "sess-b606b111", "claim": "sess-b606b111", "template": "python-untrusted", "ready_ms": 374, "allow_hosts": ["files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:30:13Z", "session_token": "<redacted>", "pod_ip": "10.20.67.241"}
+
+$ kubectl -n sandboxes get pod python-untrusted-pool-9xp67 -o custom-columns=NAME:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName,STARTED:.status.startTime
+NAME                          RUNTIME            NODE                  STARTED
+python-untrusted-pool-9xp67   isolated-sandbox   i-0543f2a2608a827e3   2026-11-19T15:14:13Z
+
+$ orch exec sess-b606b111 "uname -r; cat /sys/class/dmi/id/product_name; cut -d' ' -f1 /proc/uptime"   # inside the SANDBOX
+6.18.62
+c7i.enclave
+61.70
+[exit code 0]
+
+$ kubectl run tier0 --image=python:3.12-slim  # hardened ordinary container, Tier 0, on a normal node
+pod/tier0 created
+
+$ kubectl exec tier0 -- sh -c "uname -r; cat /sys/class/dmi/id/product_name; cut -d' ' -f1 /proc/uptime"   # inside the ORDINARY CONTAINER
+6.18.62
+c6a.large
+202.43
+
+$ kubectl get node i-0ab84e37874257700 -o jsonpath='{.status.nodeInfo.kernelVersion}'   # the node's own kernel version
+6.18.62
+
+[PASS] the sandbox reports a virtual machine of its own (product name ends in .enclave)
+[PASS] the ordinary container reports the host machine, not a virtual machine of its own
+[PASS] the sandbox's kernel started when the pod started, not when the node did
+[PASS] the ordinary container's uptime tracks its node's age (it shares the node's kernel)
+[PASS] the ordinary container reports exactly the node's kernel version

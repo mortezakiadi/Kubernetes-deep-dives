@@ -1,0 +1,56 @@
+# S08: The tool gateway (MCP): policy, approvals, rate limits and revocation
+# Design reference: Tools and external services
+
+$ orch create tools data-analyst python-untrusted 900
+{"http_status": 201, "session_id": "sess-1e71f9a2", "claim": "sess-1e71f9a2", "template": "python-untrusted", "ready_ms": 338, "allow_hosts": ["files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:36:43Z", "session_token": "<redacted>", "pod_ip": "10.20.87.115"}
+
+$ orch mcp <signed-token-redacted> tools/list
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "result": {"tools": [{"name": "metrics.query", "description": "Read a metric series from the company metrics API.", "risk": "read"}, {"name": "ticket.create", "description": "Create a ticket. Needs a human approval each time.", "risk": "high"}]}}
+
+$ orch mcp <signed-token-redacted> tools/list
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "result": {"tools": [{"name": "metrics.query", "description": "Read a metric series from the company metrics API.", "risk": "read"}]}}
+
+$ orch mcp <signed-token-redacted> tools/call '{"name": "metrics.query", "arguments": {"name": "orders_per_minute"}}'
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "result": {"content": [{"type": "text", "text": "{\"metric\": \"orders_per_minute\", \"points\": [412, 398, 431, 455, 470, 466], \"caller_session\": \"sess-1e71f9a2\", \"credential_expires_in\": 59}"}]}}
+
+$ orch mcp <signed-token-redacted> tools/call '{"name": "ticket.create", "arguments": {"title": "Latency spike on checkout"}}'
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "error": {"code": -32001, "message": "this tool needs a human approval", "data": {"approval_id": "apr-6a3fb1be", "state": "pending"}}}
+
+$ orch mcp <signed-token-redacted> tools/call '{"name": "ticket.create", "arguments": {"title": "Latency spike on checkout"}, "approval_id": "apr-6a3fb1be"}'
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "error": {"code": -32001, "message": "approval still pending", "data": {"approval_id": "apr-6a3fb1be", "state": "pending"}}}
+
+$ orch approve apr-6a3fb1be
+{"http_status": 200, "approval_id": "apr-6a3fb1be", "state": "approved"}
+
+$ orch mcp <signed-token-redacted> tools/call '{"name": "ticket.create", "arguments": {"title": "Latency spike on checkout"}, "approval_id": "apr-6a3fb1be"}'
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "result": {"content": [{"type": "text", "text": "{\"ticket\": \"OPS-101\", \"title\": \"Latency spike on checkout\"}"}]}}
+
+$ orch mcp <signed-token-redacted> tools/call '{"name": "ticket.create", "arguments": {"title": "Latency spike on checkout"}, "approval_id": "apr-6a3fb1be"}'
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "error": {"code": -32001, "message": "approval still pending", "data": {"approval_id": "apr-6a3fb1be", "state": "used"}}}
+
+$ orch mcp <signed-token-redacted> tools/call '{"name": "project.delete", "arguments": {}}'
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "error": {"code": -32003, "message": "tool 'project.delete' is not available to agent 'data-analyst'"}}
+
+$ orch mcp <signed-token-redacted> tools/call '{"name": "ticket.create", "arguments": {"title": "x"}}'
+{"http_status": 200, "jsonrpc": "2.0", "id": 1, "error": {"code": -32003, "message": "tool 'ticket.create' is not available to agent 'coding'"}}
+
+$ orch exec sess-f8f6da9a "python3 /workspace/drills.py tool_gateway session_token=<session_token>"
+tool_gateway           allowed  {"tools": ["metrics.query"], "note": "positive control"}
+
+$ orch mcp <session token> tools/list   # 25 times in a row
+http status of each call: 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 429 429 429 429 200 429 429 429
+
+$ orch mcp <signed-token-redacted> tools/list
+{"http_status": 401, "jsonrpc": "2.0", "id": 1, "error": {"code": -32000, "message": "session is no longer active"}}
+
+[PASS] the data-analyst agent sees metrics.query and ticket.create; the coding agent sees only metrics.query
+[PASS] a read-only tool call succeeds and reaches the metrics API with a credential the gateway obtained itself
+[PASS] a high-risk tool call is paused until a human approves it
+[PASS] retrying before approval is still refused
+[PASS] after approval the call runs
+[PASS] the approval cannot be reused
+[PASS] a forbidden tool is refused outright
+[PASS] the coding agent cannot call a tool that only the data-analyst may
+[PASS] code inside the sandbox can reach the tool gateway only through the egress gateway, using the session token
+[PASS] a session that calls the gateway too often is rate limited (HTTP 429)
+[PASS] when the session ends its token stops working immediately

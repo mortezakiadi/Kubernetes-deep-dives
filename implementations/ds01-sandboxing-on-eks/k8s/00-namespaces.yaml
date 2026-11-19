@@ -1,0 +1,48 @@
+# Five namespaces, one per trust zone in the design's architecture picture.
+#   sandboxes          untrusted: the sandboxes themselves
+#   sandbox-egress     the egress gateway and the credential broker
+#   sandbox-platform   Sandbox Manager, tool gateway and the internal metrics API
+#   sandbox-router     the Sandbox Router
+#   agent-orchestrator the trusted agent orchestrator (the "brain")
+# Every namespace enforces the Pod Security "restricted" profile.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sandboxes
+  labels:
+    ds01/zone: untrusted
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sandbox-egress
+  labels:
+    ds01/zone: gateway
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sandbox-platform
+  labels:
+    ds01/zone: control-plane
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sandbox-router
+  labels:
+    ds01/zone: control-plane
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agent-orchestrator
+  labels:
+    ds01/zone: trusted
+    pod-security.kubernetes.io/enforce: restricted

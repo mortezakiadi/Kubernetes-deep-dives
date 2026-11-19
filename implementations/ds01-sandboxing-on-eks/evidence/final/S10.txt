@@ -1,0 +1,47 @@
+# S10: Limits, quotas and abuse
+# Design reference: Limits, quotas and abuse
+
+$ kubectl -n sandboxes get resourcequota,limitrange
+NAME                            REQUEST                                                     LIMIT   AGE
+resourcequota/sandboxes-quota   pods: 4/30, requests.cpu: 2/24, requests.memory: 4Gi/48Gi           10m
+
+NAME                            CREATED AT
+limitrange/sandboxes-defaults   2026-11-19T15:12:51Z
+
+$ orch create quotaco coding compute-only 900
+{"http_status": 201, "session_id": "sess-b40519d3", "claim": "sess-b40519d3", "template": "compute-only", "ready_ms": 5030, "allow_hosts": [], "shutdown_time": "2026-11-19T15:38:31Z", "session_token": "<redacted>", "pod_ip": "10.20.67.244"}
+
+$ orch create quotaco coding compute-only 900
+{"http_status": 429, "error": "tenant quotaco already has 3 active sessions (limit 3)"}
+
+$ orch create ttlco coding compute-only 45
+{"http_status": 201, "session_id": "sess-2f50e944", "claim": "sess-2f50e944", "template": "compute-only", "ready_ms": 335, "allow_hosts": [], "shutdown_time": "2026-11-19T15:24:35Z", "session_token": "<redacted>", "pod_ip": "10.20.87.115"}
+
+$ kubectl -n sandboxes get sandboxclaim sess-2f50e944 -o jsonpath='{.spec.lifecycle}'
+{"shutdownPolicy":"Delete","shutdownTime":"2026-11-19T15:24:35Z"}
+
+$ kubectl -n sandboxes get sandboxclaim sess-2f50e944   # after the end time
+
+Error from server (NotFound): sandboxclaims.extensions.agents.x-k8s.io "sess-2f50e944" not found
+
+$ orch create memco coding python-untrusted 900
+{"http_status": 201, "session_id": "sess-760f2688", "claim": "sess-760f2688", "template": "python-untrusted", "ready_ms": 349, "allow_hosts": ["files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:39:40Z", "session_token": "<redacted>", "pod_ip": "10.20.67.240"}
+
+$ orch exec sess-760f2688 "python3 /workspace/drills.py memory_bomb mb=2500"
+harness                error    {"stdout": "{\"http_status\": 500, \"error\": \"internal error\"}\n", "stderr": ""}
+
+$ kubectl -n sandboxes get pod <the abuser> <its neighbour> -o custom-columns=<restarts, last termination reason>
+NAME                          RESTARTS   LAST_TERMINATION
+python-untrusted-pool-n47r6   1          OOMKilled
+python-untrusted-pool-dsdhw   0          <none>
+
+$ kubectl get node i-0543f2a2608a827e3
+NAME                  STATUS   ROLES    AGE   VERSION
+i-0543f2a2608a827e3   Ready    <none>   10m   v1.37.1-eks-577a51e
+
+[PASS] a tenant's fourth concurrent session is refused cleanly with 429
+[PASS] another tenant is not affected by that limit
+[PASS] the claim, and with it the sandbox, was deleted when its end time passed, with nobody asking
+[PASS] asking for 2.5 GiB inside a 1 GiB sandbox was stopped by the memory limit (the abuser's container was restarted)
+[PASS] the neighbouring sandbox on the same node was not touched
+[PASS] the node stayed Ready

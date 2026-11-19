@@ -1,0 +1,33 @@
+# S07: Credentials: secrets never enter the sandbox
+# Design reference: Credentials: secrets never enter the sandbox; Threat model arrow 5
+
+$ orch create cred coding python-untrusted 900
+{"http_status": 201, "session_id": "sess-799940c6", "claim": "sess-799940c6", "template": "python-untrusted", "ready_ms": 339, "allow_hosts": ["files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:35:56Z", "session_token": "<redacted>", "pod_ip": "10.20.87.112"}
+
+$ orch exec sess-799940c6 "python3 /workspace/drills.py secrets_in_sandbox,credential_injection,direct_to_metrics session=sess-799940c6"
+secrets_in_sandbox     blocked  {"placeholder_variables": ["METRICS_API_KEY"], "suspicious": {}, "credential_paths_present": []}
+credential_injection   allowed  {"METRICS_API_KEY_in_environment": "placeholder", "status": 200, "caller_session": "sess-799940c6", "credential_expires_in_s": 899, "matches_this_session": true, "note": "positive control: allowed means the gateway injected a real credential"}
+direct_to_metrics      blocked  {"error": ["urllib.error.URLError: <urlopen error [Errno -3] Temporary failure in name resolution>"]}
+
+$ kubectl -n sandbox-egress exec <gateway pod> -- python -c "call the metrics API with a forged credential, then with none"
+forged credential -> (401, {'error': 'credential rejected: bad signature'})
+no credential     -> (401, {'error': 'credential rejected: malformed'})
+
+$ scripts/audit-query.py sess-799940c6 | grep -E 'credential|metrics-api'
+15:21:01.298  egress-gateway     egress.allow         host=metrics-api.sandbox-platform.svc port=443 tls_mode=terminate
+15:21:01.326  credential-broker  credential.minted    caller=egress-gateway audience=metrics-api ttl_seconds=900 credential_id=e61b4e3e98
+15:21:01.327  egress-gateway     egress.request       host=metrics-api.sandbox-platform.svc method=GET path=/v1/metrics injected=True credential_id=e61b4e3e98
+15:21:01.328  metrics-api        request.served       metric=orders_per_minute
+15:21:01.373  egress-gateway     egress.response      host=metrics-api.sandbox-platform.svc status=200 bytes=138
+15:21:21.640  sandbox-router     exec                 backend=sandboxd command=python3 /workspace/drills.py secrets_in_sandbox,credential_injection,direct_to_metrics session=sess-799940c6 exit_code=0 dura
+
+$ kubectl logs <every platform component> | grep -c <this session's token>
+0
+
+[PASS] the sandbox's environment holds only the word 'placeholder'
+[PASS] the protected API accepted the request and identified this session
+[PASS] the credential is short-lived (15 minutes at most)
+[PASS] calling the API without the gateway is impossible
+[PASS] the API rejects a forged credential and a missing one
+[PASS] the broker and the API logged the credential by ID, and the API saw this session
+[PASS] the session token appears in none of the platform logs

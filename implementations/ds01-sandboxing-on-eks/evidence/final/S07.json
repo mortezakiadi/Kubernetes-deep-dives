@@ -1,0 +1,77 @@
+{
+ "id": "S07",
+ "title": "Credentials: secrets never enter the sandbox",
+ "design_ref": "Credentials: secrets never enter the sandbox; Threat model arrow 5",
+ "purpose": "Show a sandbox that holds only a placeholder successfully calling a protected API, because the gateway swaps in a short-lived credential outside the sandbox.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "orch create cred coding python-untrusted 900",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-799940c6\", \"claim\": \"sess-799940c6\", \"template\": \"python-untrusted\", \"ready_ms\": 339, \"allow_hosts\": [\"files.pythonhosted.org\", \"metrics-api.sandbox-platform.svc\", \"pypi.org\", \"tool-gateway.sandbox-platform.svc\"], \"shutdown_time\": \"2026-11-19T15:35:56Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.87.112\"}",
+   "exit_code": 0,
+   "seconds": 2.37
+  },
+  {
+   "display": "orch exec sess-799940c6 \"python3 /workspace/drills.py secrets_in_sandbox,credential_injection,direct_to_metrics session=sess-799940c6\"",
+   "output": "secrets_in_sandbox     blocked  {\"placeholder_variables\": [\"METRICS_API_KEY\"], \"suspicious\": {}, \"credential_paths_present\": []}\ncredential_injection   allowed  {\"METRICS_API_KEY_in_environment\": \"placeholder\", \"status\": 200, \"caller_session\": \"sess-799940c6\", \"credential_expires_in_s\": 899, \"matches_this_session\": true, \"note\": \"positive control: allowed means the gateway injected a real credential\"}\ndirect_to_metrics      blocked  {\"error\": [\"urllib.error.URLError: <urlopen error [Errno -3] Temporary failure in name resolution>\"]}",
+   "exit_code": 0,
+   "seconds": 22.74
+  },
+  {
+   "display": "kubectl -n sandbox-egress exec <gateway pod> -- python -c \"call the metrics API with a forged credential, then with none\"",
+   "output": "forged credential -> (401, {'error': 'credential rejected: bad signature'})\nno credential     -> (401, {'error': 'credential rejected: malformed'})",
+   "exit_code": 0,
+   "seconds": 1.71
+  },
+  {
+   "display": "scripts/audit-query.py sess-799940c6 | grep -E 'credential|metrics-api'",
+   "output": "15:21:01.298  egress-gateway     egress.allow         host=metrics-api.sandbox-platform.svc port=443 tls_mode=terminate\n15:21:01.326  credential-broker  credential.minted    caller=egress-gateway audience=metrics-api ttl_seconds=900 credential_id=e61b4e3e98\n15:21:01.327  egress-gateway     egress.request       host=metrics-api.sandbox-platform.svc method=GET path=/v1/metrics injected=True credential_id=e61b4e3e98\n15:21:01.328  metrics-api        request.served       metric=orders_per_minute\n15:21:01.373  egress-gateway     egress.response      host=metrics-api.sandbox-platform.svc status=200 bytes=138\n15:21:21.640  sandbox-router     exec                 backend=sandboxd command=python3 /workspace/drills.py secrets_in_sandbox,credential_injection,direct_to_metrics session=sess-799940c6 exit_code=0 dura",
+   "exit_code": 0,
+   "seconds": 8.28
+  },
+  {
+   "display": "kubectl logs <every platform component> | grep -c <this session's token>",
+   "output": "0",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the sandbox's environment holds only the word 'placeholder'",
+   "passed": true,
+   "because": "The template sets the variable to the literal placeholder; there are no Secrets in the namespace."
+  },
+  {
+   "description": "the protected API accepted the request and identified this session",
+   "passed": true,
+   "because": "The gateway minted a credential for this session and replaced the Authorization header on the way out."
+  },
+  {
+   "description": "the credential is short-lived (15 minutes at most)",
+   "passed": true,
+   "because": "The broker caps the lifetime for this audience."
+  },
+  {
+   "description": "calling the API without the gateway is impossible",
+   "passed": true,
+   "because": "No route and no DNS from the sandbox to the service."
+  },
+  {
+   "description": "the API rejects a forged credential and a missing one",
+   "passed": true,
+   "because": "It verifies the signature, audience and expiry of every credential."
+  },
+  {
+   "description": "the broker and the API logged the credential by ID, and the API saw this session",
+   "passed": true,
+   "because": "Both sides record the same session ID and a credential ID, never the credential."
+  },
+  {
+   "description": "the session token appears in none of the platform logs",
+   "passed": true,
+   "because": "The audit logger redacts any field named like a secret, and no component logs request headers."
+  }
+ ],
+ "notes": []
+}

@@ -1,0 +1,44 @@
+# S12: Failure drills
+# Design reference: Failure modes and operations
+
+$ orch create fail coding python-untrusted 1200
+{"http_status": 201, "session_id": "sess-23ff97b4", "claim": "sess-23ff97b4", "template": "python-untrusted", "ready_ms": 333, "allow_hosts": ["files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:45:36Z", "session_token": "<redacted>", "pod_ip": "10.20.67.242"}
+
+$ orch exec sess-23ff97b4 "python3 /workspace/drills.py approved_host "
+approved_host          allowed  {"https://pypi.org/simple/": 200, "note": "positive control: allowed is correct"}
+
+$ kubectl -n sandbox-egress scale deploy/egress-gateway --replicas=0
+deployment.apps/egress-gateway scaled
+
+$ orch exec sess-23ff97b4 "python3 /workspace/drills.py approved_host "
+approved_host          error    {"exception": "ConnectionRefusedError: [Errno 111] Connection refused"}
+
+$ kubectl -n sandbox-egress scale deploy/egress-gateway --replicas=2
+deployment.apps/egress-gateway scaled
+
+$ kubectl -n sandbox-egress rollout status deploy/egress-gateway --timeout=180s
+Waiting for deployment "egress-gateway" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "egress-gateway" rollout to finish: 1 of 2 updated replicas are available...
+deployment "egress-gateway" successfully rolled out
+
+$ orch exec sess-23ff97b4 "python3 /workspace/drills.py approved_host "
+approved_host          allowed  {"https://pypi.org/simple/": 200, "note": "positive control: allowed is correct"}
+
+$ kubectl -n agent-sandbox-system scale deploy/agent-sandbox-controller --replicas=0
+deployment.apps/agent-sandbox-controller scaled
+
+$ orch exec sess-23ff97b4 "echo still running; uname -r"   # controller is down
+still running
+6.18.62
+[exit code 0]
+
+$ kubectl -n agent-sandbox-system scale deploy/agent-sandbox-controller --replicas=1
+deployment.apps/agent-sandbox-controller scaled
+
+$ kubectl -n agent-sandbox-system rollout status deploy/agent-sandbox-controller --timeout=120s
+Waiting for deployment "agent-sandbox-controller" rollout to finish: 0 of 1 updated replicas are available...
+deployment "agent-sandbox-controller" successfully rolled out
+
+[PASS] with the gateway down the sandbox loses outbound access (fails closed)
+[PASS] when the gateway returns the same sandbox reaches its allowed host again
+[PASS] with the sandbox controller down, a running session keeps working

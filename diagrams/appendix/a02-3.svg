@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="700px" viewBox="0 0 1420 700" style="background:#ffffff"><title>Every network path out of a sandbox</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="700" fill="#ffffff"/><rect x="40" y="60" width="380" height="580" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="54" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">UNTRUSTED</text>
+<rect x="70" y="100" width="320" height="190" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="70" y="100" width="320" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="71" y="118" width="318" height="12" fill="#fef2f2"/>
+<text x="82" y="120" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Code inside a sandbox</text>
+<text x="82" y="148" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">own kernel (microVM)</text>
+<text x="82" y="165" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">HTTPS_PROXY = the gateway's fixed address</text>
+<text x="82" y="182" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no DNS, no service-account token</text>
+<text x="82" y="199" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">env: METRICS_API_KEY=placeholder</text>
+<rect x="500" y="60" width="300" height="210" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="514" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">THE ONE WAY OUT</text>
+<rect x="525" y="100" width="250" height="140" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="525" y="100" width="250" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="526" y="118" width="248" height="12" fill="#eff6ff"/>
+<text x="537" y="120" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Egress gateway</text>
+<text x="537" y="148" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">1. who owns this source address?</text>
+<text x="537" y="165" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">2. is the host on that session's list?</text>
+<text x="537" y="182" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">3. rate and byte limits</text>
+<text x="537" y="199" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">4. inject credential, or pass through</text>
+<path d="M390 170 L525 170" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="413.7" y="149" width="88.60000000000001" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="458" y="161" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">TCP 3128 only</text>
+<text x="60" y="316" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#991b1b">Seven attempts that must fail</text>
+<path d="M390 270 L430 340" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-bad)"/>
+<circle cx="448" cy="340" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><path d="M444 336 L452 344 M452 336 L444 344" stroke="#dc2626" stroke-width="2.2"/>
+<rect x="480" y="320" width="330" height="40" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="480" y="320" width="330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="481" y="338" width="328" height="12" fill="#f8fafc"/>
+<text x="492" y="340" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Kubernetes API server</text>
+<text x="830" y="345" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">S05 kubernetes_api</text>
+<path d="M390 270 L430 388" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-bad)"/>
+<circle cx="448" cy="388" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><path d="M444 384 L452 392 M452 384 L444 392" stroke="#dc2626" stroke-width="2.2"/>
+<rect x="480" y="368" width="330" height="40" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="480" y="368" width="330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="481" y="386" width="328" height="12" fill="#f8fafc"/>
+<text x="492" y="388" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Another sandbox (8080, 9090)</text>
+<text x="830" y="393" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">S05 other_sandbox</text>
+<path d="M390 270 L430 436" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-bad)"/>
+<circle cx="448" cy="436" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><path d="M444 432 L452 440 M452 432 L444 440" stroke="#dc2626" stroke-width="2.2"/>
+<rect x="480" y="416" width="330" height="40" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="480" y="416" width="330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="481" y="434" width="328" height="12" fill="#f8fafc"/>
+<text x="492" y="436" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">169.254.169.254 credentials</text>
+<text x="830" y="441" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">S05 imds</text>
+<path d="M390 270 L430 484" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-bad)"/>
+<circle cx="448" cy="484" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><path d="M444 480 L452 488 M452 480 L444 488" stroke="#dc2626" stroke-width="2.2"/>
+<rect x="480" y="464" width="330" height="40" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="480" y="464" width="330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="481" y="482" width="328" height="12" fill="#f8fafc"/>
+<text x="492" y="484" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Internet by address (1.1.1.1)</text>
+<text x="830" y="489" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">S05 direct_internet</text>
+<path d="M390 270 L430 532" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-bad)"/>
+<circle cx="448" cy="532" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><path d="M444 528 L452 536 M452 528 L444 536" stroke="#dc2626" stroke-width="2.2"/>
+<rect x="480" y="512" width="330" height="40" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="480" y="512" width="330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="481" y="530" width="328" height="12" fill="#f8fafc"/>
+<text x="492" y="532" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Internet with the proxy unset</text>
+<text x="830" y="537" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">S05 proxy_bypass</text>
+<path d="M390 270 L430 580" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-bad)"/>
+<circle cx="448" cy="580" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><path d="M444 576 L452 584 M452 576 L444 584" stroke="#dc2626" stroke-width="2.2"/>
+<rect x="480" y="560" width="330" height="40" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="480" y="560" width="330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="481" y="578" width="328" height="12" fill="#f8fafc"/>
+<text x="492" y="580" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">DNS lookups and DNS exfiltration</text>
+<text x="830" y="585" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">S05 dns_exfiltration</text>
+<path d="M390 270 L430 628" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-bad)"/>
+<circle cx="448" cy="628" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><path d="M444 624 L452 632 M452 624 L444 632" stroke="#dc2626" stroke-width="2.2"/>
+<rect x="480" y="608" width="330" height="40" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="480" y="608" width="330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="481" y="626" width="328" height="12" fill="#f8fafc"/>
+<text x="492" y="628" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Host not on the allowlist</text>
+<text x="830" y="633" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">S06 unapproved_host</text>
+<rect x="950" y="60" width="430" height="300" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="964" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">WHAT THE GATEWAY MAY REACH</text>
+<rect x="975" y="100" width="380" height="70" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="975" y="100" width="380" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="976" y="118" width="378" height="12" fill="#ecfdf5"/>
+<text x="987" y="120" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Allowlisted internet</text>
+<text x="987" y="148" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pypi.org, files.pythonhosted.org (per session)</text>
+<rect x="975" y="190" width="380" height="70" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="975" y="190" width="380" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="976" y="208" width="378" height="12" fill="#ecfdf5"/>
+<text x="987" y="210" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Internal service, credential injected</text>
+<text x="987" y="238" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">metrics API over TLS the gateway terminates</text>
+<rect x="975" y="280" width="380" height="60" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="975" y="280" width="380" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="976" y="298" width="378" height="12" fill="#ecfdf5"/>
+<text x="987" y="300" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Tool gateway (session token)</text>
+<text x="987" y="328" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">called from the sandbox through the gateway</text>
+<path d="M775 160 L975 135" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<path d="M775 170 L975 225" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<path d="M775 180 L975 310" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="950" y="400" width="430" height="110" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="950" y="400" width="430" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="951" y="418" width="428" height="12" fill="#fffbeb"/>
+<text x="962" y="420" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Ceiling behind the gateway</text>
+<text x="962" y="448" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">The gateway's own network policy names 3 domains.</text>
+<text x="962" y="465" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">A session allowlist that names anything else is</text>
+<text x="962" y="482" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">refused by the network, not by the gateway (S06).</text>
+<rect x="950" y="540" width="430" height="90" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="950" y="540" width="430" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="951" y="558" width="428" height="12" fill="#fffbeb"/>
+<text x="962" y="560" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Ingress into a sandbox</text>
+<text x="962" y="588" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Only the router's pods, only ports 8080 and 9090.</text>
+<text x="962" y="605" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Not even the trusted orchestrator can connect (S05).</text></svg>

@@ -1,0 +1,30 @@
+# S09: Tier 3: a microVM with no network device
+# Design reference: Choosing the isolation boundary (Tier 3); Files, state and results
+
+$ orch create analytics data-analyst compute-only 900
+{"http_status": 201, "session_id": "sess-cd4cdd81", "claim": "sess-cd4cdd81", "template": "compute-only", "ready_ms": 349, "allow_hosts": [], "shutdown_time": "2026-11-19T15:38:07Z", "session_token": "<redacted>", "pod_ip": "10.20.67.242"}
+
+$ kubectl -n sandboxes get pod compute-only-pool-plgv5 -o jsonpath='{.metadata.annotations}'
+{"agents.x-k8s.io/claim-name":"sess-cd4cdd81","agents.x-k8s.io/propagated-annotations":"karpenter.sh/do-not-disrupt,sandbox.amazonaws.com/network-isolated","agents.x-k8s.io/propagated-labels":"app,ds01/tier,sandbox.users.io/session,sandbox.users.io/template,sandbox.users.io/tenant","karpenter.sh/do-not-disrupt":"true","sandbox.amazonaws.com/network-isolated":"true"}
+
+$ orch put-text sess-cd4cdd81 uploads/sales.csv 'region,sales
+north,120
+south,95
+north,80
+west,60
+'
+{"http_status": 200, "written": "uploads/sales.csv", "bytes": 49}
+
+$ orch exec sess-cd4cdd81 "python3 -c <sum sales by region from /workspace/uploads/sales.csv>"
+{'north': 200, 'south': 95, 'west': 60}
+[exit code 0]
+
+$ orch get sess-cd4cdd81 result.json
+{"http_status": 200, "path": "result.json", "bytes": 39, "content": "{\"north\": 200, \"south\": 95, \"west\": 60}"}
+
+$ orch exec sess-cd4cdd81 "python3 /workspace/drills.py no_network_device "
+no_network_device      blocked  {"interfaces": ["dummy0", "lo"], "connect_1.1.1.1:443": "OSError: [Errno 101] Network is unreachable"}
+
+[PASS] the analysis ran and produced the totals
+[PASS] the result file came back through the router
+[PASS] the sandbox has no network device and no route out

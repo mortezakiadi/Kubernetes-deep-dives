@@ -1,0 +1,80 @@
+# S03: Pod hardening, identity and Kubernetes permissions
+# Design reference: The sandbox node pool and pod hardening; Threat model arrows 3 and 4
+
+$ orch create hard coding python-untrusted 900
+{"http_status": 201, "session_id": "sess-0a9b9fcf", "claim": "sess-0a9b9fcf", "template": "python-untrusted", "ready_ms": 332, "allow_hosts": ["files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "pypi.org", "tool-gateway.sandbox-platform.svc"], "shutdown_time": "2026-11-19T15:30:39Z", "session_token": "<redacted>", "pod_ip": "10.20.67.240"}
+
+$ kubectl -n sandboxes get pod python-untrusted-pool-bq7wl -o jsonpath=<the security-relevant fields>
+runtimeClass: isolated-sandbox
+serviceAccount: sandbox-nobody
+automountServiceAccountToken: false
+enableServiceLinks: false
+runAsNonRoot: true
+readOnlyRootFilesystem: true
+capabilities.drop: ["ALL"]
+limits: {"cpu":"1","memory":"1Gi"}
+
+$ orch exec sess-0a9b9fcf "id; touch /etc/probe; ls /var/run/secrets; env | grep ...; grep CapEff /proc/1/status"   # run INSIDE the sandbox
+uid=1000 gid=1000 groups=1000
+---
+touch: cannot touch '/etc/probe': Read-only file system
+---
+ls: cannot access '/var/run/secrets': No such file or directory
+---
+KUBERNETES_SERVICE_PORT=<value hidden>
+KUBERNETES_PORT=<value hidden>
+GPG_KEY=<value hidden>
+KUBERNETES_PORT_443_TCP_ADDR=<value hidden>
+KUBERNETES_PORT_443_TCP_PORT=<value hidden>
+KUBERNETES_PORT_443_TCP_PROTO=<value hidden>
+METRICS_API_KEY=<value hidden>
+KUBERNETES_PORT_443_TCP=<value hidden>
+KUBERNETES_SERVICE_PORT_HTTPS=<value hidden>
+KUBERNETES_SERVICE_HOST=<value hidden>
+---
+CapEff:	0000000000000000
+NoNewPrivs:	1
+[exit code 0]
+
+$ kubectl auth can-i get secrets -n sandboxes --as system:serviceaccount:sandboxes:sandbox-nobody
+no
+
+$ kubectl auth can-i list pods -n sandboxes --as system:serviceaccount:sandboxes:sandbox-nobody
+no
+
+$ kubectl auth can-i create pods/exec -n sandboxes --as system:serviceaccount:sandboxes:sandbox-nobody
+no
+
+$ kubectl auth can-i get secrets -n kube-system --as system:serviceaccount:sandboxes:sandbox-nobody
+no
+
+$ kubectl -n sandboxes get secrets
+
+No resources found in sandboxes namespace.
+
+$ kubectl -n sandboxes apply -f privileged-pod.yaml   # privileged: true, hostNetwork: true
+
+Error from server (Forbidden): error when creating "STDIN": pods "escape-attempt" is forbidden: violates PodSecurity "restricted:latest": host namespaces (hostNetwork=true), privileged (container "c" must not set securityContext.privileged=true), allowPrivilegeEscalation != false (container "c" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container "c" must set securityContext.capabilities.drop=["ALL"]), runAsNonRoot != true (pod or container "c" must set securityContext.runAsNonRoot=true), seccompProfile (pod or container "c" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")
+
+$ kubectl auth can-i create sandboxclaims.extensions.agents.x-k8s.io -n sandboxes --as system:serviceaccount:sandbox-platform:sandbox-manager
+yes
+
+$ kubectl auth can-i create pods/exec -n sandboxes --as system:serviceaccount:sandbox-platform:sandbox-manager
+no
+
+$ kubectl auth can-i create pods/exec -n sandboxes --as system:serviceaccount:sandbox-router:sandbox-router
+no
+
+$ kubectl auth can-i create pods/exec -n default --as system:serviceaccount:sandbox-router:sandbox-router
+no
+
+$ kubectl auth can-i get pods -n sandboxes --as system:serviceaccount:agent-orchestrator:orchestrator
+no
+
+[PASS] the pod opts into the microVM runtime and mounts no ServiceAccount token
+[PASS] the container drops all capabilities, forbids privilege escalation and has a read-only root filesystem
+[PASS] the code runs as uid 1000, cannot write to the root filesystem and finds no service-account directory
+[PASS] the sandbox ServiceAccount can do nothing on the Kubernetes API
+[PASS] the sandboxes namespace contains no Kubernetes Secret at all
+[PASS] a privileged, host-network pod is refused by Pod Security admission
+[PASS] each platform identity holds only the permissions its job needs

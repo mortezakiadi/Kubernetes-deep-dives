@@ -1,0 +1,52 @@
+# Design 01, "The sandbox node pool and pod hardening".
+#
+# A dedicated, tainted NodePool that runs nothing but sandboxes, in its own subnets, with its own
+# security group and its own minimal node role. Nitro Sandboxes need instance types that support
+# Nitro Enclaves; EKS Auto Mode picks a supported type from the families allowed below.
+apiVersion: eks.amazonaws.com/v1
+kind: NodeClass
+metadata:
+  name: sandbox
+spec:
+  role: ${node_role}
+  subnetSelectorTerms:
+    - tags:
+        ds01/tier: sandbox
+  securityGroupSelectorTerms:
+    - id: ${sandbox_sg}
+  ephemeralStorage:
+    size: 40Gi
+  advancedNetworking:
+    associatePublicIPAddress: false
+---
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: sandbox
+spec:
+  template:
+    metadata:
+      labels:
+        workload: sandbox
+    spec:
+      nodeClassRef:
+        group: eks.amazonaws.com
+        kind: NodeClass
+        name: sandbox
+      # Nothing else tolerates this taint, so only sandbox pods can land here.
+      taints:
+        - key: workload
+          value: sandbox
+          effect: NoSchedule
+      requirements:
+        - { key: karpenter.sh/capacity-type, operator: In, values: ["on-demand"] }
+        - { key: kubernetes.io/arch, operator: In, values: ["amd64"] }
+        - { key: eks.amazonaws.com/instance-category, operator: In, values: ["c", "m"] }
+        - { key: eks.amazonaws.com/instance-generation, operator: Gt, values: ["6"] }
+        - { key: eks.amazonaws.com/instance-cpu, operator: In, values: ["4", "8"] }
+  # Only empty nodes are removed. A node holding a live session is never consolidated away.
+  disruption:
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: 10m
+  limits:
+    cpu: "32"

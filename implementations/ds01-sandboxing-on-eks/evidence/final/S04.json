@@ -1,0 +1,59 @@
+{
+ "id": "S04",
+ "title": "Warm pools and claims",
+ "design_ref": "Sandbox lifecycle: templates, warm pools and claims",
+ "purpose": "Show that a session claims a pre-booted sandbox in well under a second, that the pool refills, and that an empty pool degrades to a slower cold start instead of failing.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n sandboxes get sandboxwarmpool,sandboxtemplate",
+   "output": "NAME                                                               READY   DESIRED   AGE\nsandboxwarmpool.extensions.agents.x-k8s.io/compute-only-pool       1       1         14m\nsandboxwarmpool.extensions.agents.x-k8s.io/python-untrusted-pool   2       2         14m\n\nNAME                                                          AGE\nsandboxtemplate.extensions.agents.x-k8s.io/compute-only       14m\nsandboxtemplate.extensions.agents.x-k8s.io/python-untrusted   14m",
+   "exit_code": 0,
+   "seconds": 1.29
+  },
+  {
+   "display": "kubectl -n sandboxes get pods -o wide   # the warm pods, already booted and waiting",
+   "output": "NAME                          READY   STATUS    RESTARTS   AGE     IP             NODE                  NOMINATED NODE   READINESS GATES\ncompute-only-pool-sdmjn       1/1     Running   0          3m43s   10.20.87.116   i-0021b8afd01dfb486   <none>           <none>\npython-untrusted-pool-2mxkk   1/1     Running   0          2m22s   10.20.87.112   i-0021b8afd01dfb486   <none>           <none>\npython-untrusted-pool-p2nxv   1/1     Running   0          117s    10.20.87.115   i-0021b8afd01dfb486   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.22
+  },
+  {
+   "display": "orch create pool coding python-untrusted 600   # x3, started at the same instant (pool size is 2)",
+   "output": "sess-0d575447  ready in 343 ms\nsess-27d2cc6a  ready in 346 ms\nsess-b346d23f  ready in 10097 ms",
+   "exit_code": 0,
+   "seconds": 12.8
+  },
+  {
+   "display": "kubectl -n sandboxes get sandboxwarmpool   # after about a minute the pool has refilled",
+   "output": "NAME                    READY   DESIRED   AGE\ncompute-only-pool       1       1         14m\npython-untrusted-pool   2       2         14m",
+   "exit_code": 0,
+   "seconds": 1.31
+  },
+  {
+   "display": "kubectl get nodeclaims -o custom-columns=<name, pool, instance type, created>   # did the slow start launch a node?",
+   "output": "NAME                    POOL              TYPE         CREATED\ngeneral-purpose-wwhpt   general-purpose   c6a.large    2026-11-19T15:11:57Z\nsandbox-6hlth           sandbox           c7i.xlarge   2026-11-19T15:16:19Z\nsandbox-z887l           sandbox           c7i.xlarge   2026-11-19T15:13:53Z",
+   "exit_code": 0,
+   "seconds": 1.36
+  }
+ ],
+ "checks": [
+  {
+   "description": "two sessions got a ready sandbox in under 2 seconds",
+   "passed": true,
+   "because": "They adopted pods that were already booted; nothing started on the claim path."
+  },
+  {
+   "description": "the third session, which found the pool empty, still got a sandbox (a slower cold start)",
+   "passed": true,
+   "because": "Cold start took 10097 ms against 343 ms warm. An empty pool degrades; it does not fail."
+  },
+  {
+   "description": "the warm pool refilled to its desired size",
+   "passed": true,
+   "because": "The controller boots a replacement for every pod a claim adopts."
+  }
+ ],
+ "notes": [
+  "Sandbox node claims after the burst: 2. Compare their creation times with the session start times above."
+ ]
+}

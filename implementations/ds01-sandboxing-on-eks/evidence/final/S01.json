@@ -1,0 +1,124 @@
+{
+ "id": "S01",
+ "title": "Cluster topology, node pools and the sandbox node pool",
+ "design_ref": "The sandbox node pool and pod hardening",
+ "purpose": "Show the EKS mode and version, the dedicated tainted sandbox pool, the instance type it runs on, the separate subnets and security group, the minimal node role, and that nothing but sandboxes runs on those nodes.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "aws eks describe-cluster --name ds01-sandboxing --query <version, autoMode, endpoint CIDRs, logging>",
+   "output": "{\n    \"version\": \"1.37\",\n    \"status\": \"ACTIVE\",\n    \"autoMode\": {\n        \"enabled\": true,\n        \"nodePools\": [\n            \"general-purpose\",\n            \"system\"\n        ],\n        \"nodeRoleArn\": \"arn:aws:iam::<ACCOUNT_ID>:role/ds01-sandboxing-node\"\n    },\n    \"publicEndpointCidrs\": [\n        \"<ADMIN_IP>/32\"\n    ],\n    \"logging\": [\n        \"api\",\n        \"audit\",\n        \"authenticator\"\n    ]\n}",
+   "exit_code": 0,
+   "seconds": 1.27
+  },
+  {
+   "display": "kubectl get nodes -L workload,node.kubernetes.io/instance-type,topology.kubernetes.io/zone,eks.amazonaws.com/nitro-sandbox",
+   "output": "NAME                  STATUS   ROLES    AGE     VERSION               WORKLOAD   INSTANCE-TYPE   ZONE         NITRO-SANDBOX\ni-0543f2a2608a827e3   Ready    <none>   30s     v1.37.1-eks-577a51e   sandbox    c7i.xlarge      us-east-1a   true\ni-0ab84e37874257700   Ready    <none>   2m23s   v1.37.1-eks-577a51e              c6a.large       us-east-1a   false",
+   "exit_code": 0,
+   "seconds": 1.27
+  },
+  {
+   "display": "kubectl get nodepool,nodeclass",
+   "output": "NAME                                    NODECLASS   NODES   READY   AGE\nnodepool.karpenter.sh/general-purpose   default     1       True    5m17s\nnodepool.karpenter.sh/sandbox           sandbox     1       True    112s\nnodepool.karpenter.sh/system            default     0       True    5m17s\n\nNAME                                  ROLE                           READY   AGE\nnodeclass.eks.amazonaws.com/default   ds01-sandboxing-node           True    5m19s\nnodeclass.eks.amazonaws.com/sandbox   ds01-sandboxing-sandbox-node   True    115s",
+   "exit_code": 0,
+   "seconds": 1.23
+  },
+  {
+   "display": "kubectl get nodepool sandbox -o jsonpath={.spec.template.spec.taints}",
+   "output": "[{\"effect\":\"NoSchedule\",\"key\":\"workload\",\"value\":\"sandbox\"}]",
+   "exit_code": 0,
+   "seconds": 1.17
+  },
+  {
+   "display": "aws ec2 describe-instances --instance-ids i-0543f2a2608a827e3 --query <type, subnet, security groups, IMDS options, enclave option>",
+   "output": "{\n    \"type\": \"c7i.xlarge\",\n    \"subnet\": \"subnet-0e9a98c895b1b0256\",\n    \"securityGroups\": [\n        \"ds01-sandboxing-sandbox-nodes\"\n    ],\n    \"imdsTokens\": \"required\",\n    \"imdsHopLimit\": 1,\n    \"nitroEnclaves\": true\n}",
+   "exit_code": 0,
+   "seconds": 1.34
+  },
+  {
+   "display": "aws ec2 describe-subnets --subnet-ids <the node's subnet> --query <cidr, tier tag, name>",
+   "output": "{\n    \"cidr\": \"10.20.64.0/20\",\n    \"tier\": \"sandbox\",\n    \"name\": \"ds01-sandboxing-sandbox-us-east-1a\"\n}",
+   "exit_code": 0,
+   "seconds": 1.62
+  },
+  {
+   "display": "aws iam list-attached-role-policies --role-name ds01-sandboxing-sandbox-node --query AttachedPolicies[].PolicyName --output json",
+   "output": "[\n    \"AmazonEKSWorkerNodeMinimalPolicy\",\n    \"AmazonEC2ContainerRegistryPullOnly\"\n]",
+   "exit_code": 0,
+   "seconds": 1.24
+  },
+  {
+   "display": "aws iam list-role-policies --role-name ds01-sandboxing-sandbox-node --query PolicyNames --output json",
+   "output": "[]",
+   "exit_code": 0,
+   "seconds": 1.17
+  },
+  {
+   "display": "kubectl get pods -A -o wide --field-selector spec.nodeName=i-0543f2a2608a827e3",
+   "output": "NAMESPACE   NAME                          READY   STATUS    RESTARTS   AGE    IP             NODE                  NOMINATED NODE   READINESS GATES\nsandboxes   compute-only-pool-plgv5       1/1     Running   0          2m1s   10.20.67.242   i-0543f2a2608a827e3   <none>           <none>\nsandboxes   python-untrusted-pool-9xp67   1/1     Running   0          2m2s   10.20.67.241   i-0543f2a2608a827e3   <none>           <none>\nsandboxes   python-untrusted-pool-bq7wl   1/1     Running   0          2m2s   10.20.67.240   i-0543f2a2608a827e3   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.18
+  },
+  {
+   "display": "kubectl run taint-probe --image=python:3.12-slim --overrides='{nodeSelector: workload=sandbox}'  # a normal pod that asks for a sandbox node",
+   "output": "pod/taint-probe created",
+   "exit_code": 0,
+   "seconds": 1.08
+  },
+  {
+   "display": "kubectl get pod taint-probe",
+   "output": "NAME          READY   STATUS    RESTARTS   AGE\ntaint-probe   0/1     Pending   0          13s",
+   "exit_code": 0,
+   "seconds": 1.11
+  },
+  {
+   "display": "kubectl describe pod taint-probe | grep -A3 Events",
+   "output": "Events:\n  Type     Reason            Age   From                   Message\n  ----     ------            ----  ----                   -------\n  Warning  FailedScheduling  14s   default-scheduler      0/2 nodes are available: 1 node(s) didn't match Pod's node affinity/selector, 1 node(s) had untolerated taint(s). preemption: 0/2 nodes are available: 2 Preemption is not helpful for scheduling.\n  Warning  FailedScheduling  13s   eks-auto-mode/compute  Failed to schedule pod, did not tolerate taint (taint=CriticalAddonsOnly:NoSchedule); did not tolerate taint (taint=workload=sandbox:NoSchedule); incompatible requirements, label \"workload\" does not have known values",
+   "exit_code": 0,
+   "seconds": 1.32
+  }
+ ],
+ "checks": [
+  {
+   "description": "a sandbox node exists and is labelled for Nitro Sandboxes",
+   "passed": true,
+   "because": "Auto Mode launched a sandbox-capable node from the dedicated pool and labelled it."
+  },
+  {
+   "description": "the pool taints its nodes workload=sandbox:NoSchedule",
+   "passed": true,
+   "because": "The NodePool template carries the taint, so only pods that tolerate it can land there."
+  },
+  {
+   "description": "the node sits in a subnet tagged tier=sandbox",
+   "passed": true,
+   "because": "The sandbox NodeClass selects subnets by the ds01/tier=sandbox tag, so these nodes cannot be placed in the platform subnets."
+  },
+  {
+   "description": "the node uses the dedicated sandbox security group",
+   "passed": true,
+   "because": "The NodeClass pins the security group created for sandbox nodes."
+  },
+  {
+   "description": "IMDSv2 is required and Nitro Enclaves are enabled",
+   "passed": true,
+   "because": "Auto Mode launches nodes with IMDSv2 required; Nitro Sandboxes need the Enclaves option, which Auto Mode set."
+  },
+  {
+   "description": "the sandbox node role has only the two minimal managed policies and no inline policy",
+   "passed": true,
+   "because": "Terraform attaches exactly these two policies. There is no S3, Secrets Manager or other access an escaped process could use."
+  },
+  {
+   "description": "only the sandboxes namespace has pods on the sandbox node",
+   "passed": true,
+   "because": "Nothing else tolerates the sandbox taint, so platform pods and the controller run on the general-purpose pool."
+  },
+  {
+   "description": "an ordinary pod that asks for the sandbox pool stays Pending",
+   "passed": true,
+   "because": "The scheduler refuses it because it does not tolerate the workload=sandbox taint."
+  }
+ ],
+ "notes": []
+}

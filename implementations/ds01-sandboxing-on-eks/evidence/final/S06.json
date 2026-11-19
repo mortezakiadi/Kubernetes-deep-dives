@@ -1,0 +1,119 @@
+{
+ "id": "S06",
+ "title": "The egress gateway: per-session allowlist, the global ceiling and rate limits",
+ "design_ref": "Network: default deny and one way out",
+ "purpose": "Show the gateway allowing what a session is approved for, refusing everything else, being capped by the network ceiling even when an allowlist is wrong, and rate limiting a runaway session.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "orch create egr coding python-untrusted 900",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-a67e3d16\", \"claim\": \"sess-a67e3d16\", \"template\": \"python-untrusted\", \"ready_ms\": 340, \"allow_hosts\": [\"files.pythonhosted.org\", \"metrics-api.sandbox-platform.svc\", \"pypi.org\", \"tool-gateway.sandbox-platform.svc\"], \"shutdown_time\": \"2026-11-19T15:43:37Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.67.244\"}",
+   "exit_code": 0,
+   "seconds": 2.37
+  },
+  {
+   "display": "orch exec sess-a67e3d16 \"python3 /workspace/drills.py unapproved_host,approved_host,host_probe host=example.com\"",
+   "output": "unapproved_host        blocked  {\"error\": \"Tunnel connection failed: 403 Forbidden\"}\napproved_host          allowed  {\"https://pypi.org/simple/\": 200, \"note\": \"positive control: allowed is correct\"}\nhost_probe             blocked  {\"host\": \"example.com\", \"error\": \"Tunnel connection failed: 403 Forbidden\"}",
+   "exit_code": 0,
+   "seconds": 2.55
+  },
+  {
+   "display": "orch create egr coding python-untrusted 900 example.com",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-0475807f\", \"claim\": \"sess-0475807f\", \"template\": \"python-untrusted\", \"ready_ms\": 337, \"allow_hosts\": [\"example.com\", \"files.pythonhosted.org\", \"metrics-api.sandbox-platform.svc\", \"pypi.org\", \"tool-gateway.sandbox-platform.svc\"], \"shutdown_time\": \"2026-11-19T15:43:43Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.67.240\"}",
+   "exit_code": 0,
+   "seconds": 2.23
+  },
+  {
+   "display": "orch exec sess-0475807f \"python3 /workspace/drills.py host_probe host=example.com\"",
+   "output": "host_probe             allowed  {\"host\": \"example.com\", \"status\": 200}",
+   "exit_code": 0,
+   "seconds": 2.66
+  },
+  {
+   "display": "orch create egr coding python-untrusted 900 github.com",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-19450cf8\", \"claim\": \"sess-19450cf8\", \"template\": \"python-untrusted\", \"ready_ms\": 337, \"allow_hosts\": [\"files.pythonhosted.org\", \"github.com\", \"metrics-api.sandbox-platform.svc\", \"pypi.org\", \"tool-gateway.sandbox-platform.svc\"], \"shutdown_time\": \"2026-11-19T15:43:51Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.87.115\"}",
+   "exit_code": 0,
+   "seconds": 2.54
+  },
+  {
+   "display": "orch exec sess-19450cf8 \"python3 /workspace/drills.py ceiling_backstop host=github.com\"",
+   "output": "ceiling_backstop       blocked  {\"error\": \"timed out\"}",
+   "exit_code": 0,
+   "seconds": 42.5
+  },
+  {
+   "display": "scripts/audit-query.py sess-19450cf8 | grep -E 'egress|github'",
+   "output": "15:28:55.927  egress-gateway     egress.allow         host=github.com port=443 tls_mode=passthrough",
+   "exit_code": 0,
+   "seconds": 8.47
+  },
+  {
+   "display": "kubectl -n sandbox-egress exec <gateway pod> -- python -c \"connect to pypi.org:443, then github.com:443\"   # the gateway's own network, no sandbox involved",
+   "output": "pypi.org -> connected\ngithub.com -> TimeoutError: timed out",
+   "exit_code": 0,
+   "seconds": 9.56
+  },
+  {
+   "display": "orch exec sess-a67e3d16 \"python3 /workspace/drills.py rate_limit n=140\"",
+   "output": "rate_limit             blocked  {\"requests\": 140, \"succeeded\": 120, \"refused_429\": 20, \"other\": 0}",
+   "exit_code": 0,
+   "seconds": 8.11
+  },
+  {
+   "display": "scripts/audit-query.py sess-a67e3d16 | grep egress | head -12   # the gateway's own record of what it decided",
+   "output": "15:28:41.996  egress-gateway     egress.deny          host=example.com port=443 status=403 reason=example.com is not on this session's allowlist\n15:28:42.007  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough\n15:28:42.062  egress-gateway     egress.deny          host=example.com port=443 status=403 reason=example.com is not on this session's allowlist\n15:29:59.271  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough\n15:29:59.317  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough\n15:29:59.402  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough\n15:29:59.447  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough\n15:29:59.499  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough\n15:29:59.545  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough\n15:29:59.599  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough\n15:29:59.694  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough\n15:29:59.743  egress-gateway     egress.allow         host=pypi.org port=443 tls_mode=passthrough",
+   "exit_code": 0,
+   "seconds": 8.74
+  }
+ ],
+ "checks": [
+  {
+   "description": "a host on the allowlist (pypi.org) is reachable through the gateway",
+   "passed": true,
+   "because": "The gateway matched pypi.org against the session's allowlist and tunnelled the connection."
+  },
+  {
+   "description": "a host not on the allowlist (api.github.com) is refused with 403",
+   "passed": true,
+   "because": "The gateway answers CONNECT with 403 before any connection to the host is opened."
+  },
+  {
+   "description": "example.com is refused for session A because A did not ask for it",
+   "passed": true,
+   "because": "Allowlists are per session."
+  },
+  {
+   "description": "example.com is reachable for session B, which was approved for it",
+   "passed": true,
+   "because": "Same sandbox image, same network; only the session's allowlist differs."
+  },
+  {
+   "description": "a session allowlist naming a host outside the network ceiling still cannot reach it (not a 403: the gateway tried and the network refused)",
+   "passed": true,
+   "because": "The gateway's own network policy lists only the approved domains, so a mistake in a session allowlist cannot open the internet."
+  },
+  {
+   "description": "the gateway ALLOWED the github.com request for session C (so the allowlist did not stop it); the network ceiling did",
+   "passed": true,
+   "because": "The audit record shows an allow decision; the connection still never completed, which only the gateway's network policy can explain."
+  },
+  {
+   "description": "from the gateway's own pod, pypi.org connects and github.com does not (so the network ceiling is what stops it)",
+   "passed": true,
+   "because": "Same pod, same moment, same internet route. Only the destination's presence in the gateway's network policy differs."
+  },
+  {
+   "description": "a session that opens 140 tunnels in a minute is cut off at the rate limit",
+   "passed": true,
+   "because": "The gateway allows 120 requests per minute per session; it refused 20."
+  },
+  {
+   "description": "the gateway logged both allow and deny decisions for the session",
+   "passed": true,
+   "because": "Every decision is written with the session ID."
+  }
+ ],
+ "notes": [
+  "Session A is created with the template's default allowlist: pypi.org, files.pythonhosted.org and two internal hosts."
+ ]
+}

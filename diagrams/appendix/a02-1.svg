@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="800px" viewBox="0 0 1420 800" style="background:#ffffff"><title>Design 01 implemented on EKS: components and traffic</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="800" fill="#ffffff"/><rect x="250" y="50" width="500" height="730" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="264" y="74" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">TRUSTED CONTROL PLANE</text>
+<rect x="780" y="50" width="250" height="730" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="794" y="74" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">GATEWAY ZONE</text>
+<rect x="1060" y="50" width="340" height="730" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="1074" y="74" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">UNTRUSTED: SANDBOX NODE POOL</text>
+<rect x="20" y="90" width="200" height="430" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="20" y="90" width="200" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="21" y="108" width="198" height="12" fill="#ecfdf5"/>
+<text x="32" y="110" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Agent orchestrator</text>
+<text x="32" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">namespace agent-orchestrator</text>
+<text x="32" y="155" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155"></text>
+<text x="32" y="172" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">stand-in for the agent loop:</text>
+<text x="32" y="189" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">it makes the API calls an</text>
+<text x="32" y="206" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">orchestrator makes</text>
+<text x="32" y="223" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155"></text>
+<text x="32" y="240" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">holds no cloud credentials</text>
+<text x="32" y="257" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">and no Kubernetes access</text>
+<circle cx="216" cy="94" r="12" fill="#1e293b"/><text x="216" y="98.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">1</text>
+<rect x="275" y="90" width="215" height="110" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="275" y="90" width="215" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="276" y="108" width="213" height="12" fill="#ecfdf5"/>
+<text x="287" y="110" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Tool gateway (MCP)</text>
+<text x="287" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">policy per agent, approvals,</text>
+<text x="287" y="155" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">rate limit, revocation,</text>
+<text x="287" y="172" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">session token required</text>
+<circle cx="486" cy="94" r="12" fill="#1e293b"/><text x="486" y="98.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">7</text>
+<rect x="275" y="250" width="215" height="110" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="275" y="250" width="215" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="276" y="268" width="213" height="12" fill="#ecfdf5"/>
+<text x="287" y="270" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Sandbox Router</text>
+<text x="287" y="298" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">exec and files by session ID</text>
+<text x="287" y="315" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">sandboxd, or Kubernetes exec</text>
+<text x="287" y="332" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">for the no-network tier</text>
+<circle cx="486" cy="254" r="12" fill="#1e293b"/><text x="486" y="258.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">3</text>
+<rect x="275" y="410" width="215" height="110" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="275" y="410" width="215" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="276" y="428" width="213" height="12" fill="#ecfdf5"/>
+<text x="287" y="430" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Sandbox Manager</text>
+<text x="287" y="458" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">creates claims, 3 sessions/tenant</text>
+<text x="287" y="475" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">end time on every claim</text>
+<text x="287" y="492" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">issues the session token</text>
+<circle cx="486" cy="414" r="12" fill="#1e293b"/><text x="486" y="418.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">2</text>
+<rect x="275" y="570" width="215" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="275" y="570" width="215" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="276" y="588" width="213" height="12" fill="#f8fafc"/>
+<text x="287" y="590" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Audit trail</text>
+<text x="287" y="618" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">every component logs JSON lines</text>
+<text x="287" y="635" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">carrying the same session ID;</text>
+<text x="287" y="652" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one query joins them (S11)</text>
+<circle cx="486" cy="574" r="12" fill="#1e293b"/><text x="486" y="578.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">9</text>
+<rect x="515" y="90" width="215" height="110" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="515" y="90" width="215" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="516" y="108" width="213" height="12" fill="#ecfdf5"/>
+<text x="527" y="110" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Metrics API (internal)</text>
+<text x="527" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">HTTPS; refuses any request</text>
+<text x="527" y="155" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">without a valid credential</text>
+<text x="527" y="172" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">stands for any internal service</text>
+<rect x="515" y="410" width="215" height="110" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="515" y="410" width="215" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="516" y="428" width="213" height="12" fill="#f8fafc"/>
+<text x="527" y="430" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Kubernetes API + controller</text>
+<text x="527" y="458" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">agent-sandbox controller:</text>
+<text x="527" y="475" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">templates, warm pools, claims,</text>
+<text x="527" y="492" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">deletes a claim at its end time</text>
+<rect x="805" y="90" width="200" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="805" y="90" width="200" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="806" y="108" width="198" height="12" fill="#eff6ff"/>
+<text x="817" y="110" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Egress gateway</text>
+<text x="817" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">2 replicas, one per zone</text>
+<text x="817" y="155" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">per-session allowlist</text>
+<text x="817" y="172" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">terminates TLS only where</text>
+<text x="817" y="189" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">it injects a credential</text>
+<circle cx="1001" cy="94" r="12" fill="#1e293b"/><text x="1001" y="98.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">4</text>
+<rect x="805" y="410" width="200" height="110" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="805" y="410" width="200" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="806" y="428" width="198" height="12" fill="#eff6ff"/>
+<text x="817" y="430" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Credential broker</text>
+<text x="817" y="458" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">short-lived credentials,</text>
+<text x="817" y="475" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">per session and audience,</text>
+<text x="817" y="492" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">900 seconds at most</text>
+<circle cx="1001" cy="414" r="12" fill="#1e293b"/><text x="1001" y="418.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">5</text>
+<rect x="805" y="545" width="200" height="60" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="805" y="545" width="200" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="806" y="563" width="198" height="12" fill="#fffbeb"/>
+<text x="817" y="565" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Network ceiling</text>
+<text x="817" y="593" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the gateway reaches 3 domains</text>
+<circle cx="1001" cy="549" r="12" fill="#1e293b"/><text x="1001" y="553.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">8</text>
+<rect x="805" y="650" width="200" height="100" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="805" y="650" width="200" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="806" y="668" width="198" height="12" fill="#f8fafc"/>
+<text x="817" y="670" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Internet</text>
+<text x="817" y="698" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pypi.org</text>
+<text x="817" y="715" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">files.pythonhosted.org</text>
+<text x="817" y="732" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">example.com (if approved)</text>
+<rect x="1085" y="90" width="290" height="270" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1085" y="90" width="290" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1086" y="108" width="288" height="12" fill="#fef2f2"/>
+<text x="1097" y="110" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Sandbox: python-untrusted</text>
+<text x="1097" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Tier 2: its own microVM and kernel</text>
+<text x="1097" y="155" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">network: one route, to the gateway</text>
+<text x="1097" y="172" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no DNS, no token, no secrets</text>
+<text x="1097" y="189" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">read-only root, non-root, no caps</text>
+<text x="1097" y="206" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">environment holds a placeholder</text>
+<text x="1097" y="223" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">sandboxd runs commands and files</text>
+<text x="1097" y="240" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">ingress: router pods only</text>
+<circle cx="1371" cy="94" r="12" fill="#1e293b"/><text x="1371" y="98.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">6</text>
+<rect x="1085" y="390" width="290" height="120" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1085" y="390" width="290" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1086" y="408" width="288" height="12" fill="#fef2f2"/>
+<text x="1097" y="410" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Sandbox: compute-only</text>
+<text x="1097" y="438" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Tier 3: microVM with no network device</text>
+<text x="1097" y="455" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reached through the exec channel</text>
+<text x="1097" y="472" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">for pure computation on uploaded files</text>
+<rect x="1085" y="540" width="290" height="100" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1085" y="540" width="290" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1086" y="558" width="288" height="12" fill="#fef2f2"/>
+<text x="1097" y="560" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Warm pools</text>
+<text x="1097" y="588" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">python-untrusted: 2 booted, waiting</text>
+<text x="1097" y="605" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">compute-only: 1 booted, waiting</text>
+<rect x="1085" y="670" width="290" height="80" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1085" y="670" width="290" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1086" y="688" width="288" height="12" fill="#fef2f2"/>
+<text x="1097" y="690" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Dedicated node, own subnets</text>
+<text x="1097" y="718" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">c7i.xlarge, taint workload=sandbox</text>
+<path d="M220 145 L275 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="233.7" y="127" width="26.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="247" y="139" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">MCP</text>
+<path d="M220 305 L275 305" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="230.6" y="287" width="32.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="247" y="299" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">exec</text>
+<path d="M220 465 L275 465" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="224.4" y="447" width="45.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="247" y="459" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">create</text>
+<path d="M490 465 L515 465" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="502" y="452" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="600" fill="#334155">claim</text>
+<path d="M490 145 L515 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M490 305 L1085 305" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="468.6" y="285" width="342.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="640" y="297" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">sandboxd :8080 and :9090 (only the router may connect)</text>
+<path d="M1085 150 L1005 150" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="1025.5" y="132" width="39.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1045" y="144" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">:3128</text>
+<path d="M805 125 L730 125" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="744.4" y="107" width="45.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="767" y="119" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">inject</text>
+<path d="M905 210 L905 410" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="888.6" y="361" width="32.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="905" y="373" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">mint</text>
+<path d="M1005 170 L1020 170 L1020 700 L1005 700" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<text x="1012" y="638" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="600" fill="#059669">allowlisted hosts only</text>
+<text x="1045" y="125" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="600" fill="#1e40af">the only route out</text>
+<text x="20" y="560" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">Green: trusted. Blue: gateways.</text>
+<text x="20" y="578" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">Red: where untrusted code runs.</text>
+<text x="20" y="596" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">Numbers match the component list.</text></svg>

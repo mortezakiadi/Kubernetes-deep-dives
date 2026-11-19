@@ -1,0 +1,9 @@
+[
+ {
+  "id": "S06",
+  "title": "The egress gateway: per-session allowlist, the global ceiling and rate limits",
+  "passed": true,
+  "checks": 9,
+  "failed": []
+ }
+]

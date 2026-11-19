@@ -1,0 +1,75 @@
+{
+ "id": "S02",
+ "title": "The isolation boundary: a microVM per sandbox versus a shared kernel",
+ "design_ref": "Choosing the isolation boundary (Tier 0 versus Tier 2)",
+ "purpose": "Prove that a sandbox runs on its own kernel in its own virtual machine, by comparing it with a hardened ordinary container on a normal node.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "orch create iso coding python-untrusted 900",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-b606b111\", \"claim\": \"sess-b606b111\", \"template\": \"python-untrusted\", \"ready_ms\": 374, \"allow_hosts\": [\"files.pythonhosted.org\", \"metrics-api.sandbox-platform.svc\", \"pypi.org\", \"tool-gateway.sandbox-platform.svc\"], \"shutdown_time\": \"2026-11-19T15:30:13Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.67.241\"}",
+   "exit_code": 0,
+   "seconds": 2.23
+  },
+  {
+   "display": "kubectl -n sandboxes get pod python-untrusted-pool-9xp67 -o custom-columns=NAME:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName,STARTED:.status.startTime",
+   "output": "NAME                          RUNTIME            NODE                  STARTED\npython-untrusted-pool-9xp67   isolated-sandbox   i-0543f2a2608a827e3   2026-11-19T15:14:13Z",
+   "exit_code": 0,
+   "seconds": 1.2
+  },
+  {
+   "display": "orch exec sess-b606b111 \"uname -r; cat /sys/class/dmi/id/product_name; cut -d' ' -f1 /proc/uptime\"   # inside the SANDBOX",
+   "output": "6.18.62\nc7i.enclave\n61.70\n[exit code 0]",
+   "exit_code": 0,
+   "seconds": 1.92
+  },
+  {
+   "display": "kubectl run tier0 --image=python:3.12-slim  # hardened ordinary container, Tier 0, on a normal node",
+   "output": "pod/tier0 created",
+   "exit_code": 0,
+   "seconds": 1.11
+  },
+  {
+   "display": "kubectl exec tier0 -- sh -c \"uname -r; cat /sys/class/dmi/id/product_name; cut -d' ' -f1 /proc/uptime\"   # inside the ORDINARY CONTAINER",
+   "output": "6.18.62\nc6a.large\n202.43",
+   "exit_code": 0,
+   "seconds": 1.5
+  },
+  {
+   "display": "kubectl get node i-0ab84e37874257700 -o jsonpath='{.status.nodeInfo.kernelVersion}'   # the node's own kernel version",
+   "output": "6.18.62",
+   "exit_code": 0,
+   "seconds": 1.16
+  }
+ ],
+ "checks": [
+  {
+   "description": "the sandbox reports a virtual machine of its own (product name ends in .enclave)",
+   "passed": true,
+   "because": "A Nitro Sandbox is a Firecracker microVM, and its firmware reports its own product name."
+  },
+  {
+   "description": "the ordinary container reports the host machine, not a virtual machine of its own",
+   "passed": true,
+   "because": "A normal container is a process group on the node and sees the node's hardware identity."
+  },
+  {
+   "description": "the sandbox's kernel started when the pod started, not when the node did",
+   "passed": true,
+   "because": "The sandbox boots its own kernel at pod start, so its uptime tracks the pod's age."
+  },
+  {
+   "description": "the ordinary container's uptime tracks its node's age (it shares the node's kernel)",
+   "passed": true,
+   "because": "A container shares the node's kernel, so /proc/uptime is the node's uptime."
+  },
+  {
+   "description": "the ordinary container reports exactly the node's kernel version",
+   "passed": true,
+   "because": "Same kernel: this is the shared-kernel risk the design's threat model describes (arrow 1)."
+  }
+ ],
+ "notes": [
+  "sandbox uptime 62s versus pod age 82s; ordinary container uptime 204s versus its node's age 196s"
+ ]
+}

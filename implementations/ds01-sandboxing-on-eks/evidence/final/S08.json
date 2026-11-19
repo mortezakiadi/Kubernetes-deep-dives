@@ -1,0 +1,151 @@
+{
+ "id": "S08",
+ "title": "The tool gateway (MCP): policy, approvals, rate limits and revocation",
+ "design_ref": "Tools and external services",
+ "purpose": "Show tools gated by the user and agent behind a session token, human approval for a high-risk tool, a hard no for a forbidden one, a rate limit, and revocation when the session ends.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "orch create tools data-analyst python-untrusted 900",
+   "output": "{\"http_status\": 201, \"session_id\": \"sess-1e71f9a2\", \"claim\": \"sess-1e71f9a2\", \"template\": \"python-untrusted\", \"ready_ms\": 338, \"allow_hosts\": [\"files.pythonhosted.org\", \"metrics-api.sandbox-platform.svc\", \"pypi.org\", \"tool-gateway.sandbox-platform.svc\"], \"shutdown_time\": \"2026-11-19T15:36:43Z\", \"session_token\": \"<redacted>\", \"pod_ip\": \"10.20.87.115\"}",
+   "exit_code": 0,
+   "seconds": 2.24
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/list",
+   "output": "{\"http_status\": 200, \"jsonrpc\": \"2.0\", \"id\": 1, \"result\": {\"tools\": [{\"name\": \"metrics.query\", \"description\": \"Read a metric series from the company metrics API.\", \"risk\": \"read\"}, {\"name\": \"ticket.create\", \"description\": \"Create a ticket. Needs a human approval each time.\", \"risk\": \"high\"}]}}",
+   "exit_code": 0,
+   "seconds": 1.85
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/list",
+   "output": "{\"http_status\": 200, \"jsonrpc\": \"2.0\", \"id\": 1, \"result\": {\"tools\": [{\"name\": \"metrics.query\", \"description\": \"Read a metric series from the company metrics API.\", \"risk\": \"read\"}]}}",
+   "exit_code": 0,
+   "seconds": 1.93
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/call '{\"name\": \"metrics.query\", \"arguments\": {\"name\": \"orders_per_minute\"}}'",
+   "output": "{\"http_status\": 200, \"jsonrpc\": \"2.0\", \"id\": 1, \"result\": {\"content\": [{\"type\": \"text\", \"text\": \"{\\\"metric\\\": \\\"orders_per_minute\\\", \\\"points\\\": [412, 398, 431, 455, 470, 466], \\\"caller_session\\\": \\\"sess-1e71f9a2\\\", \\\"credential_expires_in\\\": 59}\"}]}}",
+   "exit_code": 0,
+   "seconds": 1.87
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/call '{\"name\": \"ticket.create\", \"arguments\": {\"title\": \"Latency spike on checkout\"}}'",
+   "output": "{\"http_status\": 200, \"jsonrpc\": \"2.0\", \"id\": 1, \"error\": {\"code\": -32001, \"message\": \"this tool needs a human approval\", \"data\": {\"approval_id\": \"apr-6a3fb1be\", \"state\": \"pending\"}}}",
+   "exit_code": 0,
+   "seconds": 2.03
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/call '{\"name\": \"ticket.create\", \"arguments\": {\"title\": \"Latency spike on checkout\"}, \"approval_id\": \"apr-6a3fb1be\"}'",
+   "output": "{\"http_status\": 200, \"jsonrpc\": \"2.0\", \"id\": 1, \"error\": {\"code\": -32001, \"message\": \"approval still pending\", \"data\": {\"approval_id\": \"apr-6a3fb1be\", \"state\": \"pending\"}}}",
+   "exit_code": 0,
+   "seconds": 1.91
+  },
+  {
+   "display": "orch approve apr-6a3fb1be",
+   "output": "{\"http_status\": 200, \"approval_id\": \"apr-6a3fb1be\", \"state\": \"approved\"}",
+   "exit_code": 0,
+   "seconds": 1.83
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/call '{\"name\": \"ticket.create\", \"arguments\": {\"title\": \"Latency spike on checkout\"}, \"approval_id\": \"apr-6a3fb1be\"}'",
+   "output": "{\"http_status\": 200, \"jsonrpc\": \"2.0\", \"id\": 1, \"result\": {\"content\": [{\"type\": \"text\", \"text\": \"{\\\"ticket\\\": \\\"OPS-101\\\", \\\"title\\\": \\\"Latency spike on checkout\\\"}\"}]}}",
+   "exit_code": 0,
+   "seconds": 1.94
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/call '{\"name\": \"ticket.create\", \"arguments\": {\"title\": \"Latency spike on checkout\"}, \"approval_id\": \"apr-6a3fb1be\"}'",
+   "output": "{\"http_status\": 200, \"jsonrpc\": \"2.0\", \"id\": 1, \"error\": {\"code\": -32001, \"message\": \"approval still pending\", \"data\": {\"approval_id\": \"apr-6a3fb1be\", \"state\": \"used\"}}}",
+   "exit_code": 0,
+   "seconds": 1.79
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/call '{\"name\": \"project.delete\", \"arguments\": {}}'",
+   "output": "{\"http_status\": 200, \"jsonrpc\": \"2.0\", \"id\": 1, \"error\": {\"code\": -32003, \"message\": \"tool 'project.delete' is not available to agent 'data-analyst'\"}}",
+   "exit_code": 0,
+   "seconds": 1.86
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/call '{\"name\": \"ticket.create\", \"arguments\": {\"title\": \"x\"}}'",
+   "output": "{\"http_status\": 200, \"jsonrpc\": \"2.0\", \"id\": 1, \"error\": {\"code\": -32003, \"message\": \"tool 'ticket.create' is not available to agent 'coding'\"}}",
+   "exit_code": 0,
+   "seconds": 1.88
+  },
+  {
+   "display": "orch exec sess-f8f6da9a \"python3 /workspace/drills.py tool_gateway session_token=<session_token>\"",
+   "output": "tool_gateway           allowed  {\"tools\": [\"metrics.query\"], \"note\": \"positive control\"}",
+   "exit_code": 0,
+   "seconds": 2.73
+  },
+  {
+   "display": "orch mcp <session token> tools/list   # 25 times in a row",
+   "output": "http status of each call: 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 200 429 429 429 429 200 429 429 429",
+   "exit_code": 0,
+   "seconds": 46.6
+  },
+  {
+   "display": "orch mcp <signed-token-redacted> tools/list",
+   "output": "{\"http_status\": 401, \"jsonrpc\": \"2.0\", \"id\": 1, \"error\": {\"code\": -32000, \"message\": \"session is no longer active\"}}",
+   "exit_code": 0,
+   "seconds": 1.83
+  }
+ ],
+ "checks": [
+  {
+   "description": "the data-analyst agent sees metrics.query and ticket.create; the coding agent sees only metrics.query",
+   "passed": true,
+   "because": "The gateway filters the tool list by the agent identity inside the session token."
+  },
+  {
+   "description": "a read-only tool call succeeds and reaches the metrics API with a credential the gateway obtained itself",
+   "passed": true,
+   "because": "The tool gateway asks the broker for a 60-second credential for this session."
+  },
+  {
+   "description": "a high-risk tool call is paused until a human approves it",
+   "passed": true,
+   "because": "The tool is marked high risk in the gateway's policy."
+  },
+  {
+   "description": "retrying before approval is still refused",
+   "passed": true,
+   "because": "The approval is still pending."
+  },
+  {
+   "description": "after approval the call runs",
+   "passed": true,
+   "because": "The approval is bound to this session, tool and arguments."
+  },
+  {
+   "description": "the approval cannot be reused",
+   "passed": true,
+   "because": "One approval, one call."
+  },
+  {
+   "description": "a forbidden tool is refused outright",
+   "passed": true,
+   "because": "No agent is in its allow list."
+  },
+  {
+   "description": "the coding agent cannot call a tool that only the data-analyst may",
+   "passed": true,
+   "because": "Per-agent policy."
+  },
+  {
+   "description": "code inside the sandbox can reach the tool gateway only through the egress gateway, using the session token",
+   "passed": true,
+   "because": "The host is on the template's allowlist; the request carries the session token."
+  },
+  {
+   "description": "a session that calls the gateway too often is rate limited (HTTP 429)",
+   "passed": true,
+   "because": "The gateway allows 20 calls a minute per session."
+  },
+  {
+   "description": "when the session ends its token stops working immediately",
+   "passed": true,
+   "because": "The gateway asks the Manager whether the session is still active on every call."
+  }
+ ],
+ "notes": []
+}
