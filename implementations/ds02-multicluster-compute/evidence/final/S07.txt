@@ -1,0 +1,68 @@
+# S07: GPUs: only through the queue, from the right capacity, scaled from zero
+# Design reference: Inside a GPU cluster; Autoscaling: where capacity comes from; Multi-tenant isolation (side doors)
+
+$ kubectl --context gpu get nodes -L ds02/pool   # before: no GPU node
+NAME                  STATUS   ROLES    AGE   VERSION               POOL
+i-0bf02de64f7a3aaac   Ready    <none>   12m   v1.37.1-eks-577a51e   
+
+$ aws ec2 describe-instances <GPU instances of the GPU worker, running>   # the same fact, from EC2
+GPU instances running: 0
+
+$ kubectl --context hub create -f job.yaml   # llm/llm-train-a: queue gpu, 1 pod(s) x cpu 2, gpu 1
+job.batch/llm-train-a created
+
+$ kubectl --context hub create -f job.yaml   # llm/llm-train-b: queue gpu, 1 pod(s) x cpu 2, gpu 1
+job.batch/llm-train-b created
+
+$ kubectl --context hub create -f job.yaml   # research/research-train: queue gpu, 1 pod(s) x cpu 2, gpu 1
+job.batch/research-train created
+
+$ kubectl --context gpu get workloads -A -o <flavor each job was given>
+llm-train-a      -> gpu-ondemand
+llm-train-b      -> gpu-spot
+research-train   -> gpu-spot
+
+$ kubectl --context gpu get nodes -L ds02/pool,node.kubernetes.io/instance-type   # GPU nodes created for the admitted jobs
+NAME                  STATUS   ROLES    AGE   VERSION               POOL           INSTANCE-TYPE
+i-001871d8b881e6fa1   Ready    <none>   13s   v1.37.1-eks-577a51e   gpu-ondemand   g4dn.xlarge
+i-0bf02de64f7a3aaac   Ready    <none>   16m   v1.37.1-eks-577a51e                  c6a.large
+
+$ kubectl --context gpu -n llm logs -l job-name=llm-train-a   # what the job saw
+GPU 0: Tesla T4 (UUID: GPU-3532a20f-4653-9fd0-c1f0-07830fb1f1e1)
+
+$ kubectl --context gpu create -f pod.yaml   # a bare pod asking for a GPU in a team namespace, with no queue label
+pod/bypass-queue created
+
+$ kubectl --context gpu -n llm get pod bypass-queue
+NAME           READY   STATUS            RESTARTS   AGE
+bypass-queue   0/1     SchedulingGated   0          22s
+
+$ kubectl --context gpu -n default create -f pod.yaml   # the same, in a namespace Kueue does not manage
+pod/bypass-namespace created
+
+$ kubectl --context gpu -n default get pod bypass-namespace
+NAME               READY   STATUS    RESTARTS   AGE
+bypass-namespace   0/1     Pending   0          61s
+
+$ kubectl --context gpu -n default get events   # why it is not scheduled
+0/2 nodes are available: 2 Insufficient nvidia.com/gpu. preemption: 0/2 nodes are available: 1 No preemption victims found for incoming pod, 1 Preemption is not helpful for scheduling.
+Pod should schedule on: nodeclaim/gpu-ondemand-mbr2z
+NodeClaim gpu-ondemand-mbr2z nominated for this pod failed to launch: creating nodeclaim, creating instance, insufficient capacity, with fleet error(s), InsufficientInstanceCapacity: We currently do not have sufficient g6.xlarge capacity in the Availability Zone you requested (us-east-1a). Our system will be working on provisioning additional capacity. You can currently get g6.xlarge capacity by not specifying an Availability Zone in your request or choosing
+
+$ kubectl --context gpu get nodes -L ds02/pool   # after the jobs ended
+NAME                  STATUS   ROLES    AGE     VERSION               POOL
+i-001871d8b881e6fa1   Ready    <none>   2m46s   v1.37.1-eks-577a51e   gpu-ondemand
+i-0bf02de64f7a3aaac   Ready    <none>   19m     v1.37.1-eks-577a51e   
+
+$ aws ec2 describe-instances <GPU instances of the GPU worker, running>   # after the jobs ended
+GPU instances running: 0
+
+[PASS] there is no GPU instance before any job is submitted
+[PASS] the first llm job got on-demand GPU capacity (the first flavor in its queue)
+[PASS] the second llm job, with the on-demand share used up, got Spot
+[PASS] the research job got Spot, the only flavor its queue lists
+[PASS] GPU nodes were created, from a GPU instance family the pool allows, in the pools that match the flavors
+[PASS] the job saw a real GPU
+[PASS] a GPU pod with no queue label is held by a scheduling gate and never runs
+[PASS] a GPU pod outside the queues stays Pending, and no node was bought for it
+[PASS] every GPU instance was terminated after the jobs ended (scale to zero)

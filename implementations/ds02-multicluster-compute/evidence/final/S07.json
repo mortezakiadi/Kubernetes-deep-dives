@@ -1,0 +1,149 @@
+{
+ "id": "S07",
+ "title": "GPUs: only through the queue, from the right capacity, scaled from zero",
+ "design_ref": "Inside a GPU cluster; Autoscaling: where capacity comes from; Multi-tenant isolation (side doors)",
+ "purpose": "Run GPU jobs through the hub, check which kind of capacity each team's job got, check that the GPU nodes appear only when needed and disappear when idle, and try to get a GPU without going through the queue.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl --context gpu get nodes -L ds02/pool   # before: no GPU node",
+   "output": "NAME                  STATUS   ROLES    AGE   VERSION               POOL\ni-0bf02de64f7a3aaac   Ready    <none>   12m   v1.37.1-eks-577a51e   ",
+   "exit_code": 0,
+   "seconds": 1.49
+  },
+  {
+   "display": "aws ec2 describe-instances <GPU instances of the GPU worker, running>   # the same fact, from EC2",
+   "output": "GPU instances running: 0",
+   "exit_code": 0,
+   "seconds": 1.67
+  },
+  {
+   "display": "kubectl --context hub create -f job.yaml   # llm/llm-train-a: queue gpu, 1 pod(s) x cpu 2, gpu 1",
+   "output": "job.batch/llm-train-a created",
+   "exit_code": 0,
+   "seconds": 2.57
+  },
+  {
+   "display": "kubectl --context hub create -f job.yaml   # llm/llm-train-b: queue gpu, 1 pod(s) x cpu 2, gpu 1",
+   "output": "job.batch/llm-train-b created",
+   "exit_code": 0,
+   "seconds": 2.87
+  },
+  {
+   "display": "kubectl --context hub create -f job.yaml   # research/research-train: queue gpu, 1 pod(s) x cpu 2, gpu 1",
+   "output": "job.batch/research-train created",
+   "exit_code": 0,
+   "seconds": 2.74
+  },
+  {
+   "display": "kubectl --context gpu get workloads -A -o <flavor each job was given>",
+   "output": "llm-train-a      -> gpu-ondemand\nllm-train-b      -> gpu-spot\nresearch-train   -> gpu-spot",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl --context gpu get nodes -L ds02/pool,node.kubernetes.io/instance-type   # GPU nodes created for the admitted jobs",
+   "output": "NAME                  STATUS   ROLES    AGE   VERSION               POOL           INSTANCE-TYPE\ni-001871d8b881e6fa1   Ready    <none>   13s   v1.37.1-eks-577a51e   gpu-ondemand   g4dn.xlarge\ni-0bf02de64f7a3aaac   Ready    <none>   16m   v1.37.1-eks-577a51e                  c6a.large",
+   "exit_code": 0,
+   "seconds": 1.4
+  },
+  {
+   "display": "kubectl --context gpu -n llm logs -l job-name=llm-train-a   # what the job saw",
+   "output": "GPU 0: Tesla T4 (UUID: GPU-3532a20f-4653-9fd0-c1f0-07830fb1f1e1)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl --context gpu create -f pod.yaml   # a bare pod asking for a GPU in a team namespace, with no queue label",
+   "output": "pod/bypass-queue created",
+   "exit_code": 0,
+   "seconds": 4.37
+  },
+  {
+   "display": "kubectl --context gpu -n llm get pod bypass-queue",
+   "output": "NAME           READY   STATUS            RESTARTS   AGE\nbypass-queue   0/1     SchedulingGated   0          22s",
+   "exit_code": 0,
+   "seconds": 1.42
+  },
+  {
+   "display": "kubectl --context gpu -n default create -f pod.yaml   # the same, in a namespace Kueue does not manage",
+   "output": "pod/bypass-namespace created",
+   "exit_code": 0,
+   "seconds": 3.18
+  },
+  {
+   "display": "kubectl --context gpu -n default get pod bypass-namespace",
+   "output": "NAME               READY   STATUS    RESTARTS   AGE\nbypass-namespace   0/1     Pending   0          61s",
+   "exit_code": 0,
+   "seconds": 1.83
+  },
+  {
+   "display": "kubectl --context gpu -n default get events   # why it is not scheduled",
+   "output": "0/2 nodes are available: 2 Insufficient nvidia.com/gpu. preemption: 0/2 nodes are available: 1 No preemption victims found for incoming pod, 1 Preemption is not helpful for scheduling.\nPod should schedule on: nodeclaim/gpu-ondemand-mbr2z\nNodeClaim gpu-ondemand-mbr2z nominated for this pod failed to launch: creating nodeclaim, creating instance, insufficient capacity, with fleet error(s), InsufficientInstanceCapacity: We currently do not have sufficient g6.xlarge capacity in the Availability Zone you requested (us-east-1a). Our system will be working on provisioning additional capacity. You can currently get g6.xlarge capacity by not specifying an Availability Zone in your request or choosing",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl --context gpu get nodes -L ds02/pool   # after the jobs ended",
+   "output": "NAME                  STATUS   ROLES    AGE     VERSION               POOL\ni-001871d8b881e6fa1   Ready    <none>   2m46s   v1.37.1-eks-577a51e   gpu-ondemand\ni-0bf02de64f7a3aaac   Ready    <none>   19m     v1.37.1-eks-577a51e   ",
+   "exit_code": 0,
+   "seconds": 1.67
+  },
+  {
+   "display": "aws ec2 describe-instances <GPU instances of the GPU worker, running>   # after the jobs ended",
+   "output": "GPU instances running: 0",
+   "exit_code": 0,
+   "seconds": 2.17
+  }
+ ],
+ "checks": [
+  {
+   "description": "there is no GPU instance before any job is submitted",
+   "passed": true,
+   "because": "GPU NodePools scale from zero."
+  },
+  {
+   "description": "the first llm job got on-demand GPU capacity (the first flavor in its queue)",
+   "passed": true,
+   "because": "A job tries the flavors of its queue in order and takes the first with room."
+  },
+  {
+   "description": "the second llm job, with the on-demand share used up, got Spot",
+   "passed": true,
+   "because": "llm owns one on-demand and one Spot GPU. The second job falls through to the next flavor."
+  },
+  {
+   "description": "the research job got Spot, the only flavor its queue lists",
+   "passed": true,
+   "because": "Research's queue does not include on-demand, so an experiment can never buy it."
+  },
+  {
+   "description": "GPU nodes were created, from a GPU instance family the pool allows, in the pools that match the flavors",
+   "passed": true,
+   "because": "The flavor's node label selects the NodePool, so quota and capacity line up."
+  },
+  {
+   "description": "the job saw a real GPU",
+   "passed": true,
+   "because": "The device plugin gave the pod one GPU, and nvidia-smi inside it names the device."
+  },
+  {
+   "description": "a GPU pod with no queue label is held by a scheduling gate and never runs",
+   "passed": true,
+   "because": "Kueue manages every pod in a team namespace. Without a queue it adds a scheduling gate that nothing removes."
+  },
+  {
+   "description": "a GPU pod outside the queues stays Pending, and no node was bought for it",
+   "passed": true,
+   "because": "GPU nodes are tainted. The pod has no toleration, and the built-in pool has no GPU instance types, so nothing can satisfy it."
+  },
+  {
+   "description": "every GPU instance was terminated after the jobs ended (scale to zero)",
+   "passed": true,
+   "because": "The NodePool removes empty nodes two minutes after the last pod leaves, and Auto Mode terminates the instance."
+  }
+ ],
+ "notes": [
+  "Waiting for the GPU nodes to be removed once they are empty."
+ ]
+}

@@ -1,0 +1,70 @@
+{
+ "id": "S04",
+ "title": "Gang scheduling: all of a job, or none of it",
+ "design_ref": "Four layers of scheduling decisions (admission before placement)",
+ "purpose": "Submit a 4-pod job to a worker that can hold only 3 of the pods. The job must wait whole, with no pods created, instead of starting 3 and holding resources for the 4th.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # vision/gang-of-4: queue cpu, 4 pod(s) x cpu 1",
+   "output": "job.batch/gang-of-4 created",
+   "exit_code": 0,
+   "seconds": 3.96
+  },
+  {
+   "display": "kubectl --context cpu-a -n vision get workload,pods",
+   "output": "NAME                                          QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE\nworkload.kueue.x-k8s.io/job-gang-of-4-79bb3   cpu                   False                 18s",
+   "exit_code": 0,
+   "seconds": 1.61
+  },
+  {
+   "display": "kubectl --context cpu-a -n vision get workload -o jsonpath=<the QuotaReserved message>",
+   "output": "couldn't assign flavors to pod set main: insufficient quota for cpu in flavor cpu-ondemand, previously considered podsets requests (0) + current podset request (4) > maximum capacity (3)",
+   "exit_code": 0,
+   "seconds": 1.65
+  },
+  {
+   "display": "kubectl --context cpu-a -n vision delete job gang-of-4",
+   "output": "job.batch \"gang-of-4\" deleted from vision namespace",
+   "exit_code": 0,
+   "seconds": 1.73
+  },
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # vision/gang-of-3: queue cpu, 3 pod(s) x cpu 1",
+   "output": "job.batch/gang-of-3 created",
+   "exit_code": 0,
+   "seconds": 3.65
+  },
+  {
+   "display": "kubectl --context cpu-a -n vision get workload   # a 3-pod job fits and is admitted whole",
+   "output": "NAME                  QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE\njob-gang-of-3-c3d21   cpu     vision-cpu    True                  3s",
+   "exit_code": 0,
+   "seconds": 1.73
+  }
+ ],
+ "checks": [
+  {
+   "description": "the 4-pod job is not admitted",
+   "passed": true,
+   "because": "The vision queue on this worker can use 3 CPUs at most (1 of its own plus 2 borrowed), and the job needs 4."
+  },
+  {
+   "description": "the job's pod count is zero while it waits",
+   "passed": true,
+   "because": "Kueue keeps the job suspended. The Job controller creates no pods until the whole gang is admitted."
+  },
+  {
+   "description": "the reason names the missing quota",
+   "passed": true,
+   "because": "The Workload's condition is the one-line answer to 'why is it pending'."
+  },
+  {
+   "description": "a 3-pod job fits the same queue and is admitted",
+   "passed": true,
+   "because": "Same queue, same worker: the only difference is the size of the gang."
+  }
+ ],
+ "notes": [
+  "This test talks to the worker directly, so the result is the worker's own decision."
+ ]
+}

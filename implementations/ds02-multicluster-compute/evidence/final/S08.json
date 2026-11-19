@@ -1,0 +1,94 @@
+{
+ "id": "S08",
+ "title": "Tenant isolation: network and identity",
+ "design_ref": "Multi-tenant isolation",
+ "purpose": "Show that one team's pods cannot reach another team's pods, and that one team's job cannot read another team's data, while each can use its own.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # vision/vision-server: queue cpu, 1 pod(s) x cpu 1",
+   "output": "job.batch/vision-server created",
+   "exit_code": 0,
+   "seconds": 3.51
+  },
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # llm/llm-probe: queue cpu, 1 pod(s) x cpu 1",
+   "output": "job.batch/llm-probe created",
+   "exit_code": 0,
+   "seconds": 3.55
+  },
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # vision/vision-probe: queue cpu, 1 pod(s) x cpu 1",
+   "output": "job.batch/vision-probe created",
+   "exit_code": 0,
+   "seconds": 3.45
+  },
+  {
+   "display": "kubectl --context cpu-a -n llm logs job/llm-probe   # from team llm to team vision's server",
+   "output": "blocked: URLError",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl --context cpu-a -n vision logs job/vision-probe   # from team vision to its own server",
+   "output": "reachable: 200",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # llm/llm-own-data: queue cpu, 1 pod(s) x cpu 1",
+   "output": "job.batch/llm-own-data created",
+   "exit_code": 0,
+   "seconds": 3.46
+  },
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # llm/llm-other-data: queue cpu, 1 pod(s) x cpu 1",
+   "output": "job.batch/llm-other-data created",
+   "exit_code": 0,
+   "seconds": 3.18
+  },
+  {
+   "display": "kubectl --context cpu-a -n llm logs job/llm-own-data   # aws s3 cp s3://<bucket>/llm/dataset.txt -",
+   "output": "dataset owned by team llm",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl --context cpu-a -n llm logs job/llm-other-data   # aws s3 cp s3://<bucket>/vision/dataset.txt -",
+   "output": "download failed: s3://ds02-fleet-data-b8ecd20d/vision/dataset.txt to - An error occurred (403) when calling the HeadObject operation: Forbidden",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl --context cpu-a -n llm get resourcequota,networkpolicy",
+   "output": "NAME                        REQUEST                              LIMIT   AGE\nresourcequota/team-limits   count/jobs.batch: 3/30, pods: 0/20           22m\n\nNAME                                           POD-SELECTOR   AGE\nnetworkpolicy.networking.k8s.io/isolate-team   <none>         22m",
+   "exit_code": 0,
+   "seconds": 1.67
+  }
+ ],
+ "checks": [
+  {
+   "description": "a pod in team llm cannot reach team vision's server",
+   "passed": true,
+   "because": "Each team namespace has a policy that admits traffic only from its own namespace. The probe's own output says it was blocked."
+  },
+  {
+   "description": "a pod in team vision can reach its own team's server",
+   "passed": true,
+   "because": "The same policy allows pods in the same namespace. The block is deliberate, not a broken network."
+  },
+  {
+   "description": "a team's job reads its own S3 prefix",
+   "passed": true,
+   "because": "EKS Pod Identity gave the job's ServiceAccount a role limited to that team's prefix."
+  },
+  {
+   "description": "the same job is refused another team's prefix",
+   "passed": true,
+   "because": "The role's policy names only the team's own prefix. The refusal comes from IAM, not from the cluster."
+  }
+ ],
+ "notes": [
+  "A server runs in team vision's namespace on cpu-a at 10.30.28.97."
+ ]
+}

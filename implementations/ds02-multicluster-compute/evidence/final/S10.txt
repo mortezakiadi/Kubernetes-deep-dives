@@ -1,0 +1,35 @@
+# S10: Observability: the fleet in one place
+# Design reference: Observability, cost and chargeback
+
+$ kubectl --context hub create -f job.yaml   # llm/mixed-llm: queue cpu, 2 pod(s) x cpu 1
+job.batch/mixed-llm created
+
+$ scripts/fleet-status.py workloads
+CLUSTER  NAMESPACE WORKLOAD                           STATE
+hub      llm       job-mixed-llm-75307                running (admitted in cpu-a)
+hub      research  job-mixed-research-9d9bc           running (admitted in cpu-b)
+hub      vision    job-mixed-vision-82f54             running (admitted in cpu-a)
+cpu-a    llm       job-mixed-llm-75307                running (admitted)
+cpu-a    vision    job-mixed-vision-82f54             running (admitted)
+cpu-b    research  job-mixed-research-9d9bc           running (admitted)
+
+$ scripts/fleet-status.py queues
+CLUSTER  QUEUE          PENDING ADMITTED  USAGE (flavor: resource used / nominal, borrowed)
+hub      llm-cpu              0        1  fleet-cpu: cpu 2/4 (borrowed 0)
+hub      llm-gpu              0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)
+hub      research-cpu         0        1  fleet-cpu: cpu 2/2 (borrowed 0)
+hub      research-gpu         0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)
+hub      vision-cpu           0        1  fleet-cpu: cpu 1/2 (borrowed 0)
+hub      vision-gpu           0        0  fleet-gpu: cpu 0/3 (borrowed 0); fleet-gpu: gpu 0/1 (borrowed 0)
+cpu-a    llm-cpu              0        1  cpu-ondemand: cpu 2/2 (borrowed 0)
+cpu-a    research-cpu         0        0  cpu-ondemand: cpu 0/1 (borrowed 0)
+cpu-a    vision-cpu           0        1  cpu-ondemand: cpu 1/1 (borrowed 0)
+cpu-b    llm-cpu              0        0  cpu-spot: cpu 0/2 (borrowed 0)
+cpu-b    research-cpu         0        1  cpu-spot: cpu 2/1 (borrowed 1)
+cpu-b    vision-cpu           0        0  cpu-spot: cpu 0/1 (borrowed 0)
+gpu      llm-gpu              0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0); gpu-spot: cpu 0/3 (borrowed 0); gpu-spot: gpu 0/1 (borrowed 0)
+gpu      research-gpu         0        0  gpu-spot: cpu 0/6 (borrowed 0); gpu-spot: gpu 0/2 (borrowed 0)
+gpu      vision-gpu           0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0)
+
+[PASS] every job is listed with the cluster it runs in
+[PASS] every queue in the fleet shows pending, admitted and usage

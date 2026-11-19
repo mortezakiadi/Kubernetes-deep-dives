@@ -1,0 +1,40 @@
+{
+ "id": "S10",
+ "title": "Observability: the fleet in one place",
+ "design_ref": "Observability, cost and chargeback",
+ "purpose": "Run a few jobs for different teams and show the fleet-wide view: where each job went, how much of each queue is used and borrowed.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl --context hub create -f job.yaml   # llm/mixed-llm: queue cpu, 2 pod(s) x cpu 1",
+   "output": "job.batch/mixed-llm created",
+   "exit_code": 0,
+   "seconds": 2.86
+  },
+  {
+   "display": "scripts/fleet-status.py workloads",
+   "output": "CLUSTER  NAMESPACE WORKLOAD                           STATE\nhub      llm       job-mixed-llm-75307                running (admitted in cpu-a)\nhub      research  job-mixed-research-9d9bc           running (admitted in cpu-b)\nhub      vision    job-mixed-vision-82f54             running (admitted in cpu-a)\ncpu-a    llm       job-mixed-llm-75307                running (admitted)\ncpu-a    vision    job-mixed-vision-82f54             running (admitted)\ncpu-b    research  job-mixed-research-9d9bc           running (admitted)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "scripts/fleet-status.py queues",
+   "output": "CLUSTER  QUEUE          PENDING ADMITTED  USAGE (flavor: resource used / nominal, borrowed)\nhub      llm-cpu              0        1  fleet-cpu: cpu 2/4 (borrowed 0)\nhub      llm-gpu              0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)\nhub      research-cpu         0        1  fleet-cpu: cpu 2/2 (borrowed 0)\nhub      research-gpu         0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)\nhub      vision-cpu           0        1  fleet-cpu: cpu 1/2 (borrowed 0)\nhub      vision-gpu           0        0  fleet-gpu: cpu 0/3 (borrowed 0); fleet-gpu: gpu 0/1 (borrowed 0)\ncpu-a    llm-cpu              0        1  cpu-ondemand: cpu 2/2 (borrowed 0)\ncpu-a    research-cpu         0        0  cpu-ondemand: cpu 0/1 (borrowed 0)\ncpu-a    vision-cpu           0        1  cpu-ondemand: cpu 1/1 (borrowed 0)\ncpu-b    llm-cpu              0        0  cpu-spot: cpu 0/2 (borrowed 0)\ncpu-b    research-cpu         0        1  cpu-spot: cpu 2/1 (borrowed 1)\ncpu-b    vision-cpu           0        0  cpu-spot: cpu 0/1 (borrowed 0)\ngpu      llm-gpu              0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0); gpu-spot: cpu 0/3 (borrowed 0); gpu-spot: gpu 0/1 (borrowed 0)\ngpu      research-gpu         0        0  gpu-spot: cpu 0/6 (borrowed 0); gpu-spot: gpu 0/2 (borrowed 0)\ngpu      vision-gpu           0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "every job is listed with the cluster it runs in",
+   "passed": true,
+   "because": "The hub's Workload records the chosen cluster, so one query answers 'where did it go'."
+  },
+  {
+   "description": "every queue in the fleet shows pending, admitted and usage",
+   "passed": true,
+   "because": "Each ClusterQueue reports its own usage and borrowed amounts."
+  }
+ ],
+ "notes": []
+}

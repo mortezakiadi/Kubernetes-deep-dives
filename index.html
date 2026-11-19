@@ -229,7 +229,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li class="notes"><a href="#post-agents-prod">Running agents in production</a></li></ul>
       <h3>Appendix</h3>
       <ul><li class="notes"><a href="#appendix-second-scheduler">A. Running a second scheduler</a></li>
-<li class="notes"><a href="#appendix-design-01-eks">B. Design 01 on EKS (built and tested)</a></li></ul>
+<li class="notes"><a href="#appendix-design-01-eks">B. Design 01 on EKS (built and tested)</a></li>
+<li class="notes"><a href="#appendix-design-02-eks">C. Design 02 on EKS (built and tested)</a></li></ul>
     </nav>
   </aside>
   <main>
@@ -244,7 +245,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>14 deep dives</li>
         <li>21 designs</li>
-        <li>596 scenario sections</li>
+        <li>610 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -8813,6 +8814,996 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li>VPC, Subnets: the two sandbox subnets with the <code>ds01/tier=sandbox</code> tag.</li>
 <li>IAM, Roles: the sandbox node role with its two policies.</li>
 <li>ECR: the <code>ds01-platform</code> repository.</li>
+</ul></div>
+</section>
+
+<section class="entry appendix" id="appendix-design-02-eks" aria-labelledby="appendix-design-02-eks-h">
+  <header class="entry-head">
+    <span class="tag">Appendix</span>
+    <h2 id="appendix-design-02-eks-h">Appendix C: Design 02 built and tested on Amazon EKS</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#appendix-design-02-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a03-2">2. EKS topology and instances</a></li><li><a href="#a03-1">3. Architecture</a></li><li><a href="#appendix-design-02-eks-4-how-it-is-implemented">4. How it is implemented</a></li><li><a href="#appendix-design-02-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-02-eks-s01-the-fleet-four-clusters-made-from-one-definition">S01: The fleet: four clusters made from one definition</a></li><li><a href="#appendix-design-02-eks-s02-one-front-door-and-the-hub-runs-nothing">S02: One front door, and the hub runs nothing</a></li><li><a href="#appendix-design-02-eks-s03-why-is-my-job-pending-one-answer-per-layer">S03: Why is my job pending? One answer per layer</a></li><li><a href="#appendix-design-02-eks-s04-gang-scheduling-all-of-a-job-or-none-of-it">S04: Gang scheduling: all of a job, or none of it</a></li><li><a href="#appendix-design-02-eks-s05-fair-sharing-borrow-idle-capacity-give-it-back-when-asked">S05: Fair sharing: borrow idle capacity, give it back when asked</a></li><li><a href="#appendix-design-02-eks-s06-dispatch-a-full-worker-is-skipped-and-the-job-runs-in-the-other">S06: Dispatch: a full worker is skipped, and the job runs in the other</a></li><li><a href="#appendix-design-02-eks-s07-gpus-only-through-the-queue-from-the-right-capacity-scaled-from-zero">S07: GPUs: only through the queue, from the right capacity, scaled from zero</a></li><li><a href="#appendix-design-02-eks-s08-tenant-isolation-network-and-identity">S08: Tenant isolation: network and identity</a></li><li><a href="#appendix-design-02-eks-s09-failure-drills-a-worker-lost-and-the-hub-down">S09: Failure drills: a worker lost, and the hub down</a></li><li><a href="#appendix-design-02-eks-s10-observability-the-fleet-in-one-place">S10: Observability: the fleet in one place</a></li><li><a href="#appendix-design-02-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-02-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-02-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li></ol></nav>
+  <div class="prose"><p>This appendix describes a working, scaled-down implementation of <a href="#design-multicluster">Design 02: Operating CPU and GPU clusters as one compute platform</a>. I built it with Terraform on Amazon EKS in one AWS account: a hub cluster and three worker clusters (two CPU, one GPU), one front door for batch jobs, <mark class="kw">fair sharing</mark> between three teams, GPU capacity that is bought only when a queued job needs it, and walls between teams. I tested every claim of the design that this scale can test, recorded the evidence, and removed it again with one command. Every command, output and pass or fail result in section 5 is copied from the recorded test run, not written from memory.</p>
+<p>The order is the one a reader needs: the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them.</p>
+<p><strong>What "scaled down" means here.</strong> The design has a hub, CPU clusters, large GPU training clusters with <mark class="kw-tool">Capacity Blocks</mark> and <mark class="kw">EFA</mark>, and inference clusters in several regions, with hundreds of GPUs. This build has one hub, two CPU workers of four vCPUs each, and one GPU worker that can run up to two single-GPU nodes on-demand and two on <mark class="kw">Spot</mark>, all in one region. The mechanisms are the same ones: the same <mark class="kw-tool">Kueue</mark> and MultiKueue, the same <mark class="kw">quota</mark> model, the same node-pool rules. Only the numbers are small, and section 6 lists what I did not build.</p>
+<p>10 of 10 scenarios passed, 46 of 46 checks.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Title</th>
+<th>Checks passed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S01</td>
+<td>The fleet: four clusters made from one definition</td>
+<td>6 of 6</td>
+</tr>
+<tr>
+<td>S02</td>
+<td>One front door, and the hub runs nothing</td>
+<td>6 of 6</td>
+</tr>
+<tr>
+<td>S03</td>
+<td>Why is my job pending? One answer per layer</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S04</td>
+<td>Gang scheduling: all of a job, or none of it</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S05</td>
+<td>Fair sharing: borrow idle capacity, give it back when asked</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S06</td>
+<td>Dispatch: a full worker is skipped, and the job runs in the other</td>
+<td>2 of 2</td>
+</tr>
+<tr>
+<td>S07</td>
+<td>GPUs: only through the queue, from the right capacity, scaled from zero</td>
+<td>9 of 9</td>
+</tr>
+<tr>
+<td>S08</td>
+<td>Tenant isolation: network and identity</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S09</td>
+<td>Failure drills: a worker lost, and the hub down</td>
+<td>5 of 5</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>Observability: the fleet in one place</td>
+<td>2 of 2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="appendix-design-02-eks-1-the-software-components-i-implemented">1. The software components I implemented</h3>
+<p><strong>Scenario.</strong> The design draws a hub, worker clusters, queues and node pools. To test it, each of those has to be real software that I can start, call and push to its limits. Nothing is left as "assume this exists".</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Component</th>
+<th>What it is</th>
+<th>Where it runs</th>
+<th>Reused or written</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Hub cluster</strong></td>
+<td>A small EKS Auto Mode cluster that runs the queue manager and no user work. A policy refuses any pod in a team namespace.</td>
+<td>Cluster <code>ds02-fleet-hub</code></td>
+<td>Written (Terraform and policy)</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Kueue 0.20.7 and MultiKueue</strong></td>
+<td>The job queueing system. On the hub it is the manager: it holds the fleet-wide quota, picks workers and mirrors status. On each worker it is the local admission controller. The same pinned version runs on all four clusters.</td>
+<td>All four clusters</td>
+<td>Reused (Kubernetes SIG Scheduling)</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Worker clusters</strong></td>
+<td>Two CPU workers (<code>cpu-a</code> on On-Demand capacity, <code>cpu-b</code> on Spot) and one GPU worker. Each is a standalone EKS Auto Mode cluster with its own queues.</td>
+<td>Clusters <code>ds02-fleet-cpu-a</code>, <code>-cpu-b</code>, <code>-gpu</code></td>
+<td>Written (Terraform)</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>The team table</strong></td>
+<td>One table of team shares (CPU and GPU, guaranteed, lendable, borrowable). Terraform generates every queue on the hub and every worker from it, so the hub's quota is always the sum of the workers'.</td>
+<td><code>terraform/20-platform/teams.tf</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Queues and flavors</strong></td>
+<td>Per team: a CPU and a GPU ClusterQueue on the hub, matching queues on the workers, a LocalQueue per namespace, ResourceFlavors that map to node pools, and three priority classes (<code>production</code>, <code>standard</code>, <code>opportunistic</code>).</td>
+<td>Hub and workers</td>
+<td>Written (generated)</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Node pools</strong></td>
+<td>Auto Mode NodePools: <code>cpu-ondemand</code>, <code>cpu-spot</code>, <code>gpu-ondemand</code>, <code>gpu-spot</code>. The GPU pools are tainted, limited to two GPUs each, and start empty.</td>
+<td>Workers</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Dispatch wiring</strong></td>
+<td>A kubeconfig Secret per worker on the hub, each holding a narrowly scoped identity; a MultiKueueCluster per worker; MultiKueueConfigs; and the AdmissionChecks the hub's queues use.</td>
+<td>Hub</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Tenant walls</strong></td>
+<td>A namespace per team in every cluster with the Pod Security <code>restricted</code> profile, a resource quota, and a network policy that admits traffic only from the same namespace.</td>
+<td>All clusters</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Team identity and data</strong></td>
+<td>One S3 bucket with a prefix per team, an IAM role per team limited to its prefix, and an EKS Pod Identity association per team in every worker.</td>
+<td>AWS and workers</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Side-door guards</strong></td>
+<td>Kueue manages every Job and Pod in a team namespace, so one with no queue is held. The hub refuses pods outright. GPU nodes are tainted.</td>
+<td>All clusters</td>
+<td>Configured</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Fleet status tool</strong></td>
+<td>A script that reads the Workloads and ClusterQueues of all four clusters and says, for each job, which layer is holding it.</td>
+<td><code>scripts/fleet-status.py</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>Scenario runner and screenshot renderer</strong></td>
+<td>Runs the tests, records commands and output, redacts private values and draws terminal-style screenshots.</td>
+<td><code>tests/</code></td>
+<td>Written</td>
+</tr>
+</tbody>
+</table>
+<p>In total I wrote about 1,200 lines of Terraform, 600 lines of test code and a 80-line status tool. There is no application code: Design 02 is about wiring existing schedulers together correctly, so the work is configuration, and the proof is behaviour.</p>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>One module, four clusters.</strong> A single Terraform module installs <mark class="kw-tool">Kueue</mark>, creates the namespaces, queues and walls, and (for workers) creates the identity the hub uses. It is called once per cluster, so the clusters cannot drift apart.</li>
+<li><strong>Where each secret lives.</strong> Each worker's access token is created in that worker and copied into a Secret in the hub's Kueue namespace and nowhere else. Team roles can read only their own S3 prefix.</li>
+<li><strong>Why the hub has no worker pool.</strong> MultiKueue does not support the manager being one of its own workers, and keeping the hub small and boring means a noisy job can never take down scheduling for everyone.</li>
+</ul></div></details>
+
+<h3 id="a03-2">2. EKS topology and instances</h3>
+<p><strong>Scenario.</strong> Isolation and cost both depend on where things run. The topology has to give each cluster its own failure domain, keep GPU capacity at zero when idle, and let the hub reach the workers without opening their APIs to the internet.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Fleet topology and instances" class="open" data-src="diagrams/appendix/a03-2.svg" data-title="Fleet topology and instances" type="button"><img alt="Diagram: Fleet topology and instances" decoding="async" loading="lazy" src="diagrams/appendix/a03-2.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> One VPC, two Availability Zones, four independent EKS clusters. Each worker's nodes are bought by its own node pools.</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What I built</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Clusters</strong></td>
+<td>Four EKS Auto Mode clusters on Kubernetes 1.37, from one Terraform resource written once</td>
+<td>The design keeps the fleet within one minor version so a job that runs in one worker runs in all.</td>
+</tr>
+<tr>
+<td><strong>API access</strong></td>
+<td>Private endpoint inside the VPC; public endpoint only for the administrator's <code>/32</code>. The workers' security groups admit HTTPS from the VPC so the hub can reach them privately.</td>
+<td>The hub dispatches over the private network. No worker API is open to the internet.</td>
+</tr>
+<tr>
+<td><strong>Platform nodes</strong></td>
+<td>The built-in Auto Mode <code>general-purpose</code> pool on every cluster (small <code>c6a</code> instances in my run; S01 prints the exact list). It runs Kueue and the add-ons.</td>
+<td>One or two small nodes per cluster, removed by Auto Mode when not needed.</td>
+</tr>
+<tr>
+<td><strong>CPU node pools</strong></td>
+<td><code>cpu-ondemand</code> on cpu-a and <code>cpu-spot</code> on cpu-b: <code>c</code> or <code>m</code> family, generation 6 or later, 2 or 4 vCPUs, a 16-vCPU limit, empty nodes removed after one minute</td>
+<td>A ResourceFlavor's node label selects the pool, so quota and capacity line up.</td>
+</tr>
+<tr>
+<td><strong>GPU node pools</strong></td>
+<td><code>gpu-ondemand</code> and <code>gpu-spot</code> on the GPU worker. Each may use <code>xlarge</code> instances of the <code>g6</code> (NVIDIA L4), <code>g5</code> (A10G), <code>g6e</code> or <code>g4dn</code> (T4) families, one GPU per node, limited to two GPUs, tainted <code>nvidia.com/gpu:NoSchedule</code>, empty nodes removed after two minutes</td>
+<td>GPU nodes exist only while an admitted job needs them. Auto Mode picks whichever family has capacity: in my first attempt <code>g6</code> had none in the zone and a <code>g4dn</code> node with a Tesla T4 was launched instead. S07 prints the instance type and GPU model it got.</td>
+</tr>
+<tr>
+<td><strong>Drivers</strong></td>
+<td>None to install: EKS Auto Mode includes the NVIDIA drivers and device plugin.</td>
+<td>Fewer moving parts per cluster.</td>
+</tr>
+<tr>
+<td><strong>Network</strong></td>
+<td><code>10.30.0.0/16</code>, a public subnet and a private subnet in each of two zones, one NAT gateway</td>
+<td>One NAT keeps cost down. A production build uses one per zone.</td>
+</tr>
+<tr>
+<td><strong>IAM</strong></td>
+<td>One cluster role (five AWS-managed EKS policies), one node role (<code>WorkerNodeMinimalPolicy</code> and <code>ContainerRegistryPullOnly</code>), and one role per team for S3 through Pod Identity</td>
+<td>No role on a node can touch S3, and no team role can touch another team's prefix.</td>
+</tr>
+<tr>
+<td><strong>State</strong></td>
+<td>Terraform state is local and git-ignored</td>
+<td>The repository is public; state holds identifiers.</td>
+</tr>
+</tbody>
+</table>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>What Auto Mode does for me.</strong> It provisions and patches the nodes, runs the network plugin and DNS, and includes the GPU drivers. My NodePools only say which nodes are allowed.</li>
+<li><strong>Cost.</strong> Four control planes, a handful of small nodes, one NAT gateway, and GPU nodes only for the minutes a test needs them. The whole stack exists for hours, and <code>down.sh</code> removes it.</li>
+<li><strong>Not Capacity Blocks.</strong> The design buys large training runs as reserved <mark class="kw-tool">Capacity Blocks</mark>. I have no reservation to use, so the first flavor is <mark class="kw">On-Demand</mark> and the second is <mark class="kw">Spot</mark>.</li>
+</ul></div></details>
+
+<h3 id="a03-1">3. Architecture</h3>
+<p><strong>Scenario.</strong> A researcher submits a training job. She should not need to know which cluster has room, who owns the GPUs, or how the nodes get bought. A new engineer asks what happens between "submit" and "running".</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: One hub, three workers, one front door" class="open" data-src="diagrams/appendix/a03-1.svg" data-title="One hub, three workers, one front door" type="button"><img alt="Diagram: One hub, three workers, one front door" decoding="async" loading="lazy" src="diagrams/appendix/a03-1.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Teams submit to the hub (1). The hub's <mark class="kw-tool">Kueue</mark> holds each team's share of the whole fleet and decides which worker to offer a job to (2, 3). The hub refuses to run anything itself and holds only narrow credentials for the workers (4). Each worker is a complete Kueue cluster with its own queues and node pools (5). Identity and data (6) and the Terraform that makes it all (7) sit underneath.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: One job's path through the four layers" class="open" data-src="diagrams/appendix/a03-3.svg" data-title="One job's path through the four layers" type="button"><img alt="Diagram: One job's path through the four layers" decoding="async" loading="lazy" src="diagrams/appendix/a03-3.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>The four layers.</strong> Every batch job passes four decisions, each made by a different component, and each can be the reason a job waits.</p>
+<ol>
+<li><strong>Layer 1, the hub's Kueue:</strong> does the team have <mark class="kw">quota</mark> in the fleet-wide queue, and which workers should be offered the job?</li>
+<li><strong>Layer 2, the worker's Kueue:</strong> does the team's queue in this worker have quota (its own or <mark class="kw-act">borrowed</mark>), and can the whole job be <mark class="kw-act">admitted</mark> at once?</li>
+<li><strong>Layer 3, kube-scheduler:</strong> which node and which device takes each pod?</li>
+<li><strong>Layer 4, the node pool:</strong> a pod that cannot be placed makes Auto Mode buy a node of the right kind.</li>
+</ol>
+<figure class="diagram"><button aria-label="Open diagram full screen: Quotas, borrowing and reclaim on one worker" class="open" data-src="diagrams/appendix/a03-4.svg" data-title="Quotas, borrowing and reclaim on one worker" type="button"><img alt="Diagram: Quotas, borrowing and reclaim on one worker" decoding="async" loading="lazy" src="diagrams/appendix/a03-4.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>The quota model.</strong> Each team has a guaranteed share (nominal quota), can lend part of it (lending limit) and can borrow from the others up to a cap (borrowing limit). A team that asks for its own share takes it back from whoever borrowed it.</p>
+<h3 id="appendix-design-02-eks-4-how-it-is-implemented">4. How it is implemented</h3>
+<p><strong>Scenario.</strong> A reader wants to rebuild this, or to know which line of configuration produces which behaviour. This section maps the design to files.</p>
+<p><strong>The folder</strong> (<code>implementations/ds02-multicluster-compute/</code> in the repository):</p>
+<ul>
+<li><code>terraform/10-fleet/</code>: the VPC, subnets, NAT gateway, IAM roles, and the four EKS Auto Mode clusters.</li>
+<li><code>terraform/20-platform/</code>: <mark class="kw-tool">Kueue</mark> on every cluster (one reusable module), the team table, queues, node pools, the hub's MultiKueue wiring, team identities and the hub policy.</li>
+<li><code>scripts/</code>: <code>up.sh</code>, <code>down.sh</code>, <code>verify-clean.sh</code>, <code>fleet-status.py</code>, <code>setup-tools.sh</code>, and a secret scanner that blocks a commit containing a credential.</li>
+<li><code>tests/</code>: the scenario runner, the harness and the screenshot renderer.</li>
+<li><code>docs/</code>: the generator for this appendix and its diagrams.</li>
+</ul>
+<p><strong>Two Terraform layers.</strong> The first layer creates the clusters. The second talks to them, so it has to run after the first. Both refuse to run against any account except the one named in a local, git-ignored file.</p>
+<p><strong>What the second layer does, in order.</strong></p>
+<ol>
+<li>Installs Kueue 0.20.7 on all four clusters from one module, with the same configuration: whole-job <mark class="kw-act">admission</mark>, <code>waitForPodsReady</code>, <mark class="kw">fair sharing</mark>, and management of every Job and Pod in team namespaces.</li>
+<li>Turns on <mark class="kw">NetworkPolicy</mark> enforcement (Auto Mode ships it off) and creates each team's namespace, <mark class="kw">quota</mark> and network policy.</li>
+<li>Creates the <mark class="kw">priority classes</mark>, <mark class="kw">ResourceFlavors</mark>, <mark class="kw">ClusterQueues</mark>, <mark class="kw">LocalQueues</mark> and NodePools, all generated from the team table.</li>
+<li>On each worker, creates the narrow identity the hub will use and reads its token.</li>
+<li>On the hub, stores each worker's kubeconfig as a Secret, and creates the MultiKueueClusters, MultiKueueConfigs and AdmissionChecks.</li>
+<li>Creates the S3 bucket, the team roles and the <mark class="kw">Pod Identity</mark> associations, and the hub's admission policy.</li>
+</ol>
+<p><strong>The control-by-control map.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Design control</th>
+<th>Implemented as</th>
+<th>Verified by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One front door for batch work</td>
+<td>Hub LocalQueues with a MultiKueue admission check</td>
+<td>S02</td>
+</tr>
+<tr>
+<td>The hub runs no user workloads</td>
+<td>ValidatingAdmissionPolicy on the hub; MultiKueue keeps hub jobs suspended</td>
+<td>S02</td>
+</tr>
+<tr>
+<td>Every wait has one owner</td>
+<td>Four layers, each with its own status; <code>fleet-status.py</code> reads them</td>
+<td>S03, S10</td>
+</tr>
+<tr>
+<td>Gang scheduling</td>
+<td>Kueue admits all pods or none; the job stays suspended until then</td>
+<td>S04</td>
+</tr>
+<tr>
+<td>Guaranteed, borrowable, reclaimable shares</td>
+<td>One cohort per kind of capacity, with nominal, lending and borrowing limits and <code>reclaimWithinCohort: Any</code></td>
+<td>S05</td>
+</tr>
+<tr>
+<td>Dispatch to the right cluster</td>
+<td><code>MultiKueueConfig</code> lists, AllAtOnce dispatch, first worker to admit wins</td>
+<td>S06</td>
+</tr>
+<tr>
+<td>Reserved before on-demand before Spot</td>
+<td>Flavors listed in order in each queue; a team's queue lists only the flavors it may use</td>
+<td>S07</td>
+</tr>
+<tr>
+<td>GPU capacity bought only when needed</td>
+<td>NodePools that start empty, with limits and a short consolidation delay</td>
+<td>S07</td>
+</tr>
+<tr>
+<td>Close the side doors</td>
+<td><code>manageJobsWithoutQueueName</code>, a taint on GPU nodes, a toleration added only by the flavor</td>
+<td>S07</td>
+</tr>
+<tr>
+<td>Tenant isolation</td>
+<td>Namespace, Pod Security, quota, network policy per team; Pod Identity roles per prefix</td>
+<td>S08</td>
+</tr>
+<tr>
+<td>Narrow credentials for the hub</td>
+<td>A ServiceAccount per worker with a ClusterRole limited to Jobs and Workloads</td>
+<td>S01, S09</td>
+</tr>
+<tr>
+<td>Failure modes</td>
+<td>A worker lost, the hub's controller down</td>
+<td>S09</td>
+</tr>
+<tr>
+<td>One place to see the fleet</td>
+<td><code>fleet-status.py</code> over Workloads and ClusterQueues</td>
+<td>S10</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Where reality differed from the design.</strong> These are findings, confirmed on the live fleet.</p>
+<ul>
+<li><strong>The AWS CLI prefers <code>AWS_REGION</code> over <code>AWS_DEFAULT_REGION</code>.</strong> If your shell sets the first, commands go to the wrong region. <code>up.sh</code> and the test harness set both.</li>
+<li><strong>Two ClusterQueues per team on the hub, not one.</strong> A MultiKueue admission check applies to a queue's whole workload, so CPU and GPU work, which go to different workers, need different queues. I made one queue per team per kind of capacity (<code>llm-cpu</code>, <code>llm-gpu</code>).</li>
+<li><strong>The hub's narrow identity must also be allowed to watch pods.</strong> With Kueue's pod integration switched on, the hub watches each worker's pods, and without that permission the connection stays down (<code>pods is forbidden</code>). I added pods to the narrow role, as Kueue's own setup guide does. It still cannot touch anything outside Jobs, pods and Kueue's own objects.</li>
+<li><strong>A job borrows another team's on-demand GPU before using its own Spot one, by default.</strong> The default is to stop at the first flavor that can <mark class="kw-act">borrow</mark>. I set <code>whenCanBorrow: TryNextFlavor</code> on the GPU queues so a team uses its own <mark class="kw">Spot</mark> share first, which is the cost behaviour the design asks for.</li>
+<li><strong>GPU capacity is not guaranteed, even in a large region.</strong> <code>g6</code> instances had no capacity in the zones I could use at the time. Listing four GPU families in the NodePool let Auto Mode launch a <code>g4dn</code> node instead. A real platform would use reservations.</li>
+<li><strong>A fresh node's log endpoint is not ready for a few seconds.</strong> <code>kubectl logs</code> against a new node first returns <code>tls: internal error</code>, so the tests wait for the job to finish and then retry.</li>
+<li><strong>Tearing Kueue down can hang.</strong> Kueue puts finalizers on its queues and flavors. Once its controller is removed nothing clears them, and deleting Kueue's custom resource definitions waits forever. <code>down.sh</code> now clears those finalizers first.</li>
+<li><strong>Quota groups cannot overlap.</strong> A queue's resource groups cannot cover the same resource twice, so GPU jobs' CPU and memory must be in the GPU queue's group.</li>
+</ul>
+<h3 id="appendix-design-02-eks-5-the-scenarios-i-tested">5. The scenarios I tested</h3>
+<p><strong>Scenario.</strong> The design makes specific promises. I turned each into a scenario that runs real commands against the live fleet and decides pass or fail from the output, with no human judgement in the loop.</p>
+<p><strong>How to read this section.</strong></p>
+<ul>
+<li><code>--context hub</code>, <code>cpu-a</code>, <code>cpu-b</code> or <code>gpu</code> selects the cluster the command runs against. Commands that start with <code>scripts/fleet-status.py</code> read all four.</li>
+<li>"Layer 1" and "layer 2" are the hub's and the workers' <mark class="kw-act">admission</mark> decisions, as in the picture above.</li>
+<li>The screenshots are terminal windows <strong>rendered from the recorded text of the commands that ran</strong>, after removing private values. They are faithful renderings of terminal output, not photographs of a screen. The account number and the administrator's address are replaced by placeholders in every file and picture, and a scanner blocks any commit that contains them.</li>
+<li>A check passes only if the recorded output satisfies it. If a scenario crashes, it fails and says why.</li>
+</ul>
+<p>The tests ran from a clean build, after <code>up.sh</code> created the whole fleet from nothing.</p>
+<h3 id="appendix-design-02-eks-s01-the-fleet-four-clusters-made-from-one-definition">S01: The fleet: four clusters made from one definition</h3>
+<p><strong>Design reference:</strong> Why several clusters, and how to cut them; The architecture at a glance.</p>
+<p><strong>What this tests.</strong> Show a hub and three workers created from one Terraform definition, on the same Kubernetes minor version, running the same pinned <mark class="kw-tool">Kueue</mark>, with the hub connected to every worker and no GPU capacity running at rest.</p>
+<p>Before testing behaviour I check that the fleet is what the design says: several clusters made from one definition, on one Kubernetes version, running one pinned queue controller, with the hub connected to every worker and no GPU capacity running when nobody asked for it.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S01: The fleet: four clusters made from one definition" class="open" data-src="diagrams/appendix/a03-evidence/S01.png" data-title="S01: The fleet: four clusters made from one definition" type="button"><img alt="Diagram: S01: The fleet: four clusters made from one definition" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S01.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ for c in hub cpu-a cpu-b gpu: aws eks describe-cluster ...</span><span class="ln">ds02-fleet-hub  ACTIVE  1.37    manager</span><span class="ln">ds02-fleet-cpu-a    ACTIVE  1.37    cpu-worker</span><span class="ln">ds02-fleet-cpu-b    ACTIVE  1.37    cpu-worker</span><span class="ln">ds02-fleet-gpu  ACTIVE  1.37    gpu-worker</span><span class="ln"> </span><span class="ln">$ kubectl --context &lt;each&gt; -n kueue-system get deploy kueue-controller-manager -o jsonpath=&lt;image&gt;</span><span class="ln">hub    registry.k8s.io/kueue/kueue:v0.20.7</span><span class="ln">cpu-a  registry.k8s.io/kueue/kueue:v0.20.7</span><span class="ln">cpu-b  registry.k8s.io/kueue/kueue:v0.20.7</span><span class="ln">gpu    registry.k8s.io/kueue/kueue:v0.20.7</span><span class="ln"> </span><span class="ln">$ kubectl --context hub get multikueuecluster,multikueueconfig,admissioncheck</span><span class="ln">NAME                                     CONNECTED   AGE</span><span class="ln">multikueuecluster.kueue.x-k8s.io/cpu-a   True        62s</span><span class="ln">multikueuecluster.kueue.x-k8s.io/cpu-b   True        62s</span><span class="ln">multikueuecluster.kueue.x-k8s.io/gpu     True        62s</span><span class="ln"> </span><span class="ln">NAME                                          AGE</span><span class="ln">multikueueconfig.kueue.x-k8s.io/cpu-workers   61s</span><span class="ln">multikueueconfig.kueue.x-k8s.io/gpu-workers   61s</span><span class="ln"> </span><span class="ln">NAME                                         AGE</span><span class="ln">admissioncheck.kueue.x-k8s.io/dispatch-cpu   61s</span><span class="ln">admissioncheck.kueue.x-k8s.io/dispatch-gpu   61s</span><span class="ln"> </span><span class="ln">$ kubectl --context hub get clusterqueue   <span class="tc"># a team's fleet-wide share: one queue per team and kind of capacity</span></span><span class="ln">NAME           COHORT      PENDING WORKLOADS</span><span class="ln">llm-cpu        cpu-fleet   0</span><span class="ln">llm-gpu        gpu-fleet   0</span><span class="ln">research-cpu   cpu-fleet   0</span><span class="ln">research-gpu   gpu-fleet   0</span><span class="ln">vision-cpu     cpu-fleet   0</span><span class="ln">vision-gpu     gpu-fleet   0</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu get nodes -L ds02/pool,node.kubernetes.io/instance-type   <span class="tc"># at rest</span></span><span class="ln">NAME                  STATUS   ROLES    AGE    VERSION               POOL   INSTANCE-TYPE</span><span class="ln">i-0bf02de64f7a3aaac   Ready    &lt;none&gt;   2m1s   v1.37.1-eks-577a51e          c6a.large</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>all four clusters are ACTIVE on the same Kubernetes version</td>
+<td>One Terraform resource, written once, creates all four clusters, so they cannot differ in version.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the cluster role labels are manager, cpu-worker (x2) and gpu-worker</td>
+<td>Each cluster carries the role it was created for. The platform layer reads it to decide what to install.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>every cluster runs the same Kueue version</td>
+<td>A single pinned chart version is installed on every cluster by the same Terraform module.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the hub is connected to all three workers</td>
+<td>The hub holds one kubeconfig Secret per worker, each with a narrowly scoped identity, and MultiKueue reports each connection Active.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>no GPU node is running at rest (GPU capacity is bought only when a queued job needs it)</td>
+<td>GPU NodePools start empty. Nodes are created only for pods that Kueue has admitted.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the hub has no node pool for user work</td>
+<td>The hub only has the platform's built-in pool. Team capacity lives in the workers.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Cluster state is read from the EKS API, the Kueue image from each cluster's own Deployment, and the connections from the hub's own MultiKueueCluster objects. None of it is read back from my configuration files.</li>
+<li>The 'no GPU at rest' check looks at the capacity every node reports, so a GPU node hidden under another name would still be counted.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The four clusters match because they are one Terraform resource written once and repeated by a map. The role label on each comes from that map.</li>
+<li>Kueue is identical everywhere because one module installs it with one pinned chart version on every cluster.</li>
+<li>The hub reports each worker Active because Terraform gave every worker a narrow identity, stored that identity's kubeconfig in the hub, and created a MultiKueueCluster for it.</li>
+<li>No GPU node is running because the GPU NodePools start empty and their limits are set in the NodePool, so nothing is bought until an <mark class="kw-act">admitted</mark> job needs it.</li>
+</ul>
+<h3 id="appendix-design-02-eks-s02-one-front-door-and-the-hub-runs-nothing">S02: One front door, and the hub runs nothing</h3>
+<p><strong>Design reference:</strong> Sending work to the right cluster; The architecture at a glance.</p>
+<p><strong>What this tests.</strong> Submit a job once to the hub. It must run in a worker, report its status back to the hub, leave no pod on the hub, and be refused if someone tries to run a pod on the hub directly.</p>
+<p>This scenario is the user's view of the platform: submit once to one place. The job has to run somewhere else, report back, and leave nothing running on the hub. I also try to cheat by running a pod on the hub directly.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S02: One front door, and the hub runs nothing" class="open" data-src="diagrams/appendix/a03-evidence/S02.png" data-title="S02: One front door, and the hub runs nothing" type="button"><img alt="Diagram: S02: One front door, and the hub runs nothing" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S02.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl --context hub -n llm run rogue --image=python:3.12-slim   <span class="tc"># a pod that passes every security check, run on the hub directly</span></span><span class="ln"> </span><span class="ln">The pods "rogue" is invalid: : ValidatingAdmissionPolicy 'hub-runs-no-user-pods' with binding 'hub-runs-no-user-pods' denied request: The hub cluster runs no user workloads. Submit a Job to your Loca…</span><span class="ln"> </span><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># llm/front-door: queue cpu, 2 pod(s) x cpu 1</span></span><span class="ln">job.batch/front-door created</span><span class="ln"> </span><span class="ln">$ kubectl --context hub -n llm get workload,job   <span class="tc"># the hub's single view of the job</span></span><span class="ln">NAME                                           QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE</span><span class="ln">workload.kueue.x-k8s.io/job-front-door-649bf   cpu     llm-cpu       True                  2s</span><span class="ln"> </span><span class="ln">NAME                   STATUS    COMPLETIONS   DURATION   AGE</span><span class="ln">job.batch/front-door   Running   0/2           2s         3s</span><span class="ln"> </span><span class="ln">$ kubectl --context hub -n llm get pods   <span class="tc"># nothing runs on the hub</span></span><span class="ln"> </span><span class="ln">No resources found in llm namespace.</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n llm get pods -o wide   <span class="tc"># the pods are here</span></span><span class="ln">NAME               READY   STATUS    RESTARTS   AGE   IP       NODE     NOMINATED NODE   READINESS GATES</span><span class="ln">front-door-9lq7l   0/1     Pending   0          7s    &lt;none&gt;   &lt;none&gt;   &lt;none&gt;           &lt;none&gt;</span><span class="ln">front-door-p9snc   0/1     Pending   0          7s    &lt;none&gt;   &lt;none&gt;   &lt;none&gt;           &lt;none&gt;</span><span class="ln"> </span><span class="ln">$ kubectl --context hub -n llm get job front-door   <span class="tc"># status mirrored back</span></span><span class="ln">NAME         STATUS     COMPLETIONS   DURATION   AGE</span><span class="ln">front-door   Complete   2/2           73s        79s</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n llm get jobs   <span class="tc"># the remote copy is cleaned up</span></span><span class="ln"> </span><span class="ln">No resources found in llm namespace.</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>a pod created directly on the hub is refused</td>
+<td>A ValidatingAdmissionPolicy on the hub denies every pod in a team namespace.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the hub chose a worker for the job</td>
+<td>The job's Workload on the hub records where it was sent: cpu-a.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>no pod exists on the hub</td>
+<td>The hub keeps a suspended copy of the job. Pods exist only in the worker that admitted it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the job's pods are running in that worker</td>
+<td>MultiKueue created the Job in the winning worker, linked to the Workload that worker admitted.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the job completed and its status is visible on the hub</td>
+<td>The hub watches the remote job and copies its status. The user never needs worker credentials.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the remote copy was deleted when the job finished</td>
+<td>After the final status sync the hub deletes the remote objects.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The worker's name comes from the hub's own Workload record, and I then look for the pods in exactly that worker.</li>
+<li>The 'no pod on the hub' check lists pods in the team's namespace on the hub. An empty list is a measured result, not an assumption.</li>
+<li>The cleanup check looks in the worker after the job finished, so a leftover copy would fail the test.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The direct pod is refused because the hub carries a ValidatingAdmissionPolicy that denies every pod in a team namespace.</li>
+<li>The hub has no pods because MultiKueue keeps the job suspended there. Only the worker that <mark class="kw-act">admitted</mark> the Workload runs it.</li>
+<li>The status is visible on the hub because MultiKueue watches the remote job and copies its status back.</li>
+<li>The remote copy disappears because the hub deletes the objects it created in the worker after the final status sync.</li>
+</ul>
+<h3 id="appendix-design-02-eks-s03-why-is-my-job-pending-one-answer-per-layer">S03: Why is my job pending? One answer per layer</h3>
+<p><strong>Design reference:</strong> Four layers of scheduling decisions.</p>
+<p><strong>What this tests.</strong> Create the two situations that make a job wait (no fleet <mark class="kw">quota</mark> at the hub, no room in any worker) and show that each is explained by a different layer, in one line.</p>
+<p>A researcher asks why her job has been pending for an hour. The design's answer is that every wait has one owner. I create the two ways to wait: too big for the team's fleet-wide share, and within the fleet share but too big for any single worker, and read each reason from the system that holds the job.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S03: Why is my job pending? One answer per layer" class="open" data-src="diagrams/appendix/a03-evidence/S03.png" data-title="S03: Why is my job pending? One answer per layer" type="button"><img alt="Diagram: S03: Why is my job pending? One answer per layer" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S03.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># vision/too-big-for-fleet: queue cpu, 7 pod(s) x cpu 1</span></span><span class="ln">job.batch/too-big-for-fleet created</span><span class="ln"> </span><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># llm/too-big-for-any-worker: queue cpu, 6 pod(s) x cpu 1</span></span><span class="ln">job.batch/too-big-for-any-worker created</span><span class="ln"> </span><span class="ln">$ scripts/fleet-status.py workloads   <span class="tc"># every workload in the fleet, and the layer holding it</span></span><span class="ln">CLUSTER  NAMESPACE WORKLOAD                           STATE</span><span class="ln">hub      llm       job-too-big-for-any-worker-bd12c   LAYER 1 pending: quota reserved at the hub, waiting for a worker to admit. No worker cluster reserved quota: cpu-a (ExceedsMaxQuota): couldn't as…</span><span class="ln">hub      vision    job-too-big-for-fleet-4a048        LAYER 1 pending: no fleet quota. couldn't assign flavors to pod set main: insufficient quota for cpu in flavor fleet-cpu, previously considered</span><span class="ln">cpu-a    llm       job-too-big-for-any-worker-bd12c   LAYER 2 pending: couldn't assign flavors to pod set main: insufficient quota for cpu in flavor cpu-ondemand, previously considered podset</span><span class="ln">cpu-b    llm       job-too-big-for-any-worker-bd12c   LAYER 2 pending: couldn't assign flavors to pod set main: insufficient quota for cpu in flavor cpu-spot, previously considered podsets re</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the job larger than the team's fleet-wide quota waits at LAYER 1 (hub quota)</td>
+<td>The hub's ClusterQueue for the team caps the team at its fleet share plus what it may borrow.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the job larger than any worker's queue waits at LAYER 1, with quota reserved and no worker admitting it</td>
+<td>The hub's quota allows it, so it is offered to the workers, and none of them has a queue big enough.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the same job is waiting at LAYER 2 in the workers it was offered to</td>
+<td>Each worker's own Kueue holds the copy and says why it cannot admit it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>neither job has created a single pod</td>
+<td>Admission comes before placement. Pods do not exist for work that has no quota.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The table is produced by a script that reads the Workload objects of every cluster and prints the condition message each <mark class="kw-tool">Kueue</mark> wrote. I do not write the reasons.</li>
+<li>The pod count is read from all four clusters. Zero is a measured value.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The first job waits at the hub because the team's fleet-wide queue has quota for fewer CPUs than the job asks for.</li>
+<li>The second job gets a quota reservation at the hub (the team's fleet share is large enough) and is then offered to the workers. Each worker's queue can hold at most the team's share there plus what it may <mark class="kw-act">borrow</mark>, which is less than the job needs, so every copy waits at layer 2.</li>
+<li>No pods exist because Kueue keeps a job suspended until the whole job is <mark class="kw-act">admitted</mark>.</li>
+</ul>
+<h3 id="appendix-design-02-eks-s04-gang-scheduling-all-of-a-job-or-none-of-it">S04: Gang scheduling: all of a job, or none of it</h3>
+<p><strong>Design reference:</strong> Four layers of scheduling decisions (<mark class="kw-act">admission</mark> before placement).</p>
+<p><strong>What this tests.</strong> Submit a 4-pod job to a worker that can hold only 3 of the pods. The job must wait whole, with no pods created, instead of starting 3 and holding resources for the 4th.</p>
+<p><mark class="kw">Gang scheduling</mark> is the property that a distributed job starts all at once or not at all. Without it, a 4-pod job on a cluster with room for 3 starts 3 pods, which then hold resources and wait for the 4th. I test the property directly on one worker.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S04: Gang scheduling: all of a job, or none of it" class="open" data-src="diagrams/appendix/a03-evidence/S04.png" data-title="S04: Gang scheduling: all of a job, or none of it" type="button"><img alt="Diagram: S04: Gang scheduling: all of a job, or none of it" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S04.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># vision/gang-of-4: queue cpu, 4 pod(s) x cpu 1</span></span><span class="ln">job.batch/gang-of-4 created</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n vision get workload,pods</span><span class="ln">NAME                                          QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE</span><span class="ln">workload.kueue.x-k8s.io/job-gang-of-4-79bb3   cpu                   False                 18s</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n vision get workload -o jsonpath=&lt;the QuotaReserved message&gt;</span><span class="ln">couldn't assign flavors to pod set main: insufficient quota for cpu in flavor cpu-ondemand, previously considered podsets requests (0) + current podset request (4) &gt; maximum capacity (3)</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n vision delete job gang-of-4</span><span class="ln">job.batch "gang-of-4" deleted from vision namespace</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># vision/gang-of-3: queue cpu, 3 pod(s) x cpu 1</span></span><span class="ln">job.batch/gang-of-3 created</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n vision get workload   <span class="tc"># a 3-pod job fits and is admitted whole</span></span><span class="ln">NAME                  QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE</span><span class="ln">job-gang-of-3-c3d21   cpu     vision-cpu    True                  3s</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the 4-pod job is not admitted</td>
+<td>The vision queue on this worker can use 3 CPUs at most (1 of its own plus 2 borrowed), and the job needs 4.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the job's pod count is zero while it waits</td>
+<td>Kueue keeps the job suspended. The Job controller creates no pods until the whole gang is admitted.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the reason names the missing quota</td>
+<td>The Workload's condition is the one-line answer to 'why is it pending'.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a 3-pod job fits the same queue and is admitted</td>
+<td>Same queue, same worker: the only difference is the size of the gang.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> This test talks to the worker directly, so the result is the worker's own decision.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The test talks to the worker's own <mark class="kw-tool">Kueue</mark>, so the decision is that worker's and not the hub's.</li>
+<li>The pod list is read from the worker's API after the job has had time to start. If pods existed, the check would fail.</li>
+<li>A control job one pod smaller is <mark class="kw-act">admitted</mark> in the same queue, so a bug that blocks everything would show.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The 4-pod job waits because the team's queue on this worker can use 3 CPUs at most: 1 of its own and 2 it may <mark class="kw-act">borrow</mark>.</li>
+<li>No pods are created because the Job is created suspended and Kueue unsuspends it only once all of its pods fit.</li>
+<li>The 3-pod job is admitted because 3 CPUs are within what the queue may use.</li>
+</ul>
+<h3 id="appendix-design-02-eks-s05-fair-sharing-borrow-idle-capacity-give-it-back-when-asked">S05: Fair sharing: borrow idle capacity, give it back when asked</h3>
+<p><strong>Design reference:</strong> Queues, <mark class="kw">quotas</mark> and <mark class="kw">fair sharing</mark>.</p>
+<p><strong>What this tests.</strong> One team <mark class="kw-act">borrows</mark> what others are not using. When an owner comes back for its share, the borrower is <mark class="kw-act">preempted</mark> and <mark class="kw-act">requeued</mark>, and the owner runs.</p>
+<p>Static per-team pools leave capacity idle. The design's answer is a <mark class="kw">cohort</mark>: each team has a guaranteed share, can borrow what others are not using, and gets it back when it asks. I run exactly that sequence: a borrower takes idle capacity, then the owner comes back.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S05: Fair sharing: borrow idle capacity, give it back when asked" class="open" data-src="diagrams/appendix/a03-evidence/S05.png" data-title="S05: Fair sharing: borrow idle capacity, give it back when asked" type="button"><img alt="Diagram: S05: Fair sharing: borrow idle capacity, give it back when asked" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S05.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl --context cpu-a get clusterqueue   <span class="tc"># llm 2, vision 1, research 1 CPU, one cohort</span></span><span class="ln">NAME           COHORT      PENDING WORKLOADS</span><span class="ln">llm-cpu        cpu-fleet   0</span><span class="ln">research-cpu   cpu-fleet   0</span><span class="ln">vision-cpu     cpu-fleet   0</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># research/research-run: queue cpu, 3 pod(s) x cpu 1</span></span><span class="ln">job.batch/research-run created</span><span class="ln"> </span><span class="ln">$ scripts/fleet-status.py queues   <span class="tc"># research uses 3 CPUs: its own 1 plus 2 borrowed</span></span><span class="ln">CLUSTER  QUEUE          PENDING ADMITTED  USAGE (flavor: resource used / nominal, borrowed)</span><span class="ln">hub      llm-cpu              0        0  fleet-cpu: cpu 0/4 (borrowed 0)</span><span class="ln">hub      llm-gpu              0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)</span><span class="ln">hub      research-cpu         0        0  fleet-cpu: cpu 0/2 (borrowed 0)</span><span class="ln">hub      research-gpu         0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)</span><span class="ln">hub      vision-cpu           0        0  fleet-cpu: cpu 0/2 (borrowed 0)</span><span class="ln">hub      vision-gpu           0        0  fleet-gpu: cpu 0/3 (borrowed 0); fleet-gpu: gpu 0/1 (borrowed 0)</span><span class="ln">cpu-a    llm-cpu              0        0  cpu-ondemand: cpu 0/2 (borrowed 0)</span><span class="ln">cpu-a    research-cpu         0        1  cpu-ondemand: cpu 3/1 (borrowed 2)</span><span class="ln">cpu-a    vision-cpu           0        0  cpu-ondemand: cpu 0/1 (borrowed 0)</span><span class="ln">cpu-b    llm-cpu              0        0  cpu-spot: cpu 0/2 (borrowed 0)</span><span class="ln">cpu-b    research-cpu         0        0  cpu-spot: cpu 0/1 (borrowed 0)</span><span class="ln">cpu-b    vision-cpu           0        0  cpu-spot: cpu 0/1 (borrowed 0)</span><span class="ln">gpu      llm-gpu              0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0); gpu-spot: cpu 0/3 (borrowed 0); gpu-spot: gpu 0/1 (borrowed 0)</span><span class="ln">gpu      research-gpu         0        0  gpu-spot: cpu 0/6 (borrowed 0); gpu-spot: gpu 0/2 (borrowed 0)</span><span class="ln">gpu      vision-gpu           0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0)</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># llm/llm-owner: queue cpu, 2 pod(s) x cpu 1</span></span><span class="ln">job.batch/llm-owner created</span><span class="ln"> </span><span class="ln">$ scripts/fleet-status.py workloads   <span class="tc"># the owner is admitted; the borrower has been evicted and requeued</span></span><span class="ln">CLUSTER  NAMESPACE WORKLOAD                           STATE</span><span class="ln">cpu-a    llm       job-llm-owner-79e8f                running (admitted)</span><span class="ln">cpu-a    research  job-research-run-095b9             LAYER 2 pending: couldn't assign flavors to pod set main: insufficient unused quota for cpu in flavor cpu-ondemand, 1 more needed</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>research was admitted with 3 CPUs although its own share is 1</td>
+<td>The cohort lets a team borrow what others lend, up to the borrowing limit. Two CPUs came from llm and vision.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>llm, asking for its own share, was admitted</td>
+<td>llm's share is guaranteed, so Kueue reclaims it from whoever is borrowing it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>research's borrowing workload was preempted</td>
+<td>reclaimWithinCohort is Any, so a queue within its nominal quota may preempt workloads that are borrowing from the cohort.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the preempted job was requeued, not lost</td>
+<td>Preempted Workloads go back to the queue and run again when capacity returns.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> <mark class="kw-tool">Kueue</mark>'s own words for the preemption: 'Preempted to accommodate a workload (UID: a0f1cde0-d7ac-4eec-ae90-1cedd84d911b, JobUID: 141d7f52-642a-4b6c-b248-992cd7bb5511) due to reclamation within the cohort; preemptor path: /cpu-fleet/llm-cpu; '</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Usage and borrowed amounts are read from each <mark class="kw">ClusterQueue</mark>'s own status.</li>
+<li>The preemption is read from the borrower's Workload conditions, and the message is Kueue's own.</li>
+<li>The workload still exists after preemption, so the check for 'requeued, not lost' is not vacuous.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Research is <mark class="kw-act">admitted</mark> with 3 CPUs because the cohort lets it borrow up to its borrowing limit, from queues that lend. llm lends one CPU and vision lends one.</li>
+<li>llm is admitted because it is asking for its own guaranteed share and the queue allows preemption of borrowers (<code>reclaimWithinCohort: Any</code>).</li>
+<li>Research's job is preempted and requeued because it was running on borrowed quota, which is the first thing Kueue takes back.</li>
+</ul>
+<h3 id="appendix-design-02-eks-s06-dispatch-a-full-worker-is-skipped-and-the-job-runs-in-the-other">S06: Dispatch: a full worker is skipped, and the job runs in the other</h3>
+<p><strong>Design reference:</strong> Sending work to the right cluster.</p>
+<p><strong>What this tests.</strong> Fill one CPU worker for a team, then submit that team's job to the hub. The hub offers it to both workers and the one with room must win.</p>
+<p>The hub offers a job to several workers and the first to <mark class="kw-act">admit</mark> wins. I make one worker unable to take a team's job and show that the other one does.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S06: Dispatch: a full worker is skipped, and the job runs in the other" class="open" data-src="diagrams/appendix/a03-evidence/S06.png" data-title="S06: Dispatch: a full worker is skipped, and the job runs in the other" type="button"><img alt="Diagram: S06: Dispatch: a full worker is skipped, and the job runs in the other" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S06.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># llm/fill-cpu-a: queue cpu, 4 pod(s) x cpu 1</span></span><span class="ln">job.batch/fill-cpu-a created</span><span class="ln"> </span><span class="ln">$ scripts/fleet-status.py queues   <span class="tc"># cpu-a's llm queue is full (4 of 4 CPUs)</span></span><span class="ln">CLUSTER  QUEUE          PENDING ADMITTED  USAGE (flavor: resource used / nominal, borrowed)</span><span class="ln">hub      llm-cpu              0        0  fleet-cpu: cpu 0/4 (borrowed 0)</span><span class="ln">hub      llm-gpu              0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)</span><span class="ln">hub      research-cpu         0        0  fleet-cpu: cpu 0/2 (borrowed 0)</span><span class="ln">hub      research-gpu         0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)</span><span class="ln">hub      vision-cpu           0        0  fleet-cpu: cpu 0/2 (borrowed 0)</span><span class="ln">hub      vision-gpu           0        0  fleet-gpu: cpu 0/3 (borrowed 0); fleet-gpu: gpu 0/1 (borrowed 0)</span><span class="ln">cpu-a    llm-cpu              0        1  cpu-ondemand: cpu 4/2 (borrowed 2)</span><span class="ln">cpu-a    research-cpu         0        0  cpu-ondemand: cpu 0/1 (borrowed 0)</span><span class="ln">cpu-a    vision-cpu           0        0  cpu-ondemand: cpu 0/1 (borrowed 0)</span><span class="ln">cpu-b    llm-cpu              0        0  cpu-spot: cpu 0/2 (borrowed 0)</span><span class="ln">cpu-b    research-cpu         0        0  cpu-spot: cpu 0/1 (borrowed 0)</span><span class="ln">cpu-b    vision-cpu           0        0  cpu-spot: cpu 0/1 (borrowed 0)</span><span class="ln">gpu      llm-gpu              0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0); gpu-spot: cpu 0/3 (borrowed 0); gpu-spot: gpu 0/1 (borrowed 0)</span><span class="ln">gpu      research-gpu         0        0  gpu-spot: cpu 0/6 (borrowed 0); gpu-spot: gpu 0/2 (borrowed 0)</span><span class="ln">gpu      vision-gpu           0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0)</span><span class="ln"> </span><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># llm/needs-3: queue cpu, 3 pod(s) x cpu 1</span></span><span class="ln">job.batch/needs-3 created</span><span class="ln"> </span><span class="ln">$ kubectl --context hub -n llm get workload -o custom-columns=&lt;name, chosen cluster, nominated clusters&gt;</span><span class="ln">NAME                CLUSTER   NOMINATED</span><span class="ln">job-needs-3-e9a38   cpu-b     &lt;none&gt;</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n llm get workloads   <span class="tc"># only the job that fills it; no copy of needs-3</span></span><span class="ln">NAME                   QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE</span><span class="ln">job-fill-cpu-a-067eb   cpu     llm-cpu       True                  20s</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the job was sent to cpu-b, the worker with room</td>
+<td>Both workers were offered the job. cpu-a's llm queue had no room, so only cpu-b could admit it (chosen: cpu-b).</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the full worker holds no copy of the job any more</td>
+<td>As soon as one worker admits, the hub deletes the copies in the others.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The setup is verified before the test: the usage table shows the first worker's queue full.</li>
+<li>The chosen cluster is read from the hub's Workload. The cleanup check reads the other worker's Workloads.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The job goes to cpu-b because the hub copied it to both CPU workers and cpu-a's queue for that team was full, so only cpu-b could admit it.</li>
+<li>cpu-a holds no copy afterwards because the hub deletes the copies in the workers that did not win.</li>
+</ul>
+<h3 id="appendix-design-02-eks-s07-gpus-only-through-the-queue-from-the-right-capacity-scaled-from-zero">S07: GPUs: only through the queue, from the right capacity, scaled from zero</h3>
+<p><strong>Design reference:</strong> Inside a GPU cluster; <mark class="kw-act">Autoscaling</mark>: where capacity comes from; Multi-tenant isolation (side doors).</p>
+<p><strong>What this tests.</strong> Run GPU jobs through the hub, check which kind of capacity each team's job got, check that the GPU nodes appear only when needed and disappear when idle, and try to get a GPU without going through the queue.</p>
+<p>GPUs are the scarce, expensive resource, so the design controls them four ways: through queues, by flavor, by scaling from zero, and by closing every side door. This scenario runs real GPU jobs and then tries to get a GPU without permission.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S07: GPUs: only through the queue, from the right capacity, scaled from zero" class="open" data-src="diagrams/appendix/a03-evidence/S07.png" data-title="S07: GPUs: only through the queue, from the right capacity, scaled from zero" type="button"><img alt="Diagram: S07: GPUs: only through the queue, from the right capacity, scaled from zero" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S07.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl --context gpu get nodes -L ds02/pool   <span class="tc"># before: no GPU node</span></span><span class="ln">NAME                  STATUS   ROLES    AGE   VERSION               POOL</span><span class="ln">i-0bf02de64f7a3aaac   Ready    &lt;none&gt;   12m   v1.37.1-eks-577a51e   </span><span class="ln"> </span><span class="ln">$ aws ec2 describe-instances &lt;GPU instances of the GPU worker, running&gt;   <span class="tc"># the same fact, from EC2</span></span><span class="ln">GPU instances running: 0</span><span class="ln"> </span><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># llm/llm-train-a: queue gpu, 1 pod(s) x cpu 2, gpu 1</span></span><span class="ln">job.batch/llm-train-a created</span><span class="ln"> </span><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># llm/llm-train-b: queue gpu, 1 pod(s) x cpu 2, gpu 1</span></span><span class="ln">job.batch/llm-train-b created</span><span class="ln"> </span><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># research/research-train: queue gpu, 1 pod(s) x cpu 2, gpu 1</span></span><span class="ln">job.batch/research-train created</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu get workloads -A -o &lt;flavor each job was given&gt;</span><span class="ln">llm-train-a      -&gt; gpu-ondemand</span><span class="ln">llm-train-b      -&gt; gpu-spot</span><span class="ln">research-train   -&gt; gpu-spot</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu get nodes -L ds02/pool,node.kubernetes.io/instance-type   <span class="tc"># GPU nodes created for the admitted jobs</span></span><span class="ln">NAME                  STATUS   ROLES    AGE   VERSION               POOL           INSTANCE-TYPE</span><span class="ln">i-001871d8b881e6fa1   Ready    &lt;none&gt;   13s   v1.37.1-eks-577a51e   gpu-ondemand   g4dn.xlarge</span><span class="ln">i-0bf02de64f7a3aaac   Ready    &lt;none&gt;   16m   v1.37.1-eks-577a51e                  c6a.large</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu -n llm logs -l job-name=llm-train-a   <span class="tc"># what the job saw</span></span><span class="ln">GPU 0: Tesla T4 (UUID: GPU-3532a20f-4653-9fd0-c1f0-07830fb1f1e1)</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu create -f pod.yaml   <span class="tc"># a bare pod asking for a GPU in a team namespace, with no queue label</span></span><span class="ln">pod/bypass-queue created</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu -n llm get pod bypass-queue</span><span class="ln">NAME           READY   STATUS            RESTARTS   AGE</span><span class="ln">bypass-queue   0/1     SchedulingGated   0          22s</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu -n default create -f pod.yaml   <span class="tc"># the same, in a namespace Kueue does not manage</span></span><span class="ln">pod/bypass-namespace created</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu -n default get pod bypass-namespace</span><span class="ln">NAME               READY   STATUS    RESTARTS   AGE</span><span class="ln">bypass-namespace   0/1     Pending   0          61s</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu -n default get events   <span class="tc"># why it is not scheduled</span></span><span class="ln">0/2 nodes are available: 2 Insufficient nvidia.com/gpu. preemption: 0/2 nodes are available: 1 No preemption victims found for incoming pod, 1 Preemption is not helpful for scheduling.</span><span class="ln">Pod should schedule on: nodeclaim/gpu-ondemand-mbr2z</span><span class="ln">NodeClaim gpu-ondemand-mbr2z nominated for this pod failed to launch: creating nodeclaim, creating instance, insufficient capacity, with fleet error(s), InsufficientInstanceCapacity: We currently do …</span><span class="ln"> </span><span class="ln">$ kubectl --context gpu get nodes -L ds02/pool   <span class="tc"># after the jobs ended</span></span><span class="ln">NAME                  STATUS   ROLES    AGE     VERSION               POOL</span><span class="ln">i-001871d8b881e6fa1   Ready    &lt;none&gt;   2m46s   v1.37.1-eks-577a51e   gpu-ondemand</span><span class="ln">i-0bf02de64f7a3aaac   Ready    &lt;none&gt;   19m     v1.37.1-eks-577a51e   </span><span class="ln"> </span><span class="ln">$ aws ec2 describe-instances &lt;GPU instances of the GPU worker, running&gt;   <span class="tc"># after the jobs ended</span></span><span class="ln">GPU instances running: 0</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>there is no GPU instance before any job is submitted</td>
+<td>GPU NodePools scale from zero.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the first llm job got on-demand GPU capacity (the first flavor in its queue)</td>
+<td>A job tries the flavors of its queue in order and takes the first with room.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the second llm job, with the on-demand share used up, got Spot</td>
+<td>llm owns one on-demand and one Spot GPU. The second job falls through to the next flavor.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the research job got Spot, the only flavor its queue lists</td>
+<td>Research's queue does not include on-demand, so an experiment can never buy it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>GPU nodes were created, from a GPU instance family the pool allows, in the pools that match the flavors</td>
+<td>The flavor's node label selects the NodePool, so quota and capacity line up.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the job saw a real GPU</td>
+<td>The device plugin gave the pod one GPU, and nvidia-smi inside it names the device.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a GPU pod with no queue label is held by a scheduling gate and never runs</td>
+<td>Kueue manages every pod in a team namespace. Without a queue it adds a scheduling gate that nothing removes.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a GPU pod outside the queues stays Pending, and no node was bought for it</td>
+<td>GPU nodes are tainted. The pod has no toleration, and the built-in pool has no GPU instance types, so nothing can satisfy it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>every GPU instance was terminated after the jobs ended (scale to zero)</td>
+<td>The NodePool removes empty nodes two minutes after the last pod leaves, and Auto Mode terminates the instance.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> Waiting for the GPU nodes to be removed once they are empty.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The flavor each job received is read from the Workload that <mark class="kw-act">admitted</mark> it in the GPU worker.</li>
+<li>The jobs print <code>nvidia-smi -L</code> from inside the pod, so the GPU is shown by the driver, not assumed from a resource request.</li>
+<li>The side-door tests create the forbidden pods for real and read their phase, their scheduling gate and the node list before and after.</li>
+<li>The final check waits for the GPU nodes to disappear. It fails if they do not.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The first llm job gets on-demand capacity and the second gets <mark class="kw">Spot</mark> because llm's queue lists flavors in that order and owns one of each.</li>
+<li>Research gets Spot because its queue does not list the on-demand flavor. That is the 'weekend experiment cannot buy on-demand' rule.</li>
+<li>Which GPU model a job gets depends on which allowed instance family had capacity when the node was bought, so the test checks for a GPU and does not hard-code one. In my first attempt the <code>g6</code> family had no capacity and Auto Mode launched a <code>g4dn</code> node.</li>
+<li>GPU nodes appear only after a job is admitted because the NodePools start empty and only admitted pods carry the <mark class="kw">toleration</mark> the flavor adds.</li>
+<li>A bare GPU pod in a team namespace is held because <mark class="kw-tool">Kueue</mark> manages every pod in a team namespace and gates the ones with no queue. In an unmanaged namespace it stays Pending because no pool can satisfy it: GPU nodes are tainted and the platform pool has no GPU instance types.</li>
+<li>The nodes disappear because the NodePool removes empty nodes after two minutes.</li>
+</ul>
+<h3 id="appendix-design-02-eks-s08-tenant-isolation-network-and-identity">S08: Tenant isolation: network and identity</h3>
+<p><strong>Design reference:</strong> Multi-tenant isolation.</p>
+<p><strong>What this tests.</strong> Show that one team's pods cannot reach another team's pods, and that one team's job cannot read another team's data, while each can use its own.</p>
+<p>Teams share clusters, so one team must not be able to see another's pods or read another's data. I test the network wall and the identity wall, each with a positive control so a block cannot be mistaken for a broken network.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S08: Tenant isolation: network and identity" class="open" data-src="diagrams/appendix/a03-evidence/S08.png" data-title="S08: Tenant isolation: network and identity" type="button"><img alt="Diagram: S08: Tenant isolation: network and identity" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S08.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># vision/vision-server: queue cpu, 1 pod(s) x cpu 1</span></span><span class="ln">job.batch/vision-server created</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># llm/llm-probe: queue cpu, 1 pod(s) x cpu 1</span></span><span class="ln">job.batch/llm-probe created</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># vision/vision-probe: queue cpu, 1 pod(s) x cpu 1</span></span><span class="ln">job.batch/vision-probe created</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n llm logs job/llm-probe   <span class="tc"># from team llm to team vision's server</span></span><span class="ln">blocked: URLError</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n vision logs job/vision-probe   <span class="tc"># from team vision to its own server</span></span><span class="ln">reachable: 200</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># llm/llm-own-data: queue cpu, 1 pod(s) x cpu 1</span></span><span class="ln">job.batch/llm-own-data created</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a create -f job.yaml   <span class="tc"># llm/llm-other-data: queue cpu, 1 pod(s) x cpu 1</span></span><span class="ln">job.batch/llm-other-data created</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n llm logs job/llm-own-data   <span class="tc"># aws s3 cp s3://&lt;bucket&gt;/llm/dataset.txt -</span></span><span class="ln">dataset owned by team llm</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n llm logs job/llm-other-data   <span class="tc"># aws s3 cp s3://&lt;bucket&gt;/vision/dataset.txt -</span></span><span class="ln">download failed: s3://ds02-fleet-data-b8ecd20d/vision/dataset.txt to - An error occurred (403) when calling the HeadObject operation: Forbidden</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n llm get resourcequota,networkpolicy</span><span class="ln">NAME                        REQUEST                              LIMIT   AGE</span><span class="ln">resourcequota/team-limits   count/jobs.batch: 3/30, pods: 0/20           22m</span><span class="ln"> </span><span class="ln">NAME                                           POD-SELECTOR   AGE</span><span class="ln">networkpolicy.networking.k8s.io/isolate-team   &lt;none&gt;         22m</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>a pod in team llm cannot reach team vision's server</td>
+<td>Each team namespace has a policy that admits traffic only from its own namespace. The probe's own output says it was blocked.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a pod in team vision can reach its own team's server</td>
+<td>The same policy allows pods in the same namespace. The block is deliberate, not a broken network.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a team's job reads its own S3 prefix</td>
+<td>EKS Pod Identity gave the job's ServiceAccount a role limited to that team's prefix.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the same job is refused another team's prefix</td>
+<td>The role's policy names only the team's own prefix. The refusal comes from IAM, not from the cluster.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> A server runs in team vision's namespace on cpu-a at 10.30.28.97.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Each probe is a real job that runs in a team namespace and reports what it got. The server runs in another team's namespace on the same worker.</li>
+<li>The same-namespace probe is the positive control. If the network were simply down it would fail too.</li>
+<li>The identity test uses the AWS CLI inside the job, so the answer (data or AccessDenied) is IAM's own.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Cross-team traffic is dropped because each team namespace has a policy that <mark class="kw-act">admits</mark> ingress only from its own namespace.</li>
+<li>Same-namespace traffic works because that policy allows it.</li>
+<li>A team's job reads its own prefix because <mark class="kw">EKS Pod Identity</mark> associates the team's <mark class="kw">ServiceAccount</mark> with a role whose policy lists only that prefix. Another team's prefix is refused by IAM.</li>
+</ul>
+<h3 id="appendix-design-02-eks-s09-failure-drills-a-worker-lost-and-the-hub-down">S09: Failure drills: a worker lost, and the hub down</h3>
+<p><strong>Design reference:</strong> Failure modes and operations.</p>
+<p><strong>What this tests.</strong> Cut the hub off from one worker, and check that new jobs still run. Take the hub's queue controller down, and check that a running job is not affected.</p>
+<p>The design's failure table says how the fleet behaves when a worker or the hub is lost. I cut the hub off from one worker, and I take the hub's queue controller away.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S09: Failure drills: a worker lost, and the hub down" class="open" data-src="diagrams/appendix/a03-evidence/S09.png" data-title="S09: Failure drills: a worker lost, and the hub down" type="button"><img alt="Diagram: S09: Failure drills: a worker lost, and the hub down" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S09.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl --context hub -n kueue-system patch secret cpu-a-kubeconfig   <span class="tc"># simulate losing cpu-a: its credentials stop working</span></span><span class="ln">secret/cpu-a-kubeconfig patched</span><span class="ln"> </span><span class="ln">$ kubectl --context hub get multikueuecluster</span><span class="ln">NAME    CONNECTED   AGE</span><span class="ln">cpu-a   False       22m</span><span class="ln">cpu-b   True        22m</span><span class="ln">gpu     True        22m</span><span class="ln"> </span><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># llm/during-outage: queue cpu, 1 pod(s) x cpu 1</span></span><span class="ln">job.batch/during-outage created</span><span class="ln"> </span><span class="ln">$ kubectl --context hub -n kueue-system patch secret cpu-a-kubeconfig   <span class="tc"># restore the credentials</span></span><span class="ln">secret/cpu-a-kubeconfig patched</span><span class="ln"> </span><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># llm/long-run: queue cpu, 1 pod(s) x cpu 1</span></span><span class="ln">job.batch/long-run created</span><span class="ln"> </span><span class="ln">$ kubectl --context hub -n kueue-system scale deploy/kueue-controller-manager --replicas=0</span><span class="ln">deployment.apps/kueue-controller-manager scaled</span><span class="ln"> </span><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># a new submission while the hub's Kueue is down</span></span><span class="ln"> </span><span class="ln">Error from server (InternalError): error when creating "STDIN": Internal error occurred: failed calling webhook "mjob.kb.io": failed to call webhook: Post "https://kueue-webhook-service.kueue-system.…</span><span class="ln"> </span><span class="ln">$ kubectl --context cpu-a -n llm get pods   <span class="tc"># the running job, hub still down</span></span><span class="ln">NAME             READY   STATUS    RESTARTS   AGE</span><span class="ln">long-run-bpvnl   1/1     Running   0          30s</span><span class="ln"> </span><span class="ln">$ kubectl --context hub -n kueue-system scale deploy/kueue-controller-manager --replicas=1</span><span class="ln">deployment.apps/kueue-controller-manager scaled</span><span class="ln"> </span><span class="ln">$ kubectl --context hub -n kueue-system rollout status deploy/kueue-controller-manager --timeout=180s</span><span class="ln">Waiting for deployment "kueue-controller-manager" rollout to finish: 0 of 1 updated replicas are available...</span><span class="ln">deployment "kueue-controller-manager" successfully rolled out</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the hub marks cpu-a inactive</td>
+<td>MultiKueue checks every worker connection and reports it on the MultiKueueCluster.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a new job still runs, in the other CPU worker</td>
+<td>The hub offers work only to workers that are active. It chose cpu-b.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>cpu-a rejoins when its credentials return</td>
+<td>No manual step is needed: the connection is retried.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the job already running in the worker is not affected by the hub being down</td>
+<td>Once dispatched, a job runs entirely inside its worker. The hub is not in the data path.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a new submission is refused while the hub's queue controller is down</td>
+<td>Kueue's admission webhook is part of the controller. Only new batch submissions are affected; nothing already running is.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>A worker is 'lost' by breaking the credentials the hub holds for it, the real way a worker becomes unreachable to the hub. The original value is restored afterwards.</li>
+<li>The job during the outage is dispatched for real, and the cluster it ran in is read from the Workload.</li>
+<li>The job that survives the hub outage is observed in the worker while the hub's controller has zero replicas.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The hub marks the worker inactive because MultiKueue tests each connection and records the result on the MultiKueueCluster.</li>
+<li>New work goes to the other worker because the hub offers jobs only to active workers.</li>
+<li>A running job is unaffected by the hub being down because, once dispatched, it runs entirely inside the worker. The hub is not in the data path.</li>
+</ul>
+<h3 id="appendix-design-02-eks-s10-observability-the-fleet-in-one-place">S10: Observability: the fleet in one place</h3>
+<p><strong>Design reference:</strong> Observability, cost and chargeback.</p>
+<p><strong>What this tests.</strong> Run a few jobs for different teams and show the fleet-wide view: where each job went, how much of each queue is used and <mark class="kw-act">borrowed</mark>.</p>
+<p>Everyone claims to be GPU-starved and finance says utilization is low. The design needs one place to see both. I run a few jobs and read the fleet-wide view.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S10: Observability: the fleet in one place" class="open" data-src="diagrams/appendix/a03-evidence/S10.png" data-title="S10: Observability: the fleet in one place" type="button"><img alt="Diagram: S10: Observability: the fleet in one place" decoding="async" loading="lazy" src="diagrams/appendix/a03-evidence/S10.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl --context hub create -f job.yaml   <span class="tc"># llm/mixed-llm: queue cpu, 2 pod(s) x cpu 1</span></span><span class="ln">job.batch/mixed-llm created</span><span class="ln"> </span><span class="ln">$ scripts/fleet-status.py workloads</span><span class="ln">CLUSTER  NAMESPACE WORKLOAD                           STATE</span><span class="ln">hub      llm       job-mixed-llm-75307                running (admitted in cpu-a)</span><span class="ln">hub      research  job-mixed-research-9d9bc           running (admitted in cpu-b)</span><span class="ln">hub      vision    job-mixed-vision-82f54             running (admitted in cpu-a)</span><span class="ln">cpu-a    llm       job-mixed-llm-75307                running (admitted)</span><span class="ln">cpu-a    vision    job-mixed-vision-82f54             running (admitted)</span><span class="ln">cpu-b    research  job-mixed-research-9d9bc           running (admitted)</span><span class="ln"> </span><span class="ln">$ scripts/fleet-status.py queues</span><span class="ln">CLUSTER  QUEUE          PENDING ADMITTED  USAGE (flavor: resource used / nominal, borrowed)</span><span class="ln">hub      llm-cpu              0        1  fleet-cpu: cpu 2/4 (borrowed 0)</span><span class="ln">hub      llm-gpu              0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)</span><span class="ln">hub      research-cpu         0        1  fleet-cpu: cpu 2/2 (borrowed 0)</span><span class="ln">hub      research-gpu         0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)</span><span class="ln">hub      vision-cpu           0        1  fleet-cpu: cpu 1/2 (borrowed 0)</span><span class="ln">hub      vision-gpu           0        0  fleet-gpu: cpu 0/3 (borrowed 0); fleet-gpu: gpu 0/1 (borrowed 0)</span><span class="ln">cpu-a    llm-cpu              0        1  cpu-ondemand: cpu 2/2 (borrowed 0)</span><span class="ln">cpu-a    research-cpu         0        0  cpu-ondemand: cpu 0/1 (borrowed 0)</span><span class="ln">cpu-a    vision-cpu           0        1  cpu-ondemand: cpu 1/1 (borrowed 0)</span><span class="ln">cpu-b    llm-cpu              0        0  cpu-spot: cpu 0/2 (borrowed 0)</span><span class="ln">cpu-b    research-cpu         0        1  cpu-spot: cpu 2/1 (borrowed 1)</span><span class="ln">cpu-b    vision-cpu           0        0  cpu-spot: cpu 0/1 (borrowed 0)</span><span class="ln">gpu      llm-gpu              0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0); gpu-spot: cpu 0/3 (borrowed 0); gpu-spot: gpu 0/1 (borrowed 0)</span><span class="ln">gpu      research-gpu         0        0  gpu-spot: cpu 0/6 (borrowed 0); gpu-spot: gpu 0/2 (borrowed 0)</span><span class="ln">gpu      vision-gpu           0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0)</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>every job is listed with the cluster it runs in</td>
+<td>The hub's Workload records the chosen cluster, so one query answers 'where did it go'.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>every queue in the fleet shows pending, admitted and usage</td>
+<td>Each ClusterQueue reports its own usage and borrowed amounts.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The tables are produced from each <mark class="kw-tool">Kueue</mark>'s own objects by a script in the repository, and the output is shown whole.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Every job shows its worker because the hub's Workload records the chosen cluster.</li>
+<li>Every queue shows its pending count, <mark class="kw-act">admitted</mark> count and borrowed amount because each <mark class="kw">ClusterQueue</mark> keeps those in its status.</li>
+</ul>
+<h3 id="appendix-design-02-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</h3>
+<p><strong>Scenario.</strong> A portfolio piece is only credible if it says where it stops. These are the parts of Design 02 that this implementation does not cover, with the reason for each.</p>
+<table>
+<thead>
+<tr>
+<th>Not built</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>More than one region</strong></td>
+<td>The design spans us-east-1 and eu-west-1. The mechanism (a MultiKueueConfig per region, with data locality chosen through the queue a team submits to) is the same as the one tested here, but a second region would double the networking and cost without testing anything new.</td>
+</tr>
+<tr>
+<td><strong>Hundreds of GPUs, Capacity Blocks, EFA, NVLink and topology-aware scheduling</strong></td>
+<td>I have no reservation to use, and two single-GPU nodes have no network topology to schedule across. The flavor order, limits and scale-from-zero rules are tested; the topology rules are not.</td>
+</tr>
+<tr>
+<td><strong>The Incremental dispatcher</strong></td>
+<td>It matters when one queue can send a job to several GPU workers in preference order. I have one GPU worker, so the default dispatcher (offer to all, first to admit wins) is the one tested.</td>
+</tr>
+<tr>
+<td><strong>Dynamic Resource Allocation (DRA) and MIG slices</strong></td>
+<td>The NVIDIA DRA driver is not supported by EKS Auto Mode in the documentation I checked, and the design itself keeps the device plugin where DRA is not needed. Jobs here request whole GPUs with <code>nvidia.com/gpu</code>.</td>
+</tr>
+<tr>
+<td><strong>Argo CD and ApplicationSets</strong></td>
+<td>The design uses GitOps to install the same add-ons on every cluster by role. Terraform plays that role here: one module, called for each cluster, with the team table as the single source of truth. The consequence is the same (no drift); the tool differs.</td>
+</tr>
+<tr>
+<td><strong>Dedicated nodes or a dedicated cluster for a regulated tenant</strong></td>
+<td>The shared tier is built and tested. The other two tiers are more node pools and more clusters of the same kind.</td>
+</tr>
+<tr>
+<td><strong>Inference clusters and HPA or KEDA scaling</strong></td>
+<td>Design 02 is the batch and training platform. Inference is the subject of Design 03.</td>
+</tr>
+<tr>
+<td><strong>Kubecost, DCGM metrics and a metrics store</strong></td>
+<td>The fleet status script reads the same Kueue objects the dashboards would. Per-team cost and GPU utilization need a metrics pipeline that I did not build.</td>
+</tr>
+<tr>
+<td><strong>Checkpointing</strong></td>
+<td>The design says preempted jobs must checkpoint. The test jobs are <code>sleep</code> and <code>nvidia-smi</code>, so there is nothing to checkpoint; the requeue itself is what is tested.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="appendix-design-02-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</h3>
+<p><strong>Scenario.</strong> The point of Terraform is that anyone can rebuild this from the repository and remove it again. These are the exact steps.</p>
+<p><strong>What you need on your machine.</strong> Terraform 1.9 or later, the AWS CLI v2 signed in to the account you want to use, Helm 3, and Python 3 with Pillow for the screenshots. Nothing is installed system-wide: <code>scripts/setup-tools.sh</code> downloads a matching <code>kubectl</code> into the project folder with a checksum check. A GPU test needs a <mark class="kw">quota</mark> of at least four vCPUs for G instances.</p>
+<p><strong>Build.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">cd implementations/ds02-multicluster-compute</span><span class="ln">export AWS_PROFILE=&lt;your profile&gt;</span><span class="ln">./scripts/up.sh</span></code></pre>
+<p><code>up.sh</code> writes two small local files with your account ID and your public address (both git-ignored), builds the four clusters and the platform, and prints the state of the MultiKueue connections. It takes roughly 25 to 30 minutes.</p>
+<p><strong>Test.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">python3 tests/run_scenarios.py all</span></code></pre>
+<p><strong>Take it down.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">./scripts/down.sh</span></code></pre>
+<p><code>down.sh</code> deletes running jobs, destroys the platform layer, destroys the fleet layer, and then runs <code>verify-clean.sh</code>, which looks for anything tagged with this project: clusters, instances, NAT gateways, addresses, VPCs, security groups, volumes, network interfaces, buckets, roles and log groups. It prints <code>CLEAN</code> when nothing is left. The Resource Groups tagging index can lag deletions by up to an hour, so it is shown for information only.</p>
+<p><strong>Keeping it safe in a public repository.</strong> Terraform state, plans, kubeconfig files, local variable files and raw evidence are git-ignored. <code>scripts/check-no-secrets.sh</code> runs before every commit and blocks any file containing a credential pattern, the account ID or the administrator's address. The test harness redacts those values before anything is written.</p>
+<h3 id="appendix-design-02-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</h3>
+<p>The terminal screenshots above are rendered from recorded command output. I could not capture the AWS Console from here. If you want console pictures in your portfolio, these pages show the same facts. Crop out the account number and your user name in the top bar before publishing.</p>
+<ul>
+<li>EKS, Clusters: the four <code>ds02-fleet-*</code> clusters with the same Kubernetes version.</li>
+<li>EKS, a worker's Compute tab: the node pools, and during S07 the <code>gpu-ondemand</code> and <code>gpu-spot</code> nodes.</li>
+<li>EC2, Instances: a GPU node while a job runs (<code>g4dn.xlarge</code> in my final run).</li>
+<li>S3: the bucket with its three team prefixes.</li>
+<li>IAM, Roles: one team role and its policy.</li>
+<li>VPC: the VPC with its two private subnets and the NAT gateway.</li>
 </ul></div>
 </section>
     <footer>

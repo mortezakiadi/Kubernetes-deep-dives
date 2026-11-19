@@ -1,0 +1,84 @@
+{
+ "id": "S02",
+ "title": "One front door, and the hub runs nothing",
+ "design_ref": "Sending work to the right cluster; The architecture at a glance",
+ "purpose": "Submit a job once to the hub. It must run in a worker, report its status back to the hub, leave no pod on the hub, and be refused if someone tries to run a pod on the hub directly.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl --context hub -n llm run rogue --image=python:3.12-slim   # a pod that passes every security check, run on the hub directly",
+   "output": "\nThe pods \"rogue\" is invalid: : ValidatingAdmissionPolicy 'hub-runs-no-user-pods' with binding 'hub-runs-no-user-pods' denied request: The hub cluster runs no user workloads. Submit a Job to your LocalQueue; MultiKueue runs it in a worker cluster.",
+   "exit_code": 1,
+   "seconds": 1.31
+  },
+  {
+   "display": "kubectl --context hub create -f job.yaml   # llm/front-door: queue cpu, 2 pod(s) x cpu 1",
+   "output": "job.batch/front-door created",
+   "exit_code": 0,
+   "seconds": 3.0
+  },
+  {
+   "display": "kubectl --context hub -n llm get workload,job   # the hub's single view of the job",
+   "output": "NAME                                           QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE\nworkload.kueue.x-k8s.io/job-front-door-649bf   cpu     llm-cpu       True                  2s\n\nNAME                   STATUS    COMPLETIONS   DURATION   AGE\njob.batch/front-door   Running   0/2           2s         3s",
+   "exit_code": 0,
+   "seconds": 1.38
+  },
+  {
+   "display": "kubectl --context hub -n llm get pods   # nothing runs on the hub",
+   "output": "\nNo resources found in llm namespace.",
+   "exit_code": 0,
+   "seconds": 1.33
+  },
+  {
+   "display": "kubectl --context cpu-a -n llm get pods -o wide   # the pods are here",
+   "output": "NAME               READY   STATUS    RESTARTS   AGE   IP       NODE     NOMINATED NODE   READINESS GATES\nfront-door-9lq7l   0/1     Pending   0          7s    <none>   <none>   <none>           <none>\nfront-door-p9snc   0/1     Pending   0          7s    <none>   <none>   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.46
+  },
+  {
+   "display": "kubectl --context hub -n llm get job front-door   # status mirrored back",
+   "output": "NAME         STATUS     COMPLETIONS   DURATION   AGE\nfront-door   Complete   2/2           73s        79s",
+   "exit_code": 0,
+   "seconds": 1.49
+  },
+  {
+   "display": "kubectl --context cpu-a -n llm get jobs   # the remote copy is cleaned up",
+   "output": "\nNo resources found in llm namespace.",
+   "exit_code": 0,
+   "seconds": 1.53
+  }
+ ],
+ "checks": [
+  {
+   "description": "a pod created directly on the hub is refused",
+   "passed": true,
+   "because": "A ValidatingAdmissionPolicy on the hub denies every pod in a team namespace."
+  },
+  {
+   "description": "the hub chose a worker for the job",
+   "passed": true,
+   "because": "The job's Workload on the hub records where it was sent: cpu-a."
+  },
+  {
+   "description": "no pod exists on the hub",
+   "passed": true,
+   "because": "The hub keeps a suspended copy of the job. Pods exist only in the worker that admitted it."
+  },
+  {
+   "description": "the job's pods are running in that worker",
+   "passed": true,
+   "because": "MultiKueue created the Job in the winning worker, linked to the Workload that worker admitted."
+  },
+  {
+   "description": "the job completed and its status is visible on the hub",
+   "passed": true,
+   "because": "The hub watches the remote job and copies its status. The user never needs worker credentials."
+  },
+  {
+   "description": "the remote copy was deleted when the job finished",
+   "passed": true,
+   "because": "After the final status sync the hub deletes the remote objects."
+  }
+ ],
+ "notes": []
+}

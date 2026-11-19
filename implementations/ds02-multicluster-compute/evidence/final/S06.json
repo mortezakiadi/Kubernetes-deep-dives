@@ -1,0 +1,52 @@
+{
+ "id": "S06",
+ "title": "Dispatch: a full worker is skipped, and the job runs in the other",
+ "design_ref": "Sending work to the right cluster",
+ "purpose": "Fill one CPU worker for a team, then submit that team's job to the hub. The hub offers it to both workers and the one with room must win.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # llm/fill-cpu-a: queue cpu, 4 pod(s) x cpu 1",
+   "output": "job.batch/fill-cpu-a created",
+   "exit_code": 0,
+   "seconds": 2.73
+  },
+  {
+   "display": "scripts/fleet-status.py queues   # cpu-a's llm queue is full (4 of 4 CPUs)",
+   "output": "CLUSTER  QUEUE          PENDING ADMITTED  USAGE (flavor: resource used / nominal, borrowed)\nhub      llm-cpu              0        0  fleet-cpu: cpu 0/4 (borrowed 0)\nhub      llm-gpu              0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)\nhub      research-cpu         0        0  fleet-cpu: cpu 0/2 (borrowed 0)\nhub      research-gpu         0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)\nhub      vision-cpu           0        0  fleet-cpu: cpu 0/2 (borrowed 0)\nhub      vision-gpu           0        0  fleet-gpu: cpu 0/3 (borrowed 0); fleet-gpu: gpu 0/1 (borrowed 0)\ncpu-a    llm-cpu              0        1  cpu-ondemand: cpu 4/2 (borrowed 2)\ncpu-a    research-cpu         0        0  cpu-ondemand: cpu 0/1 (borrowed 0)\ncpu-a    vision-cpu           0        0  cpu-ondemand: cpu 0/1 (borrowed 0)\ncpu-b    llm-cpu              0        0  cpu-spot: cpu 0/2 (borrowed 0)\ncpu-b    research-cpu         0        0  cpu-spot: cpu 0/1 (borrowed 0)\ncpu-b    vision-cpu           0        0  cpu-spot: cpu 0/1 (borrowed 0)\ngpu      llm-gpu              0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0); gpu-spot: cpu 0/3 (borrowed 0); gpu-spot: gpu 0/1 (borrowed 0)\ngpu      research-gpu         0        0  gpu-spot: cpu 0/6 (borrowed 0); gpu-spot: gpu 0/2 (borrowed 0)\ngpu      vision-gpu           0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl --context hub create -f job.yaml   # llm/needs-3: queue cpu, 3 pod(s) x cpu 1",
+   "output": "job.batch/needs-3 created",
+   "exit_code": 0,
+   "seconds": 2.6
+  },
+  {
+   "display": "kubectl --context hub -n llm get workload -o custom-columns=<name, chosen cluster, nominated clusters>",
+   "output": "NAME                CLUSTER   NOMINATED\njob-needs-3-e9a38   cpu-b     <none>",
+   "exit_code": 0,
+   "seconds": 1.63
+  },
+  {
+   "display": "kubectl --context cpu-a -n llm get workloads   # only the job that fills it; no copy of needs-3",
+   "output": "NAME                   QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE\njob-fill-cpu-a-067eb   cpu     llm-cpu       True                  20s",
+   "exit_code": 0,
+   "seconds": 1.31
+  }
+ ],
+ "checks": [
+  {
+   "description": "the job was sent to cpu-b, the worker with room",
+   "passed": true,
+   "because": "Both workers were offered the job. cpu-a's llm queue had no room, so only cpu-b could admit it (chosen: cpu-b)."
+  },
+  {
+   "description": "the full worker holds no copy of the job any more",
+   "passed": true,
+   "because": "As soon as one worker admits, the hub deletes the copies in the others."
+  }
+ ],
+ "notes": []
+}

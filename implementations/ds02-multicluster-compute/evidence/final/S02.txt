@@ -1,0 +1,40 @@
+# S02: One front door, and the hub runs nothing
+# Design reference: Sending work to the right cluster; The architecture at a glance
+
+$ kubectl --context hub -n llm run rogue --image=python:3.12-slim   # a pod that passes every security check, run on the hub directly
+
+The pods "rogue" is invalid: : ValidatingAdmissionPolicy 'hub-runs-no-user-pods' with binding 'hub-runs-no-user-pods' denied request: The hub cluster runs no user workloads. Submit a Job to your LocalQueue; MultiKueue runs it in a worker cluster.
+
+$ kubectl --context hub create -f job.yaml   # llm/front-door: queue cpu, 2 pod(s) x cpu 1
+job.batch/front-door created
+
+$ kubectl --context hub -n llm get workload,job   # the hub's single view of the job
+NAME                                           QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE
+workload.kueue.x-k8s.io/job-front-door-649bf   cpu     llm-cpu       True                  2s
+
+NAME                   STATUS    COMPLETIONS   DURATION   AGE
+job.batch/front-door   Running   0/2           2s         3s
+
+$ kubectl --context hub -n llm get pods   # nothing runs on the hub
+
+No resources found in llm namespace.
+
+$ kubectl --context cpu-a -n llm get pods -o wide   # the pods are here
+NAME               READY   STATUS    RESTARTS   AGE   IP       NODE     NOMINATED NODE   READINESS GATES
+front-door-9lq7l   0/1     Pending   0          7s    <none>   <none>   <none>           <none>
+front-door-p9snc   0/1     Pending   0          7s    <none>   <none>   <none>           <none>
+
+$ kubectl --context hub -n llm get job front-door   # status mirrored back
+NAME         STATUS     COMPLETIONS   DURATION   AGE
+front-door   Complete   2/2           73s        79s
+
+$ kubectl --context cpu-a -n llm get jobs   # the remote copy is cleaned up
+
+No resources found in llm namespace.
+
+[PASS] a pod created directly on the hub is refused
+[PASS] the hub chose a worker for the job
+[PASS] no pod exists on the hub
+[PASS] the job's pods are running in that worker
+[PASS] the job completed and its status is visible on the hub
+[PASS] the remote copy was deleted when the job finished

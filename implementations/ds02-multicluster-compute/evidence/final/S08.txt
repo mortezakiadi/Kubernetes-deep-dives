@@ -1,0 +1,41 @@
+# S08: Tenant isolation: network and identity
+# Design reference: Multi-tenant isolation
+
+$ kubectl --context cpu-a create -f job.yaml   # vision/vision-server: queue cpu, 1 pod(s) x cpu 1
+job.batch/vision-server created
+
+$ kubectl --context cpu-a create -f job.yaml   # llm/llm-probe: queue cpu, 1 pod(s) x cpu 1
+job.batch/llm-probe created
+
+$ kubectl --context cpu-a create -f job.yaml   # vision/vision-probe: queue cpu, 1 pod(s) x cpu 1
+job.batch/vision-probe created
+
+$ kubectl --context cpu-a -n llm logs job/llm-probe   # from team llm to team vision's server
+blocked: URLError
+
+$ kubectl --context cpu-a -n vision logs job/vision-probe   # from team vision to its own server
+reachable: 200
+
+$ kubectl --context cpu-a create -f job.yaml   # llm/llm-own-data: queue cpu, 1 pod(s) x cpu 1
+job.batch/llm-own-data created
+
+$ kubectl --context cpu-a create -f job.yaml   # llm/llm-other-data: queue cpu, 1 pod(s) x cpu 1
+job.batch/llm-other-data created
+
+$ kubectl --context cpu-a -n llm logs job/llm-own-data   # aws s3 cp s3://<bucket>/llm/dataset.txt -
+dataset owned by team llm
+
+$ kubectl --context cpu-a -n llm logs job/llm-other-data   # aws s3 cp s3://<bucket>/vision/dataset.txt -
+download failed: s3://ds02-fleet-data-b8ecd20d/vision/dataset.txt to - An error occurred (403) when calling the HeadObject operation: Forbidden
+
+$ kubectl --context cpu-a -n llm get resourcequota,networkpolicy
+NAME                        REQUEST                              LIMIT   AGE
+resourcequota/team-limits   count/jobs.batch: 3/30, pods: 0/20           22m
+
+NAME                                           POD-SELECTOR   AGE
+networkpolicy.networking.k8s.io/isolate-team   <none>         22m
+
+[PASS] a pod in team llm cannot reach team vision's server
+[PASS] a pod in team vision can reach its own team's server
+[PASS] a team's job reads its own S3 prefix
+[PASS] the same job is refused another team's prefix

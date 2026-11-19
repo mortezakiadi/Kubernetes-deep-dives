@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="820px" viewBox="0 0 1420 820" style="background:#ffffff"><title>Design 02 on EKS: one hub, three workers, one front door</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="820" fill="#ffffff"/><rect x="20" y="330" width="200" height="150" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="20" y="330" width="200" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="21" y="348" width="198" height="12" fill="#ecfdf5"/>
+<text x="32" y="350" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Teams</text>
+<text x="32" y="378" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">llm, vision, research</text>
+<text x="32" y="395" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">submit a Job to a LocalQueue</text>
+<text x="32" y="412" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">in their own namespace</text>
+<text x="32" y="429" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">on the hub, nowhere else</text>
+<circle cx="216" cy="334" r="12" fill="#1e293b"/><text x="216" y="338.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">1</text>
+<rect x="250" y="40" width="1120" height="270" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="264" y="64" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">HUB CLUSTER (manager): runs no user workloads</text>
+<rect x="275" y="85" width="330" height="150" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="275" y="85" width="330" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="276" y="103" width="328" height="12" fill="#ecfdf5"/>
+<text x="287" y="105" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Kueue manager + MultiKueue</text>
+<text x="287" y="133" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">layer 1: does the team have fleet quota?</text>
+<text x="287" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">which worker should be offered the job?</text>
+<text x="287" y="167" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">copies the Workload to the workers,</text>
+<text x="287" y="184" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the first to admit wins, others deleted</text>
+<text x="287" y="201" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">status mirrored back to the hub</text>
+<circle cx="601" cy="89" r="12" fill="#1e293b"/><text x="601" y="93.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">2</text>
+<rect x="630" y="85" width="330" height="150" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="630" y="85" width="330" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="631" y="103" width="328" height="12" fill="#ecfdf5"/>
+<text x="642" y="105" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Fleet queues (one table of team shares)</text>
+<text x="642" y="133" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">llm-cpu  llm-gpu</text>
+<text x="642" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">vision-cpu  vision-gpu</text>
+<text x="642" y="167" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">research-cpu  research-gpu</text>
+<text x="642" y="184" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each = the SUM of that team's share</text>
+<text x="642" y="201" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">across the workers</text>
+<circle cx="956" cy="89" r="12" fill="#1e293b"/><text x="956" y="93.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">3</text>
+<rect x="985" y="85" width="360" height="150" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="985" y="85" width="360" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="986" y="103" width="358" height="12" fill="#fffbeb"/>
+<text x="997" y="105" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Guard rails</text>
+<text x="997" y="133" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">admission policy: a pod in a team</text>
+<text x="997" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">namespace is refused (hub = no pods)</text>
+<text x="997" y="167" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one kubeconfig Secret per worker,</text>
+<text x="997" y="184" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">narrow identity, never cluster-admin</text>
+<circle cx="1341" cy="89" r="12" fill="#1e293b"/><text x="1341" y="93.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">4</text>
+<rect x="250" y="360" width="360" height="360" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="264" y="384" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">CPU-A  (CPU worker)</text>
+<rect x="265" y="395" width="330" height="100" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="265" y="395" width="330" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="266" y="413" width="328" height="12" fill="#eff6ff"/>
+<text x="277" y="415" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Kueue worker</text>
+<text x="277" y="443" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">layer 2: quota, borrow, preempt,</text>
+<text x="277" y="460" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">admit the whole job or none</text>
+<rect x="265" y="510" width="330" height="80" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="265" y="510" width="330" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="266" y="528" width="328" height="12" fill="#eff6ff"/>
+<text x="277" y="530" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Team queues and namespaces</text>
+<text x="277" y="558" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">llm 2, vision 1, research 1 CPU</text>
+<text x="277" y="575" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one cohort, borrow and reclaim</text>
+<rect x="265" y="605" width="330" height="108" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="265" y="605" width="330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="266" y="623" width="328" height="12" fill="#f8fafc"/>
+<text x="277" y="625" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Node pools (Auto Mode)</text>
+<text x="277" y="653" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">NodePool cpu-ondemand</text>
+<text x="277" y="670" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">c or m family, 2 or 4 vCPU</text>
+<text x="277" y="687" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">empty nodes removed after 1 min</text>
+<circle cx="591" cy="609" r="12" fill="#1e293b"/><text x="591" y="613.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">5</text>
+<path d="M430 310 L430 360" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="630" y="360" width="360" height="360" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="644" y="384" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">CPU-B  (CPU worker)</text>
+<rect x="645" y="395" width="330" height="100" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="645" y="395" width="330" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="646" y="413" width="328" height="12" fill="#eff6ff"/>
+<text x="657" y="415" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Kueue worker</text>
+<text x="657" y="443" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">layer 2: quota, borrow, preempt,</text>
+<text x="657" y="460" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">admit the whole job or none</text>
+<rect x="645" y="510" width="330" height="80" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="645" y="510" width="330" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="646" y="528" width="328" height="12" fill="#eff6ff"/>
+<text x="657" y="530" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Team queues and namespaces</text>
+<text x="657" y="558" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">llm 2, vision 1, research 1 CPU</text>
+<text x="657" y="575" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one cohort, borrow and reclaim</text>
+<rect x="645" y="605" width="330" height="108" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="645" y="605" width="330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="646" y="623" width="328" height="12" fill="#f8fafc"/>
+<text x="657" y="625" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Node pools (Auto Mode)</text>
+<text x="657" y="653" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">NodePool cpu-spot</text>
+<text x="657" y="670" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">same shapes, Spot capacity</text>
+<text x="657" y="687" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">empty nodes removed after 1 min</text>
+<path d="M810 310 L810 360" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="775.0" y="329" width="70.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="810" y="341" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">MultiKueue</text>
+<rect x="1010" y="360" width="360" height="360" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="1024" y="384" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">GPU  (GPU worker)</text>
+<rect x="1025" y="395" width="330" height="100" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1025" y="395" width="330" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1026" y="413" width="328" height="12" fill="#eff6ff"/>
+<text x="1037" y="415" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Kueue worker</text>
+<text x="1037" y="443" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">layer 2: quota, borrow, preempt,</text>
+<text x="1037" y="460" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">admit the whole job or none</text>
+<rect x="1025" y="510" width="330" height="80" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1025" y="510" width="330" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1026" y="528" width="328" height="12" fill="#eff6ff"/>
+<text x="1037" y="530" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Team queues and namespaces</text>
+<text x="1037" y="558" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">on-demand before Spot, per queue</text>
+<text x="1037" y="575" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">research: Spot only</text>
+<rect x="1025" y="605" width="330" height="108" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1025" y="605" width="330" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1026" y="623" width="328" height="12" fill="#fef2f2"/>
+<text x="1037" y="625" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Node pools (Auto Mode)</text>
+<text x="1037" y="653" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">NodePools gpu-ondemand, gpu-spot</text>
+<text x="1037" y="670" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one GPU per node: g6, g5, g6e or g4dn</text>
+<text x="1037" y="687" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tainted: only admitted jobs tolerate</text>
+<text x="1037" y="704" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">scaled from zero, back to zero</text>
+<path d="M1190 310 L1190 360" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<path d="M220 400 L250 400 L250 235 L275 235" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="239.4" y="289" width="45.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="262" y="301" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">submit</text>
+<rect x="250" y="735" width="540" height="65" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="250" y="735" width="540" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="251" y="753" width="538" height="12" fill="#f8fafc"/>
+<text x="262" y="755" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Identity and data</text>
+<text x="262" y="783" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one S3 bucket, one prefix per team; Pod Identity role per team, per worker</text>
+<circle cx="786" cy="739" r="12" fill="#1e293b"/><text x="786" y="743.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">6</text>
+<rect x="810" y="735" width="560" height="65" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="810" y="735" width="560" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="811" y="753" width="558" height="12" fill="#f8fafc"/>
+<text x="822" y="755" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Terraform</text>
+<text x="822" y="783" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one fleet definition makes all four clusters; one team table makes every queue</text>
+<circle cx="1366" cy="739" r="12" fill="#1e293b"/><text x="1366" y="743.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">7</text>
+<text x="20" y="520" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">Layers: 1 hub quota and dispatch,</text>
+<text x="20" y="538" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">2 worker quota, 3 scheduler, 4 node pool.</text></svg>

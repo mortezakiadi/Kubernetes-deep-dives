@@ -1,0 +1,48 @@
+# S01: The fleet: four clusters made from one definition
+# Design reference: Why several clusters, and how to cut them; The architecture at a glance
+
+$ for c in hub cpu-a cpu-b gpu: aws eks describe-cluster ...
+ds02-fleet-hub	ACTIVE	1.37	manager
+ds02-fleet-cpu-a	ACTIVE	1.37	cpu-worker
+ds02-fleet-cpu-b	ACTIVE	1.37	cpu-worker
+ds02-fleet-gpu	ACTIVE	1.37	gpu-worker
+
+$ kubectl --context <each> -n kueue-system get deploy kueue-controller-manager -o jsonpath=<image>
+hub    registry.k8s.io/kueue/kueue:v0.20.7
+cpu-a  registry.k8s.io/kueue/kueue:v0.20.7
+cpu-b  registry.k8s.io/kueue/kueue:v0.20.7
+gpu    registry.k8s.io/kueue/kueue:v0.20.7
+
+$ kubectl --context hub get multikueuecluster,multikueueconfig,admissioncheck
+NAME                                     CONNECTED   AGE
+multikueuecluster.kueue.x-k8s.io/cpu-a   True        62s
+multikueuecluster.kueue.x-k8s.io/cpu-b   True        62s
+multikueuecluster.kueue.x-k8s.io/gpu     True        62s
+
+NAME                                          AGE
+multikueueconfig.kueue.x-k8s.io/cpu-workers   61s
+multikueueconfig.kueue.x-k8s.io/gpu-workers   61s
+
+NAME                                         AGE
+admissioncheck.kueue.x-k8s.io/dispatch-cpu   61s
+admissioncheck.kueue.x-k8s.io/dispatch-gpu   61s
+
+$ kubectl --context hub get clusterqueue   # a team's fleet-wide share: one queue per team and kind of capacity
+NAME           COHORT      PENDING WORKLOADS
+llm-cpu        cpu-fleet   0
+llm-gpu        gpu-fleet   0
+research-cpu   cpu-fleet   0
+research-gpu   gpu-fleet   0
+vision-cpu     cpu-fleet   0
+vision-gpu     gpu-fleet   0
+
+$ kubectl --context gpu get nodes -L ds02/pool,node.kubernetes.io/instance-type   # at rest
+NAME                  STATUS   ROLES    AGE    VERSION               POOL   INSTANCE-TYPE
+i-0bf02de64f7a3aaac   Ready    <none>   2m1s   v1.37.1-eks-577a51e          c6a.large
+
+[PASS] all four clusters are ACTIVE on the same Kubernetes version
+[PASS] the cluster role labels are manager, cpu-worker (x2) and gpu-worker
+[PASS] every cluster runs the same Kueue version
+[PASS] the hub is connected to all three workers
+[PASS] no GPU node is running at rest (GPU capacity is bought only when a queued job needs it)
+[PASS] the hub has no node pool for user work

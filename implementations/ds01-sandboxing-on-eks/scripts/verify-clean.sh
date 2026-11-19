@@ -20,6 +20,9 @@ check "Network interfaces"        "$(aws ec2 describe-network-interfaces --filte
 check "ECR repositories"          "$(aws ecr describe-repositories --query "repositories[?contains(repositoryName, 'ds01-platform')].repositoryName" --output text 2>/dev/null)"
 check "IAM roles"                 "$(aws iam list-roles --query "Roles[?starts_with(RoleName, '$PROJECT')].RoleName" --output text)"
 check "CloudWatch log groups"     "$(aws logs describe-log-groups --log-group-name-prefix "/aws/eks/$PROJECT" --query 'logGroups[].logGroupName' --output text)"
-check "Anything tagged Project=$PROJECT" "$(aws resourcegroupstaggingapi get-resources --tag-filters "Key=Project,Values=$PROJECT" --query 'ResourceTagMappingList[].ResourceARN' --output text | tr '\t' ' ')"
+# The Resource Groups Tagging index lags deletions by up to an hour, so it is informational only.
+# The direct checks above query each service and are authoritative.
+tagged="$(aws resourcegroupstaggingapi get-resources --tag-filters "Key=Project,Values=$PROJECT" --query 'ResourceTagMappingList[].ResourceARN' --output text | tr '\t' ' ')"
+if [ -n "$tagged" ]; then echo "info       tagging index still lists (it lags deletions): $(echo "$tagged" | wc -w) item(s)"; else echo "ok         tagging index: none"; fi
 
 if [ "$left" -eq 0 ]; then echo; echo "CLEAN: nothing from $PROJECT remains in this account and region."; else echo; echo "NOT CLEAN: see the lines above."; exit 1; fi

@@ -1,0 +1,72 @@
+{
+ "id": "S01",
+ "title": "The fleet: four clusters made from one definition",
+ "design_ref": "Why several clusters, and how to cut them; The architecture at a glance",
+ "purpose": "Show a hub and three workers created from one Terraform definition, on the same Kubernetes minor version, running the same pinned Kueue, with the hub connected to every worker and no GPU capacity running at rest.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "for c in hub cpu-a cpu-b gpu: aws eks describe-cluster ...",
+   "output": "ds02-fleet-hub\tACTIVE\t1.37\tmanager\nds02-fleet-cpu-a\tACTIVE\t1.37\tcpu-worker\nds02-fleet-cpu-b\tACTIVE\t1.37\tcpu-worker\nds02-fleet-gpu\tACTIVE\t1.37\tgpu-worker",
+   "exit_code": 0,
+   "seconds": 6.8
+  },
+  {
+   "display": "kubectl --context <each> -n kueue-system get deploy kueue-controller-manager -o jsonpath=<image>",
+   "output": "hub    registry.k8s.io/kueue/kueue:v0.20.7\ncpu-a  registry.k8s.io/kueue/kueue:v0.20.7\ncpu-b  registry.k8s.io/kueue/kueue:v0.20.7\ngpu    registry.k8s.io/kueue/kueue:v0.20.7",
+   "exit_code": 0,
+   "seconds": 5.58
+  },
+  {
+   "display": "kubectl --context hub get multikueuecluster,multikueueconfig,admissioncheck",
+   "output": "NAME                                     CONNECTED   AGE\nmultikueuecluster.kueue.x-k8s.io/cpu-a   True        62s\nmultikueuecluster.kueue.x-k8s.io/cpu-b   True        62s\nmultikueuecluster.kueue.x-k8s.io/gpu     True        62s\n\nNAME                                          AGE\nmultikueueconfig.kueue.x-k8s.io/cpu-workers   61s\nmultikueueconfig.kueue.x-k8s.io/gpu-workers   61s\n\nNAME                                         AGE\nadmissioncheck.kueue.x-k8s.io/dispatch-cpu   61s\nadmissioncheck.kueue.x-k8s.io/dispatch-gpu   61s",
+   "exit_code": 0,
+   "seconds": 1.47
+  },
+  {
+   "display": "kubectl --context hub get clusterqueue   # a team's fleet-wide share: one queue per team and kind of capacity",
+   "output": "NAME           COHORT      PENDING WORKLOADS\nllm-cpu        cpu-fleet   0\nllm-gpu        gpu-fleet   0\nresearch-cpu   cpu-fleet   0\nresearch-gpu   gpu-fleet   0\nvision-cpu     cpu-fleet   0\nvision-gpu     gpu-fleet   0",
+   "exit_code": 0,
+   "seconds": 1.36
+  },
+  {
+   "display": "kubectl --context gpu get nodes -L ds02/pool,node.kubernetes.io/instance-type   # at rest",
+   "output": "NAME                  STATUS   ROLES    AGE    VERSION               POOL   INSTANCE-TYPE\ni-0bf02de64f7a3aaac   Ready    <none>   2m1s   v1.37.1-eks-577a51e          c6a.large",
+   "exit_code": 0,
+   "seconds": 1.36
+  }
+ ],
+ "checks": [
+  {
+   "description": "all four clusters are ACTIVE on the same Kubernetes version",
+   "passed": true,
+   "because": "One Terraform resource, written once, creates all four clusters, so they cannot differ in version."
+  },
+  {
+   "description": "the cluster role labels are manager, cpu-worker (x2) and gpu-worker",
+   "passed": true,
+   "because": "Each cluster carries the role it was created for. The platform layer reads it to decide what to install."
+  },
+  {
+   "description": "every cluster runs the same Kueue version",
+   "passed": true,
+   "because": "A single pinned chart version is installed on every cluster by the same Terraform module."
+  },
+  {
+   "description": "the hub is connected to all three workers",
+   "passed": true,
+   "because": "The hub holds one kubeconfig Secret per worker, each with a narrowly scoped identity, and MultiKueue reports each connection Active."
+  },
+  {
+   "description": "no GPU node is running at rest (GPU capacity is bought only when a queued job needs it)",
+   "passed": true,
+   "because": "GPU NodePools start empty. Nodes are created only for pods that Kueue has admitted."
+  },
+  {
+   "description": "the hub has no node pool for user work",
+   "passed": true,
+   "because": "The hub only has the platform's built-in pool. Team capacity lives in the workers."
+  }
+ ],
+ "notes": []
+}

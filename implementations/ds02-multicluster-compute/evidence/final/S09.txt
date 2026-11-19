@@ -1,0 +1,44 @@
+# S09: Failure drills: a worker lost, and the hub down
+# Design reference: Failure modes and operations
+
+$ kubectl --context hub -n kueue-system patch secret cpu-a-kubeconfig   # simulate losing cpu-a: its credentials stop working
+secret/cpu-a-kubeconfig patched
+
+$ kubectl --context hub get multikueuecluster
+NAME    CONNECTED   AGE
+cpu-a   False       22m
+cpu-b   True        22m
+gpu     True        22m
+
+$ kubectl --context hub create -f job.yaml   # llm/during-outage: queue cpu, 1 pod(s) x cpu 1
+job.batch/during-outage created
+
+$ kubectl --context hub -n kueue-system patch secret cpu-a-kubeconfig   # restore the credentials
+secret/cpu-a-kubeconfig patched
+
+$ kubectl --context hub create -f job.yaml   # llm/long-run: queue cpu, 1 pod(s) x cpu 1
+job.batch/long-run created
+
+$ kubectl --context hub -n kueue-system scale deploy/kueue-controller-manager --replicas=0
+deployment.apps/kueue-controller-manager scaled
+
+$ kubectl --context hub create -f job.yaml   # a new submission while the hub's Kueue is down
+
+Error from server (InternalError): error when creating "STDIN": Internal error occurred: failed calling webhook "mjob.kb.io": failed to call webhook: Post "https://kueue-webhook-service.kueue-system.svc:443/mutate-batch-v1-job?timeout=10s": no endpoints available for service "kueue-webhook-service"
+
+$ kubectl --context cpu-a -n llm get pods   # the running job, hub still down
+NAME             READY   STATUS    RESTARTS   AGE
+long-run-bpvnl   1/1     Running   0          30s
+
+$ kubectl --context hub -n kueue-system scale deploy/kueue-controller-manager --replicas=1
+deployment.apps/kueue-controller-manager scaled
+
+$ kubectl --context hub -n kueue-system rollout status deploy/kueue-controller-manager --timeout=180s
+Waiting for deployment "kueue-controller-manager" rollout to finish: 0 of 1 updated replicas are available...
+deployment "kueue-controller-manager" successfully rolled out
+
+[PASS] the hub marks cpu-a inactive
+[PASS] a new job still runs, in the other CPU worker
+[PASS] cpu-a rejoins when its credentials return
+[PASS] the job already running in the worker is not affected by the hub being down
+[PASS] a new submission is refused while the hub's queue controller is down

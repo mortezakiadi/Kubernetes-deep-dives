@@ -1,0 +1,27 @@
+# S04: Gang scheduling: all of a job, or none of it
+# Design reference: Four layers of scheduling decisions (admission before placement)
+
+$ kubectl --context cpu-a create -f job.yaml   # vision/gang-of-4: queue cpu, 4 pod(s) x cpu 1
+job.batch/gang-of-4 created
+
+$ kubectl --context cpu-a -n vision get workload,pods
+NAME                                          QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE
+workload.kueue.x-k8s.io/job-gang-of-4-79bb3   cpu                   False                 18s
+
+$ kubectl --context cpu-a -n vision get workload -o jsonpath=<the QuotaReserved message>
+couldn't assign flavors to pod set main: insufficient quota for cpu in flavor cpu-ondemand, previously considered podsets requests (0) + current podset request (4) > maximum capacity (3)
+
+$ kubectl --context cpu-a -n vision delete job gang-of-4
+job.batch "gang-of-4" deleted from vision namespace
+
+$ kubectl --context cpu-a create -f job.yaml   # vision/gang-of-3: queue cpu, 3 pod(s) x cpu 1
+job.batch/gang-of-3 created
+
+$ kubectl --context cpu-a -n vision get workload   # a 3-pod job fits and is admitted whole
+NAME                  QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE
+job-gang-of-3-c3d21   cpu     vision-cpu    True                  3s
+
+[PASS] the 4-pod job is not admitted
+[PASS] the job's pod count is zero while it waits
+[PASS] the reason names the missing quota
+[PASS] a 3-pod job fits the same queue and is admitted

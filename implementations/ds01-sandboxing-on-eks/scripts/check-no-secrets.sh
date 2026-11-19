@@ -6,7 +6,6 @@
 set -uo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-IMPL_DIR="$REPO_ROOT/implementations/ds01-sandboxing-on-eks"
 MODE="${1:---staged}"
 cd "$REPO_ROOT"
 
@@ -22,13 +21,14 @@ if [ ! -s /tmp/ds01-scan-files.$$ ]; then echo "check-no-secrets: nothing to sca
 PATTERN='AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|aws_secret_access_key|aws_session_token|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN|-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|xox[baprs]-[A-Za-z0-9-]{10,}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}|client-certificate-data|client-key-data|certificate-authority-data'
 
 fail=0
-hits=$(xargs -0 grep -I -l -E -e "$PATTERN" < /tmp/ds01-scan-files.$$ 2>/dev/null)
+# A Terraform line that only refers to the cluster CA attribute (ca_b64) holds no value, so it is not a hit.
+hits=$(xargs -0 grep -I -H -E -e "$PATTERN" < /tmp/ds01-scan-files.$$ 2>/dev/null | grep -v -F 'ca_b64' | cut -d: -f1 | sort -u)
 if [ -n "$hits" ]; then echo "BLOCKED: credential-shaped text in:"; echo "$hits" | sed 's/^/  /'; fail=1; fi
 
 # Private values of this implementation, read from local files only.
 LIT=/tmp/ds01-scan-literals.$$
 : > "$LIT"
-for f in "$IMPL_DIR"/terraform/*/local.auto.tfvars; do
+for f in "$REPO_ROOT"/implementations/*/terraform/*/local.auto.tfvars; do
   [ -f "$f" ] || continue
   sed -n 's/^[a-z_]*[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' "$f" | sed 's#/32$##' >> "$LIT"
 done

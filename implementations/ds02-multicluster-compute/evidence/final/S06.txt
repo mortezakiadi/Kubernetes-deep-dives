@@ -1,0 +1,37 @@
+# S06: Dispatch: a full worker is skipped, and the job runs in the other
+# Design reference: Sending work to the right cluster
+
+$ kubectl --context cpu-a create -f job.yaml   # llm/fill-cpu-a: queue cpu, 4 pod(s) x cpu 1
+job.batch/fill-cpu-a created
+
+$ scripts/fleet-status.py queues   # cpu-a's llm queue is full (4 of 4 CPUs)
+CLUSTER  QUEUE          PENDING ADMITTED  USAGE (flavor: resource used / nominal, borrowed)
+hub      llm-cpu              0        0  fleet-cpu: cpu 0/4 (borrowed 0)
+hub      llm-gpu              0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)
+hub      research-cpu         0        0  fleet-cpu: cpu 0/2 (borrowed 0)
+hub      research-gpu         0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)
+hub      vision-cpu           0        0  fleet-cpu: cpu 0/2 (borrowed 0)
+hub      vision-gpu           0        0  fleet-gpu: cpu 0/3 (borrowed 0); fleet-gpu: gpu 0/1 (borrowed 0)
+cpu-a    llm-cpu              0        1  cpu-ondemand: cpu 4/2 (borrowed 2)
+cpu-a    research-cpu         0        0  cpu-ondemand: cpu 0/1 (borrowed 0)
+cpu-a    vision-cpu           0        0  cpu-ondemand: cpu 0/1 (borrowed 0)
+cpu-b    llm-cpu              0        0  cpu-spot: cpu 0/2 (borrowed 0)
+cpu-b    research-cpu         0        0  cpu-spot: cpu 0/1 (borrowed 0)
+cpu-b    vision-cpu           0        0  cpu-spot: cpu 0/1 (borrowed 0)
+gpu      llm-gpu              0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0); gpu-spot: cpu 0/3 (borrowed 0); gpu-spot: gpu 0/1 (borrowed 0)
+gpu      research-gpu         0        0  gpu-spot: cpu 0/6 (borrowed 0); gpu-spot: gpu 0/2 (borrowed 0)
+gpu      vision-gpu           0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0)
+
+$ kubectl --context hub create -f job.yaml   # llm/needs-3: queue cpu, 3 pod(s) x cpu 1
+job.batch/needs-3 created
+
+$ kubectl --context hub -n llm get workload -o custom-columns=<name, chosen cluster, nominated clusters>
+NAME                CLUSTER   NOMINATED
+job-needs-3-e9a38   cpu-b     <none>
+
+$ kubectl --context cpu-a -n llm get workloads   # only the job that fills it; no copy of needs-3
+NAME                   QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE
+job-fill-cpu-a-067eb   cpu     llm-cpu       True                  20s
+
+[PASS] the job was sent to cpu-b, the worker with room
+[PASS] the full worker holds no copy of the job any more

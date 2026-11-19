@@ -1,0 +1,64 @@
+{
+ "id": "S05",
+ "title": "Fair sharing: borrow idle capacity, give it back when asked",
+ "design_ref": "Queues, quotas and fair sharing",
+ "purpose": "One team borrows what others are not using. When an owner comes back for its share, the borrower is preempted and requeued, and the owner runs.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl --context cpu-a get clusterqueue   # llm 2, vision 1, research 1 CPU, one cohort",
+   "output": "NAME           COHORT      PENDING WORKLOADS\nllm-cpu        cpu-fleet   0\nresearch-cpu   cpu-fleet   0\nvision-cpu     cpu-fleet   0",
+   "exit_code": 0,
+   "seconds": 1.42
+  },
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # research/research-run: queue cpu, 3 pod(s) x cpu 1",
+   "output": "job.batch/research-run created",
+   "exit_code": 0,
+   "seconds": 2.62
+  },
+  {
+   "display": "scripts/fleet-status.py queues   # research uses 3 CPUs: its own 1 plus 2 borrowed",
+   "output": "CLUSTER  QUEUE          PENDING ADMITTED  USAGE (flavor: resource used / nominal, borrowed)\nhub      llm-cpu              0        0  fleet-cpu: cpu 0/4 (borrowed 0)\nhub      llm-gpu              0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)\nhub      research-cpu         0        0  fleet-cpu: cpu 0/2 (borrowed 0)\nhub      research-gpu         0        0  fleet-gpu: cpu 0/6 (borrowed 0); fleet-gpu: gpu 0/2 (borrowed 0)\nhub      vision-cpu           0        0  fleet-cpu: cpu 0/2 (borrowed 0)\nhub      vision-gpu           0        0  fleet-gpu: cpu 0/3 (borrowed 0); fleet-gpu: gpu 0/1 (borrowed 0)\ncpu-a    llm-cpu              0        0  cpu-ondemand: cpu 0/2 (borrowed 0)\ncpu-a    research-cpu         0        1  cpu-ondemand: cpu 3/1 (borrowed 2)\ncpu-a    vision-cpu           0        0  cpu-ondemand: cpu 0/1 (borrowed 0)\ncpu-b    llm-cpu              0        0  cpu-spot: cpu 0/2 (borrowed 0)\ncpu-b    research-cpu         0        0  cpu-spot: cpu 0/1 (borrowed 0)\ncpu-b    vision-cpu           0        0  cpu-spot: cpu 0/1 (borrowed 0)\ngpu      llm-gpu              0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0); gpu-spot: cpu 0/3 (borrowed 0); gpu-spot: gpu 0/1 (borrowed 0)\ngpu      research-gpu         0        0  gpu-spot: cpu 0/6 (borrowed 0); gpu-spot: gpu 0/2 (borrowed 0)\ngpu      vision-gpu           0        0  gpu-ondemand: cpu 0/3 (borrowed 0); gpu-ondemand: gpu 0/1 (borrowed 0)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl --context cpu-a create -f job.yaml   # llm/llm-owner: queue cpu, 2 pod(s) x cpu 1",
+   "output": "job.batch/llm-owner created",
+   "exit_code": 0,
+   "seconds": 2.99
+  },
+  {
+   "display": "scripts/fleet-status.py workloads   # the owner is admitted; the borrower has been evicted and requeued",
+   "output": "CLUSTER  NAMESPACE WORKLOAD                           STATE\ncpu-a    llm       job-llm-owner-79e8f                running (admitted)\ncpu-a    research  job-research-run-095b9             LAYER 2 pending: couldn't assign flavors to pod set main: insufficient unused quota for cpu in flavor cpu-ondemand, 1 more needed",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "research was admitted with 3 CPUs although its own share is 1",
+   "passed": true,
+   "because": "The cohort lets a team borrow what others lend, up to the borrowing limit. Two CPUs came from llm and vision."
+  },
+  {
+   "description": "llm, asking for its own share, was admitted",
+   "passed": true,
+   "because": "llm's share is guaranteed, so Kueue reclaims it from whoever is borrowing it."
+  },
+  {
+   "description": "research's borrowing workload was preempted",
+   "passed": true,
+   "because": "reclaimWithinCohort is Any, so a queue within its nominal quota may preempt workloads that are borrowing from the cohort."
+  },
+  {
+   "description": "the preempted job was requeued, not lost",
+   "passed": true,
+   "because": "Preempted Workloads go back to the queue and run again when capacity returns."
+  }
+ ],
+ "notes": [
+  "Kueue's own words for the preemption: 'Preempted to accommodate a workload (UID: a0f1cde0-d7ac-4eec-ae90-1cedd84d911b, JobUID: 141d7f52-642a-4b6c-b248-992cd7bb5511) due to reclamation within the cohort; preemptor path: /cpu-fleet/llm-cpu; '"
+ ]
+}

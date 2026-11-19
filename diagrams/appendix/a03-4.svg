@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="520px" viewBox="0 0 1420 520" style="background:#ffffff"><title>Quotas, borrowing and reclaim on one worker</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="520" fill="#ffffff"/><text x="40" y="40" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#334155">One CPU worker, 4 CPUs in one cohort (nominal share, lending limit, borrowing limit)</text>
+<rect x="60" y="70" width="260" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="60" y="70" width="260" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="61" y="88" width="258" height="12" fill="#ecfdf5"/>
+<text x="72" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">team llm</text>
+<text x="72" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">guaranteed (nominal): 2 CPU</text>
+<text x="72" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">may lend at most: 1 CPU</text>
+<text x="72" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">may borrow up to: 2 CPU</text>
+<rect x="360" y="70" width="260" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="360" y="70" width="260" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="361" y="88" width="258" height="12" fill="#eff6ff"/>
+<text x="372" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">team vision</text>
+<text x="372" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">guaranteed (nominal): 1 CPU</text>
+<text x="372" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">may lend at most: 1 CPU</text>
+<text x="372" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">may borrow up to: 2 CPU</text>
+<rect x="660" y="70" width="260" height="120" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="660" y="70" width="260" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="661" y="88" width="258" height="12" fill="#fffbeb"/>
+<text x="672" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">team research</text>
+<text x="672" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">guaranteed (nominal): 1 CPU</text>
+<text x="672" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">may lend at most: 1 CPU</text>
+<text x="672" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">may borrow up to: 4 CPU</text>
+<rect x="60" y="230" width="880" height="80" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="60" y="230" width="880" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="61" y="248" width="878" height="12" fill="#fffbeb"/>
+<text x="72" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Step 1: research borrows idle capacity</text>
+<text x="72" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">research asks for 3 CPUs: its own 1 + 1 lent by llm + 1 lent by vision. Admitted.</text>
+<rect x="60" y="330" width="880" height="80" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="60" y="330" width="880" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="61" y="348" width="878" height="12" fill="#ecfdf5"/>
+<text x="72" y="350" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Step 2: llm asks for its own 2 CPUs</text>
+<text x="72" y="378" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">only 1 CPU is free, because llm's other CPU is out on loan. llm is within its guaranteed share.</text>
+<rect x="60" y="430" width="880" height="70" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="60" y="430" width="880" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="61" y="448" width="878" height="12" fill="#fef2f2"/>
+<text x="72" y="450" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Step 3: reclaim</text>
+<text x="72" y="478" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Kueue preempts research's borrowing job and requeues it. llm runs. research waits for capacity to return.</text>
+<path d="M500 190 L500 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M500 310 L500 330" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M500 410 L500 430" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="980" y="230" width="400" height="270" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="980" y="230" width="400" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="981" y="248" width="398" height="12" fill="#f8fafc"/>
+<text x="992" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Why this beats static pools</text>
+<text x="992" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Each team has a share it can always get.</text>
+<text x="992" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Idle shares are lent out, so nothing sits</text>
+<text x="992" y="312" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">unused while someone is waiting.</text>
+<text x="992" y="329" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">The lending limit keeps a floor for the owner.</text>
+<text x="992" y="346" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Borrowed work is preempted first, so it</text>
+<text x="992" y="363" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">must be able to resume (checkpoint).</text></svg>

@@ -1,0 +1,72 @@
+[
+ {
+  "id": "S01",
+  "title": "The fleet: four clusters made from one definition",
+  "passed": true,
+  "checks": 6,
+  "failed": []
+ },
+ {
+  "id": "S02",
+  "title": "One front door, and the hub runs nothing",
+  "passed": true,
+  "checks": 6,
+  "failed": []
+ },
+ {
+  "id": "S03",
+  "title": "Why is my job pending? One answer per layer",
+  "passed": true,
+  "checks": 4,
+  "failed": []
+ },
+ {
+  "id": "S04",
+  "title": "Gang scheduling: all of a job, or none of it",
+  "passed": true,
+  "checks": 4,
+  "failed": []
+ },
+ {
+  "id": "S05",
+  "title": "Fair sharing: borrow idle capacity, give it back when asked",
+  "passed": true,
+  "checks": 4,
+  "failed": []
+ },
+ {
+  "id": "S06",
+  "title": "Dispatch: a full worker is skipped, and the job runs in the other",
+  "passed": true,
+  "checks": 2,
+  "failed": []
+ },
+ {
+  "id": "S07",
+  "title": "GPUs: only through the queue, from the right capacity, scaled from zero",
+  "passed": true,
+  "checks": 9,
+  "failed": []
+ },
+ {
+  "id": "S08",
+  "title": "Tenant isolation: network and identity",
+  "passed": true,
+  "checks": 4,
+  "failed": []
+ },
+ {
+  "id": "S09",
+  "title": "Failure drills: a worker lost, and the hub down",
+  "passed": true,
+  "checks": 5,
+  "failed": []
+ },
+ {
+  "id": "S10",
+  "title": "Observability: the fleet in one place",
+  "passed": true,
+  "checks": 2,
+  "failed": []
+ }
+]
