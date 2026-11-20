@@ -1,0 +1,146 @@
+{
+ "id": "S04",
+ "title": "The model provider fails",
+ "design_ref": "Failure modes; Gateways",
+ "purpose": "Make the primary model provider unavailable. A run with a fallback must carry on through the fallback. A run without one must retry with backoff and recover on its own. And an operator must be able to pause every run, wait out an incident with no model call made, and resume them at a limited rate.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "agentctl model-fault --seconds 600   # the primary provider is down for ten minutes",
+   "output": "{\n \"primary_down_for_s\": 600.0,\n \"latency_s\": \"0.0\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 2}'   # fallback allowed (the default)",
+   "output": "session s-8d70f730",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl calls s-8d70f730   # which backend served each call",
+   "output": "step kind    backend   status prompt_sha\n   0 act     fallback    200  0bd8420ee75f7cd0\n   1 act     fallback    200  23754b794bc2fe67\n   2 act     fallback    200  644f6ed9476296d8\n   3 act     fallback    200  afd162841618fb17\n   4 act     fallback    200  7451f614f8fabcd0\n   5 act     fallback    200  3ff2d37e5a9c802d\n   6 act     fallback    200  fc466d26622ddffd",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl model-fault --seconds 25   # primary down for 25 seconds only",
+   "output": "{\n \"primary_down_for_s\": 25.0,\n \"latency_s\": \"0.0\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 2, \"allow_fallback\": false}'   # no fallback allowed",
+   "output": "session s-219a0b56",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl calls s-219a0b56   # refused calls, then the one that worked",
+   "output": "step kind    backend   status prompt_sha\n   0 act     primary     503  cef6ec2c361bd697\n   0 act     primary     503  cef6ec2c361bd697\n   0 act     primary     503  cef6ec2c361bd697\n   0 act     primary     503  cef6ec2c361bd697\n   0 act     primary     200  cef6ec2c361bd697\n   1 act     primary     200  3933e2ef28049d2c\n   2 act     primary     200  e4be97a3e0d14f35\n   3 act     primary     200  4598ab39dbde450b\n   4 act     primary     200  108dfc6946d0d9ba\n   5 act     primary     200  0efff4d64dd86078\n   6 act     primary     200  d7c6aa559b3cdf56",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl timeline s-219a0b56   # the engine's record of the retried call",
+   "output": "t=  30.7s  call_model          attempts=5   last failure: model gateway 503: primary model provider unavailable\nt=  34.1s  call_model          attempts=1\nt=  34.7s  call_model          attempts=1\nt=  35.2s  call_model          attempts=1\nt=  37.6s  call_model          attempts=1\nt=  38.0s  call_model          attempts=1\nt=  38.4s  call_model          attempts=1\nmodel calls: 7   tokens: 2417",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start ...   # five runs in flight, each running its tests",
+   "output": "s-3cefce4b\ns-1b03c1d1\ns-aacf4ad4\ns-6a89b0f9\ns-dbdff8c7",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl model-fault --seconds 900   # the provider goes down again",
+   "output": "{\n \"primary_down_for_s\": 900.0,\n \"latency_s\": \"0.0\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl ops pause-all   # the operator pauses every running run",
+   "output": "{\n \"paused\": 5,\n \"sessions\": [\n  \"s-dbdff8c7\",\n  \"s-6a89b0f9\",\n  \"s-aacf4ad4\",\n  \"s-1b03c1d1\",\n  \"s-3cefce4b\"\n ]\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status <each run>",
+   "output": "s-3cefce4b  state=paused  step=4  workflow=RUNNING  history_events=68  tokens=886\ns-1b03c1d1  state=paused  step=1  workflow=RUNNING  history_events=20  tokens=70\ns-aacf4ad4  state=paused  step=1  workflow=RUNNING  history_events=20  tokens=70\ns-6a89b0f9  state=paused  step=1  workflow=RUNNING  history_events=20  tokens=70\ns-dbdff8c7  state=paused  step=1  workflow=RUNNING  history_events=20  tokens=70",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "SELECT COUNT(*) FROM model_calls WHERE session IN (the five runs)   # now, and 25 seconds later",
+   "output": "now: 8\n25 seconds later: 8",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl model-fault --seconds 0   # the provider is back",
+   "output": "{\n \"primary_down_for_s\": 0.0,\n \"latency_s\": \"0.0\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl ops resume-all --rate 1   # resume them one per second",
+   "output": "{\n \"resumed\": 5,\n \"seconds\": 5.2,\n \"per_second\": 1.0\n}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "with the primary down, the run reached the review step through the fallback",
+   "passed": true,
+   "because": "The gateway sends the call to the fallback model when the primary does not answer. The run never saw an error."
+  },
+  {
+   "description": "not one call was refused",
+   "passed": true,
+   "because": "Every row the gateway recorded for the run is a success."
+  },
+  {
+   "description": "the first step was refused several times before it succeeded",
+   "passed": true,
+   "because": "A refused call is a failed activity. The engine runs it again after 2, 4, 8 seconds and so on, until the provider answers."
+  },
+  {
+   "description": "the retries were spaced out, not a burst",
+   "passed": true,
+   "because": "The run needed 38 seconds to get past step 0, which is how long the provider was down."
+  },
+  {
+   "description": "the history shows the model call taking more than one attempt",
+   "passed": true,
+   "because": "The attempt count and the last failure are kept in the history, so an operator can see why a step was slow."
+  },
+  {
+   "description": "all five runs were signalled",
+   "passed": true,
+   "because": "One call to the session API signals every running workflow."
+  },
+  {
+   "description": "each run finished the step it was on and then stopped",
+   "passed": true,
+   "because": "A pause is checked between steps, so no step is left half done."
+  },
+  {
+   "description": "while paused, the provider received no call from any of them",
+   "passed": true,
+   "because": "A paused run is waiting on a signal, so nothing calls the gateway: the incident is not made worse by the retries."
+  },
+  {
+   "description": "the runs were resumed one per second, not all at once",
+   "passed": true,
+   "because": "Five runs at one per second took 5.2 seconds to release."
+  },
+  {
+   "description": "every run then carried on to the review step",
+   "passed": true,
+   "because": "They continued from the step they had paused at."
+  }
+ ],
+ "notes": []
+}

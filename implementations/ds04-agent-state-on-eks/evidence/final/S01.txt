@@ -1,0 +1,77 @@
+# S01: The platform at rest: engine, stores, workers and gateways
+# Design reference: The architecture at a glance
+
+$ aws eks describe-cluster --name ds04-agentstate --query 'cluster.[name,status,version]' --output text
+ds04-agentstate	ACTIVE	1.37
+
+$ aws rds describe-db-instances --db-instance-identifier ds04-agentstate-db --query 'DBInstances[0].[Status,MultiAZ,Engine,Version,Class,AZ,StandbyAZ]'
+available	True	postgres	16.13	db.t4g.small	us-east-1a	us-east-1c
+
+$ kubectl -n temporal get pods   # the durable execution engine
+NAME                                   READY   STATUS      RESTARTS        AGE
+temporal-admintools-7b8b74754b-cw2m5   1/1     Running     0               4m39s
+temporal-frontend-f4659cb87-5cx9n      1/1     Running     3 (3m55s ago)   4m39s
+temporal-frontend-f4659cb87-lssw8      1/1     Running     3 (3m55s ago)   4m39s
+temporal-history-6bf4786d97-hn5q8      1/1     Running     3 (3m55s ago)   4m39s
+temporal-history-6bf4786d97-ks65v      1/1     Running     3 (3m55s ago)   4m39s
+temporal-matching-554978f4c4-7pxxg     1/1     Running     3 (3m58s ago)   4m39s
+temporal-matching-554978f4c4-mfs2g     1/1     Running     3 (3m57s ago)   4m39s
+temporal-namespace-1-8-0-1-l6dh8       0/1     Completed   0               4m39s
+temporal-schema-1-8-0-1-4rr8f          0/1     Completed   0               4m39s
+temporal-web-7477fff4bd-v94r2          1/1     Running     0               4m39s
+temporal-worker-778f9d457-7rjph        1/1     Running     3 (3m58s ago)   4m39s
+
+$ kubectl -n temporal exec deploy/temporal-admintools -- temporal operator cluster describe
+ClusterName  PersistenceStore  VisibilityStore
+  active       postgres12        postgres12
+
+$ kubectl -n agent-platform get pods -o wide   # workers, gateways, session API, sandbox manager
+NAME                              READY   STATUS    RESTARTS        AGE     IP            NODE                  NOMINATED NODE   READINESS GATES
+model-gateway-55b48f45c5-2ksrv    1/1     Running   0               4m52s   10.32.46.88   i-0c185ecefeffae23b   <none>           <none>
+model-gateway-55b48f45c5-6rv4k    1/1     Running   0               4m52s   10.32.34.58   i-0d6f5e1a55de3ac50   <none>           <none>
+sandbox-manager-b974f68bc-pfmxz   1/1     Running   0               4m52s   10.32.34.57   i-0d6f5e1a55de3ac50   <none>           <none>
+sandbox-manager-b974f68bc-zhggq   1/1     Running   0               4m52s   10.32.46.90   i-0c185ecefeffae23b   <none>           <none>
+session-api-668bdd96ff-hqbrn      1/1     Running   0               4m52s   10.32.34.54   i-0d6f5e1a55de3ac50   <none>           <none>
+session-api-668bdd96ff-mx24l      1/1     Running   0               4m52s   10.32.46.89   i-0c185ecefeffae23b   <none>           <none>
+tester-7cffb5d865-tpvl7           1/1     Running   0               4m52s   10.32.34.59   i-0d6f5e1a55de3ac50   <none>           <none>
+tool-gateway-6ffbddd965-f8dcp     1/1     Running   0               4m52s   10.32.46.91   i-0c185ecefeffae23b   <none>           <none>
+tool-gateway-6ffbddd965-n9pps     1/1     Running   0               4m52s   10.32.34.56   i-0d6f5e1a55de3ac50   <none>           <none>
+worker-v1-79d5c699b8-8jkvr        1/1     Running   1 (3m28s ago)   3m32s   10.32.40.32   i-0c185ecefeffae23b   <none>           <none>
+worker-v1-79d5c699b8-wwzpg        1/1     Running   1 (3m28s ago)   3m32s   10.32.46.80   i-0c185ecefeffae23b   <none>           <none>
+
+$ kubectl -n external get pods   # the stand-in for the external system the agent changes
+NAME                        READY   STATUS    RESTARTS   AGE
+git-host-7758648877-p7fk7   1/1     Running   0          4m53s
+
+$ kubectl get pvc -A   # does any component keep state on a disk?
+
+No resources found
+
+$ agentctl classes   # how each tool is made safe to retry (tool gateway registry)
+list_dir             local
+write_file           local
+run_tests            local
+read_review          read_only
+push_branch          checkable
+open_pr              checkable
+open_pr_naive        naive
+comment_on_pr        idempotent
+delete_branch_prod   unsafe
+
+$ kubectl -n sandboxes get pods   # sandboxes at rest
+
+No resources found in sandboxes namespace.
+
+$ kubectl -n agent-platform get scaledobject   # workers scale on the engine's task queue backlog
+NAME        SCALETARGETKIND   SCALETARGETNAME   MIN   MAX   READY   ACTIVE    FALLBACK   PAUSED   TRIGGERS   AUTHENTICATIONS   AGE
+worker-v1                     worker-v1         2     8     True    Unknown   False      True                                  3m34s
+
+[PASS] the cluster is ACTIVE on Kubernetes 1.37
+[PASS] the database is available, Multi-AZ, with a standby in a different zone
+[PASS] the engine runs two frontend, two history and two matching pods, and one worker service pod
+[PASS] the engine reports itself serving, on PostgreSQL for both histories and search
+[PASS] two stateless workers, and two each of the model gateway, tool gateway, session API and sandbox manager, are ready
+[PASS] no component keeps state on a volume
+[PASS] every tool is classified: local, read-only, idempotent, checkable or unsafe
+[PASS] no sandbox exists while no run needs one
+[PASS] the workers' autoscaler watches the engine's task queue, not CPU

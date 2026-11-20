@@ -1,0 +1,90 @@
+# S07: Context is rebuilt from the log, never remembered
+# Design reference: Context state
+
+$ agentctl model-fault --latency 30   # every model call now takes 30 seconds
+{
+ "primary_down_for_s": 0.0,
+ "latency_s": "30.0"
+}
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2}'
+session s-37ec255f
+
+$ agentctl status s-37ec255f   # step 0's model call is in flight
+call_model on worker worker-v1-79d5c699b8-cs4lb
+
+$ kubectl -n agent-platform delete pod worker-v1-79d5c699b8-cs4lb --grace-period=0 --force   # the worker dies while waiting for the model
+pod "worker-v1-79d5c699b8-cs4lb" force deleted from agent-platform namespace
+
+$ agentctl model-fault --latency 0   # the provider answers quickly again
+{
+ "primary_down_for_s": 0.0,
+ "latency_s": "0.0"
+}
+
+$ agentctl calls s-37ec255f   # step 0 appears twice, with the same prompt hash
+step kind    backend   status prompt_sha
+   0 act     primary     200  0bd8420ee75f7cd0
+   0 act     primary     200  0bd8420ee75f7cd0
+   1 act     primary     200  23754b794bc2fe67
+   2 act     primary     200  644f6ed9476296d8
+   3 act     primary     200  afd162841618fb17
+   4 act     primary     200  7451f614f8fabcd0
+   5 act     primary     200  4ca870f84f70bd55
+   6 act     primary     200  4ea363f65ed516af
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2}'   # without compaction
+session s-933a12c7
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2, "context_budget": 300}'   # compact when the context exceeds 300 tokens
+session s-16e1dcb3
+
+$ SELECT upto_step, tokens FROM summaries   # each compaction is a stored row
+summary of steps up to 3: 59 tokens
+summary of steps up to 7: 110 tokens
+
+$ SELECT kind, COUNT(*) FROM model_calls   # compaction is a model call like any other, recorded
+act        11
+summarize  2
+
+$ prompt size sent for the final decision
+without compaction: 852 tokens
+with compaction:    290 tokens
+
+$ agentctl rebuild s-933a12c7   # without compaction: rebuild every prompt from the database and compare its hash with the one the gateway recorded
+step recorded         rebuilt          same
+   0 0bd8420ee75f7cd0  0bd8420ee75f7cd0  True
+   1 23754b794bc2fe67  23754b794bc2fe67  True
+   2 644f6ed9476296d8  644f6ed9476296d8  True
+   3 afd162841618fb17  afd162841618fb17  True
+   4 4da4d0a3e62425ba  4da4d0a3e62425ba  True
+   5 8f45eadc3db1f9c3  8f45eadc3db1f9c3  True
+   6 fa1cf96698f2f356  fa1cf96698f2f356  True
+   7 274a977e7cdd5186  274a977e7cdd5186  True
+   8 167701098989e21f  167701098989e21f  True
+   9 554b132384ada965  554b132384ada965  True
+  10 2622ae2104a01906  2622ae2104a01906  True
+all prompts reproduced: True
+
+$ agentctl rebuild s-16e1dcb3   # with compaction: rebuild every prompt from the database and compare its hash with the one the gateway recorded
+step recorded         rebuilt          same
+   0 1574ee0cac125fed  1574ee0cac125fed  True
+   1 4d1cd4e682817bad  4d1cd4e682817bad  True
+   2 4a426bac120b4733  4a426bac120b4733  True
+   3 9a69681ee545d8c3  9a69681ee545d8c3  True
+   4 e5f6905b053dbb93  e5f6905b053dbb93  True
+   5 0227117e483a0693  0227117e483a0693  True
+   6 bd760e29ad2aff45  bd760e29ad2aff45  True
+   7 c9f7079f23fcd0cb  c9f7079f23fcd0cb  True
+   8 a17ac57563dad13d  a17ac57563dad13d  True
+   9 dad9a366fa0de050  dad9a366fa0de050  True
+  10 880a86414330aea5  880a86414330aea5  True
+all prompts reproduced: True
+
+[PASS] the run carried on after the worker's death
+[PASS] the interrupted model call was made a second time, with an identical prompt
+[PASS] the context log holds one answer for step 0, not two
+[PASS] compaction happened, and the compacted run finished the same job
+[PASS] the compacted prompt was smaller, and each summary cost exactly one model call
+[PASS] without compaction: every prompt rebuilds to exactly the hash recorded when it was sent
+[PASS] with compaction: every prompt rebuilds to exactly the hash recorded when it was sent

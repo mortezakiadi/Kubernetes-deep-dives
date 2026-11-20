@@ -1,0 +1,108 @@
+# S05: Side effects happen once
+# Design reference: Side effects: exactly once where it matters
+
+$ agentctl classes   # how each tool's retries are made safe
+open_pr              checkable
+push_branch          checkable
+comment_on_pr        idempotent
+list_dir             local
+run_tests            local
+write_file           local
+open_pr_naive        naive
+read_review          read_only
+delete_branch_prod   unsafe
+
+$ agentctl git ack-loss:pulls 1   # the Git host will lose its answer to the next pull request it opens
+{
+ "ack_loss": {
+  "pulls": 1
+ }
+}
+
+$ agentctl start --task '{... "naive_pr": true}'   # control: the agent uses a tool with no protection
+session s-2bb9151d
+
+$ agentctl git counts
+{
+ "open_prs": 2,
+ "all_prs": 2,
+ "branches": 1,
+ "comments": 0
+}
+
+$ agentctl ledger s-2bb9151d
+step tool            class       status       attempts deduped  external
+   4 push_branch     checkable   done                1       0  agent/s-2bb9151d-4
+   5 open_pr_naive   naive       done                2       0  2
+
+$ agentctl git ack-loss:branches 1
+{
+ "ack_loss": {
+  "branches": 1
+ }
+}
+
+$ agentctl git ack-loss:pulls 1
+{
+ "ack_loss": {
+  "pulls": 1
+ }
+}
+
+$ agentctl git ack-loss:comments 1
+{
+ "ack_loss": {
+  "comments": 1
+ }
+}
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2}'   # the same task, protected tools
+session s-f31e1eed
+
+$ agentctl ledger s-f31e1eed   # attempts 2 and deduplicated 1: the retry found the work already done
+step tool            class       status       attempts deduped  external
+   4 push_branch     checkable   done                2       1  agent/s-f31e1eed-4
+   5 open_pr         checkable   done                2       1  1
+   9 comment_on_pr   idempotent  done                2       0  2
+
+$ agentctl git counts
+{
+ "open_prs": 1,
+ "all_prs": 1,
+ "branches": 1,
+ "comments": 2
+}
+
+$ agentctl git ack-loss:deletes 1
+{
+ "ack_loss": {
+  "deletes": 1
+ }
+}
+
+$ # a production branch exists, and the agent has been given a tool that deletes it
+branch agent/s05-unsafe-4 created (1 branch on the Git host)
+
+$ agentctl start --task '{... "behavior": "unsafe"}' --session s05-unsafe
+session s05-unsafe
+
+$ agentctl status s05-unsafe
+state=needs_attention  step=4  workflow=RUNNING  history_events=76  tokens=1352  attention='delete_branch_prod may have changed the world and cannot be checked'
+
+$ agentctl ledger s05-unsafe
+step tool            class       status       attempts deduped  external
+   4 delete_branch_prod unsafe      started             2       0  None
+
+$ agentctl git counts
+{"open_prs": 0, "all_prs": 0, "branches": 0, "comments": 0}
+
+[PASS] control: the unprotected tool opened two pull requests for one decision
+[PASS] control: the ledger saw both attempts but had no way to stop the second
+[PASS] the run completed despite three lost answers
+[PASS] one branch, one pull request and two comments exist (the reviewer's and the agent's)
+[PASS] the branch and the pull request were found by looking first
+[PASS] the comment was deduplicated by the Git host, through the key
+[PASS] the run stopped and asked for a person instead of repeating the delete
+[PASS] it was attempted twice and not a third time
+[PASS] the delete did happen once, as the first attempt's lost answer suggested
+[PASS] a person ended the run and nothing else was changed

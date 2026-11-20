@@ -1,0 +1,76 @@
+# S09: Deploying new code while runs are in flight
+# Design reference: Deploying new code; Versioning
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2}'   # a run in flight on version 1
+session s-2b3d20ee
+
+$ WORKFLOW_VARIANT=v1 agentctl replay --sessions s-2b3d20ee   # the code the run was recorded with
+v1: replays cleanly
+
+$ WORKFLOW_VARIANT=v2-unpatched agentctl replay --sessions s-2b3d20ee   # version 2, a lint step added after every file change, with no protection
+v2-unpatched: NondeterminismError: Workflow activation completion failed: Failure { failure: Some(Failure { message: "[TMPRL1100] Nondeterminism error: Activity type of scheduled event 'call_mode
+
+$ WORKFLOW_VARIANT=v2-patched agentctl replay --sessions s-2b3d20ee   # version 2, the same change behind a patch marker
+v2-patched: replays cleanly
+
+$ kubectl -n agent-platform get pods -l role=worker   # version 1 and version 2 workers side by side
+NAME                         READY   STATUS    RESTARTS   AGE   APP
+worker-v1-79d5c699b8-nh4rk   1/1     Running   0          21m   worker-v1
+worker-v1-79d5c699b8-zp69d   1/1     Running   0          26m   worker-v1
+worker-v2-6c6d9bc47b-bzdzp   1/1     Running   0          47s   worker-v2
+worker-v2-6c6d9bc47b-zt9k7   1/1     Running   0          47s   worker-v2
+
+$ agentctl ops queue --queue agent-v2   # new runs now start on the version 2 queue
+{
+ "current_queue": "agent-v2"
+}
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2}'   # a new run
+session s-34d56130
+
+$ which queue each run lives on
+s-2b3d20ee: agent-v1
+s-34d56130: agent-v2
+
+$ lint steps in each run's history
+s-2b3d20ee (started before the deploy): 0
+s-34d56130 (started after):               3
+
+$ agentctl ops list   # runs still running on the version 1 queue
+0
+
+$ agentctl ops queue --queue agent-v1   # (back to the original code for the rest of the tests)
+{
+ "current_queue": "agent-v1"
+}
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 25}'
+session s-fd33d45e
+
+$ agentctl status s-fd33d45e   # the test step is running on one worker
+run_tool on worker-v1-79d5c699b8-nh4rk
+
+$ kubectl -n agent-platform delete pod worker-v1-79d5c699b8-nh4rk   # a rolling update would do this: SIGTERM, not SIGKILL
+pod "worker-v1-79d5c699b8-nh4rk" deleted from agent-platform namespace
+
+$ kubectl -n agent-platform get pods -l app=worker-v1   # the old pod is Terminating, finishing its step
+NAME                         READY   STATUS        RESTARTS   AGE
+worker-v1-79d5c699b8-6gmtj   1/1     Running       0          5s
+worker-v1-79d5c699b8-nh4rk   1/1     Terminating   0          22m
+worker-v1-79d5c699b8-zp69d   1/1     Running       0          27m
+
+$ agentctl timeline s-fd33d45e
+t=   3.4s  run_tool            attempts=1
+t=   3.7s  run_tool            attempts=1
+t=   4.4s  run_tool            attempts=1
+t=  30.0s  run_tool            attempts=1
+t=  30.5s  run_tool            attempts=1
+t=  30.9s  run_tool            attempts=1
+model calls: 7   tokens: 2378
+
+[PASS] the original code replays the recorded history cleanly
+[PASS] the unprotected change cannot replay the run that is waiting
+[PASS] the same change behind a patch marker replays cleanly
+[PASS] the run in flight kept its queue and finished on version 1; the new run used version 2
+[PASS] when the last old run finished, nothing was left on version 1, so its workers can be removed
+[PASS] the step that was running finished on its own worker: it has one attempt

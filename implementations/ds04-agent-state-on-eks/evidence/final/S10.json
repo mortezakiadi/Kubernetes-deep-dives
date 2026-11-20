@@ -1,0 +1,119 @@
+{
+ "id": "S10",
+ "title": "The engine's database fails over, and the engine restarts",
+ "design_ref": "The durable execution engine; Failure modes",
+ "purpose": "Force the Multi-AZ database to fail over to its standby while three runs are in flight, then delete every engine server pod while a run is in flight. Nobody touches the runs; they must finish, once.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 60}'   # three runs",
+   "output": "s-3c9432fe\ns-c47baea5\ns-88da4e65",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws rds describe-db-instances --db-instance-identifier ds04-agentstate-db --query 'DBInstances[0].[Status,PrimaryAZ,StandbyAZ]'   # before",
+   "output": "available\tus-east-1c\tus-east-1a",
+   "exit_code": 0,
+   "seconds": 1.43
+  },
+  {
+   "display": "aws rds reboot-db-instance --db-instance-identifier ds04-agentstate-db --force-failover   # the primary is taken away",
+   "output": "rebooting",
+   "exit_code": 0,
+   "seconds": 1.34
+  },
+  {
+   "display": "aws rds describe-db-instances ...   # after",
+   "output": "status=available  primary=us-east-1a  standby=us-east-1c\nfailover took about 580 seconds",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status <each run>",
+   "output": "s-3c9432fe  state=waiting  step=6  workflow=RUNNING  history_events=101  tokens=2378\ns-c47baea5  state=waiting  step=6  workflow=RUNNING  history_events=101  tokens=2378\ns-88da4e65  state=waiting  step=6  workflow=RUNNING  history_events=101  tokens=2378",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git counts",
+   "output": "{\"open_prs\": 3, \"all_prs\": 3, \"branches\": 3, \"comments\": 6}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "model calls repeated because of the failover (steps called more than once)",
+   "output": "0 of 33 steps",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 40}'",
+   "output": "session s-1fd8e793",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n temporal get pods -l 'component in (frontend,history,matching)'   # the engine's servers, before",
+   "output": "NAME                                 READY   STATUS    RESTARTS   AGE\ntemporal-frontend-f4659cb87-2jq88    1/1     Running   0          23m\ntemporal-frontend-f4659cb87-gdqz7    1/1     Running   0          32m\ntemporal-history-6bf4786d97-d9dfz    1/1     Running   0          32m\ntemporal-history-6bf4786d97-zt75d    1/1     Running   0          23m\ntemporal-matching-554978f4c4-bv9zk   1/1     Running   0          23m\ntemporal-matching-554978f4c4-kbp4k   1/1     Running   0          32m",
+   "exit_code": 0,
+   "seconds": 1.61
+  },
+  {
+   "display": "kubectl -n temporal delete pods -l 'component in (frontend,history,matching)' --force   # every engine server at once",
+   "output": "pod \"temporal-frontend-f4659cb87-2jq88\" force deleted from temporal namespace\npod \"temporal-frontend-f4659cb87-gdqz7\" force deleted from temporal namespace\npod \"temporal-history-6bf4786d97-d9dfz\" force deleted from temporal namespace\npod \"temporal-history-6bf4786d97-zt75d\" force deleted from temporal namespace\npod \"temporal-matching-554978f4c4-bv9zk\" force deleted from temporal namespace\npod \"temporal-matching-554978f4c4-kbp4k\" force deleted from temporal namespace",
+   "exit_code": 0,
+   "seconds": 2.44
+  },
+  {
+   "display": "agentctl status s-1fd8e793   # ten seconds after",
+   "output": "RUNNING",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n temporal get pods -l 'component in (frontend,history,matching)'   # after",
+   "output": "NAME                                 READY   STATUS    RESTARTS   AGE\ntemporal-frontend-f4659cb87-tmtwh    1/1     Running   0          39s\ntemporal-frontend-f4659cb87-vzskt    1/1     Running   0          39s\ntemporal-history-6bf4786d97-8ng7h    1/1     Running   0          39s\ntemporal-history-6bf4786d97-9sm69    1/1     Running   0          39s\ntemporal-matching-554978f4c4-fmfsl   1/1     Running   0          39s\ntemporal-matching-554978f4c4-p6hv9   1/1     Running   0          39s",
+   "exit_code": 0,
+   "seconds": 1.68
+  }
+ ],
+ "checks": [
+  {
+   "description": "the standby in the other zone became the primary",
+   "passed": true,
+   "because": "RDS Multi-AZ keeps a synchronous standby and moves the database's DNS name to it."
+  },
+  {
+   "description": "all three runs reached the review step on their own",
+   "passed": true,
+   "because": "The engine, the workers and the gateways retried their database connections until the new primary answered."
+  },
+  {
+   "description": "each run finished, and each made exactly one branch and one pull request",
+   "passed": true,
+   "because": "The ledger is in the same database: a step that was in flight when it failed over was retried and deduplicated."
+  },
+  {
+   "description": "the model was called for every step of every run",
+   "passed": true,
+   "because": "11 decisions for each of 3 runs. Any step the failover interrupted mid-call was asked again, and shows above."
+  },
+  {
+   "description": "the engine's servers were all replaced",
+   "passed": true,
+   "because": "Kubernetes started new ones, which read everything from the database."
+  },
+  {
+   "description": "the run in flight reached the review step without anyone's help",
+   "passed": true,
+   "because": "The engine keeps no state of its own: a run is rows in PostgreSQL."
+  },
+  {
+   "description": "and finished once",
+   "passed": true,
+   "because": "One pull request."
+  }
+ ],
+ "notes": []
+}

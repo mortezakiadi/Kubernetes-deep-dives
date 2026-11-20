@@ -1,0 +1,122 @@
+{
+ "id": "S11",
+ "title": "Many runs at once, scaled by the queue, and what an operator can see",
+ "design_ref": "Scale; Observability",
+ "purpose": "Start 24 runs together on workers that can each do six things at once, so the work is more than two workers can hold. Let the autoscaler add workers because the engine's task queue has a backlog, and read the platform's own metrics, ledger and costs while it happens.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n agent-platform annotate scaledobject/worker-v1 autoscaling.keda.sh/paused=false   # switch the autoscaler on",
+   "output": "scaledobject/worker-v1 annotated",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n agent-platform get scaledobject worker-v1   # scale on the engine's task queue backlog",
+   "output": "NAME        SCALETARGETKIND      SCALETARGETNAME   MIN   MAX   READY   ACTIVE    FALLBACK   PAUSED   TRIGGERS   AUTHENTICATIONS   AGE\nworker-v1   apps/v1.Deployment   worker-v1         2     8     True    Unknown   False      False    temporal                     92m",
+   "exit_code": 0,
+   "seconds": 1.36
+  },
+  {
+   "display": "start 24 runs at once, each with a 100-second test step",
+   "output": "24 runs started in 3 seconds",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "sample every ~10 seconds: workers, activity slots in use (Prometheus), runs at the review step",
+   "output": "t=   9s  workers=2  activity slots in use=   0  runs waiting for review=0/24\nt=  25s  workers=4  activity slots in use=  12  runs waiting for review=0/24\nt=  41s  workers=4  activity slots in use=  12  runs waiting for review=0/24\nt=  57s  workers=4  activity slots in use=  24  runs waiting for review=0/24\nt=  72s  workers=4  activity slots in use=  24  runs waiting for review=0/24\nt=  88s  workers=4  activity slots in use=  24  runs waiting for review=0/24\nt= 104s  workers=4  activity slots in use=  24  runs waiting for review=0/24\nt= 119s  workers=4  activity slots in use=  24  runs waiting for review=0/24\nt= 135s  workers=4  activity slots in use=  24  runs waiting for review=0/24\nt= 151s  workers=4  activity slots in use=  23  runs waiting for review=15/24\nt= 166s  workers=4  activity slots in use=   9  runs waiting for review=15/24\nt= 182s  workers=4  activity slots in use=   0  runs waiting for review=24/24",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git counts",
+   "output": "{\"open_prs\": 24, \"all_prs\": 24, \"branches\": 24, \"comments\": 0}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "SELECT tool, class, COUNT(*), SUM(attempts), SUM(deduplicated) FROM ledger   # the side-effect ledger across the runs",
+   "output": "open_pr        checkable   runs= 24  attempts= 24  deduplicated=0\npush_branch    checkable   runs= 24  attempts= 24  deduplicated=0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "tokens per run, from the model gateway's record",
+   "output": "runs=24  min=5502  average=5506  max=5509  total=132153\nmodel calls by backend: primary=264",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl timeline s-87fa95a3   # one run's life, from its own history",
+   "output": "t=   0.9s  call_model          attempts=1\nt=   5.2s  run_tool            attempts=1\nt=  35.5s  call_model          attempts=1\nt=  35.9s  run_tool            attempts=1\nt=  36.2s  snapshot_workspace  attempts=1\nt=  36.6s  call_model          attempts=1\nt=  36.8s  run_tool            attempts=1\nt=  37.1s  snapshot_workspace  attempts=1\nt=  37.3s  call_model          attempts=1\nt= 137.5s  run_tool            attempts=1\nt= 137.7s  call_model          attempts=1\nt= 137.9s  run_tool            attempts=1\nt= 138.1s  call_model          attempts=1\nt= 138.3s  run_tool            attempts=1\nt= 138.5s  call_model          attempts=1\nt= 186.1s  signal approve\nt= 186.6s  run_tool            attempts=1\nt= 187.7s  call_model          attempts=1\nt= 196.1s  run_tool            attempts=1\nt= 196.4s  snapshot_workspace  attempts=1\nt= 196.8s  call_model          attempts=1\nt= 297.3s  run_tool            attempts=1\nt= 297.9s  call_model          attempts=1\nt= 298.6s  run_tool            attempts=1\nt= 299.3s  call_model          attempts=1\nmodel calls: 11   tokens: 5502",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "from each run's own history: how long every activity waited for a free worker slot (scheduled to started)",
+   "output": "624 activities in 24 runs\nmedian wait: 0.0 seconds\nlongest wait: 33.9 seconds\nactivities that waited 5 seconds or more: 12 (call_model, run_tool)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "Prometheus: temporal_activity_task_received and temporal_activity_execution_failed, the workers running now",
+   "output": "activities received: 634\nactivities failed (and retried): 0",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "each worker has six activity slots, so two workers hold twelve steps at once",
+   "passed": true,
+   "because": "Slots are set small so that a modest number of runs exceeds them. What matters is the ratio of runs to slots, not the absolute numbers."
+  },
+  {
+   "description": "all 24 runs were accepted",
+   "passed": true,
+   "because": "The session API only writes a row and starts a workflow, so starting many at once is cheap."
+  },
+  {
+   "description": "the workers were saturated: every slot was in use at some point",
+   "passed": true,
+   "because": "Peak slots in use: 24 of 12 available with two workers."
+  },
+  {
+   "description": "the autoscaler added workers because of the queue's backlog",
+   "passed": true,
+   "because": "Peak workers: 4. The trigger is the engine's task queue, not CPU: a worker waiting for a model or a tool uses almost none."
+  },
+  {
+   "description": "all 24 runs reached the review step",
+   "passed": true,
+   "because": "Each run is independent: its own history, its own ledger rows, its own sandbox."
+  },
+  {
+   "description": "24 branches and 24 pull requests exist, one for each run",
+   "passed": true,
+   "because": "Queueing and scaling did not repeat or lose any step."
+  },
+  {
+   "description": "after the reviews, all 24 runs completed",
+   "passed": true,
+   "because": "Approvals reached the waiting workflows, now on whichever workers were running."
+  },
+  {
+   "description": "the gateway's record accounts for every run's tokens, and the model was called 11 times per run",
+   "passed": true,
+   "because": "Cost per run is a query over one table, because every call goes through the gateway."
+  },
+  {
+   "description": "the backlog is visible in the engine's own records: a few steps waited for a slot, most did not",
+   "passed": true,
+   "because": "Steps that queued behind a full set of workers waited until a slot opened or the autoscaler's new workers joined. The median step started at once."
+  },
+  {
+   "description": "the workers' own metrics are being collected",
+   "passed": true,
+   "because": "Each worker serves Prometheus metrics, and Prometheus finds the pods by their annotations."
+  }
+ ],
+ "notes": []
+}

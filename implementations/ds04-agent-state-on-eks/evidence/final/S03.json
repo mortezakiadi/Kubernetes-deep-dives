@@ -1,0 +1,131 @@
+{
+ "id": "S03",
+ "title": "A worker dies in the middle of a step",
+ "design_ref": "Steps, history and replay; Failure modes",
+ "purpose": "Kill, with no warning, the worker that is running a long step. Another worker must take the run over, the finished steps must not be paid for again, and then take away every worker at once.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 40}'",
+   "output": "session s-390c684b",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-390c684b   # step 3 (the test run) is in flight, on one worker",
+   "output": "state=running  step=3  workflow=RUNNING  history_events=59  tokens=886  pending=[run_tool#1]",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "the worker running it, from the engine's own record",
+   "output": "worker-v1-79d5c699b8-wwzpg",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n agent-platform delete pod worker-v1-79d5c699b8-wwzpg --grace-period=0 --force   # SIGKILL: no warning, no cleanup",
+   "output": "pod \"worker-v1-79d5c699b8-wwzpg\" force deleted from agent-platform namespace",
+   "exit_code": 0,
+   "seconds": 1.49
+  },
+  {
+   "display": "agentctl status s-390c684b",
+   "output": "state=waiting  step=6  workflow=RUNNING  history_events=101  tokens=2378",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "time from the kill to the run reaching the review step",
+   "output": "62 seconds (the rest of the 40-second test, plus the detection delay)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl timeline s-390c684b",
+   "output": "t=   0.2s  call_model          attempts=1\nt=   4.4s  run_tool            attempts=1\nt=   4.6s  call_model          attempts=1\nt=   4.7s  run_tool            attempts=1\nt=   5.2s  call_model          attempts=1\nt=   5.3s  run_tool            attempts=1\nt=   5.7s  call_model          attempts=1\nt=  71.0s  run_tool            attempts=2   last failure: activity Heartbeat timeout\nt=  71.2s  call_model          attempts=1\nt=  71.4s  run_tool            attempts=1\nt=  71.6s  call_model          attempts=1\nt=  71.8s  run_tool            attempts=1\nt=  72.0s  call_model          attempts=1\nmodel calls: 7   tokens: 2378",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl calls s-390c684b   # the model gateway's record",
+   "output": "step kind    backend   status prompt_sha\n   0 act     primary     200  39961bc1450694e8\n   1 act     primary     200  5bf4e46d585ebb4a\n   2 act     primary     200  79a23ae580cfbe33\n   3 act     primary     200  cc7c76ee056c033e\n   4 act     primary     200  473aa94ad2f5a46d\n   5 act     primary     200  fee0e73ce52832ca\n   6 act     primary     200  2fda654c05e0ab7f",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-2\", \"test_seconds\": 25}'",
+   "output": "session s-cebdb060",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n agent-platform scale deploy/worker-v1 --replicas=0   # every worker gone, mid-step",
+   "output": "deployment.apps/worker-v1 scaled",
+   "exit_code": 0,
+   "seconds": 1.57
+  },
+  {
+   "display": "kubectl -n agent-platform get pods -l app=worker-v1",
+   "output": "NAME                         READY   STATUS        RESTARTS   AGE\nworker-v1-79d5c699b8-sqqlr   1/1     Terminating   0          2m26s",
+   "exit_code": 0,
+   "seconds": 1.45
+  },
+  {
+   "display": "agentctl status s-cebdb060   # with no worker at all, for 45 seconds",
+   "output": "state=no-worker  step=None  workflow=RUNNING  history_events=64  tokens=None",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n agent-platform get pods -l app=worker-v1   # two new workers, in new pods",
+   "output": "NAME                         READY   STATUS    RESTARTS   AGE\nworker-v1-79d5c699b8-b5cnp   1/1     Running   0          7s\nworker-v1-79d5c699b8-lvs9d   1/1     Running   0          7s",
+   "exit_code": 0,
+   "seconds": 1.57
+  },
+  {
+   "display": "agentctl status s-cebdb060",
+   "output": "state=waiting  step=6  workflow=RUNNING  history_events=103  tokens=2378",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the test step is running on a worker, in flight",
+   "passed": true,
+   "because": "The engine tracks which worker last reported on each pending activity."
+  },
+  {
+   "description": "the run carried on to the review step on another worker, with nobody touching it",
+   "passed": true,
+   "because": "The engine noticed the activity's heartbeat had stopped, and scheduled it again for another worker."
+  },
+  {
+   "description": "the interrupted step shows a second attempt in the history",
+   "passed": true,
+   "because": "The history records which attempt finally completed, and why the earlier one failed."
+  },
+  {
+   "description": "no model call was repeated: one call for each of steps 0 to 6",
+   "passed": true,
+   "because": "Replay returns the recorded answer for every step that finished. Only the unfinished tool step ran again."
+  },
+  {
+   "description": "with no worker running, the run still exists in the engine",
+   "passed": true,
+   "because": "The run is a row of history in PostgreSQL, not a process."
+  },
+  {
+   "description": "two brand-new workers took the run over and carried it to the review step",
+   "passed": true,
+   "because": "Any worker can continue any run: nothing the run needed was in the workers that were removed."
+  },
+  {
+   "description": "the model was still called exactly once per step for that run",
+   "passed": true,
+   "because": "The new workers replayed the history without calling the model."
+  }
+ ],
+ "notes": []
+}

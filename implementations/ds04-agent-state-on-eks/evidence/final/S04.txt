@@ -1,0 +1,114 @@
+# S04: The model provider fails
+# Design reference: Failure modes; Gateways
+
+$ agentctl model-fault --seconds 600   # the primary provider is down for ten minutes
+{
+ "primary_down_for_s": 600.0,
+ "latency_s": "0.0"
+}
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2}'   # fallback allowed (the default)
+session s-8d70f730
+
+$ agentctl calls s-8d70f730   # which backend served each call
+step kind    backend   status prompt_sha
+   0 act     fallback    200  0bd8420ee75f7cd0
+   1 act     fallback    200  23754b794bc2fe67
+   2 act     fallback    200  644f6ed9476296d8
+   3 act     fallback    200  afd162841618fb17
+   4 act     fallback    200  7451f614f8fabcd0
+   5 act     fallback    200  3ff2d37e5a9c802d
+   6 act     fallback    200  fc466d26622ddffd
+
+$ agentctl model-fault --seconds 25   # primary down for 25 seconds only
+{
+ "primary_down_for_s": 25.0,
+ "latency_s": "0.0"
+}
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2, "allow_fallback": false}'   # no fallback allowed
+session s-219a0b56
+
+$ agentctl calls s-219a0b56   # refused calls, then the one that worked
+step kind    backend   status prompt_sha
+   0 act     primary     503  cef6ec2c361bd697
+   0 act     primary     503  cef6ec2c361bd697
+   0 act     primary     503  cef6ec2c361bd697
+   0 act     primary     503  cef6ec2c361bd697
+   0 act     primary     200  cef6ec2c361bd697
+   1 act     primary     200  3933e2ef28049d2c
+   2 act     primary     200  e4be97a3e0d14f35
+   3 act     primary     200  4598ab39dbde450b
+   4 act     primary     200  108dfc6946d0d9ba
+   5 act     primary     200  0efff4d64dd86078
+   6 act     primary     200  d7c6aa559b3cdf56
+
+$ agentctl timeline s-219a0b56   # the engine's record of the retried call
+t=  30.7s  call_model          attempts=5   last failure: model gateway 503: primary model provider unavailable
+t=  34.1s  call_model          attempts=1
+t=  34.7s  call_model          attempts=1
+t=  35.2s  call_model          attempts=1
+t=  37.6s  call_model          attempts=1
+t=  38.0s  call_model          attempts=1
+t=  38.4s  call_model          attempts=1
+model calls: 7   tokens: 2417
+
+$ agentctl start ...   # five runs in flight, each running its tests
+s-3cefce4b
+s-1b03c1d1
+s-aacf4ad4
+s-6a89b0f9
+s-dbdff8c7
+
+$ agentctl model-fault --seconds 900   # the provider goes down again
+{
+ "primary_down_for_s": 900.0,
+ "latency_s": "0.0"
+}
+
+$ agentctl ops pause-all   # the operator pauses every running run
+{
+ "paused": 5,
+ "sessions": [
+  "s-dbdff8c7",
+  "s-6a89b0f9",
+  "s-aacf4ad4",
+  "s-1b03c1d1",
+  "s-3cefce4b"
+ ]
+}
+
+$ agentctl status <each run>
+s-3cefce4b  state=paused  step=4  workflow=RUNNING  history_events=68  tokens=886
+s-1b03c1d1  state=paused  step=1  workflow=RUNNING  history_events=20  tokens=70
+s-aacf4ad4  state=paused  step=1  workflow=RUNNING  history_events=20  tokens=70
+s-6a89b0f9  state=paused  step=1  workflow=RUNNING  history_events=20  tokens=70
+s-dbdff8c7  state=paused  step=1  workflow=RUNNING  history_events=20  tokens=70
+
+$ SELECT COUNT(*) FROM model_calls WHERE session IN (the five runs)   # now, and 25 seconds later
+now: 8
+25 seconds later: 8
+
+$ agentctl model-fault --seconds 0   # the provider is back
+{
+ "primary_down_for_s": 0.0,
+ "latency_s": "0.0"
+}
+
+$ agentctl ops resume-all --rate 1   # resume them one per second
+{
+ "resumed": 5,
+ "seconds": 5.2,
+ "per_second": 1.0
+}
+
+[PASS] with the primary down, the run reached the review step through the fallback
+[PASS] not one call was refused
+[PASS] the first step was refused several times before it succeeded
+[PASS] the retries were spaced out, not a burst
+[PASS] the history shows the model call taking more than one attempt
+[PASS] all five runs were signalled
+[PASS] each run finished the step it was on and then stopped
+[PASS] while paused, the provider received no call from any of them
+[PASS] the runs were resumed one per second, not all at once
+[PASS] every run then carried on to the review step

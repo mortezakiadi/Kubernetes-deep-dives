@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="700px" viewBox="0 0 1420 700" style="background:#ffffff"><title>One step, a worker that dies, and the replay that follows</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="700" fill="#ffffff"/><rect x="30" y="20" width="160" height="50" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="30" y="20" width="160" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="31" y="38" width="158" height="12" fill="#eff6ff"/>
+<text x="42" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Worker A</text>
+<line x1="110" y1="70" x2="110" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="280" y="20" width="160" height="50" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="280" y="20" width="160" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="281" y="38" width="158" height="12" fill="#fffbeb"/>
+<text x="292" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Engine + history</text>
+<line x1="360" y1="70" x2="360" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="530" y="20" width="160" height="50" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="530" y="20" width="160" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="531" y="38" width="158" height="12" fill="#eff6ff"/>
+<text x="542" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Worker B</text>
+<line x1="610" y1="70" x2="610" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="780" y="20" width="160" height="50" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="780" y="20" width="160" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="781" y="38" width="158" height="12" fill="#f8fafc"/>
+<text x="792" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Model gateway</text>
+<line x1="860" y1="70" x2="860" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="1030" y="20" width="160" height="50" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1030" y="20" width="160" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1031" y="38" width="158" height="12" fill="#f8fafc"/>
+<text x="1042" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Tool gateway</text>
+<line x1="1110" y1="70" x2="1110" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<path d="M360 105 L110 105" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="153.5" y="87" width="163.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="235.0" y="99" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">1  task: run the workflow</text>
+<path d="M110 140 L360 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="134.89999999999998" y="122" width="200.20000000000002" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="235.0" y="134" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">2  schedule call_model (step 4)</text>
+<path d="M110 178 L860 178" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="369.4" y="160" width="231.20000000000002" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="485.0" y="172" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">3  call, prompt rebuilt from the log</text>
+<path d="M860 214 L110 214" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="406.6" y="196" width="156.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="485.0" y="208" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">4  answer; call recorded</text>
+<path d="M110 250 L360 250" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="134.89999999999998" y="232" width="200.20000000000002" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="235.0" y="244" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">5  result goes into the history</text>
+<path d="M110 290 L360 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="100.79999999999998" y="272" width="268.40000000000003" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="235.0" y="284" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">6  schedule run_tool (step 4): tests, 40 s</text>
+<path d="M110 326 L1110 326" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="506.8" y="308" width="206.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="610.0" y="320" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">7  heartbeat while the tool runs</text>
+<text x="124" y="372" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#dc2626">worker A is killed, no warning</text>
+<text x="374" y="408" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#dc2626">8  no heartbeat: the attempt times out</text>
+<path d="M360 446 L610 446" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="400.4" y="428" width="169.20000000000002" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="485.0" y="440" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">9  new task for any worker</text>
+<path d="M610 484 L360 484" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="332.2" y="466" width="305.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="485.0" y="478" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">10 replay: earlier steps return recorded results</text>
+<text x="624" y="520" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#059669">no model call is made again for any of them</text>
+<path d="M610 560 L360 560" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="350.79999999999995" y="542" width="268.40000000000003" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="485.0" y="554" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">11 run_tool (step 4) has no result: run it</text>
+<path d="M610 598 L1110 598" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="750.6" y="580" width="218.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="860.0" y="592" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">12 same step, same idempotency key</text>
+<path d="M610 636 L360 636" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="391.1" y="618" width="187.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="485.0" y="630" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">13 result recorded, attempt 2</text>
+<circle cx="110" cy="372" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><path d="M106 368 L114 376 M114 368 L106 376" stroke="#dc2626" stroke-width="2.2"/></svg>

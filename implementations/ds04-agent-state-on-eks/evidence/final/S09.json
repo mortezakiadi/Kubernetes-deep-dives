@@ -1,0 +1,138 @@
+{
+ "id": "S09",
+ "title": "Deploying new code while runs are in flight",
+ "design_ref": "Deploying new code; Versioning",
+ "purpose": "A change to the workflow code can make every run that is waiting unable to continue. Replay recorded histories through three versions of the code to see which is safe, then deploy the safe one the way the design says: new runs on new workers, old runs finish on old workers. Finally, stop a worker politely and see that its step is not repeated.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 2}'   # a run in flight on version 1",
+   "output": "session s-2b3d20ee",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "WORKFLOW_VARIANT=v1 agentctl replay --sessions s-2b3d20ee   # the code the run was recorded with",
+   "output": "v1: replays cleanly",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "WORKFLOW_VARIANT=v2-unpatched agentctl replay --sessions s-2b3d20ee   # version 2, a lint step added after every file change, with no protection",
+   "output": "v2-unpatched: NondeterminismError: Workflow activation completion failed: Failure { failure: Some(Failure { message: \"[TMPRL1100] Nondeterminism error: Activity type of scheduled event 'call_mode",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "WORKFLOW_VARIANT=v2-patched agentctl replay --sessions s-2b3d20ee   # version 2, the same change behind a patch marker",
+   "output": "v2-patched: replays cleanly",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n agent-platform get pods -l role=worker   # version 1 and version 2 workers side by side",
+   "output": "NAME                         READY   STATUS    RESTARTS   AGE   APP\nworker-v1-79d5c699b8-nh4rk   1/1     Running   0          21m   worker-v1\nworker-v1-79d5c699b8-zp69d   1/1     Running   0          26m   worker-v1\nworker-v2-6c6d9bc47b-bzdzp   1/1     Running   0          47s   worker-v2\nworker-v2-6c6d9bc47b-zt9k7   1/1     Running   0          47s   worker-v2",
+   "exit_code": 0,
+   "seconds": 1.4
+  },
+  {
+   "display": "agentctl ops queue --queue agent-v2   # new runs now start on the version 2 queue",
+   "output": "{\n \"current_queue\": \"agent-v2\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 2}'   # a new run",
+   "output": "session s-34d56130",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "which queue each run lives on",
+   "output": "s-2b3d20ee: agent-v1\ns-34d56130: agent-v2",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "lint steps in each run's history",
+   "output": "s-2b3d20ee (started before the deploy): 0\ns-34d56130 (started after):               3",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl ops list   # runs still running on the version 1 queue",
+   "output": "0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl ops queue --queue agent-v1   # (back to the original code for the rest of the tests)",
+   "output": "{\n \"current_queue\": \"agent-v1\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 25}'",
+   "output": "session s-fd33d45e",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-fd33d45e   # the test step is running on one worker",
+   "output": "run_tool on worker-v1-79d5c699b8-nh4rk",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n agent-platform delete pod worker-v1-79d5c699b8-nh4rk   # a rolling update would do this: SIGTERM, not SIGKILL",
+   "output": "pod \"worker-v1-79d5c699b8-nh4rk\" deleted from agent-platform namespace",
+   "exit_code": 0,
+   "seconds": 1.41
+  },
+  {
+   "display": "kubectl -n agent-platform get pods -l app=worker-v1   # the old pod is Terminating, finishing its step",
+   "output": "NAME                         READY   STATUS        RESTARTS   AGE\nworker-v1-79d5c699b8-6gmtj   1/1     Running       0          5s\nworker-v1-79d5c699b8-nh4rk   1/1     Terminating   0          22m\nworker-v1-79d5c699b8-zp69d   1/1     Running       0          27m",
+   "exit_code": 0,
+   "seconds": 1.47
+  },
+  {
+   "display": "agentctl timeline s-fd33d45e",
+   "output": "t=   3.4s  run_tool            attempts=1\nt=   3.7s  run_tool            attempts=1\nt=   4.4s  run_tool            attempts=1\nt=  30.0s  run_tool            attempts=1\nt=  30.5s  run_tool            attempts=1\nt=  30.9s  run_tool            attempts=1\nmodel calls: 7   tokens: 2378",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the original code replays the recorded history cleanly",
+   "passed": true,
+   "because": "Replay runs the workflow code against the history with no worker and no side effect."
+  },
+  {
+   "description": "the unprotected change cannot replay the run that is waiting",
+   "passed": true,
+   "because": "The history says 'snapshot, then run the next tool'. The new code says 'snapshot, then lint'. Deploying it would have stranded every waiting run."
+  },
+  {
+   "description": "the same change behind a patch marker replays cleanly",
+   "passed": true,
+   "because": "The marker makes old histories take the old path and new runs take the new one."
+  },
+  {
+   "description": "the run in flight kept its queue and finished on version 1; the new run used version 2",
+   "passed": true,
+   "because": "A run is pinned to the queue it started on, so the old code only ever sees old histories and the new code only new ones."
+  },
+  {
+   "description": "when the last old run finished, nothing was left on version 1, so its workers can be removed",
+   "passed": true,
+   "because": "This is how an old version is retired: wait until its queue is empty."
+  },
+  {
+   "description": "the step that was running finished on its own worker: it has one attempt",
+   "passed": true,
+   "because": "On SIGTERM the worker stops taking tasks but lets activities in flight finish. Compare S03, where a kill gave two attempts."
+  }
+ ],
+ "notes": []
+}

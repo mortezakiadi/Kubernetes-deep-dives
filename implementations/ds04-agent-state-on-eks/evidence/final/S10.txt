@@ -1,0 +1,68 @@
+# S10: The engine's database fails over, and the engine restarts
+# Design reference: The durable execution engine; Failure modes
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 60}'   # three runs
+s-3c9432fe
+s-c47baea5
+s-88da4e65
+
+$ aws rds describe-db-instances --db-instance-identifier ds04-agentstate-db --query 'DBInstances[0].[Status,PrimaryAZ,StandbyAZ]'   # before
+available	us-east-1c	us-east-1a
+
+$ aws rds reboot-db-instance --db-instance-identifier ds04-agentstate-db --force-failover   # the primary is taken away
+rebooting
+
+$ aws rds describe-db-instances ...   # after
+status=available  primary=us-east-1a  standby=us-east-1c
+failover took about 580 seconds
+
+$ agentctl status <each run>
+s-3c9432fe  state=waiting  step=6  workflow=RUNNING  history_events=101  tokens=2378
+s-c47baea5  state=waiting  step=6  workflow=RUNNING  history_events=101  tokens=2378
+s-88da4e65  state=waiting  step=6  workflow=RUNNING  history_events=101  tokens=2378
+
+$ agentctl git counts
+{"open_prs": 3, "all_prs": 3, "branches": 3, "comments": 6}
+
+$ model calls repeated because of the failover (steps called more than once)
+0 of 33 steps
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 40}'
+session s-1fd8e793
+
+$ kubectl -n temporal get pods -l 'component in (frontend,history,matching)'   # the engine's servers, before
+NAME                                 READY   STATUS    RESTARTS   AGE
+temporal-frontend-f4659cb87-2jq88    1/1     Running   0          23m
+temporal-frontend-f4659cb87-gdqz7    1/1     Running   0          32m
+temporal-history-6bf4786d97-d9dfz    1/1     Running   0          32m
+temporal-history-6bf4786d97-zt75d    1/1     Running   0          23m
+temporal-matching-554978f4c4-bv9zk   1/1     Running   0          23m
+temporal-matching-554978f4c4-kbp4k   1/1     Running   0          32m
+
+$ kubectl -n temporal delete pods -l 'component in (frontend,history,matching)' --force   # every engine server at once
+pod "temporal-frontend-f4659cb87-2jq88" force deleted from temporal namespace
+pod "temporal-frontend-f4659cb87-gdqz7" force deleted from temporal namespace
+pod "temporal-history-6bf4786d97-d9dfz" force deleted from temporal namespace
+pod "temporal-history-6bf4786d97-zt75d" force deleted from temporal namespace
+pod "temporal-matching-554978f4c4-bv9zk" force deleted from temporal namespace
+pod "temporal-matching-554978f4c4-kbp4k" force deleted from temporal namespace
+
+$ agentctl status s-1fd8e793   # ten seconds after
+RUNNING
+
+$ kubectl -n temporal get pods -l 'component in (frontend,history,matching)'   # after
+NAME                                 READY   STATUS    RESTARTS   AGE
+temporal-frontend-f4659cb87-tmtwh    1/1     Running   0          39s
+temporal-frontend-f4659cb87-vzskt    1/1     Running   0          39s
+temporal-history-6bf4786d97-8ng7h    1/1     Running   0          39s
+temporal-history-6bf4786d97-9sm69    1/1     Running   0          39s
+temporal-matching-554978f4c4-fmfsl   1/1     Running   0          39s
+temporal-matching-554978f4c4-p6hv9   1/1     Running   0          39s
+
+[PASS] the standby in the other zone became the primary
+[PASS] all three runs reached the review step on their own
+[PASS] each run finished, and each made exactly one branch and one pull request
+[PASS] the model was called for every step of every run
+[PASS] the engine's servers were all replaced
+[PASS] the run in flight reached the review step without anyone's help
+[PASS] and finished once

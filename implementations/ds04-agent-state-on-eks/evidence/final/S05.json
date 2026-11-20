@@ -1,0 +1,164 @@
+{
+ "id": "S05",
+ "title": "Side effects happen once",
+ "design_ref": "Side effects: exactly once where it matters",
+ "purpose": "Make the external Git host lose its answer after it has already made a change, which is the case a retry cannot tell from a failure. Show first what an unprotected tool does, then the same fault against the protected tools, then a tool that cannot be protected.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "agentctl classes   # how each tool's retries are made safe",
+   "output": "open_pr              checkable\npush_branch          checkable\ncomment_on_pr        idempotent\nlist_dir             local\nrun_tests            local\nwrite_file           local\nopen_pr_naive        naive\nread_review          read_only\ndelete_branch_prod   unsafe",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git ack-loss:pulls 1   # the Git host will lose its answer to the next pull request it opens",
+   "output": "{\n \"ack_loss\": {\n  \"pulls\": 1\n }\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{... \"naive_pr\": true}'   # control: the agent uses a tool with no protection",
+   "output": "session s-2bb9151d",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git counts",
+   "output": "{\n \"open_prs\": 2,\n \"all_prs\": 2,\n \"branches\": 1,\n \"comments\": 0\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl ledger s-2bb9151d",
+   "output": "step tool            class       status       attempts deduped  external\n   4 push_branch     checkable   done                1       0  agent/s-2bb9151d-4\n   5 open_pr_naive   naive       done                2       0  2",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git ack-loss:branches 1",
+   "output": "{\n \"ack_loss\": {\n  \"branches\": 1\n }\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git ack-loss:pulls 1",
+   "output": "{\n \"ack_loss\": {\n  \"pulls\": 1\n }\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git ack-loss:comments 1",
+   "output": "{\n \"ack_loss\": {\n  \"comments\": 1\n }\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 2}'   # the same task, protected tools",
+   "output": "session s-f31e1eed",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl ledger s-f31e1eed   # attempts 2 and deduplicated 1: the retry found the work already done",
+   "output": "step tool            class       status       attempts deduped  external\n   4 push_branch     checkable   done                2       1  agent/s-f31e1eed-4\n   5 open_pr         checkable   done                2       1  1\n   9 comment_on_pr   idempotent  done                2       0  2",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git counts",
+   "output": "{\n \"open_prs\": 1,\n \"all_prs\": 1,\n \"branches\": 1,\n \"comments\": 2\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git ack-loss:deletes 1",
+   "output": "{\n \"ack_loss\": {\n  \"deletes\": 1\n }\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# a production branch exists, and the agent has been given a tool that deletes it",
+   "output": "branch agent/s05-unsafe-4 created (1 branch on the Git host)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{... \"behavior\": \"unsafe\"}' --session s05-unsafe",
+   "output": "session s05-unsafe",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s05-unsafe",
+   "output": "state=needs_attention  step=4  workflow=RUNNING  history_events=76  tokens=1352  attention='delete_branch_prod may have changed the world and cannot be checked'",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl ledger s05-unsafe",
+   "output": "step tool            class       status       attempts deduped  external\n   4 delete_branch_prod unsafe      started             2       0  None",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git counts",
+   "output": "{\"open_prs\": 0, \"all_prs\": 0, \"branches\": 0, \"comments\": 0}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "control: the unprotected tool opened two pull requests for one decision",
+   "passed": true,
+   "because": "The first request made the pull request but its answer was lost. The retry could not know, and made another."
+  },
+  {
+   "description": "control: the ledger saw both attempts but had no way to stop the second",
+   "passed": true,
+   "because": "A ledger only helps if the tool's class gives it a way to check."
+  },
+  {
+   "description": "the run completed despite three lost answers",
+   "passed": true,
+   "because": "Each lost answer was retried and each retry was made safe."
+  },
+  {
+   "description": "one branch, one pull request and two comments exist (the reviewer's and the agent's)",
+   "passed": true,
+   "because": "Nothing was duplicated, although each of the three changes was attempted twice."
+  },
+  {
+   "description": "the branch and the pull request were found by looking first",
+   "passed": true,
+   "because": "Checkable tools ask the outside world 'is it already there?' before repeating a change."
+  },
+  {
+   "description": "the comment was deduplicated by the Git host, through the key",
+   "passed": true,
+   "because": "The retry carried the same Idempotency-Key as the first attempt, because the key is built from the session and the step, not the attempt."
+  },
+  {
+   "description": "the run stopped and asked for a person instead of repeating the delete",
+   "passed": true,
+   "because": "The tool is classed 'unsafe': it cannot be keyed and cannot be looked up, so a second attempt after an unknown outcome is refused."
+  },
+  {
+   "description": "it was attempted twice and not a third time",
+   "passed": true,
+   "because": "The ledger counts attempts: the first made the change, the second was stopped before reaching the Git host."
+  },
+  {
+   "description": "the delete did happen once, as the first attempt's lost answer suggested",
+   "passed": true,
+   "because": "The platform cannot undo it, so it says what it knows and waits."
+  },
+  {
+   "description": "a person ended the run and nothing else was changed",
+   "passed": true,
+   "because": "Cancel runs the compensations for what the ledger shows was done, which here is nothing."
+  }
+ ],
+ "notes": []
+}

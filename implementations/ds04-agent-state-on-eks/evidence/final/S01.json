@@ -1,0 +1,117 @@
+{
+ "id": "S01",
+ "title": "The platform at rest: engine, stores, workers and gateways",
+ "design_ref": "The architecture at a glance",
+ "purpose": "Show what was built: the durable execution engine and its Multi-AZ database, the stateless workers, the gateways, the sandbox manager and the state stores, with nothing held by any run.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "aws eks describe-cluster --name ds04-agentstate --query 'cluster.[name,status,version]' --output text",
+   "output": "ds04-agentstate\tACTIVE\t1.37",
+   "exit_code": 0,
+   "seconds": 1.31
+  },
+  {
+   "display": "aws rds describe-db-instances --db-instance-identifier ds04-agentstate-db --query 'DBInstances[0].[Status,MultiAZ,Engine,Version,Class,AZ,StandbyAZ]'",
+   "output": "available\tTrue\tpostgres\t16.13\tdb.t4g.small\tus-east-1a\tus-east-1c",
+   "exit_code": 0,
+   "seconds": 1.46
+  },
+  {
+   "display": "kubectl -n temporal get pods   # the durable execution engine",
+   "output": "NAME                                   READY   STATUS      RESTARTS        AGE\ntemporal-admintools-7b8b74754b-cw2m5   1/1     Running     0               4m39s\ntemporal-frontend-f4659cb87-5cx9n      1/1     Running     3 (3m55s ago)   4m39s\ntemporal-frontend-f4659cb87-lssw8      1/1     Running     3 (3m55s ago)   4m39s\ntemporal-history-6bf4786d97-hn5q8      1/1     Running     3 (3m55s ago)   4m39s\ntemporal-history-6bf4786d97-ks65v      1/1     Running     3 (3m55s ago)   4m39s\ntemporal-matching-554978f4c4-7pxxg     1/1     Running     3 (3m58s ago)   4m39s\ntemporal-matching-554978f4c4-mfs2g     1/1     Running     3 (3m57s ago)   4m39s\ntemporal-namespace-1-8-0-1-l6dh8       0/1     Completed   0               4m39s\ntemporal-schema-1-8-0-1-4rr8f          0/1     Completed   0               4m39s\ntemporal-web-7477fff4bd-v94r2          1/1     Running     0               4m39s\ntemporal-worker-778f9d457-7rjph        1/1     Running     3 (3m58s ago)   4m39s",
+   "exit_code": 0,
+   "seconds": 1.56
+  },
+  {
+   "display": "kubectl -n temporal exec deploy/temporal-admintools -- temporal operator cluster describe",
+   "output": "ClusterName  PersistenceStore  VisibilityStore\n  active       postgres12        postgres12",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n agent-platform get pods -o wide   # workers, gateways, session API, sandbox manager",
+   "output": "NAME                              READY   STATUS    RESTARTS        AGE     IP            NODE                  NOMINATED NODE   READINESS GATES\nmodel-gateway-55b48f45c5-2ksrv    1/1     Running   0               4m52s   10.32.46.88   i-0c185ecefeffae23b   <none>           <none>\nmodel-gateway-55b48f45c5-6rv4k    1/1     Running   0               4m52s   10.32.34.58   i-0d6f5e1a55de3ac50   <none>           <none>\nsandbox-manager-b974f68bc-pfmxz   1/1     Running   0               4m52s   10.32.34.57   i-0d6f5e1a55de3ac50   <none>           <none>\nsandbox-manager-b974f68bc-zhggq   1/1     Running   0               4m52s   10.32.46.90   i-0c185ecefeffae23b   <none>           <none>\nsession-api-668bdd96ff-hqbrn      1/1     Running   0               4m52s   10.32.34.54   i-0d6f5e1a55de3ac50   <none>           <none>\nsession-api-668bdd96ff-mx24l      1/1     Running   0               4m52s   10.32.46.89   i-0c185ecefeffae23b   <none>           <none>\ntester-7cffb5d865-tpvl7           1/1     Running   0               4m52s   10.32.34.59   i-0d6f5e1a55de3ac50   <none>           <none>\ntool-gateway-6ffbddd965-f8dcp     1/1     Running   0               4m52s   10.32.46.91   i-0c185ecefeffae23b   <none>           <none>\ntool-gateway-6ffbddd965-n9pps     1/1     Running   0               4m52s   10.32.34.56   i-0d6f5e1a55de3ac50   <none>           <none>\nworker-v1-79d5c699b8-8jkvr        1/1     Running   1 (3m28s ago)   3m32s   10.32.40.32   i-0c185ecefeffae23b   <none>           <none>\nworker-v1-79d5c699b8-wwzpg        1/1     Running   1 (3m28s ago)   3m32s   10.32.46.80   i-0c185ecefeffae23b   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.57
+  },
+  {
+   "display": "kubectl -n external get pods   # the stand-in for the external system the agent changes",
+   "output": "NAME                        READY   STATUS    RESTARTS   AGE\ngit-host-7758648877-p7fk7   1/1     Running   0          4m53s",
+   "exit_code": 0,
+   "seconds": 1.38
+  },
+  {
+   "display": "kubectl get pvc -A   # does any component keep state on a disk?",
+   "output": "\nNo resources found",
+   "exit_code": 0,
+   "seconds": 1.54
+  },
+  {
+   "display": "agentctl classes   # how each tool is made safe to retry (tool gateway registry)",
+   "output": "list_dir             local\nwrite_file           local\nrun_tests            local\nread_review          read_only\npush_branch          checkable\nopen_pr              checkable\nopen_pr_naive        naive\ncomment_on_pr        idempotent\ndelete_branch_prod   unsafe",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n sandboxes get pods   # sandboxes at rest",
+   "output": "\nNo resources found in sandboxes namespace.",
+   "exit_code": 0,
+   "seconds": 1.33
+  },
+  {
+   "display": "kubectl -n agent-platform get scaledobject   # workers scale on the engine's task queue backlog",
+   "output": "NAME        SCALETARGETKIND   SCALETARGETNAME   MIN   MAX   READY   ACTIVE    FALLBACK   PAUSED   TRIGGERS   AUTHENTICATIONS   AGE\nworker-v1                     worker-v1         2     8     True    Unknown   False      True                                  3m34s",
+   "exit_code": 0,
+   "seconds": 1.36
+  }
+ ],
+ "checks": [
+  {
+   "description": "the cluster is ACTIVE on Kubernetes 1.37",
+   "passed": true,
+   "because": "Terraform created one EKS Auto Mode cluster at the pinned minor version."
+  },
+  {
+   "description": "the database is available, Multi-AZ, with a standby in a different zone",
+   "passed": true,
+   "because": "One PostgreSQL instance holds the engine's histories and the session database. RDS keeps a synchronous standby in another zone."
+  },
+  {
+   "description": "the engine runs two frontend, two history and two matching pods, and one worker service pod",
+   "passed": true,
+   "because": "Temporal's chart is installed with two replicas of each stateful service, so losing one pod is survivable (S10)."
+  },
+  {
+   "description": "the engine reports itself serving, on PostgreSQL for both histories and search",
+   "passed": true,
+   "because": "The server answers on its own API and names its two stores."
+  },
+  {
+   "description": "two stateless workers, and two each of the model gateway, tool gateway, session API and sandbox manager, are ready",
+   "passed": true,
+   "because": "Each is a Deployment. Workers hold no run; the gateways keep their state in the database."
+  },
+  {
+   "description": "no component keeps state on a volume",
+   "passed": true,
+   "because": "Everything a run needs is in the engine's database, the session database or S3. Replacing a pod loses nothing."
+  },
+  {
+   "description": "every tool is classified: local, read-only, idempotent, checkable or unsafe",
+   "passed": true,
+   "because": "The class is part of a tool's registration in the gateway. It decides how a retry of the same step is made safe (S05)."
+  },
+  {
+   "description": "no sandbox exists while no run needs one",
+   "passed": true,
+   "because": "A sandbox is created for a step that needs files and deleted while a run waits."
+  },
+  {
+   "description": "the workers' autoscaler watches the engine's task queue, not CPU",
+   "passed": true,
+   "because": "KEDA's Temporal scaler reads each task queue's backlog from the engine (S11)."
+  }
+ ],
+ "notes": []
+}

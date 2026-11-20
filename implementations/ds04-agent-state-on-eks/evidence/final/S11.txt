@@ -1,0 +1,86 @@
+# S11: Many runs at once, scaled by the queue, and what an operator can see
+# Design reference: Scale; Observability
+
+$ kubectl -n agent-platform annotate scaledobject/worker-v1 autoscaling.keda.sh/paused=false   # switch the autoscaler on
+scaledobject/worker-v1 annotated
+
+$ kubectl -n agent-platform get scaledobject worker-v1   # scale on the engine's task queue backlog
+NAME        SCALETARGETKIND      SCALETARGETNAME   MIN   MAX   READY   ACTIVE    FALLBACK   PAUSED   TRIGGERS   AUTHENTICATIONS   AGE
+worker-v1   apps/v1.Deployment   worker-v1         2     8     True    Unknown   False      False    temporal                     92m
+
+$ start 24 runs at once, each with a 100-second test step
+24 runs started in 3 seconds
+
+$ sample every ~10 seconds: workers, activity slots in use (Prometheus), runs at the review step
+t=   9s  workers=2  activity slots in use=   0  runs waiting for review=0/24
+t=  25s  workers=4  activity slots in use=  12  runs waiting for review=0/24
+t=  41s  workers=4  activity slots in use=  12  runs waiting for review=0/24
+t=  57s  workers=4  activity slots in use=  24  runs waiting for review=0/24
+t=  72s  workers=4  activity slots in use=  24  runs waiting for review=0/24
+t=  88s  workers=4  activity slots in use=  24  runs waiting for review=0/24
+t= 104s  workers=4  activity slots in use=  24  runs waiting for review=0/24
+t= 119s  workers=4  activity slots in use=  24  runs waiting for review=0/24
+t= 135s  workers=4  activity slots in use=  24  runs waiting for review=0/24
+t= 151s  workers=4  activity slots in use=  23  runs waiting for review=15/24
+t= 166s  workers=4  activity slots in use=   9  runs waiting for review=15/24
+t= 182s  workers=4  activity slots in use=   0  runs waiting for review=24/24
+
+$ agentctl git counts
+{"open_prs": 24, "all_prs": 24, "branches": 24, "comments": 0}
+
+$ SELECT tool, class, COUNT(*), SUM(attempts), SUM(deduplicated) FROM ledger   # the side-effect ledger across the runs
+open_pr        checkable   runs= 24  attempts= 24  deduplicated=0
+push_branch    checkable   runs= 24  attempts= 24  deduplicated=0
+
+$ tokens per run, from the model gateway's record
+runs=24  min=5502  average=5506  max=5509  total=132153
+model calls by backend: primary=264
+
+$ agentctl timeline s-87fa95a3   # one run's life, from its own history
+t=   0.9s  call_model          attempts=1
+t=   5.2s  run_tool            attempts=1
+t=  35.5s  call_model          attempts=1
+t=  35.9s  run_tool            attempts=1
+t=  36.2s  snapshot_workspace  attempts=1
+t=  36.6s  call_model          attempts=1
+t=  36.8s  run_tool            attempts=1
+t=  37.1s  snapshot_workspace  attempts=1
+t=  37.3s  call_model          attempts=1
+t= 137.5s  run_tool            attempts=1
+t= 137.7s  call_model          attempts=1
+t= 137.9s  run_tool            attempts=1
+t= 138.1s  call_model          attempts=1
+t= 138.3s  run_tool            attempts=1
+t= 138.5s  call_model          attempts=1
+t= 186.1s  signal approve
+t= 186.6s  run_tool            attempts=1
+t= 187.7s  call_model          attempts=1
+t= 196.1s  run_tool            attempts=1
+t= 196.4s  snapshot_workspace  attempts=1
+t= 196.8s  call_model          attempts=1
+t= 297.3s  run_tool            attempts=1
+t= 297.9s  call_model          attempts=1
+t= 298.6s  run_tool            attempts=1
+t= 299.3s  call_model          attempts=1
+model calls: 11   tokens: 5502
+
+$ from each run's own history: how long every activity waited for a free worker slot (scheduled to started)
+624 activities in 24 runs
+median wait: 0.0 seconds
+longest wait: 33.9 seconds
+activities that waited 5 seconds or more: 12 (call_model, run_tool)
+
+$ Prometheus: temporal_activity_task_received and temporal_activity_execution_failed, the workers running now
+activities received: 634
+activities failed (and retried): 0
+
+[PASS] each worker has six activity slots, so two workers hold twelve steps at once
+[PASS] all 24 runs were accepted
+[PASS] the workers were saturated: every slot was in use at some point
+[PASS] the autoscaler added workers because of the queue's backlog
+[PASS] all 24 runs reached the review step
+[PASS] 24 branches and 24 pull requests exist, one for each run
+[PASS] after the reviews, all 24 runs completed
+[PASS] the gateway's record accounts for every run's tokens, and the model was called 11 times per run
+[PASS] the backlog is visible in the engine's own records: a few steps waited for a slot, most did not
+[PASS] the workers' own metrics are being collected

@@ -1,0 +1,227 @@
+{
+ "id": "S08",
+ "title": "Pause, budgets, loops, cancel, rewind and fork",
+ "design_ref": "Run lifecycle",
+ "purpose": "Do to a run what an operator or a reviewer would: pause it and resume it, hit its budgets, let it loop, cancel it and have its outside effects undone, and start new runs from the middle of an old one.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 30}'",
+   "output": "session s-744896ed",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl signal s-744896ed pause   # while the tests are running",
+   "output": "{\n \"signalled\": \"pause\",\n \"session\": \"s-744896ed\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-744896ed   # it finished its step, then stopped",
+   "output": "state=paused  step=4  workflow=RUNNING  history_events=68  tokens=886",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "20 seconds later: step, model calls",
+   "output": "step 4 -> 4    model calls 4 -> 4",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl signal s-744896ed resume",
+   "output": "{\n \"signalled\": \"resume\",\n \"session\": \"s-744896ed\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{... \"max_steps\": 3}'",
+   "output": "session s-ee1446b4",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-ee1446b4",
+   "output": "state=needs_attention  step=3  workflow=RUNNING  history_events=52  tokens=545  attention='step or token budget reached'",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl signal s-ee1446b4 resume --json '{\"extend_steps\": 50}'   # a person extends the budget",
+   "output": "{\n \"signalled\": \"resume\",\n \"session\": \"s-ee1446b4\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{... \"token_budget\": 700}'",
+   "output": "session s-7012e3f5",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-7012e3f5",
+   "output": "state=needs_attention  step=3  workflow=RUNNING  history_events=58  tokens=549  attention='token budget reached'",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl calls s-7012e3f5   # the gateway refused the call that would have crossed the budget (status 429)",
+   "output": "step kind    backend   status prompt_sha\n   0 act     primary     200  3ff2d619b2a0c8b4\n   1 act     primary     200  770f409579ddddc3\n   2 act     primary     200  99ffb4f8f111f076\n   3 act     none        429  0526cf036491928b",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{... \"behavior\": \"loop\"}'   # a model that repeats the same call",
+   "output": "session s-1daa8d89",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-1daa8d89",
+   "output": "state=needs_attention  step=5  workflow=RUNNING  history_events=82  tokens=1784  attention='loop detected: list_dir called three times with the same arguments'",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl timeline s-1daa8d89",
+   "output": "t=   4.5s  run_tool            attempts=1\nt=   4.8s  run_tool            attempts=1\nt=   5.3s  run_tool            attempts=1\nt=   5.9s  run_tool            attempts=1\nt=   6.2s  run_tool            attempts=1\nmodel calls: 6   tokens: 1784",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 2}'",
+   "output": "session s-9dff6829",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git counts   # the run has a branch and an open pull request",
+   "output": "{\"open_prs\": 1, \"all_prs\": 1, \"branches\": 1, \"comments\": 0}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl signal s-9dff6829 cancel",
+   "output": "{\n \"signalled\": \"cancel\",\n \"session\": \"s-9dff6829\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-9dff6829",
+   "output": "{\n \"session\": \"s-9dff6829\",\n \"workflow_status\": \"COMPLETED\",\n \"history_length\": 119,\n \"queue\": \"agent-v1\",\n \"run_id\": \"01a1fa8f-1445-7320-8518-f14b1ce06e1d\",\n \"result\": {\n  \"compensated\": [\n   \"closed PR #1\",\n   \"deleted branch agent/s-9dff6829-4\"\n  ],\n  \"outcome\": \"cancelled\",\n  \"session\": \"s-9dff6829\",\n  \"step\": 6\n },\n \"state\": \"cancelled\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl ledger s-9dff6829",
+   "output": "step tool            class       status       attempts deduped  external\n   4 push_branch     checkable   compensated         1       0  agent/s-9dff6829-4\n   5 open_pr         checkable   compensated         1       0  1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git counts",
+   "output": "{\"open_prs\": 0, \"all_prs\": 1, \"branches\": 0, \"comments\": 0}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 2}'   # the run to branch from",
+   "output": "session s-f037f64f",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl fork s-f037f64f --step 3 --hint 'Keep the function under ten lines.'   # a NEW run from the recorded state after step 3",
+   "output": "{\n \"session\": \"s-f037f64f-f3-47a5\",\n \"parent\": \"s-f037f64f\",\n \"from_step\": 3,\n \"snapshot\": \"61bd833d4d74fa72\",\n \"replaced\": false\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "SELECT content FROM context_log WHERE session = s-f037f64f-f3-47a5 AND step = 7   # what the fork wrote after the review",
+   "output": "{\"done\": false, \"tool\": {\"args\": {\"content\": \"import re\\n\\n\\ndef slugify(text):\\n    \\\"\\\"\\\"Lowercase, replace runs of other characters by a dash.\\\"\\\"\\\"\\n    return re.sub(r\\\"[^a-z0-9]+\\\", \\\"-\\\", text.lower()).strip(\\\"-\\\")\\n\\n\\n# Review: Please mention how repeated dashes are handled.\\n# Hint: Keep the function under ten lines.\\n\", \"path\": \"src/slugify.py\"}, \"changes_files\": true, \"name\": \"write_fi",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl fork s-f037f64f --step 3 --replace --hint 'Use a regular expression.'   # rewind: replace the original",
+   "output": "{\n \"session\": \"s-f037f64f-r3-8890\",\n \"parent\": \"s-f037f64f\",\n \"from_step\": 3,\n \"snapshot\": \"61bd833d4d74fa72\",\n \"replaced\": true\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git prs   # the Git host's pull requests",
+   "output": "#1  closed agent/s-f037f64f-4\n#2  open   agent/s-f037f64f-f3-47a5-4\n#3  open   agent/s-f037f64f-r3-8890-4",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "a paused run stops between steps and does nothing while paused",
+   "passed": true,
+   "because": "The pause is a signal, honoured at the start of the next step, so no tool is cut off in the middle."
+  },
+  {
+   "description": "resuming continued from the step it had stopped at",
+   "passed": true,
+   "because": "It made one model call for each of steps 0 to 6."
+  },
+  {
+   "description": "a run that reaches its step limit stops and asks, it does not carry on",
+   "passed": true,
+   "because": "Limits are checked before each model call."
+  },
+  {
+   "description": "after a person extended the limit, the run went on",
+   "passed": true,
+   "because": "Extending is part of the resume signal, so it is in the history."
+  },
+  {
+   "description": "a token budget stops the run before the call that would exceed it",
+   "passed": true,
+   "because": "The model gateway adds up what the run has used and refuses the next call."
+  },
+  {
+   "description": "the same call three times in a row stops the run",
+   "passed": true,
+   "because": "The workflow remembers the last three calls and compares them. The repeat was not executed a third time."
+  },
+  {
+   "description": "cancelling closed the pull request and deleted the branch the run had made",
+   "passed": true,
+   "because": "The ledger shows what the run changed; cancel undoes it newest first."
+  },
+  {
+   "description": "the ledger says so",
+   "passed": true,
+   "because": "The record and the world agree."
+  },
+  {
+   "description": "the fork started from step 3 with the files the original had then",
+   "passed": true,
+   "because": "It copies the context log up to step 3 and starts from that step's workspace snapshot."
+  },
+  {
+   "description": "the fork used the hint it was given",
+   "passed": true,
+   "because": "The hint was added to the forked run's context, so the next decision read it."
+  },
+  {
+   "description": "original and fork each have their own pull request",
+   "passed": true,
+   "because": "A fork is a separate run with a separate ledger and its own idempotency keys."
+  },
+  {
+   "description": "rewinding cancelled the original and undid its pull request",
+   "passed": true,
+   "because": "The original's cancellation ran its compensations."
+  },
+  {
+   "description": "the replacement run is at the review step with its own, new pull request",
+   "passed": true,
+   "because": "Two open pull requests remain: the fork's and the replacement's."
+  }
+ ],
+ "notes": []
+}

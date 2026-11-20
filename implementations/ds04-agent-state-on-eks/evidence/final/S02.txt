@@ -1,0 +1,98 @@
+# S02: One run through the five kinds of state
+# Design reference: Five kinds of agent state; The architecture at a glance
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 3, "can_every": 5}'
+session s-70937ac5
+
+$ agentctl status s-70937ac5   # the run waits for a reviewer
+state=waiting  step=6  workflow=RUNNING  history_events=29  tokens=2401
+
+$ kubectl -n sandboxes get pods   # what a waiting run holds
+
+No resources found in sandboxes namespace.
+
+$ agentctl chain s-70937ac5   # execution state: the engine's runs for this session
+run 01a1fa53  continued_as_new 77 events
+run 76045b9f  running    29 events
+
+$ SELECT role, COUNT(*), SUM(tokens) FROM context_log WHERE session = <this run> GROUP BY role   # context state
+assistant    7 entries  345 tokens
+tool         6 entries  129 tokens
+user         1 entries  15 tokens
+
+$ SELECT step, snapshot_id, files, uploaded, skipped FROM snapshots   # working state: one snapshot per file-changing step
+step  snapshot          files uploaded skipped
+   1  ea2dd70be369bc00      1        1       0
+   2  61bd833d4d74fa72      2        1       1
+
+$ aws s3 ls s3://<bucket>/snapshots/ --recursive   # the manifests and file objects in object storage
+snapshots/manifests/61bd833d4d74fa72.json  179 bytes
+snapshots/manifests/ea2dd70be369bc00.json  86 bytes
+snapshots/objects/43fcd682f9a0e47de98c620a4b3e1aa1f26ead06a49017f8c0767440f6cfef85  159 bytes
+snapshots/objects/b6caf2587f75ea04ad56a8ec1acbc5702f4f775acf50c2f67f16a2985b6ef072  251 bytes
+
+$ agentctl ledger s-70937ac5   # external effects: the side-effect ledger
+step tool            class       status       attempts deduped  external
+   4 push_branch     checkable   done                1       0  agent/s-70937ac5-4
+   5 open_pr         checkable   done                1       0  1
+
+$ agentctl git counts   # what the external system has
+{"open_prs": 1, "all_prs": 1, "branches": 1, "comments": 0}
+
+$ # process memory: variables in a worker, open connections
+Not saved anywhere. Nothing a later step needs lives only in a worker's memory: the next step rebuilds its prompt from the database and
+takes its position from the history.
+
+$ agentctl calls s-70937ac5   # every call the model gateway received for this run
+step kind    backend   status prompt_sha
+   0 act     primary     200  36a08ed8e84c4b55
+   1 act     primary     200  289d38eeb1926d04
+   2 act     primary     200  f1c7e8e3021bdcda
+   3 act     primary     200  fc7debbad911ab57
+   4 act     primary     200  ee4623ceb447a6b0
+   5 act     primary     200  176482f0ba1857af
+   6 act     primary     200  8a196e17437e5aff
+   7 act     primary     200  9dff67150ed4eb5d
+   8 act     primary     200  006618aa6064b109
+   9 act     primary     200  3fbbfe1e9040b0bd
+  10 act     primary     200  4a0470dcfc1b890f
+
+$ agentctl timeline s-70937ac5   # the run's last history: activity by activity
+t=   0.3s  call_model          attempts=1
+t=   4.5s  run_tool            attempts=1
+t=   4.7s  call_model          attempts=1
+t=   4.8s  run_tool            attempts=1
+t=   5.1s  snapshot_workspace  attempts=1
+t=   5.3s  call_model          attempts=1
+t=   5.4s  run_tool            attempts=1
+t=   5.6s  snapshot_workspace  attempts=1
+t=   5.8s  call_model          attempts=1
+t=   9.0s  run_tool            attempts=1
+t=   9.2s  call_model          attempts=1
+t=   9.4s  run_tool            attempts=1
+t=   9.5s  continued as new (history cut)
+t=   9.7s  call_model          attempts=1
+t=   9.9s  run_tool            attempts=1
+t=  10.1s  call_model          attempts=1
+t=  30.6s  signal approve
+t=  30.7s  run_tool            attempts=1
+t=  30.9s  call_model          attempts=1
+t=  35.7s  run_tool            attempts=1
+t=  35.9s  snapshot_workspace  attempts=1
+t=  36.1s  call_model          attempts=1
+t=  39.3s  run_tool            attempts=1
+t=  39.5s  call_model          attempts=1
+t=  39.7s  run_tool            attempts=1
+t=  39.8s  continued as new (history cut)
+t=  40.0s  call_model          attempts=1
+model calls: 11   tokens: 5529
+
+[PASS] the run reached the review step and is waiting for a person
+[PASS] while it waits, the run holds no sandbox
+[PASS] the engine holds the run's history, and kept it short by continuing as new
+[PASS] the context log holds the ticket, the model's answers and the tools' results
+[PASS] each file-changing step left a snapshot in S3, and a file that did not change was not uploaded again
+[PASS] the branch and the pull request are in the ledger and exist once in the external system
+[PASS] the run completed after the reviewer's approval
+[PASS] the model was called exactly once for each of the eleven decisions
+[PASS] one pull request, one branch, and two comments (the reviewer's and the agent's) exist

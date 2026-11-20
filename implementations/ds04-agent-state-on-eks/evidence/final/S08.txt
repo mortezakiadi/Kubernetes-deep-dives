@@ -1,0 +1,144 @@
+# S08: Pause, budgets, loops, cancel, rewind and fork
+# Design reference: Run lifecycle
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 30}'
+session s-744896ed
+
+$ agentctl signal s-744896ed pause   # while the tests are running
+{
+ "signalled": "pause",
+ "session": "s-744896ed"
+}
+
+$ agentctl status s-744896ed   # it finished its step, then stopped
+state=paused  step=4  workflow=RUNNING  history_events=68  tokens=886
+
+$ 20 seconds later: step, model calls
+step 4 -> 4    model calls 4 -> 4
+
+$ agentctl signal s-744896ed resume
+{
+ "signalled": "resume",
+ "session": "s-744896ed"
+}
+
+$ agentctl start --task '{... "max_steps": 3}'
+session s-ee1446b4
+
+$ agentctl status s-ee1446b4
+state=needs_attention  step=3  workflow=RUNNING  history_events=52  tokens=545  attention='step or token budget reached'
+
+$ agentctl signal s-ee1446b4 resume --json '{"extend_steps": 50}'   # a person extends the budget
+{
+ "signalled": "resume",
+ "session": "s-ee1446b4"
+}
+
+$ agentctl start --task '{... "token_budget": 700}'
+session s-7012e3f5
+
+$ agentctl status s-7012e3f5
+state=needs_attention  step=3  workflow=RUNNING  history_events=58  tokens=549  attention='token budget reached'
+
+$ agentctl calls s-7012e3f5   # the gateway refused the call that would have crossed the budget (status 429)
+step kind    backend   status prompt_sha
+   0 act     primary     200  3ff2d619b2a0c8b4
+   1 act     primary     200  770f409579ddddc3
+   2 act     primary     200  99ffb4f8f111f076
+   3 act     none        429  0526cf036491928b
+
+$ agentctl start --task '{... "behavior": "loop"}'   # a model that repeats the same call
+session s-1daa8d89
+
+$ agentctl status s-1daa8d89
+state=needs_attention  step=5  workflow=RUNNING  history_events=82  tokens=1784  attention='loop detected: list_dir called three times with the same arguments'
+
+$ agentctl timeline s-1daa8d89
+t=   4.5s  run_tool            attempts=1
+t=   4.8s  run_tool            attempts=1
+t=   5.3s  run_tool            attempts=1
+t=   5.9s  run_tool            attempts=1
+t=   6.2s  run_tool            attempts=1
+model calls: 6   tokens: 1784
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2}'
+session s-9dff6829
+
+$ agentctl git counts   # the run has a branch and an open pull request
+{"open_prs": 1, "all_prs": 1, "branches": 1, "comments": 0}
+
+$ agentctl signal s-9dff6829 cancel
+{
+ "signalled": "cancel",
+ "session": "s-9dff6829"
+}
+
+$ agentctl status s-9dff6829
+{
+ "session": "s-9dff6829",
+ "workflow_status": "COMPLETED",
+ "history_length": 119,
+ "queue": "agent-v1",
+ "run_id": "01a1fa8f-1445-7320-8518-f14b1ce06e1d",
+ "result": {
+  "compensated": [
+   "closed PR #1",
+   "deleted branch agent/s-9dff6829-4"
+  ],
+  "outcome": "cancelled",
+  "session": "s-9dff6829",
+  "step": 6
+ },
+ "state": "cancelled"
+}
+
+$ agentctl ledger s-9dff6829
+step tool            class       status       attempts deduped  external
+   4 push_branch     checkable   compensated         1       0  agent/s-9dff6829-4
+   5 open_pr         checkable   compensated         1       0  1
+
+$ agentctl git counts
+{"open_prs": 0, "all_prs": 1, "branches": 0, "comments": 0}
+
+$ agentctl start --task '{"ticket": "T-1", "test_seconds": 2}'   # the run to branch from
+session s-f037f64f
+
+$ agentctl fork s-f037f64f --step 3 --hint 'Keep the function under ten lines.'   # a NEW run from the recorded state after step 3
+{
+ "session": "s-f037f64f-f3-47a5",
+ "parent": "s-f037f64f",
+ "from_step": 3,
+ "snapshot": "61bd833d4d74fa72",
+ "replaced": false
+}
+
+$ SELECT content FROM context_log WHERE session = s-f037f64f-f3-47a5 AND step = 7   # what the fork wrote after the review
+{"done": false, "tool": {"args": {"content": "import re\n\n\ndef slugify(text):\n    \"\"\"Lowercase, replace runs of other characters by a dash.\"\"\"\n    return re.sub(r\"[^a-z0-9]+\", \"-\", text.lower()).strip(\"-\")\n\n\n# Review: Please mention how repeated dashes are handled.\n# Hint: Keep the function under ten lines.\n", "path": "src/slugify.py"}, "changes_files": true, "name": "write_fi
+
+$ agentctl fork s-f037f64f --step 3 --replace --hint 'Use a regular expression.'   # rewind: replace the original
+{
+ "session": "s-f037f64f-r3-8890",
+ "parent": "s-f037f64f",
+ "from_step": 3,
+ "snapshot": "61bd833d4d74fa72",
+ "replaced": true
+}
+
+$ agentctl git prs   # the Git host's pull requests
+#1  closed agent/s-f037f64f-4
+#2  open   agent/s-f037f64f-f3-47a5-4
+#3  open   agent/s-f037f64f-r3-8890-4
+
+[PASS] a paused run stops between steps and does nothing while paused
+[PASS] resuming continued from the step it had stopped at
+[PASS] a run that reaches its step limit stops and asks, it does not carry on
+[PASS] after a person extended the limit, the run went on
+[PASS] a token budget stops the run before the call that would exceed it
+[PASS] the same call three times in a row stops the run
+[PASS] cancelling closed the pull request and deleted the branch the run had made
+[PASS] the ledger says so
+[PASS] the fork started from step 3 with the files the original had then
+[PASS] the fork used the hint it was given
+[PASS] original and fork each have their own pull request
+[PASS] rewinding cancelled the original and undid its pull request
+[PASS] the replacement run is at the review step with its own, new pull request

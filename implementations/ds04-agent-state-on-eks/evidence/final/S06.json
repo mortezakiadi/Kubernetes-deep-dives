@@ -1,0 +1,135 @@
+{
+ "id": "S06",
+ "title": "A sandbox is lost, and waiting costs nothing",
+ "design_ref": "Working state; Waiting for a person",
+ "purpose": "Delete a run's sandbox while its tests are running, and see the files come back from the last snapshot. Then leave a run waiting for a reviewer while every worker is removed, approve it with nothing running, and see it carry on when workers return.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 45}'",
+   "output": "session s-3768c2c7",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n sandboxes get pods   # the run's sandbox, while its tests run",
+   "output": "NAME            READY   STATUS    RESTARTS   AGE\nsb-s-3768c2c7   1/1     Running   0          18s",
+   "exit_code": 0,
+   "seconds": 1.44
+  },
+  {
+   "display": "SELECT step, snapshot_id, files FROM snapshots   # what is already safe in object storage",
+   "output": "step 1  ea2dd70be369bc00  1 files\nstep 2  61bd833d4d74fa72  2 files",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n sandboxes delete pod sb-s-3768c2c7 --grace-period=0 --force   # the sandbox is lost, with its disk",
+   "output": "pod \"sb-s-3768c2c7\" force deleted from sandboxes namespace",
+   "exit_code": 0,
+   "seconds": 1.47
+  },
+  {
+   "display": "SELECT content FROM context_log WHERE step = 3 AND role = 'tool'   # the result the agent finally saw for its test run",
+   "output": "{\n \"output\": \"..\\n----------------------------------------------------------------------\\nRan 2 tests in 0.000s\\n\\nOK\\n\",\n \"passed\": true,\n \"seconds\": 45.1\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-3768c2c7",
+   "output": "state=waiting  step=6  workflow=RUNNING  history_events=101  tokens=2378",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl timeline s-3768c2c7",
+   "output": "t=   6.6s  run_tool            attempts=1\nt=   7.0s  run_tool            attempts=1\nt=   7.2s  snapshot_workspace  attempts=1\nt=   7.5s  run_tool            attempts=1\nt=   7.9s  snapshot_workspace  attempts=1\nt=  74.3s  run_tool            attempts=2   last failure: tool gateway 500: RemoteDisconnected: Remote end closed connection without respo\nt=  74.7s  run_tool            attempts=1\nt=  75.1s  run_tool            attempts=1\nmodel calls: 7   tokens: 2378",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n sandboxes get pods   # the run is waiting for a reviewer: nothing is held",
+   "output": "\nNo resources found in sandboxes namespace.",
+   "exit_code": 0,
+   "seconds": 1.36
+  },
+  {
+   "display": "kubectl -n agent-platform scale deploy/worker-v1 --replicas=0",
+   "output": "workers scaled to zero",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n agent-platform get pods -l app=worker-v1",
+   "output": "\nNo resources found in agent-platform namespace.",
+   "exit_code": 0,
+   "seconds": 1.38
+  },
+  {
+   "display": "agentctl signal s-3768c2c7 approve   # the reviewer approves while no worker exists",
+   "output": "signal accepted by the engine",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-3768c2c7   # 20 seconds later, still with no worker",
+   "output": "state=no-worker  step=None  workflow=RUNNING  history_events=105  tokens=None",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-3768c2c7   # after two new workers started",
+   "output": "state=completed  step=None  workflow=COMPLETED  history_events=169  tokens=None",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the sandbox exists and two snapshots (after the two file writes) are already stored",
+   "passed": true,
+   "because": "A snapshot is taken after every step that changes files."
+  },
+  {
+   "description": "the run carried on to the review step",
+   "passed": true,
+   "because": "The tool step failed when its sandbox vanished and was retried, in a new sandbox."
+  },
+  {
+   "description": "the retried test run passed, so the files had been put back",
+   "passed": true,
+   "because": "A new sandbox starts empty. The manager restored the files from the manifest of the last snapshot before the tests ran. Had it not, the test discovery would have found nothing and failed."
+  },
+  {
+   "description": "the test step took more than one attempt in the history",
+   "passed": true,
+   "because": "The engine, not the platform code, recorded the retry."
+  },
+  {
+   "description": "the model was not called again for any step",
+   "passed": true,
+   "because": "A sandbox loss is a tool failure, not a reason to ask the model again."
+  },
+  {
+   "description": "the finished run's sandbox was released when it began waiting",
+   "passed": true,
+   "because": "The waiting run holds no pod."
+  },
+  {
+   "description": "with no worker at all, the run and the approval are safely held by the engine",
+   "passed": true,
+   "because": "The approval is a row in the run's history. Nothing needs to be running to receive it."
+  },
+  {
+   "description": "when workers returned, the run noticed the approval and finished",
+   "passed": true,
+   "because": "A new worker replayed the history, found the approval in it, and continued."
+  },
+  {
+   "description": "exactly one pull request exists",
+   "passed": true,
+   "because": "No step was repeated by the long wait."
+  }
+ ],
+ "notes": []
+}

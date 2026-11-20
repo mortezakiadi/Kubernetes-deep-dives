@@ -1,0 +1,129 @@
+{
+ "id": "S02",
+ "title": "One run through the five kinds of state",
+ "design_ref": "Five kinds of agent state; The architecture at a glance",
+ "purpose": "Run a coding agent from ticket to finished pull request, stopping where it waits for a reviewer, and find each kind of its state in the place the design says it lives.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "agentctl start --task '{\"ticket\": \"T-1\", \"test_seconds\": 3, \"can_every\": 5}'",
+   "output": "session s-70937ac5",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl status s-70937ac5   # the run waits for a reviewer",
+   "output": "state=waiting  step=6  workflow=RUNNING  history_events=29  tokens=2401",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n sandboxes get pods   # what a waiting run holds",
+   "output": "\nNo resources found in sandboxes namespace.",
+   "exit_code": 0,
+   "seconds": 1.4
+  },
+  {
+   "display": "agentctl chain s-70937ac5   # execution state: the engine's runs for this session",
+   "output": "run 01a1fa53  continued_as_new 77 events\nrun 76045b9f  running    29 events",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "SELECT role, COUNT(*), SUM(tokens) FROM context_log WHERE session = <this run> GROUP BY role   # context state",
+   "output": "assistant    7 entries  345 tokens\ntool         6 entries  129 tokens\nuser         1 entries  15 tokens",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "SELECT step, snapshot_id, files, uploaded, skipped FROM snapshots   # working state: one snapshot per file-changing step",
+   "output": "step  snapshot          files uploaded skipped\n   1  ea2dd70be369bc00      1        1       0\n   2  61bd833d4d74fa72      2        1       1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 ls s3://<bucket>/snapshots/ --recursive   # the manifests and file objects in object storage",
+   "output": "snapshots/manifests/61bd833d4d74fa72.json  179 bytes\nsnapshots/manifests/ea2dd70be369bc00.json  86 bytes\nsnapshots/objects/43fcd682f9a0e47de98c620a4b3e1aa1f26ead06a49017f8c0767440f6cfef85  159 bytes\nsnapshots/objects/b6caf2587f75ea04ad56a8ec1acbc5702f4f775acf50c2f67f16a2985b6ef072  251 bytes",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl ledger s-70937ac5   # external effects: the side-effect ledger",
+   "output": "step tool            class       status       attempts deduped  external\n   4 push_branch     checkable   done                1       0  agent/s-70937ac5-4\n   5 open_pr         checkable   done                1       0  1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl git counts   # what the external system has",
+   "output": "{\"open_prs\": 1, \"all_prs\": 1, \"branches\": 1, \"comments\": 0}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# process memory: variables in a worker, open connections",
+   "output": "Not saved anywhere. Nothing a later step needs lives only in a worker's memory: the next step rebuilds its prompt from the database and\ntakes its position from the history.",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl calls s-70937ac5   # every call the model gateway received for this run",
+   "output": "step kind    backend   status prompt_sha\n   0 act     primary     200  36a08ed8e84c4b55\n   1 act     primary     200  289d38eeb1926d04\n   2 act     primary     200  f1c7e8e3021bdcda\n   3 act     primary     200  fc7debbad911ab57\n   4 act     primary     200  ee4623ceb447a6b0\n   5 act     primary     200  176482f0ba1857af\n   6 act     primary     200  8a196e17437e5aff\n   7 act     primary     200  9dff67150ed4eb5d\n   8 act     primary     200  006618aa6064b109\n   9 act     primary     200  3fbbfe1e9040b0bd\n  10 act     primary     200  4a0470dcfc1b890f",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agentctl timeline s-70937ac5   # the run's last history: activity by activity",
+   "output": "t=   0.3s  call_model          attempts=1\nt=   4.5s  run_tool            attempts=1\nt=   4.7s  call_model          attempts=1\nt=   4.8s  run_tool            attempts=1\nt=   5.1s  snapshot_workspace  attempts=1\nt=   5.3s  call_model          attempts=1\nt=   5.4s  run_tool            attempts=1\nt=   5.6s  snapshot_workspace  attempts=1\nt=   5.8s  call_model          attempts=1\nt=   9.0s  run_tool            attempts=1\nt=   9.2s  call_model          attempts=1\nt=   9.4s  run_tool            attempts=1\nt=   9.5s  continued as new (history cut)\nt=   9.7s  call_model          attempts=1\nt=   9.9s  run_tool            attempts=1\nt=  10.1s  call_model          attempts=1\nt=  30.6s  signal approve\nt=  30.7s  run_tool            attempts=1\nt=  30.9s  call_model          attempts=1\nt=  35.7s  run_tool            attempts=1\nt=  35.9s  snapshot_workspace  attempts=1\nt=  36.1s  call_model          attempts=1\nt=  39.3s  run_tool            attempts=1\nt=  39.5s  call_model          attempts=1\nt=  39.7s  run_tool            attempts=1\nt=  39.8s  continued as new (history cut)\nt=  40.0s  call_model          attempts=1\nmodel calls: 11   tokens: 5529",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the run reached the review step and is waiting for a person",
+   "passed": true,
+   "because": "The agent decided to read the reviewer's comment, which needs approval, so the workflow waits on a signal."
+  },
+  {
+   "description": "while it waits, the run holds no sandbox",
+   "passed": true,
+   "because": "The workflow deleted the sandbox after the last snapshot and before waiting."
+  },
+  {
+   "description": "the engine holds the run's history, and kept it short by continuing as new",
+   "passed": true,
+   "because": "Every five steps the workflow ends its history and starts a fresh one with only the session, the step and the snapshot. The context stays in the database."
+  },
+  {
+   "description": "the context log holds the ticket, the model's answers and the tools' results",
+   "passed": true,
+   "because": "Each step appends to an append-only log in the session database. Prompts are rebuilt from it."
+  },
+  {
+   "description": "each file-changing step left a snapshot in S3, and a file that did not change was not uploaded again",
+   "passed": true,
+   "because": "A snapshot is a manifest of file hashes, and a file is uploaded only if its hash is new. The second snapshot had two files and skipped the one the first already stored. (If an earlier run stored the same bytes, nothing is uploaded at all.)"
+  },
+  {
+   "description": "the branch and the pull request are in the ledger and exist once in the external system",
+   "passed": true,
+   "because": "The tool gateway records each external effect before and after making it."
+  },
+  {
+   "description": "the run completed after the reviewer's approval",
+   "passed": true,
+   "because": "The approval is a signal to the waiting workflow. It continued from the recorded state."
+  },
+  {
+   "description": "the model was called exactly once for each of the eleven decisions",
+   "passed": true,
+   "because": "One recorded activity per decision. Continuing as new twice did not repeat any."
+  },
+  {
+   "description": "one pull request, one branch, and two comments (the reviewer's and the agent's) exist",
+   "passed": true,
+   "because": "Each effect happened once."
+  }
+ ],
+ "notes": []
+}
