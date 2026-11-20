@@ -93,6 +93,7 @@ spec:
 
 - **Use elastic rendezvous (c10d) even for fixed-size jobs:** torchrun's c10d backend handles a restarted pod rejoining, which a static master address doesn't.
 - **Put platform defaults in the runtime:** shared memory size, NCCL timeouts, the checkpoint volume and the preStop flush hook belong in the runtime, so a hundred TrainJobs don't each get them wrong.
+- **Older guides use PyTorchJob.** That is the API of Kubeflow's Training Operator v1, which Kubeflow's docs now file under "legacy v1" and replace with TrainJob and runtimes ([migration guide](https://www.kubeflow.org/docs/components/trainer/operator-guides/migration/)). For all-or-nothing placement, a runtime can ask for Volcano groups with `podGroupPolicy` ([Trainer guide](https://trainer.kubeflow.org/en/latest/operator-guides/job-scheduling/volcano.html)). Since Trainer 2.4, its `scheduling` block can instead have the controller create the Kubernetes Workload and PodGroup objects, which needs the beta gate that is off by default ([Trainer 2.4 post](https://blog.kubeflow.org/kubeflow-trainer-v2.4-release/)).
 
 ### Ray Train on KubeRay
 

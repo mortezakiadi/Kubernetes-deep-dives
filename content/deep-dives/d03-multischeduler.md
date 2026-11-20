@@ -360,6 +360,8 @@ Upstream Kubernetes now has a native **Workload API** with gang scheduling: alph
 > **On EKS.** EKS has offered Kubernetes 1.37 since October 2026. AWS's [1.37 release notes](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions-standard.html) do not mention these features, and AWS's list of [control plane settings you can change](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-configuration.html) contains no feature gates. So there is no documented way to turn this on in EKS today. The designs in this blog use Kueue, or a second scheduler, for gangs instead. Check the AWS release notes for newer versions before relying on this.
 >
 > **Don't confuse it with the older PodGroup.** The scheduler-plugins project, mentioned above as the coscheduling plugin, has its own object with the same name. Pods join it through a label, and it is built only for all-or-nothing starts. It is a separate project.
+>
+> **On a Job.** The Job controller can create the group for you, but this is a separate alpha feature (since 1.36) with its own gate, `WorkloadWithJob`, on top of `GenericWorkload` ([Workload API docs](https://kubernetes.io/docs/concepts/workloads/workload-api/)). You opt in with `.spec.scheduling.schedulingPolicy.gang` on the Job. If you leave out `minCount`, it defaults to the Job's `parallelism`, so every pod must fit. The `disruptionMode` setting decides whether preemption may take the Job's pods one at a time (`single`) or only as a whole (`all`). After creation the `.spec.scheduling` block cannot change, except `minCount` ([1.37 release post](https://kubernetes.io/blog/2026/09/08/kubernetes-v1-37-advancing-workload-aware-scheduling/)).
 
 ### Topology bin-packing
 

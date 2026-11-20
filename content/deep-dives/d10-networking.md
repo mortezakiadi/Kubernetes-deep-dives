@@ -128,6 +128,9 @@ spec:
 
 **Going deeper.**
 
+- **Check that EFA is really in use.** Set `NCCL_DEBUG=INFO` on the job and look in the log for `NET/OFI Selected Provider is efa`. If the log names another provider, NCCL is not using EFA ([AWS guide](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start-nccl.html)).
+- **Keep a job's nodes in one Availability Zone.** `efa-only` interfaces talk only inside their own zone, so all nodes of one distributed job must share a zone ([EKS EFA guide](https://docs.aws.amazon.com/eks/latest/userguide/node-efa.html)). A cluster placement group is also limited to one zone, and it does not confine instances to one rack ([EC2 placement strategies](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-strategies.html)).
+- **Plain EFA interfaces use up subnet IPs.** On instances such as `p5.48xlarge` and `p6-b200.48xlarge`, every plain `efa` interface takes an IP address that training traffic never uses. AWS recommends `efa-only` for every interface except the primary one, set in a launch template or a NodeClass. eksctl's `efaEnabled` makes every interface a plain `efa`, so use a launch template when you want `efa-only` (same EKS guide).
 - Disaggregated LLM serving pushes this further.
 - When prefill and decode run on separate pods and pass the KV cache between them, the pods need on the order of hundreds of Gbps between them, far beyond a normal 10–20 Gbps pod network.
 - That's why setups like llm-d or NVIDIA Dynamo assume RDMA, RoCE or NVLink fabrics, and behave more like an appliance than a typical Deployment.
