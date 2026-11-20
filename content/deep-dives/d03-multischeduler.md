@@ -338,7 +338,7 @@ spec:
 
 - **The problem:** standard Kubernetes schedules pods one at a time. In distributed training, all 8 workers must start together to run collective operations such as all-reduce. If only 6 fit, those 6 start and wait, wasting GPU time.
 - **The custom solution:** a gang scheduler won't start any of the job's pods until the cluster has room for all of them.
-- **Can the standard scheduler do it?** No, it has no all-or-nothing start.
+- **Can the standard scheduler do it?** Not out of the box: it has no all-or-nothing start. A native one is beta in 1.37 but off by default (see the note after "Going deeper").
   - **The workaround:** you calculate cluster capacity yourself and make sure at least 8 GPU slots are free before you run `kubectl apply`.
   - **The failure point:** in a shared cluster, a coworker's 1-GPU pod submitted one second before yours can take a slot. Your job starts with 7 workers, hangs, and wastes money. Standard Kubernetes can't say "hold these 7 slots until the 8th is free."
 - **Best at this:** Volcano and KAI are built specifically for this kind of atomic scheduling.
@@ -349,7 +349,17 @@ spec:
 - **Kueue**: decides at the job level whether a job may start;
 - **KAI** or **Volcano**: replace the scheduler.
 
-Upstream Kubernetes added a native **Workload API** with gang scheduling as an alpha feature in 1.35 (off by default), and extended it in 1.36. Model-parallel *inference* has the same property: if one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
+Upstream Kubernetes now has a native **Workload API** with gang scheduling: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default (see the note below). Model-parallel *inference* has the same property: if one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
+
+> **Note: Kubernetes' own gang scheduling, and where EKS stands**
+>
+> A **PodGroup** is a Kubernetes object that holds a set of pods and carries one scheduling policy for them. The policy is either *basic*, which schedules the pods one by one as usual, or *gang*, which is all-or-nothing: if fewer than `minCount` pods can be placed, none are bound ([gang scheduling docs](https://kubernetes.io/docs/concepts/scheduling-eviction/gang-scheduling/)). So a PodGroup is the group, and gang scheduling is one rule you can set on it. The same group can also carry a rule to stay in one rack and settings for how it can be preempted. A **Workload** is the template that a controller, such as the Job controller, copies into PodGroups.
+>
+> **Status (checked November 2026).** The Workload and PodGroup APIs and gang scheduling began as alpha in 1.35 and were rewritten in 1.36. They are **beta in 1.37, and off by default**: the `GenericWorkload` feature gate must be enabled on the API server, the controller manager and the scheduler ([1.37 release post](https://kubernetes.io/blog/2026/09/08/kubernetes-v1-37-advancing-workload-aware-scheduling/)). The topology rule for a group, groups of groups, and the Job controller's automatic creation of groups are still alpha in 1.37.
+>
+> **On EKS.** EKS has offered Kubernetes 1.37 since October 2026. AWS's [1.37 release notes](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions-standard.html) do not mention these features, and AWS's list of [control plane settings you can change](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-configuration.html) contains no feature gates. So there is no documented way to turn this on in EKS today. The designs in this blog use Kueue, or a second scheduler, for gangs instead. Check the AWS release notes for newer versions before relying on this.
+>
+> **Don't confuse it with the older PodGroup.** The scheduler-plugins project, mentioned above as the coscheduling plugin, has its own object with the same name. Pods join it through a label, and it is built only for all-or-nothing starts. It is a separate project.
 
 ### Topology bin-packing
 
@@ -390,6 +400,7 @@ spec:
 ```
 
   - **The failure point:** it only works if pod 1 finds a home first, and writing these rules for 100 pods is a management nightmare. A custom scheduler does it automatically for the whole batch.
+- **Newer Kubernetes (alpha):** since 1.36 you can put a topology rule on a PodGroup, such as "all these pods in one rack", and the scheduler keeps the whole group inside one such domain. If no domain can hold the whole group, none of the pods start. It is still alpha in 1.37 and off by default (the `TopologyAwareWorkloadScheduling` feature gate). A separate 1.37 alpha adds several levels, for example one zone for the whole job and one rack for each part. It builds on PodGroups, so the EKS caveat in the [gang scheduling note](#d02-2) applies here too.
 - **Best at this:** the KAI Scheduler, NVIDIA's open-source scheduler with topology-aware placement for GPU fabrics.
 
 **Going deeper.** Placement depends on how the model is split:

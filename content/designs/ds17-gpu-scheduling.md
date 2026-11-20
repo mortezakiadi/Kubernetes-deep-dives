@@ -527,7 +527,7 @@ def fairness(usage_gpu_h: dict, nominal: dict, weights: dict, fleet_gpu_h: float
 
 **Open questions.**
 
-- **Native gang scheduling:** as kube-scheduler gains workload-aware scheduling, how much of the gang logic moves from Kueue into the scheduler?
+- **Native gang scheduling:** kube-scheduler's workload-aware scheduling is beta in 1.37 but off by default, and AWS documents no way to turn it on in EKS (see the [gang scheduling note](#d02-2)). Once it is available, how much of the gang logic moves from Kueue into the scheduler?
 - **Elastic jobs:** can training jobs grow and shrink with free capacity (Design 14's per-step recovery) so fragments become useful instead of waiting?
 - **Runtime prediction:** can predicted job runtimes make backfill safe without users declaring limits?
 - **Cost-aware sharing:** should fair share count GPU-hours equally across GPU generations, or by cost?

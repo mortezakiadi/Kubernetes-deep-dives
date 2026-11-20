@@ -644,7 +644,7 @@ spec:
 - Filtering also runs one pod at a time: a distributed job's workers are judged separately, which is the root of the [gang problem](#d02-2). Setting `parallelism` doesn't fix this; it only creates the pods together. "All 8 or none" needs something that knows the pods belong together:
   - a queue in front of the scheduler, such as **Kueue**, which admits the whole job only when there's room for all of it ([Volcano vs. Kueue](#d02-6));
   - a batch scheduler such as **Volcano**, **KAI** or **YuniKorn**, running as a second scheduler ([what a second scheduler changes](#d01-9) and [the landscape](#d02-7), both in [Kubernetes Multi-Scheduler](#d-multischeduler));
-  - the **coscheduling plugin** (a PodGroup with `minMember`) or, from Kubernetes 1.35, the alpha **Workload API**, both covered in [gang scheduling](#d02-2).
+  - the **coscheduling plugin** (a PodGroup with `minMember`) or, from Kubernetes 1.35, the native **Workload API** (beta in 1.37, off by default), both covered in [gang scheduling](#d02-2).
 
 ```yaml
 # 8 workers that must all run together, but nothing here says so.

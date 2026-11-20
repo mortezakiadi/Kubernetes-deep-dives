@@ -303,5 +303,5 @@ spec:
 
 - **Disaggregated serving everywhere, or only for the largest models?** It needs a fast network between prefill and decode pools and more operational care.
 - **Elastic training:** frameworks that can continue with fewer nodes after a failure would reduce restart costs further, if our training code supports it.
-- **Native gang scheduling** (the Workload and PodGroup APIs in kube-scheduler) for LeaderWorkerSet and TrainJob once it's stable.
+- **Native gang scheduling** (the Workload and PodGroup APIs in kube-scheduler) for LeaderWorkerSet and TrainJob once it's stable and usable on EKS (it is beta in 1.37 but off by default; see the [gang scheduling note](#d02-2)).
 - **Accelerator diversity:** adding Trainium or other accelerators means separate images, runtimes and queues per accelerator type. Is the saving worth it for our models?

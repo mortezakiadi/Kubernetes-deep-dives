@@ -96,7 +96,7 @@ The short version: clusters are *cattle with roles* (CPU, GPU training, GPU infe
 
 - **Admission comes before placement.** Kueue keeps jobs suspended until it admits them, so pods never exist for work that has no quota. That's what stops a half-started 32-pod job holding 24 GPUs while waiting for the other 8, which is the core problem gang scheduling solves.
 - **`waitForPodsReady` is the safety net:** if an admitted job's pods aren't all running within a timeout, Kueue evicts and requeues the whole job rather than letting it sit half-started. It's on by default in recent Kueue releases.
-- **Native gang scheduling in kube-scheduler is coming.** Kubernetes 1.35 introduced the Workload API, and 1.36 split it into Workload and PodGroup APIs (still alpha). This design keeps Kueue as the gang owner for now and revisits once those APIs are stable.
+- **Native gang scheduling in kube-scheduler is beta, but off by default.** Kubernetes 1.35 introduced the Workload API as alpha, 1.36 split it into Workload and PodGroup APIs, and 1.37 made them beta behind a feature gate that is off by default. AWS documents no way to turn that gate on in EKS, so this design keeps Kueue as the gang owner and revisits once the APIs are stable and usable on EKS (see the [gang scheduling note](#d02-2)).
 - **Kueue and Karpenter don't talk directly.** Kueue's ProvisioningRequest admission check ("get me 8 nodes, then admit") is implemented by Cluster Autoscaler, not by Karpenter. With Karpenter, Kueue admits on quota and Karpenter reacts to the pods. That's why GPU quotas are set close to what reserved capacity can actually deliver.
 
 ### Queues, quotas and fair sharing
@@ -334,7 +334,7 @@ spec:
 
 **Open questions for the next review.**
 
-- **Native gang and topology scheduling** in kube-scheduler (Workload and PodGroup APIs): when they're stable, can Kueue hand placement to them?
+- **Native gang and topology scheduling** in kube-scheduler (Workload and PodGroup APIs): when they're stable and usable on EKS, can Kueue hand placement to them?
 - **Cross-cluster inference routing:** model-aware routing across clusters with the Gateway API Inference Extension, instead of plain regional load balancing.
 - **Bursting beyond AWS:** whether on-premises or other-cloud GPU clusters should join as MultiKueue workers for overflow.
 - **Quota from budgets:** generating each team's GPU quota from its budget and the reserved capacity calendar, instead of by hand.
