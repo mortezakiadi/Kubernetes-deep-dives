@@ -164,7 +164,7 @@ def _alt(xs): return "|".join(sorted(xs, key=len, reverse=True))
 _KW = re.compile(r"(?<![\w/-])(?:(?P<a>(?i:" + _alt(_ACTIONS) + r"))|(?P<t>" + _alt(_TOOLS) + r")|(?P<c>(?i:" + _alt(_CONCEPTS_I)
                  + r")|" + _alt(_CONCEPTS_C) + r"))(?![\w-])")
 _SKIP = {"code", "pre", "a", "h1", "h2", "h3", "h4", "strong", "figcaption", "button", "figure", "mark", "th", "script", "style", "table"}
-_LABELS = {"Scenario.", "What the picture shows.", "Going deeper."}
+_LABELS = {"Scenario.", "What the picture shows.", "Going deeper.", "Going deeper, by topic."}
 
 
 def _norm(w):
@@ -239,8 +239,12 @@ def _label(node):
 # A paragraph that starts with a bold "Step N. Title." opens a collapsible step. The step runs until the next
 # step or the next "What the picture shows." / "Going deeper." / "Scenario." label or heading. Consecutive steps
 # share one Expand all / Collapse all bar. Every step starts collapsed, like the other accordions.
+# Labels that turn the list under them into one accordion item per bullet. "Going deeper, by topic." is the
+# per-topic version of "Going deeper.": every bullet is its own item, and the code, tables and pictures that follow
+# a bullet are placed inside that item.
+_ACC_LABELS = ("What the picture shows.", "Going deeper, by topic.")
 _STEP_RE = re.compile(r"^Step\s+(\d+)\.\s*(.*?)\.?$")
-_STEP_END = ("What the picture shows.", "Going deeper.", "Scenario.")
+_STEP_END = ("What the picture shows.", "Going deeper.", "Going deeper, by topic.", "Scenario.")
 
 
 def _stepify(soup, root):
@@ -290,12 +294,15 @@ def accordionize(h):
     nodes = [n for n in root.children if isinstance(n, Tag)]
     i = 0
     while i < len(nodes):
-        if _label(nodes[i]) != "What the picture shows.":
+        region_label = _label(nodes[i])
+        if region_label not in _ACC_LABELS:
             i += 1
             continue
+        # only the per-topic region keeps a picture inside the item it follows
+        attach = ("pre", "blockquote", "table", "div") + (("figure",) if region_label == "Going deeper, by topic." else ())
         j = i + 1
         region = []
-        while j < len(nodes) and nodes[j].name not in ("h2", "h3") and _label(nodes[j]) not in ("Going deeper.", "Scenario."):
+        while j < len(nodes) and nodes[j].name not in ("h2", "h3") and _label(nodes[j]) not in ("Going deeper.", "Scenario.", "Going deeper, by topic."):
             region.append(nodes[j]); j += 1
         n_items = sum(len(u.find_all("li", recursive=False)) for u in region if u.name == "ul")
         if n_items >= 2:
@@ -332,7 +339,7 @@ def accordionize(h):
                         det.append(summ); det.append(body)
                         wrap.append(det)
                         last = body
-                elif node.name in ("pre", "blockquote", "table", "div") and last is not None:
+                elif node.name in attach and last is not None:
                     last.append(node)
                 else:
                     wrap.append(node)
@@ -346,7 +353,7 @@ def accordionize(h):
             i += 1
             continue
         j = i + 1
-        while j < len(nodes) and nodes[j].name not in ("h2", "h3") and _label(nodes[j]) not in ("Scenario.", "What the picture shows."):
+        while j < len(nodes) and nodes[j].name not in ("h2", "h3") and _label(nodes[j]) not in ("Scenario.",) + _ACC_LABELS:
             j += 1
         first = nodes[i]
         det = soup.new_tag("details", attrs={"class": "acc gd"})

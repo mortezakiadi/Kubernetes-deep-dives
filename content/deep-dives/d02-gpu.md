@@ -863,7 +863,7 @@ What happens when you apply the pod and the template:
 
 1. **The claim is created:** Kubernetes makes the pod's ResourceClaim from the template.
 2. **The scheduler filters and allocates:** its DynamicResources plugin checks the devices each node publishes (as ResourceSlices, written by the driver) and filters out nodes with no free NVIDIA GPU of 40 GiB or more. Then it picks a node and records the exact GPU it chose in the claim.
-3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container. The plugin answers with the GPU's CDI names, and the container runtime uses them to add the GPU to the container (see the CDI note under Going deeper).
+3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container. The plugin answers with the GPU's CDI names, and the container runtime uses them to add the GPU to the container (see the CDI point under Going deeper).
 4. **The server starts:** vLLM starts and sees exactly one GPU that's big enough.
 
 **Step 8. Template or claim?** A claim you write by hand is one request that several pods can share, and it outlives any pod. A template gives every pod its own claim, made when the pod starts and removed with it. Ten replicas then get ten separate GPUs instead of sharing one.
@@ -938,178 +938,157 @@ spec:
 
 **Is sharing a claim like sharing a CPU?** Roughly, yes. Pods that share a claim get access to the same GPU, a bit like programs sharing a CPU. But the claim only gives access. How the pods actually share the GPU is a setting of the driver. With NVIDIA's time-slicing, the pods' workloads interleave on the GPU, and NVIDIA's docs say there is no memory or fault isolation between them ([NVIDIA's time-slicing docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-sharing.html)). In NVIDIA's DRA driver, time-slicing is still in alpha ([AWS's EKS guide](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-dra-device-plugin.html)). With MIG, each pod gets its own isolated slice with its own memory instead. These are separate pods, not threads of one program.
 
-**Step 9. Putting it together.** The driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and, if you want, adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices.
+**Step 9. Putting it together.** The driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and, if you want, adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices. Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.
 
 ![Dynamic Resource Allocation](diagrams/sections/d06-4.svg)
 
-**Going deeper.**
+**Going deeper, by topic.**
 
-- Dynamic Resource Allocation (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.
+- **How the chosen GPU gets into the container (CDI):** DRA does two jobs: the scheduler chooses the GPU, and then that exact GPU has to reach the container. The second job uses CDI (Container Device Interface), an open standard for container runtimes, not a Kubernetes feature. A CDI entry is a named device, and it lists what the runtime must change when it creates the container: device files, mounts, hooks and environment variables ([CDI tutorial](https://github.com/cncf-tags/container-device-interface/blob/main/TUTORIAL.md)). The driver's kubelet plugin prepares the allocated GPU and answers the kubelet with its CDI names ([DRA kubelet API](https://github.com/kubernetes/kubelet/blob/master/pkg/apis/dra/v1/api.proto)), and the container runtime (containerd or CRI-O) applies the matching entries from the CDI files on the node, so the container starts with that GPU's device files and driver libraries in place. This is a requirement for DRA: NVIDIA lists a container runtime that supports CDI, and is set to use it for DRA-allocated devices, as a prerequisite of its DRA driver ([NVIDIA docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html)).
 
-> **Note: how the chosen GPU gets into the container (CDI)**
->
-> DRA does two jobs: the scheduler chooses the GPU, and then that exact GPU has to reach the container. The second job uses CDI (Container Device Interface), an open standard for container runtimes, not a Kubernetes feature. A CDI entry is a named device, and it lists what the runtime must change when it creates the container: device files, mounts, hooks and environment variables ([CDI tutorial](https://github.com/cncf-tags/container-device-interface/blob/main/TUTORIAL.md)). The driver's kubelet plugin prepares the allocated GPU and answers the kubelet with its CDI names ([DRA kubelet API](https://github.com/kubernetes/kubelet/blob/master/pkg/apis/dra/v1/api.proto)), and the container runtime (containerd or CRI-O) applies the matching entries from the CDI files on the node, so the container starts with that GPU's device files and driver libraries in place. This is a requirement for DRA: NVIDIA lists a container runtime that supports CDI, and is set to use it for DRA-allocated devices, as a prerequisite of its DRA driver ([NVIDIA docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html)).
->
-> ![How the chosen GPU gets into the container (CDI)](diagrams/extra/dra-cdi-flow.svg)
+![How the chosen GPU gets into the container (CDI)](diagrams/extra/dra-cdi-flow.svg)
 
-> **Note: how do you install DRA?**
->
-> You don't install DRA itself. The API (`ResourceClaim`, `ResourceClaimTemplate`, `DeviceClass`) is built into Kubernetes 1.34 and later. What you install is a **DRA driver** for your hardware: it advertises the devices on each node and allocates the one a claim asks for. For NVIDIA GPUs that's the NVIDIA DRA driver, installed with Helm:
->
-> ```bash
-> helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
-> helm repo update
-> helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
->   --create-namespace --namespace nvidia-dra-driver-gpu \
->   --set resources.computeDomains.enabled=false \
->   --set gpuResourcesEnabledOverride=true    # turn on GPU allocation
->
-> # check that the driver pods are running
-> kubectl get pods -n nvidia-dra-driver-gpu
->
-> # the driver's chart creates the DeviceClass gpu.nvidia.com (Step 3)
-> kubectl get deviceclass gpu.nvidia.com
-> ```
->
-> Things to check before you rely on it:
->
-> - **Kubernetes version:** NVIDIA asks for 1.34.2 or later.
-> - **Container runtime:** it must support CDI and be set to use it for DRA-allocated devices (see the CDI note).
-> - **Chart name:** from v0.4.0 the driver moved to `kubernetes-sigs` and the chart is called `dra-driver-nvidia-gpu`; use the name that matches your version.
-> - **Don't run two allocators:** if the NVIDIA GPU Operator is installed, use v25.10.0 or later with its device plugin turned off, and label the GPU nodes (for example `nvidia.com/dra-kubelet-plugin=true`) so the driver runs only there.
-> - **Old-style requests aren't DRA:** a pod that asks for `nvidia.com/gpu: 1` under `resources.limits` still goes through the device plugin path, even with a DRA driver installed.
-> - **Kueue quotas:** if you use Kueue, a quota on `nvidia.com/gpu` does not count devices that pods claim through DRA unless you map them. See [counting DRA devices in Kueue quotas](#d02-4).
-> - **On EKS:** Bottlerocket nodes work with the NVIDIA DRA driver once you turn off the NVIDIA device plugin built into the Bottlerocket NVIDIA images (this needs Bottlerocket 1.63.0 or later, per [AWS](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-mig.html)). Karpenter 1.15 or later needs `settings.enableDRA: true` (alpha; [Karpenter docs](https://karpenter.sh/docs/tasks/dra/)). EKS Auto Mode includes the NVIDIA and EFA DRA drivers on Kubernetes 1.36 and later, as [AWS announced in November 2026](https://aws.amazon.com/about-aws/whats-new/2026/11/amazon-eks-auto-mode-karpenter-dra/); you create the DeviceClass objects yourself. Some AWS pages written earlier, including the 1.37 release notes, still say Auto Mode doesn't support the NVIDIA DRA driver, so check the current AWS docs.
+- **How do you install DRA?** You don't install DRA itself. The API (`ResourceClaim`, `ResourceClaimTemplate`, `DeviceClass`) is built into Kubernetes 1.34 and later. What you install is a **DRA driver** for your hardware: it advertises the devices on each node and allocates the one a claim asks for. For NVIDIA GPUs that's the NVIDIA DRA driver, installed with Helm:
 
+```bash
+helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+helm repo update
+helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
+  --create-namespace --namespace nvidia-dra-driver-gpu \
+  --set resources.computeDomains.enabled=false \
+  --set gpuResourcesEnabledOverride=true    # turn on GPU allocation
 
+# check that the driver pods are running
+kubectl get pods -n nvidia-dra-driver-gpu
 
-> **How this differs from the device plugin**
->
-> | | Device plugin | DRA |
-> |---|---|---|
-> | **What the scheduler knows** | A count of free GPUs per node | Each GPU's own facts (ResourceSlice) and which one a claim got |
-> | **Who picks the exact GPU** | The plugin, when the kubelet asks at container start. The scheduler never knows which one. | The scheduler, and it records the pick in the claim |
-> | **How the container gets the GPU** | The plugin's reply lists device files and a setting that names the GPU. NVIDIA's container runtime reads that setting. This is the plugin's default in its README for version 0.17.1. The plugin can use CDI instead, and the GPU Operator has done so by default since 25.10. | Always CDI: the driver returns CDI names and the runtime applies them |
-> | **What the runtime must support** | Nothing special by default. CDI is optional. | CDI, required |
->
-> In short, CDI does not change how DRA finds a GPU. It changes how the found GPU reaches the container: through a standard file the runtime reads, instead of a setting that NVIDIA's runtime has to interpret.
+# the driver's chart creates the DeviceClass gpu.nvidia.com (Step 3)
+kubectl get deviceclass gpu.nvidia.com
+```
 
-> **Where DRA goes further: four cases**
->
-> - **When GPUs on a node differ:** a node label describes the node as one thing, so a node with one 80 GB and one 24 GB GPU can't be described honestly. DRA checks every GPU separately, so asking for two big GPUs only matches if *both* are big:
->
->     ```yaml
->     apiVersion: resource.k8s.io/v1
->     kind: ResourceClaimTemplate
->     metadata:
->       name: two-big-gpus
->     spec:
->       spec:
->         devices:
->           requests:
->           - name: gpus
->             exactly:
->               deviceClassName: gpu.nvidia.com
->               count: 2                          # two devices... #!
->               selectors:
->               - cel:                            # ...and each one must pass this check
->                   expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
->     ```
->
-> - **When several devices must fit together:** a GPU and the network card it sends data through should sit on the same PCIe root, so traffic doesn't cross the CPU. Both drivers publish the standard attribute `resource.kubernetes.io/pcieRoot`, and `matchAttribute` requires the two devices to share it. On EKS the network card is an EFA device, offered by the dranet driver:
->
->     ```yaml
->     apiVersion: resource.k8s.io/v1
->     kind: ResourceClaimTemplate
->     metadata:
->       name: gpu-plus-efa
->     spec:
->       spec:
->         devices:
->           requests:
->           - name: gpu
->             exactly:
->               deviceClassName: gpu.nvidia.com
->           - name: efa
->             exactly:
->               deviceClassName: efa.networking.k8s.aws   # from the dranet driver
->           constraints:
->           - requests: ["gpu", "efa"]                   # these two devices... #!
->             matchAttribute: resource.kubernetes.io/pcieRoot   # ...must share a PCIe root #!
->     ```
->
->     The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root.
->
-> - **When pods share a GPU:** create one `ResourceClaim` by name (not a template) and point several pods at it, so they all get the same GPU. How they share it is a driver setting; here NVIDIA's time-slicing (it may need to be turned on in the driver):
->
->     ```yaml
->     apiVersion: resource.k8s.io/v1
->     kind: ResourceClaim                # one claim, not a template
->     metadata:
->       name: shared-gpu
->     spec:
->       devices:
->         requests:
->         - name: gpu
->           exactly:
->             deviceClassName: gpu.nvidia.com
->         config:
->         - requests: ["gpu"]
->           opaque:                      # passed to the driver as-is
->             driver: gpu.nvidia.com
->             parameters:
->               apiVersion: resource.nvidia.com/v1beta1
->               kind: GpuConfig
->               sharing:
->                 strategy: TimeSlicing #!
->     ---
->     apiVersion: v1
->     kind: Pod
->     metadata:
->       name: notebook-a                 # notebook-b is the same, with its own name
->     spec:
->       resourceClaims:
->       - name: gpu
->         resourceClaimName: shared-gpu  # by name, so every pod gets the same GPU #!
->       containers:
->       - name: jupyter
->         image: jupyter/base-notebook:latest
->         resources:
->           claims:
->           - name: gpu
->     ```
->
->     Time-slicing means the pods take turns on the GPU. There is no memory or compute isolation between them ([AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)); MIG is what isolates. A claim made from a *template* is a separate claim for every pod, so template replicas share a GPU only when the driver's **consumable shares** are on. That is an alpha feature in NVIDIA's driver, and the Kubernetes side is on by default from 1.36 ([NVIDIA docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html)). Without it, each replica gets a whole GPU.
->
-> - **When you want a fallback:** `firstAvailable` lists options in order of preference, and the scheduler uses the first one it can satisfy. Here: one Hopper GPU, or else two Ampere GPUs:
->
->     ```yaml
->     apiVersion: resource.k8s.io/v1
->     kind: ResourceClaimTemplate
->     metadata:
->       name: h100-or-two-a100
->     spec:
->       spec:
->         devices:
->           requests:
->           - name: gpu
->             firstAvailable:                 # try these in order #!
->             - name: one-hopper
->               deviceClassName: gpu.nvidia.com
->               selectors:
->               - cel:
->                   expression: device.attributes["gpu.nvidia.com"].architecture == "Hopper"
->             - name: two-ampere              # only if no Hopper GPU is free
->               deviceClassName: gpu.nvidia.com
->               count: 2
->               selectors:
->               - cel:
->                   expression: device.attributes["gpu.nvidia.com"].architecture == "Ampere"
->     ```
->
->     The application has to cope with either result (one GPU or two), for example by reading how many GPUs it was given at startup.
+- **Before you rely on it:** check these points.
+  - **Kubernetes version:** NVIDIA asks for 1.34.2 or later.
+  - **Container runtime:** it must support CDI and be set to use it for DRA-allocated devices (see the CDI point).
+  - **Chart name:** from v0.4.0 the driver moved to `kubernetes-sigs` and the chart is called `dra-driver-nvidia-gpu`; use the name that matches your version.
+  - **Don't run two allocators:** if the NVIDIA GPU Operator is installed, use v25.10.0 or later with its device plugin turned off, and label the GPU nodes (for example `nvidia.com/dra-kubelet-plugin=true`) so the driver runs only there.
+  - **Old-style requests aren't DRA:** a pod that asks for `nvidia.com/gpu: 1` under `resources.limits` still goes through the device plugin path, even with a DRA driver installed.
+  - **Kueue quotas:** if you use Kueue, a quota on `nvidia.com/gpu` does not count devices that pods claim through DRA unless you map them. See [counting DRA devices in Kueue quotas](#d02-4).
+  - **On EKS:** Bottlerocket nodes work with the NVIDIA DRA driver once you turn off the NVIDIA device plugin built into the Bottlerocket NVIDIA images (this needs Bottlerocket 1.63.0 or later, per [AWS](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-mig.html)). Karpenter 1.15 or later needs `settings.enableDRA: true` (alpha; [Karpenter docs](https://karpenter.sh/docs/tasks/dra/)). EKS Auto Mode includes the NVIDIA and EFA DRA drivers on Kubernetes 1.36 and later, as [AWS announced in November 2026](https://aws.amazon.com/about-aws/whats-new/2026/11/amazon-eks-auto-mode-karpenter-dra/); you create the DeviceClass objects yourself. Some AWS pages written earlier, including the 1.37 release notes, still say Auto Mode doesn't support the NVIDIA DRA driver, so check the current AWS docs.
 
+- **How DRA differs from the device plugin:** the table compares the two. In short, CDI does not change how DRA finds a GPU. It changes how the found GPU reaches the container: through a standard file the runtime reads, instead of a setting that NVIDIA's runtime has to interpret.
 
+| | Device plugin | DRA |
+|---|---|---|
+| **What the scheduler knows** | A count of free GPUs per node | Each GPU's own facts (ResourceSlice) and which one a claim got |
+| **Who picks the exact GPU** | The plugin, when the kubelet asks at container start. The scheduler never knows which one. | The scheduler, and it records the pick in the claim |
+| **How the container gets the GPU** | The plugin's reply lists device files and a setting that names the GPU. NVIDIA's container runtime reads that setting. This is the plugin's default in its README for version 0.17.1. The plugin can use CDI instead, and the GPU Operator has done so by default since 25.10. | Always CDI: the driver returns CDI names and the runtime applies them |
+| **What the runtime must support** | Nothing special by default. CDI is optional. | CDI, required |
+
+- **When GPUs on a node differ:** a node label describes the node as one thing, so a node with one 80 GB and one 24 GB GPU can't be described honestly. DRA checks every GPU separately, so asking for two big GPUs only matches if *both* are big:
+
+```yaml
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: two-big-gpus
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpus
+        exactly:
+          deviceClassName: gpu.nvidia.com
+          count: 2                          # two devices... #!
+          selectors:
+          - cel:                            # ...and each one must pass this check
+              expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
+```
+
+- **When several devices must fit together:** a GPU and the network card it sends data through should sit on the same PCIe root, so traffic doesn't cross the CPU. Both drivers publish the standard attribute `resource.kubernetes.io/pcieRoot`, and `matchAttribute` requires the two devices to share it. On EKS the network card is an EFA device, offered by the dranet driver. The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root. Here is a GPU plus an EFA device:
+
+```yaml
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: gpu-plus-efa
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.nvidia.com
+      - name: efa
+        exactly:
+          deviceClassName: efa.networking.k8s.aws   # from the dranet driver
+      constraints:
+      - requests: ["gpu", "efa"]                   # these two devices... #!
+        matchAttribute: resource.kubernetes.io/pcieRoot   # ...must share a PCIe root #!
+```
+
+- **When pods share a GPU:** create one `ResourceClaim` by name (not a template) and point several pods at it, so they all get the same GPU. How they share it is a driver setting; here NVIDIA's time-slicing (it may need to be turned on in the driver). Time-slicing means the pods take turns on the GPU. There is no memory or compute isolation between them ([AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)); MIG is what isolates. A claim made from a *template* is a separate claim for every pod, so template replicas share a GPU only when the driver's **consumable shares** are on. That is an alpha feature in NVIDIA's driver, and the Kubernetes side is on by default from 1.36 ([NVIDIA docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html)). Without it, each replica gets a whole GPU. Here is one claim and one of the pods that share it:
+
+```yaml
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaim                # one claim, not a template
+metadata:
+  name: shared-gpu
+spec:
+  devices:
+    requests:
+    - name: gpu
+      exactly:
+        deviceClassName: gpu.nvidia.com
+    config:
+    - requests: ["gpu"]
+      opaque:                      # passed to the driver as-is
+        driver: gpu.nvidia.com
+        parameters:
+          apiVersion: resource.nvidia.com/v1beta1
+          kind: GpuConfig
+          sharing:
+            strategy: TimeSlicing #!
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: notebook-a                 # notebook-b is the same, with its own name
+spec:
+  resourceClaims:
+  - name: gpu
+    resourceClaimName: shared-gpu  # by name, so every pod gets the same GPU #!
+  containers:
+  - name: jupyter
+    image: jupyter/base-notebook:latest
+    resources:
+      claims:
+      - name: gpu
+```
+
+- **When you want a fallback:** `firstAvailable` lists options in order of preference, and the scheduler uses the first one it can satisfy. The application has to cope with either result (one GPU or two), for example by reading how many GPUs it was given at startup. Here is one Hopper GPU, or else two Ampere GPUs:
+
+```yaml
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: h100-or-two-a100
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        firstAvailable:                 # try these in order #!
+        - name: one-hopper
+          deviceClassName: gpu.nvidia.com
+          selectors:
+          - cel:
+              expression: device.attributes["gpu.nvidia.com"].architecture == "Hopper"
+        - name: two-ampere              # only if no Hopper GPU is free
+          deviceClassName: gpu.nvidia.com
+          count: 2
+          selectors:
+          - cel:
+              expression: device.attributes["gpu.nvidia.com"].architecture == "Ampere"
+```
 
 ### Different GPUs in one server, and MIG
 
