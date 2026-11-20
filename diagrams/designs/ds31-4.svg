@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="620px" viewBox="0 0 1300 620" style="background:#ffffff"><title>Timing</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="620" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">When did the behavior move, and what changed in the mixture then?</text>
+<rect x="792" y="60" width="149" height="420" rx="0" fill="#fef3c7" fill-opacity="1" stroke="none"/>
+<text x="866.6666666666666" y="78" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">steps 18k–22k: 31% → 18%</text>
+<text x="30" y="100" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">probe rate</text>
+<line x1="120" y1="220" x2="1240" y2="220" stroke="#e2e8f0"/>
+<text x="112" y="224.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">15%</text>
+<line x1="120" y1="160" x2="1240" y2="160" stroke="#e2e8f0"/>
+<text x="112" y="164.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">25%</text>
+<line x1="120" y1="100" x2="1240" y2="100" stroke="#e2e8f0"/>
+<text x="112" y="104.00000000000003" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">35%</text>
+<path d="M 120 106 L 195 106 L 269 112 L 344 112 L 419 112 L 493 118 L 568 118 L 643 118 L 717 124 L 792 124 L 867 160 L 941 202 L 1016 208 L 1091 214 L 1165 220 L 1240 226" fill="none" stroke="#dc2626" stroke-width="3"/>
+<circle cx="120" cy="106" r="4" fill="#dc2626"/>
+<circle cx="195" cy="106" r="4" fill="#dc2626"/>
+<circle cx="269" cy="112" r="4" fill="#dc2626"/>
+<circle cx="344" cy="112" r="4" fill="#dc2626"/>
+<circle cx="419" cy="112" r="4" fill="#dc2626"/>
+<circle cx="493" cy="118" r="4" fill="#dc2626"/>
+<circle cx="568" cy="118" r="4" fill="#dc2626"/>
+<circle cx="643" cy="118" r="4" fill="#dc2626"/>
+<circle cx="717" cy="124" r="4" fill="#dc2626"/>
+<circle cx="792" cy="124" r="4" fill="#dc2626"/>
+<circle cx="867" cy="160" r="4" fill="#dc2626"/>
+<circle cx="941" cy="202" r="4" fill="#dc2626"/>
+<circle cx="1016" cy="208" r="4" fill="#dc2626"/>
+<circle cx="1091" cy="214" r="4" fill="#dc2626"/>
+<circle cx="1165" cy="220" r="4" fill="#dc2626"/>
+<circle cx="1240" cy="226" r="4" fill="#dc2626"/>
+<text x="30" y="300" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">mixture share</text>
+<rect x="120" y="454" width="74" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="120" y="390" width="74" height="64" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="120" y="371" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="120" y="310" width="74" height="61" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="195" y="454" width="74" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="195" y="390" width="74" height="64" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="195" y="371" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="195" y="310" width="74" height="61" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="269" y="454" width="74" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="269" y="390" width="74" height="64" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="269" y="371" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="269" y="310" width="74" height="61" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="344" y="454" width="74" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="344" y="390" width="74" height="64" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="344" y="371" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="344" y="310" width="74" height="61" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="419" y="454" width="74" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="419" y="390" width="74" height="64" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="419" y="371" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="419" y="310" width="74" height="61" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="493" y="454" width="74" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="493" y="390" width="74" height="64" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="493" y="371" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="493" y="310" width="74" height="61" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="568" y="454" width="74" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="568" y="390" width="74" height="64" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="568" y="371" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="568" y="310" width="74" height="61" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="643" y="454" width="74" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="643" y="390" width="74" height="64" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="643" y="371" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="643" y="310" width="74" height="61" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="717" y="454" width="74" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="717" y="390" width="74" height="64" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="717" y="371" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="717" y="310" width="74" height="61" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="792" y="441" width="74" height="29" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="792" y="387" width="74" height="54" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="792" y="368" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="792" y="310" width="74" height="58" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="867" y="430" width="74" height="40" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="867" y="385" width="74" height="45" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="867" y="366" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="867" y="310" width="74" height="56" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="941" y="430" width="74" height="40" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="941" y="385" width="74" height="45" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="941" y="366" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="941" y="310" width="74" height="56" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="1016" y="430" width="74" height="40" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="1016" y="385" width="74" height="45" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="1016" y="366" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="1016" y="310" width="74" height="56" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="1091" y="430" width="74" height="40" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="1091" y="385" width="74" height="45" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="1091" y="366" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="1091" y="310" width="74" height="56" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="1165" y="430" width="74" height="40" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="1165" y="385" width="74" height="45" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="1165" y="366" width="74" height="19" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="1165" y="310" width="74" height="56" rx="0" fill="#cbd5e1" fill-opacity="0.85" stroke="none"/>
+<rect x="120" y="490" width="14" height="14" rx="2" fill="#7c3aed" fill-opacity="1" stroke="none"/>
+<text x="140" y="502" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">long-horizon autonomous 10% → 25%</text>
+<rect x="410" y="490" width="14" height="14" rx="2" fill="#2563eb" fill-opacity="1" stroke="none"/>
+<text x="430" y="502" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">coding 40% → 28%</text>
+<rect x="700" y="490" width="14" height="14" rx="2" fill="#d97706" fill-opacity="1" stroke="none"/>
+<text x="720" y="502" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">support 12%</text>
+<rect x="990" y="490" width="14" height="14" rx="2" fill="#94a3b8" fill-opacity="1" stroke="none"/>
+<text x="1010" y="502" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">other</text>
+<text x="1240" y="290" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7c3aed">autonomous-ci-fix v3 → v4 at step 20000</text>
+<rect x="30" y="525" width="1240" height="80" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="557.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: the v7 run had 15 checkpoints; nobody had looked at the behavior on any but the last.</text>
+<text x="50" y="583" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">Timing narrows the list. It doesn't confirm the cause.</text></svg>

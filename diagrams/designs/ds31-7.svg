@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Mixture experiments</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Mixture experiments: random weights, one model of behavior (example)</text>
+<rect x="30" y="60" width="560" height="320" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">48 short runs, random group weights</text>
+<rect x="50" y="105" width="223" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="273" y="105" width="134" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="407" y="105" width="117" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="524" y="105" width="26" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="126" width="202" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="252" y="126" width="84" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="336" y="126" width="51" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="387" y="126" width="163" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="147" width="322" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="372" y="147" width="105" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="477" y="147" width="5" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="482" y="147" width="68" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="168" width="191" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="241" y="168" width="97" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="338" y="168" width="49" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="387" y="168" width="163" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="189" width="320" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="370" y="189" width="63" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="433" y="189" width="95" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="528" y="189" width="22" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="210" width="166" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="216" y="210" width="145" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="361" y="210" width="52" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="413" y="210" width="137" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="231" width="338" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="388" y="231" width="16" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="404" y="231" width="75" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="478" y="231" width="72" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="252" width="129" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="179" y="252" width="222" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="401" y="252" width="52" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="453" y="252" width="97" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="273" width="185" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="235" y="273" width="221" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="455" y="273" width="28" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="483" y="273" width="67" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="294" width="257" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="307" y="294" width="64" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="371" y="294" width="93" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="464" y="294" width="86" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="315" width="158" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="208" y="315" width="160" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="367" y="315" width="54" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="421" y="315" width="129" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<rect x="50" y="336" width="326" height="16" rx="0" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<rect x="376" y="336" width="102" height="16" rx="0" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<rect x="478" y="336" width="31" height="16" rx="0" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="509" y="336" width="41" height="16" rx="0" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="50" y="370" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">… 36 more runs · probes for every catalog behavior on each</text>
+<rect x="620" y="60" width="650" height="320" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="640" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Fitted terms: bash-tool overuse (true interaction 1.6)</text>
+<text x="640" y="128.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">coding</text>
+<rect x="830" y="112" width="26" height="26" rx="4" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="864.4" y="131" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">0.11</text>
+<text x="640" y="170.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">infra</text>
+<rect x="830" y="154" width="29" height="26" rx="4" fill="#7c3aed" fill-opacity="0.85" stroke="none"/>
+<text x="866.8" y="173" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">0.12</text>
+<text x="640" y="212.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">tool drills</text>
+<rect x="830" y="196" width="26" height="26" rx="4" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<text x="864.4" y="215" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">0.11</text>
+<text x="640" y="254.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">support</text>
+<rect x="830" y="238" width="19" height="26" rx="4" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="857.2" y="257" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">0.08</text>
+<text x="640" y="296.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">infra × tool drills</text>
+<rect x="830" y="280" width="379" height="26" rx="4" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="1217.2" y="299" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">1.58</text>
+<text x="640" y="338.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">coding × support</text>
+<rect x="830" y="322" width="17" height="26" rx="4" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<text x="854.8" y="341" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">0.07</text>
+<text x="640" y="366" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">neither group alone; the pair together</text>
+<rect x="30" y="400" width="400" height="80" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="422.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Every run informs every term</text>
+<text x="42" y="445.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">48 runs beat 48 single ablations</text>
+<rect x="448" y="400" width="400" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="460" y="422.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Predict before training</text>
+<text x="460" y="445.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">behavior for a proposed mixture</text>
+<rect x="866" y="400" width="400" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="878" y="422.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Flag extrapolation</text>
+<text x="878" y="445.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">outside the sampled weight ranges</text>
+<rect x="30" y="505" width="1240" height="80" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="537.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: bash overuse didn't move when any single group was removed;</text>
+<text x="50" y="563" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">one-at-a-time ablations said “no environment did this”.</text></svg>
