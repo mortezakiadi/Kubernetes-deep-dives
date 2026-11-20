@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Interaction</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Tasks where success depends on dealing with people</text>
+<rect x="30" y="70" width="260" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Task text</text>
+<text x="42" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">“make the export paginate” (page size</text>
+<text x="42" y="128" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">left out)</text>
+<rect x="340" y="70" width="260" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="352" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Simulated user</text>
+<text x="352" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">knows: pages of 500, sorted by date</text>
+<rect x="650" y="70" width="260" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="662" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">Model asks</text>
+<text x="662" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">“what page size and order?”</text>
+<rect x="960" y="70" width="310" height="110" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="972" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Verifier</text>
+<text x="972" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">checks 500 per page, date order</text>
+<path d="M 290 125 L 340 125" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<path d="M 650 140 L 600 140" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="606.56" y="146" width="36.88" height="21" rx="4" fill="#ffffff" fill-opacity=".92"/>
+<text x="625" y="160" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1e293b">asks</text>
+<path d="M 600 100 L 650 100" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M 910 125 L 960 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="210" width="600" height="240" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="238" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Interaction axis score</text>
+<text x="50" y="272" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">v6</text>
+<rect x="100" y="250" width="464" height="34" rx="4" fill="#64748b" fill-opacity="0.85" stroke="none"/>
+<text x="572" y="273" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">58%</text>
+<text x="50" y="332" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">v7</text>
+<rect x="100" y="310" width="312" height="34" rx="4" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="420" y="333" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">39%</text>
+<text x="50" y="392" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">v8</text>
+<rect x="100" y="370" width="376" height="34" rx="4" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="484" y="393" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">47%</text>
+<rect x="660" y="210" width="300" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="672" y="232.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Hidden requirements</text>
+<text x="672" y="255.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">only the user knows them</text>
+<rect x="970" y="210" width="300" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="982" y="232.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Two readings</text>
+<text x="982" y="255.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">ask, or choose and say so</text>
+<rect x="660" y="335" width="300" height="110" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="672" y="357.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Needless questions cost</text>
+<text x="672" y="380.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">asking what was already stated</text>
+<rect x="970" y="335" width="300" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="982" y="357.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Multi-party</text>
+<text x="982" y="380.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">reviewer · PM · customer</text>
+<rect x="30" y="480" width="1240" height="80" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="512.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: every task was fully specified, so never asking was always fastest. v7's drop in</text>
+<text x="50" y="538" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">clarifying questions went unnoticed until users reported it.</text></svg>

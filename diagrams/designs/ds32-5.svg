@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Reliability</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Reliability: once, at least once, every time (example, 16 attempts per task)</text>
+<rect x="30" y="60" width="600" height="300" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Same tasks, three questions</text>
+<text x="50" y="115.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">pass@8 · attempts + a checker</text>
+<rect x="50" y="125" width="468" height="34" rx="4" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="526.0" y="148" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">90%</text>
+<text x="50" y="193.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">pass@1 · human reviews every answer</text>
+<rect x="50" y="203" width="328" height="34" rx="4" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="385.6" y="226" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">63%</text>
+<text x="50" y="271.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">pass^8 · unattended automation</text>
+<rect x="50" y="281" width="109" height="34" rx="4" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="167.2" y="304" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">21%</text>
+<rect x="670" y="60" width="600" height="300" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="690" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Successes out of 16, per task (300 tasks)</text>
+<rect x="700" y="204" width="26" height="126" rx="2" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<text x="713" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">0</text>
+<rect x="733" y="286" width="26" height="44" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="766" y="280" width="26" height="50" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="799" y="319" width="26" height="11" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="832" y="297" width="26" height="33" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<text x="845" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">4</text>
+<rect x="865" y="286" width="26" height="44" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="898" y="253" width="26" height="77" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="931" y="275" width="26" height="55" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="964" y="226" width="26" height="104" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<text x="977" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">8</text>
+<rect x="997" y="198" width="26" height="132" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="1030" y="236" width="26" height="94" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="1063" y="226" width="26" height="104" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="1096" y="236" width="26" height="94" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<text x="1109" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">12</text>
+<rect x="1129" y="182" width="26" height="148" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="1162" y="198" width="26" height="132" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="1195" y="110" width="26" height="220" rx="2" fill="#d97706" fill-opacity="0.85" stroke="none"/>
+<rect x="1228" y="148" width="26" height="182" rx="2" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="1241" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">16</text>
+<text x="1250" y="100" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">most tasks are solved sometimes</text>
+<rect x="30" y="385" width="400" height="80" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="42" y="407.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Perturbations</text>
+<text x="42" y="430.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">reworded request · renamed files · extra context</text>
+<rect x="448" y="385" width="400" height="80" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="460" y="407.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Stratified subset</text>
+<text x="460" y="430.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">300 tasks × 16 attempts</text>
+<rect x="866" y="385" width="400" height="80" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="878" y="407.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Report all three</text>
+<text x="878" y="430.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">each product reads its own</text>
+<rect x="30" y="490" width="1240" height="80" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="522.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: a team automated a workflow on v8's 63% first-attempt success; in production it needed</text>
+<text x="50" y="548" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">human retries far more often, because success on a task wasn't repeatable.</text></svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Tasks from real work</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Tasks from real work, private and tested</text>
+<rect x="30" y="70" width="228" height="110" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Real work</text>
+<text x="42" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">tickets · incidents · consented</text>
+<text x="42" y="128" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">customer tasks</text>
+<rect x="282" y="70" width="228" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="294" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Scrub + rewrite</text>
+<text x="294" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">synthetic data; no public text</text>
+<text x="294" y="128" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">match</text>
+<path d="M 258 125 L 282 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="534" y="70" width="228" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="546" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">Human baselines</text>
+<text x="546" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">≥ 2 experts; time sets horizon</text>
+<path d="M 510 125 L 534 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="786" y="70" width="228" height="110" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="798" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Verifier tests</text>
+<text x="798" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">accept correct, reject known-wrong</text>
+<path d="M 762 125 L 786 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1038" y="70" width="228" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="1050" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Admitted</text>
+<text x="1050" y="114" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">canary · created date · family</text>
+<path d="M 1014 125 L 1038 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="210" width="600" height="230" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="238" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Known-wrong solutions every verifier must reject</text>
+<text x="50" y="262.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">✗ tests deleted or skipped</text>
+<text x="50" y="296.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">✗ partial fix (one of two code paths)</text>
+<text x="50" y="330.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">✗ fix in the wrong layer</text>
+<text x="50" y="364.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">✗ hard-coded expected output</text>
+<text x="50" y="398.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">✗ unrelated files changed</text>
+<rect x="670" y="210" width="600" height="230" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="690" y="238" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">The suite</text>
+<text x="690" y="262" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d4ed8">1,200</text>
+<text x="800" y="262.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">tasks</text>
+<text x="690" y="302" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d4ed8">140</text>
+<text x="800" y="302.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">families (what counts as independent)</text>
+<text x="690" y="342" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d4ed8">stratified</text>
+<text x="800" y="342.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">by horizon, not by production frequency</text>
+<text x="690" y="382" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d4ed8">quarterly</text>
+<text x="800" y="382.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">refresh; old tasks retired, not reused</text>
+<rect x="30" y="470" width="1240" height="80" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="502.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: reference solutions for 18% of a public benchmark's tasks were in the pretraining corpus;</text>
+<text x="50" y="528" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">v8 scored 22 points higher on those tasks than on the rest.</text></svg>

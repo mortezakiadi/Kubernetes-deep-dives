@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="620px" viewBox="0 0 1300 620" style="background:#ffffff"><title>Capability axes</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="620" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Capability as a profile along realistic axes</text>
+<rect x="30" y="60" width="520" height="58" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="82" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">horizon</text>
+<text x="42" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">&lt; 15m · 15m–1h · 1h–4h · 4h–1d · &gt; 1d</text>
+<rect x="30" y="128" width="520" height="58" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="42" y="150" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">specification</text>
+<text x="42" y="172" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">full · partial · ambiguous</text>
+<rect x="30" y="196" width="520" height="58" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="218" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">environment</text>
+<text x="42" y="240" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">single file · small repo · large repo · multi-service</text>
+<rect x="30" y="264" width="520" height="58" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">interaction</text>
+<text x="42" y="308" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">solo · simulated user · multi-party</text>
+<rect x="30" y="332" width="520" height="58" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="42" y="354" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">adversity</text>
+<text x="42" y="376" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">none · flaky · faulty tools · misleading</text>
+<rect x="30" y="400" width="520" height="58" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="422" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">measured on every task</text>
+<text x="42" y="444" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">pass@1 · pass^k · tokens · wall time · $</text>
+<rect x="590" y="60" width="680" height="400" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="610" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Success by horizon level, v7 vs v8 (internal suite)</text>
+<line x1="640" y1="315" x2="1250" y2="315" stroke="#e2e8f0"/>
+<text x="632" y="319.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">25%</text>
+<line x1="640" y1="230" x2="1250" y2="230" stroke="#e2e8f0"/>
+<text x="632" y="234.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">50%</text>
+<line x1="640" y1="145" x2="1250" y2="145" stroke="#e2e8f0"/>
+<text x="632" y="149.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#475569">75%</text>
+<rect x="680" y="162" width="50" height="238" rx="2" fill="#64748b" fill-opacity="0.85" stroke="none"/>
+<rect x="736" y="125" width="50" height="275" rx="2" fill="#2563eb" fill-opacity="0.9" stroke="none"/>
+<text x="733" y="114.60000000000002" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">+11</text>
+<text x="733" y="420" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">&lt; 15m</text>
+<rect x="825" y="223" width="50" height="177" rx="2" fill="#64748b" fill-opacity="0.85" stroke="none"/>
+<rect x="881" y="206" width="50" height="194" rx="2" fill="#2563eb" fill-opacity="0.9" stroke="none"/>
+<text x="878" y="196.20000000000002" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">+5</text>
+<text x="878" y="420" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">15m–1h</text>
+<rect x="970" y="278" width="50" height="122" rx="2" fill="#64748b" fill-opacity="0.85" stroke="none"/>
+<rect x="1026" y="274" width="50" height="126" rx="2" fill="#2563eb" fill-opacity="0.9" stroke="none"/>
+<text x="1023" y="264.2" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#047857">+1</text>
+<text x="1023" y="420" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">1h–4h</text>
+<rect x="1115" y="329" width="50" height="71" rx="2" fill="#64748b" fill-opacity="0.85" stroke="none"/>
+<rect x="1171" y="339" width="50" height="61" rx="2" fill="#2563eb" fill-opacity="0.9" stroke="none"/>
+<text x="1168" y="318.6" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b91c1c">-3</text>
+<text x="1168" y="420" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">&gt; 4h</text>
+<rect x="1080" y="80" width="14" height="14" rx="2" fill="#64748b" fill-opacity="1" stroke="none"/>
+<text x="1100" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">v7</text>
+<rect x="1140" y="80" width="14" height="14" rx="2" fill="#2563eb" fill-opacity="1" stroke="none"/>
+<text x="1160" y="92" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">v8</text>
+<text x="610" y="448" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">public benchmark: 71% → 77% · production acceptance: 41% → 41%</text>
+<rect x="30" y="480" width="1240" height="80" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="512.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: one number per benchmark. v8's gain on short tasks and loss on long ones averaged</text>
+<text x="50" y="538" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">into “better”; users saw the loss.</text>
+<rect x="30" y="575" width="1240" height="34" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="597" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Every task tagged on every axis; release reviews compare profiles</text></svg>
