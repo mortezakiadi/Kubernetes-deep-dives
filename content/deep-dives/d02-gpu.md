@@ -537,7 +537,7 @@ spec:
 | **ResourceSlice** | The list of devices on one node, each with its facts: product name, architecture, memory. | The DRA driver, per node | PersistentVolume (our comparison) |
 | **DeviceClass** | A named category of devices, such as `gpu.nvidia.com`. A request says which class it wants. | The device driver's side (NVIDIA ships its classes in the driver's Helm chart); a cluster admin can add more | A StorageClass |
 | **CEL** (Common Expression Language) | A one-line rule that is true or false for each device, such as "memory is at least 40Gi". It narrows the devices down. A class has one, and your claim may add one. **Why it is needed:** a count or a node label can only say "one GPU" or "this node has A100s", while a rule can test each device's own facts. | The driver or an admin, inside a class. You, optionally, inside a claim | n/a |
-| **ResourceClaimTemplate** | A recipe for a request: which class, an optional CEL rule, how many devices (one by default). | You | volumeClaimTemplates in a StatefulSet (our comparison) |
+| **ResourceClaimTemplate** | A recipe for a request: which class, an optional CEL rule, how many devices (an exact count, one by default; the only other mode is "all matching devices"). A request has no "shared" or "immediate" setting. | You | volumeClaimTemplates in a StatefulSet (our comparison) |
 | **ResourceClaim** | One actual request, made from the recipe. The scheduler records which device it picked in the claim. | Kubernetes, one per pod | A PersistentVolumeClaim |
 
 ![If you know storage, you already know the shape of DRA](diagrams/extra/dra-storage-analogy.svg)
@@ -1088,6 +1088,8 @@ spec:
 >           claims:
 >           - name: gpu
 >     ```
+>
+>     Time-slicing means the pods take turns on the GPU. There is no memory or compute isolation between them ([AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)); MIG is what isolates. A claim made from a *template* is a separate claim for every pod, so template replicas share a GPU only when the driver's **consumable shares** are on. That is an alpha feature in NVIDIA's driver, and the Kubernetes side is on by default from 1.36 ([NVIDIA docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html)). Without it, each replica gets a whole GPU.
 >
 > - **When you want a fallback:** `firstAvailable` lists options in order of preference, and the scheduler uses the first one it can satisfy. Here: one Hopper GPU, or else two Ampere GPUs:
 >

@@ -123,6 +123,7 @@ data:
 **Going deeper.**
 
 - **Profiling fields and profilers compete:** when a user runs Nsight Compute or Nsight Systems with GPU metrics on a node, DCGM's profiling fields can conflict with it. DCGM can pause profiling collection (`dcgmi profile --pause`) for the session. Document this for users, and expect gaps rather than errors.
+- **When fleet metrics say "busy" but one job is slow, profile that job:** Nsight Systems records a timeline of one process, with its GPU kernels, memory copies and any phases you label, so you can see whether the GPU waits for data. Run it inside the job's pod. That needs access to the kernel's performance interface (in container terms, the `SYS_ADMIN` capability or privileged mode, and a host setting that allows it), and sampling GPU metrics needs elevated permissions ([Nsight Systems guide](https://docs.nvidia.com/nsight-systems/UserGuide/index.html)). Grant that only to a short-lived debug pod, not to every job, and pause DCGM's profiling fields on the node first, as above. In the current guide the option that samples GPU metrics is spelled `--gpu-metrics-devices`.
 - **Field names change between DCGM versions:** the throttle-reasons field has a newer name (`DCGM_FI_DEV_CLOCKS_EVENT_REASONS`). Pin the exporter version with the field list and test both together.
 
 ### Labels and joins: who used this GPU?
