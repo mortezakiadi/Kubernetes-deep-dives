@@ -542,7 +542,95 @@ spec:
 
 ![If you know storage, you already know the shape of DRA](diagrams/extra/dra-storage-analogy.svg)
 
-- **DeviceClass answers "what kind of thing?"** `gpu.nvidia.com` means "an NVIDIA GPU". The NVIDIA driver also creates `mig.nvidia.com` for MIG slices. You usually don't write a class; you pick one. `kubectl get deviceclass` lists what your cluster has.
+The same words as YAML. First the storage side, then the DRA side. The DeviceClass is the one the NVIDIA driver installs (trimmed); the ResourceSlice shows one device of the node (trimmed).
+
+```yaml
+# STORAGE: a class, and a StatefulSet that makes one claim per pod
+apiVersion: storage.k8s.io/v1
+kind: StorageClass                   # "a named kind of disk" #!
+metadata:
+  name: gp3
+provisioner: ebs.csi.aws.com
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db
+spec:
+  replicas: 3
+  # (selector, serviceName and the pod template are left out here)
+  volumeClaimTemplates:              # a recipe: every pod gets its own claim #!
+  - metadata:
+      name: data
+    spec:
+      storageClassName: gp3          # which class to ask for
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 100Gi             # how much
+```
+
+```yaml
+# DRA, part 1: what the NVIDIA driver publishes
+apiVersion: resource.k8s.io/v1
+kind: DeviceClass                    # "a named kind of device" #!
+metadata:
+  name: gpu.nvidia.com
+spec:
+  selectors:
+  - cel:                             # a class is itself defined by a CEL rule
+      expression: "device.driver == 'gpu.nvidia.com' && device.attributes['gpu.nvidia.com'].type == 'gpu'"
+---
+apiVersion: resource.k8s.io/v1
+kind: ResourceSlice                  # "the devices that exist": one entry per GPU #!
+metadata:
+  name: gpu-node-1-gpu.nvidia.com-x8k2p
+spec:
+  driver: gpu.nvidia.com
+  nodeName: gpu-node-1
+  pool: {name: gpu-node-1, generation: 1, resourceSliceCount: 1}
+  devices:
+  - name: gpu-0
+    attributes:
+      type: {string: gpu}
+      productName: {string: NVIDIA A100-SXM4-80GB}
+      architecture: {string: Ampere}
+    capacity:
+      memory: {value: 80Gi}
+---
+# DRA, part 2: what you write
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate          # a recipe: class + CEL rule #!
+metadata:
+  name: gpu-40gb-plus
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.nvidia.com      # which class to ask for
+          selectors:
+          - cel:                               # the rule that narrows it down #!
+              expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
+---
+# DRA, part 3: what Kubernetes makes for each pod, shown after scheduling
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaim                  # one real request #!
+metadata:
+  name: inference-dra-gpu-x7k2p      # generated name
+# spec: copied from the template above
+status:
+  allocation:
+    devices:
+      results:
+      - request: gpu
+        driver: gpu.nvidia.com
+        pool: gpu-node-1
+        device: gpu-0                # the scheduler's pick, written into the claim #!
+```
+
+- **DeviceClass answers "what kind of thing?"** `gpu.nvidia.com` means "an NVIDIA GPU". A class is itself a CEL rule: NVIDIA's says "the driver is `gpu.nvidia.com` and the device type is `gpu`", which is how the class keeps only GPUs. Your claim's own rule then narrows that further. The NVIDIA driver also creates `mig.nvidia.com` for MIG slices. You usually don't write a class; you pick one. `kubectl get deviceclass` lists what your cluster has.
 - **CEL answers "which ones exactly?"** The scheduler runs your rule against every device in the class and keeps only those where it comes out true. Three rules, from simple to combined:
   - `device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0` reads "memory is at least 40Gi". `quantity("40Gi")` turns the text into an amount Kubernetes can compare, and `compareTo(...) >= 0` means "greater than or equal".
   - `device.attributes["gpu.nvidia.com"].architecture == "Hopper"` reads "the architecture is Hopper". Attributes are descriptive facts such as the product name or architecture; capacity holds amounts such as memory.
@@ -550,10 +638,155 @@ spec:
 
 ![CEL is a filter: one node, three rules](diagrams/extra/dra-cel-filter.svg)
 
+The same three rules as YAML. The ResourceSlice is what the driver publishes for the mixed server in the picture (trimmed, with illustrative values); each ResourceClaimTemplate holds one rule. Note the two layers of CEL: the DeviceClass (`gpu.nvidia.com`) first keeps only GPUs, then your rule keeps only the big or Hopper ones.
+
+```yaml
+apiVersion: resource.k8s.io/v1
+kind: ResourceSlice
+metadata:
+  name: gpu-node-1-gpu.nvidia.com-x8k2p
+spec:
+  driver: gpu.nvidia.com
+  nodeName: gpu-node-1
+  pool: {name: gpu-node-1, generation: 1, resourceSliceCount: 1}
+  devices:                           # the five entries the rules run over
+  - name: gpu-0
+    attributes: {type: {string: gpu}, productName: {string: Tesla T4}, architecture: {string: Turing}}
+    capacity: {memory: {value: 16Gi}}
+  - name: gpu-1
+    attributes: {type: {string: gpu}, productName: {string: NVIDIA A10G}, architecture: {string: Ampere}}
+    capacity: {memory: {value: 24Gi}}
+  - name: gpu-2
+    attributes: {type: {string: gpu}, productName: {string: NVIDIA A100-SXM4-40GB}, architecture: {string: Ampere}}
+    capacity: {memory: {value: 40Gi}}
+  - name: gpu-3
+    attributes: {type: {string: gpu}, productName: {string: NVIDIA A100-SXM4-80GB}, architecture: {string: Ampere}}
+    capacity: {memory: {value: 80Gi}}
+  - name: gpu-4
+    attributes: {type: {string: gpu}, productName: {string: NVIDIA H100 80GB HBM3}, architecture: {string: Hopper}}
+    capacity: {memory: {value: 80Gi}}
+---
+# Rule 1: memory is at least 40Gi  -> matches gpu-2, gpu-3, gpu-4
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: rule-1-memory
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.nvidia.com
+          selectors:
+          - cel:
+              expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
+---
+# Rule 2: architecture is Hopper  -> matches gpu-4
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: rule-2-hopper
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.nvidia.com
+          selectors:
+          - cel:
+              expression: device.attributes["gpu.nvidia.com"].architecture == "Hopper" #!
+---
+# Rule 3: both, joined with &&  -> matches gpu-4
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: rule-3-both
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.nvidia.com
+          selectors:
+          - cel:
+              expression: |-
+                device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 &&
+                device.attributes["gpu.nvidia.com"].architecture == "Hopper" #!
+```
+
 - **The names in a rule come from the driver.** To see what you can filter on, read the ResourceSlices: `kubectl get resourceslices -o yaml` shows each device's attributes and capacity.
 - **Why a template and not a claim?** A claim you write by hand is one request that several pods can share, and it outlives any pod. A template gives every pod its own claim, made when the pod starts and removed with it. Ten replicas then get ten separate GPUs instead of sharing one.
 
 ![Template or claim: who gets which GPU](diagrams/extra/dra-template-vs-claim.svg)
+
+The same two cases as YAML. Left: one claim you write, and three pods that name it. Right: one template, and three pods that name it. The only line that differs in the pods is the one that names the claim or the template.
+
+```yaml
+# A. A ResourceClaim you write by hand: all three pods share it
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaim                  # one request, written by you #!
+metadata:
+  name: shared-gpu
+spec:
+  devices:
+    requests:
+    - name: gpu
+      exactly:
+        deviceClassName: gpu.nvidia.com
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notebooks-shared
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: notebooks-shared}
+  template:
+    metadata:
+      labels: {app: notebooks-shared}
+    spec:
+      resourceClaims:
+      - name: gpu
+        resourceClaimName: shared-gpu          # all 3 pods name the same claim #!
+      containers:
+      - name: jupyter
+        image: jupyter/base-notebook:latest
+        resources:
+          claims:
+          - name: gpu
+```
+
+```yaml
+# B. A ResourceClaimTemplate: every pod gets its own claim
+# (the gpu-40gb-plus template is the one written earlier in this section)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notebooks-own-gpu
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: notebooks-own-gpu}
+  template:
+    metadata:
+      labels: {app: notebooks-own-gpu}
+    spec:
+      resourceClaims:
+      - name: gpu
+        resourceClaimTemplateName: gpu-40gb-plus   # Kubernetes makes one claim per pod #!
+      containers:
+      - name: jupyter
+        image: jupyter/base-notebook:latest
+        resources:
+          claims:
+          - name: gpu
+```
+
+**Check (claims):** `kubectl get resourceclaims`. With A you see one claim, `shared-gpu`, and it stays after the pods are deleted. With B you see three claims with generated names, one per pod, and each disappears with its pod. In A the single device sits in one node, so all three pods run on that node.
 
 How they fit: the driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices.
 
