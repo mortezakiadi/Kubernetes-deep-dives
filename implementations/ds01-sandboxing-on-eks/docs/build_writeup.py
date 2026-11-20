@@ -8,6 +8,7 @@ Copies   screenshots to <repo-root>/diagrams/appendix/a02-evidence/ and the diag
 Every command, output and check result in section 5 comes from the evidence files.
 """
 import json
+import re
 import pathlib
 import shutil
 import subprocess
@@ -77,6 +78,22 @@ def scenario_section(ev: dict) -> str:
     return "\n".join(out)
 
 
+def check_excerpts(text: str, base: pathlib.Path, where: str) -> int:
+    """Every fenced block whose first line is "# from <path>" must be made of lines that exist, exactly, in that file.
+    A line "# ..." marks something left out. This keeps the code shown on the page equal to the code that ran."""
+    checked = 0
+    for m in re.finditer(r"```\w*\n# from (\S+)\n(.*?)```", text, re.S):
+        src = base / m.group(1)
+        if not src.exists():
+            raise SystemExit(f"{where}: excerpt names a file that does not exist: {m.group(1)}")
+        have = {line.rstrip() for line in src.read_text().splitlines()}
+        for line in m.group(2).splitlines():
+            if not line.strip() or line.strip() == "# ...":
+                continue
+            if line.rstrip() not in have:
+                raise SystemExit(f"{where}: this line is not in {m.group(1)}:\n  {line}")
+        checked += 1
+    return checked
 def main():
     evidence = pathlib.Path(sys.argv[1])
     repo = pathlib.Path(sys.argv[2])
@@ -93,6 +110,8 @@ def main():
     tail = (HERE / "writeup_tail.md").read_text()
     # The Envoy configuration in section 9 comes straight from the tested file, so the page cannot drift from it.
     tail = tail.replace("{{ENVOY_CONFIG}}", (HERE.parent / "alternatives" / "envoy-egress" / "envoy.yaml").read_text().rstrip())
+    n_checked = check_excerpts(head, HERE.parent, "writeup_head.md") + check_excerpts(tail, HERE.parent, "writeup_tail.md")
+    print(f"{n_checked} code excerpts match their source files")
     passed = sum(1 for e in evs if e["passed"])
     total_checks = sum(len(e["checks"]) for e in evs)
     passed_checks = sum(1 for e in evs for c in e["checks"] if c["passed"])

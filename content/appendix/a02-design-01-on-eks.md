@@ -165,6 +165,390 @@ In total I wrote about 1,150 lines of Python for the services, 870 lines of Kube
 - **Auto Mode does the undifferentiated work.** It provisions and patches the nodes, runs the network plugin and DNS, and removes empty nodes. My `NodePool` only says which nodes are allowed.
 - **Cost.** The standing costs are the EKS control plane, the nodes, the NAT gateway and a few volumes. The whole stack exists for hours, not days, and `down.sh` removes it.
 
+### Defence in depth: where each control lives, and who provides it
+
+**Scenario.** The address plan is the first control, and only the first. Between the agent's script and the outside world there are controls at the network, identity, host, kernel and application levels, and no single one is trusted. This section shows where each control sits, who provides it (AWS, Kubernetes or my design), the manifests and code that enforce it, and the scenario in section 5 that tests it.
+
+![Defence in depth: six rings between untrusted code and the outside, and who provides each control](diagrams/appendix/a02-10.svg)
+
+**What the picture shows.** Six rings, from the AWS account on the outside to the process in the middle. Each line is one control, and the label after it says who provides it. **AWS** means an AWS service or built-in behaviour that I rely on. **K8s** means a Kubernetes feature that I configured. **Ours** means a choice I made in the design or code I wrote. Most controls have two labels, because AWS or Kubernetes supplies the mechanism and the design supplies the rule. The panel on the right holds the controls that sit on the one way out, at the application level, and the gaps this build leaves open.
+
+**Which layer, who provides it, and where it is tested.**
+
+| # | Layer | Control | Provided by | Tested in |
+|---|---|---|---|---|
+| 1 | VPC and subnets (network) | Sandbox blocks apart from platform blocks, no public IP on nodes, one NAT gateway for outbound traffic | AWS: VPC, subnets, route tables, NAT. Ours: the split and the tags | S01 |
+| 2 | Security groups (network) | Sandbox nodes in their own group, which admits only the cluster group | AWS: security groups. Ours: the group and its two rules | S01 |
+| 3 | Cluster API access (identity) | Public endpoint limited to the admin address, private endpoint inside the VPC, API-only authentication | AWS: EKS. Ours: the settings | S01 |
+| 4 | IAM (identity) | Separate cluster, platform-node and sandbox-node roles with managed minimal policies. No AWS identity for the sandbox service account | AWS: IAM. Ours: the roles | S01, S05 |
+| 5 | The sandbox node (host) | Own node pool and node class, a taint, only empty nodes removed. IMDSv2 required with a hop limit of 1 | Ours: pool, class, taint. AWS: the metadata setting (Auto Mode) | S01 |
+| 6 | Admission (policy) | Pod Security `restricted` on every namespace, a quota and limits on the sandbox namespace | Kubernetes. Ours: the settings | S03, S10 |
+| 7 | Kubernetes RBAC (identity) | Small roles for the Manager and Router, none for the sandbox. No service-account token in any pod except those two | Kubernetes. Ours: the roles | S03 |
+| 8 | Pod network (network) | Default deny. A sandbox may reach only the gateway on port 3128, with no DNS. Only the router may reach a sandbox. Every platform service names its callers | Kubernetes: the policy API. AWS: the agent that enforces it in Auto Mode. Ours: the policies | S05 |
+| 9 | Domain ceiling (network, by name) | The gateway pods may reach three domain names on port 443 and nothing else | AWS: Auto Mode's domain-name network policy. Ours: the list | S06 |
+| 10 | The microVM (kernel) | Own kernel per pod. The metadata address returns placement data only | AWS: Nitro Sandboxes. Ours: naming the runtime class in each template | S02, S05 |
+| 11 | The process (host) | Non-root, read-only root, no capabilities, default seccomp profile, no service links | Kubernetes. Ours: the settings | S03 |
+| 12 | Gateway policy (application) | Per-session allowlist, rate limit of 120 a minute, byte budget of 50 MiB, TLS ended for one host only | Ours: code on mitmproxy | S06, S07 |
+| 13 | Credentials and tokens (application) | A placeholder in the sandbox, signed credentials of 15 minutes at most, a signed session token, per-agent tools, approvals, 20 calls a minute, revocation when the session ends | Ours: code | S07, S08 |
+| 14 | Audit (application) | One log line per event with the session ID, and secret-looking fields redacted. Control-plane logs in CloudWatch | Ours: code. AWS: the control-plane log service | S11 |
+
+The layers do four different jobs. Layers 1 to 3, 8 and 9 decide **who can connect**. Layers 4, 7 and 13 decide **who they are once connected**. Layers 5, 10 and 11 decide **what a compromised process can do** if everything else fails. Layers 12 to 14 decide **what is allowed on the one path that is left**, and keep a record of it.
+
+![Who may call whom, and what enforces each allowed path](diagrams/appendix/a02-11.svg)
+
+**What the picture shows.** Every pair of components, with the rule that admits the call. A green cell is a path that exists, and it names the port or the role that admits it. A grey cell is refused, because the called service has an ingress policy that does not name the caller. The Kubernetes API column is controlled by roles, and by the absence of a token in most pods. The amber cells are the honest part. Only the gateway pods and the sandboxes have an egress network policy, so the other platform pods can reach the internet through the NAT gateway. What holds them back is that nothing they run calls out, and that they hold no credential worth stealing. Egress policies for them are a hardening step that this build does not take.
+
+**The manifests and code that enforce it.** Each block below is copied from the file named on its first line, and the build fails if a line of a block is not in that file. Lines that I left out are marked with `# ...`.
+
+**Layers 1 and 2: the sandbox blocks and the sandbox security group.**
+
+```hcl
+# from terraform/10-cluster/network.tf
+resource "aws_subnet" "sandbox" {
+  count             = length(var.azs)
+  vpc_id            = aws_vpc.this.id
+  availability_zone = var.azs[count.index]
+  cidr_block        = cidrsubnet(var.vpc_cidr, 4, 4 + count.index) # 10.20.64.0/20, 10.20.80.0/20
+  tags = {
+    Name        = "${var.project}-sandbox-${var.azs[count.index]}"
+    "ds01/tier" = "sandbox"
+  }
+}
+# ...
+resource "aws_security_group" "sandbox_nodes" {
+  name        = "${var.project}-sandbox-nodes"
+  description = "Nodes that run untrusted sandboxes"
+  vpc_id      = aws_vpc.this.id
+  tags = {
+    Name        = "${var.project}-sandbox-nodes"
+    "ds01/tier" = "sandbox"
+  }
+}
+# ...
+resource "aws_vpc_security_group_ingress_rule" "sandbox_from_cluster" {
+  security_group_id            = aws_security_group.sandbox_nodes.id
+  referenced_security_group_id = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+  ip_protocol                  = "-1"
+  description                  = "Control plane and platform pods to sandbox nodes"
+}
+# ...
+resource "aws_vpc_security_group_ingress_rule" "cluster_from_sandbox" {
+  security_group_id            = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+  referenced_security_group_id = aws_security_group.sandbox_nodes.id
+  ip_protocol                  = "-1"
+  description                  = "Sandbox nodes to control plane and the egress gateway"
+}
+```
+
+**Layers 3 and 4: access to the cluster, and the sandbox node role.**
+
+```hcl
+# from terraform/10-cluster/eks.tf
+  access_config {
+    authentication_mode                         = "API"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
+# ...
+  vpc_config {
+    # Platform pods (controller, gateways) go in the system subnets. The sandbox
+    # subnets are reached through a dedicated NodeClass, not through this list.
+    subnet_ids              = aws_subnet.system[*].id
+    endpoint_private_access = true
+    endpoint_public_access  = true
+    public_access_cidrs     = [var.admin_cidr]
+  }
+# ...
+  enabled_cluster_log_types = ["api", "audit", "authenticator"]
+# ...
+resource "aws_iam_role_policy_attachment" "sandbox_node" {
+  for_each = toset([
+    "AmazonEKSWorkerNodeMinimalPolicy",
+    "AmazonEC2ContainerRegistryPullOnly",
+  ])
+  role       = aws_iam_role.sandbox_node.name
+  policy_arn = "arn:aws:iam::aws:policy/${each.key}"
+}
+```
+
+**Layer 5: the sandbox node.** The node class picks the sandbox blocks by tag, and the sandbox security group. The taint keeps every other pod off.
+
+```yaml
+# from k8s/10-sandbox-nodes.yaml
+apiVersion: eks.amazonaws.com/v1
+kind: NodeClass
+metadata:
+  name: sandbox
+spec:
+  role: ${node_role}
+  subnetSelectorTerms:
+    - tags:
+        ds01/tier: sandbox
+  securityGroupSelectorTerms:
+    - id: ${sandbox_sg}
+  ephemeralStorage:
+    size: 40Gi
+  advancedNetworking:
+    associatePublicIPAddress: false
+---
+apiVersion: karpenter.sh/v1
+# ...
+      # Nothing else tolerates this taint, so only sandbox pods can land here.
+      taints:
+        - key: workload
+          value: sandbox
+          effect: NoSchedule
+# ...
+  disruption:
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: 10m
+```
+
+**Layer 6: admission and limits.**
+
+```yaml
+# from k8s/00-namespaces.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sandboxes
+  labels:
+    ds01/zone: untrusted
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+```
+
+```yaml
+# from k8s/20-sandboxes.yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: sandboxes-quota
+  namespace: sandboxes
+spec:
+  hard:
+    pods: "30"
+    requests.cpu: "24"
+    requests.memory: 48Gi
+```
+
+**Layers 10 and 11: the microVM and the process.** The template asks for the isolated runtime class and drops everything a process could use.
+
+```yaml
+# from k8s/20-sandboxes.yaml
+      runtimeClassName: isolated-sandbox      # Tier 2: one microVM per pod
+      serviceAccountName: sandbox-nobody
+      automountServiceAccountToken: false     # no Kubernetes credentials inside
+      enableServiceLinks: false
+      tolerations:
+        - { key: workload, operator: Equal, value: sandbox, effect: NoSchedule }
+      nodeSelector:
+        workload: sandbox
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+# ...
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+```
+
+**Layer 7: RBAC.** The Manager may create and read claims and read pods. That is all.
+
+```yaml
+# from k8s/40-platform.yaml
+# The Manager's whole Kubernetes permission: create and read claims, and read pods. Nothing else.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: { name: sandbox-manager, namespace: sandboxes }
+rules:
+  - apiGroups: ["extensions.agents.x-k8s.io"]
+    resources: ["sandboxclaims"]
+    verbs: ["create", "get", "list", "watch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: { name: sandbox-manager, namespace: sandboxes }
+subjects: [{ kind: ServiceAccount, name: sandbox-manager, namespace: sandbox-platform }]
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: sandbox-manager }
+```
+
+**Layer 8: the pod network.** The namespace denies everything. The template then admits exactly one way out and one way in. EKS Auto Mode ships with network-policy enforcement off, and one setting turns it on.
+
+```yaml
+# from k8s/20-sandboxes.yaml
+# Namespace-wide default deny. Anything in this namespace that no template policy admits is isolated.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: sandboxes
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+# ...
+  networkPolicy:
+    ingress:
+      - from:
+          - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-router } }
+            podSelector: { matchLabels: { app: sandbox-router } }
+        ports:
+          - { protocol: TCP, port: 8080 }   # sandboxd files
+          - { protocol: TCP, port: 9090 }   # sandboxd commands
+    egress:
+      # The one way out. No DNS rule: the proxy resolves names, so a sandbox cannot even look one up.
+      - to:
+          - ipBlock: { cidr: ${gateway_ip}/32 }
+        ports:
+          - { protocol: TCP, port: 3128 }
+```
+
+```hcl
+# from terraform/20-platform/manifests.tf
+resource "kubernetes_config_map_v1" "network_policy" {
+  metadata {
+    name      = "amazon-vpc-cni"
+    namespace = "kube-system"
+  }
+  data = { "enable-network-policy-controller" = "true" }
+}
+```
+
+Every platform service also says who may call it, for example:
+
+```yaml
+# from k8s/40-platform.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: sandbox-manager-ingress, namespace: sandbox-platform }
+spec:
+  podSelector: { matchLabels: { app: sandbox-manager } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: agent-orchestrator } }
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-egress } }
+          podSelector: { matchLabels: { app: egress-gateway } }
+        - podSelector: { matchLabels: { app: tool-gateway } }
+      ports: [{ protocol: TCP, port: 8000 }]
+# ...
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: sandbox-router-ingress, namespace: sandbox-router }
+spec:
+  podSelector: { matchLabels: { app: sandbox-router } }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: agent-orchestrator } }
+      ports: [{ protocol: TCP, port: 8004 }]
+```
+
+**Layer 9: the domain ceiling.** Even if a session's allowlist is wrong, the gateway pods cannot reach a name outside this list.
+
+```yaml
+# from k8s/30-egress.yaml
+apiVersion: networking.k8s.aws/v1alpha1
+kind: ApplicationNetworkPolicy
+metadata: { name: egress-gateway-ceiling, namespace: sandbox-egress }
+spec:
+  podSelector: { matchLabels: { app: egress-gateway } }
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock: { cidr: 0.0.0.0/0 }
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    - to:
+        - domainNames:
+            - pypi.org
+            - files.pythonhosted.org
+            - example.com
+      ports: [{ protocol: TCP, port: 443 }]
+```
+
+**Layer 12: the gateway's policy.** The allowlist, the rate limit and the byte budget are checked on every tunnel, and the decision is logged.
+
+```python
+# from platform/ds01/gateway_addon.py
+RATE_PER_MIN = int(os.environ.get("RATE_LIMIT_PER_MIN", "120"))
+BYTE_BUDGET = int(os.environ.get("SESSION_BYTE_BUDGET", str(50 * 1024 * 1024)))
+# ...
+def host_allowed(host: str, allow: list[str]) -> bool:
+    host = host.lower().rstrip(".")
+    for entry in allow:
+        if host == entry or (entry.startswith("*.") and host.endswith(entry[1:])):
+            return True
+    return False
+# ...
+    def http_connect(self, flow: http.HTTPFlow):
+        ip, host = flow.client_conn.peername[0], flow.request.host.lower()
+        s = self.session(ip)
+        if not s:
+            return self._deny(flow, 403, "source is not a known sandbox", None, host)
+        sid = s["session_id"]
+        if not host_allowed(host, s["allow_hosts"]):
+            return self._deny(flow, 403, f"{host} is not on this session's allowlist", sid, host)
+        if self.over_rate(sid):
+            return self._deny(flow, 429, "request rate limit for this session", sid, host)
+        if self._bytes[sid] > BYTE_BUDGET:
+            return self._deny(flow, 429, "byte budget for this session is used up", sid, host)
+        mode = "terminate" if host in s["inject"] else "passthrough"
+        audit(COMPONENT, "egress.allow", session_id=sid, tenant=s["tenant"], host=host, port=flow.request.port, tls_mode=mode,
+              source=ip)
+```
+
+**Layer 13: credentials and tools.** The broker caps the lifetime of every credential. The tool gateway keeps a table of which agent may call which tool and how risky each tool is.
+
+```python
+# from platform/ds01/broker.py
+AUDIENCES = {"metrics-api": 900, "tool-gateway-backend": 900}
+# ...
+            ttl = min(int(body.get("ttl_seconds", 900)), AUDIENCES[aud])
+            token = mint(broker_key, {"aud": aud, "sub": session, "tenant": tenant, "scope": "read"}, ttl)
+```
+
+```python
+# from platform/ds01/tool_gateway.py
+RATE_PER_MIN = 20
+# ...
+TOOLS = {
+    "metrics.query": {"risk": "read", "agents": {"data-analyst", "coding"},
+                      "description": "Read a metric series from the company metrics API."},
+    "ticket.create": {"risk": "high", "agents": {"data-analyst"},
+                      "description": "Create a ticket. Needs a human approval each time."},
+    "project.delete": {"risk": "forbidden", "agents": set(),
+                       "description": "Delete a project. Never available to an agent."},
+}
+```
+
+**Layer 14: audit.** Every service writes through one function, which redacts any field that looks like a secret.
+
+```python
+# from platform/ds01/common.py
+_SECRET_NAME = re.compile(r"(token|secret|password|authorization|api[_-]?key|credential)", re.I)
+_SAFE_SUFFIX = ("_id", "_sha256", "_len")
+# ...
+def audit(component: str, event: str, **fields) -> None:
+    rec = {
+        "ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
+        "component": component,
+        "event": event,
+    }
+    for key, value in fields.items():
+        if _SECRET_NAME.search(key) and not key.endswith(_SAFE_SUFFIX):
+            value = "[redacted]"
+        rec[key] = value
+    print(json.dumps(rec, separators=(",", ":"), default=str), flush=True)
+```
+
 ### 3. Architecture
 
 **Scenario.** A new engineer joins and asks: "If an agent's code is hostile, what stops it, and how does it still get its work done?" This section answers with one picture and the life of one session.

@@ -1,0 +1,209 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="720px" viewBox="0 0 1420 720" style="background:#ffffff"><title>Who may call whom, and what enforces each allowed path</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="720" fill="#ffffff"/><text x="20" y="30" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">Rows call, columns are called. Green: allowed, with the port or rule that admits it. Grey: refused. Amber: not restricted in this build.</text>
+<rect x="200" y="60" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="266.5" y="84" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Manager</text>
+<rect x="333" y="60" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="399.5" y="84" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Router</text>
+<rect x="466" y="60" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="532.5" y="84" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Tool gateway</text>
+<rect x="599" y="60" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="665.5" y="84" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Egress gateway</text>
+<rect x="732" y="60" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="798.5" y="77" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Credential</text>
+<text x="798.5" y="92" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">broker</text>
+<rect x="865" y="60" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="931.5" y="84" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Metrics API</text>
+<rect x="998" y="60" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1064.5" y="84" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Sandbox</text>
+<rect x="1131" y="60" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1197.5" y="84" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Kubernetes API</text>
+<rect x="1264" y="60" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1330.5" y="84" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Internet</text>
+<rect x="20" y="114" width="180" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="145.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Orchestrator</text>
+<rect x="200" y="114" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="266.5" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8000</text>
+<rect x="333" y="114" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="399.5" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8004</text>
+<rect x="466" y="114" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="532.5" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8003</text>
+<rect x="599" y="114" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="665.5" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="732" y="114" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="798.5" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="865" y="114" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="931.5" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="998" y="114" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1064.5" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="1131" y="114" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1197.5" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">no token mounted</text>
+<rect x="1264" y="114" width="133" height="54" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="1330.5" y="145.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#92400e">no egress policy</text>
+<rect x="20" y="168" width="180" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="199.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Router</text>
+<rect x="200" y="168" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="266.5" y="199.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="333" y="168" width="133" height="54" fill="#e2e8f0" stroke="#cbd5e1"/>
+<text x="399.5" y="199.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">same service</text>
+<rect x="466" y="168" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="532.5" y="199.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="599" y="168" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="665.5" y="199.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="732" y="168" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="798.5" y="199.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="865" y="168" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="931.5" y="199.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="998" y="168" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="1064.5" y="199.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">8080, 9090</text>
+<rect x="1131" y="168" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="1197.5" y="192.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">RBAC role:</text>
+<text x="1197.5" y="207.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">claims, pods, exec</text>
+<rect x="1264" y="168" width="133" height="54" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="1330.5" y="199.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#92400e">no egress policy</text>
+<rect x="20" y="222" width="180" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="253.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Manager</text>
+<rect x="200" y="222" width="133" height="54" fill="#e2e8f0" stroke="#cbd5e1"/>
+<text x="266.5" y="253.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">same service</text>
+<rect x="333" y="222" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="399.5" y="253.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="466" y="222" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="532.5" y="253.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="599" y="222" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="665.5" y="253.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="732" y="222" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="798.5" y="253.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="865" y="222" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="931.5" y="253.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="998" y="222" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1064.5" y="253.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="1131" y="222" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="1197.5" y="246.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">RBAC role:</text>
+<text x="1197.5" y="261.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">claims, pods</text>
+<rect x="1264" y="222" width="133" height="54" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="1330.5" y="253.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#92400e">no egress policy</text>
+<rect x="20" y="276" width="180" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="307.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Tool gateway</text>
+<rect x="200" y="276" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="266.5" y="307.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8000</text>
+<rect x="333" y="276" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="399.5" y="307.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="466" y="276" width="133" height="54" fill="#e2e8f0" stroke="#cbd5e1"/>
+<text x="532.5" y="307.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">same service</text>
+<rect x="599" y="276" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="665.5" y="307.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="732" y="276" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="798.5" y="307.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8001</text>
+<rect x="865" y="276" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="931.5" y="307.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8443</text>
+<rect x="998" y="276" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1064.5" y="307.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="1131" y="276" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1197.5" y="307.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">no token mounted</text>
+<rect x="1264" y="276" width="133" height="54" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="1330.5" y="307.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#92400e">no egress policy</text>
+<rect x="20" y="330" width="180" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="361.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Egress gateway</text>
+<rect x="200" y="330" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="266.5" y="361.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8000</text>
+<rect x="333" y="330" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="399.5" y="361.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="466" y="330" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="532.5" y="361.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8003</text>
+<rect x="599" y="330" width="133" height="54" fill="#e2e8f0" stroke="#cbd5e1"/>
+<text x="665.5" y="361.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">same service</text>
+<rect x="732" y="330" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="798.5" y="361.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8001</text>
+<rect x="865" y="330" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="931.5" y="361.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 8443</text>
+<rect x="998" y="330" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1064.5" y="361.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="1131" y="330" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1197.5" y="361.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">no token mounted</text>
+<rect x="1264" y="330" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="1330.5" y="361.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">443, 3 domains</text>
+<rect x="20" y="384" width="180" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="415.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Credential broker</text>
+<rect x="200" y="384" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="266.5" y="415.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="333" y="384" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="399.5" y="415.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="466" y="384" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="532.5" y="415.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="599" y="384" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="665.5" y="415.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="732" y="384" width="133" height="54" fill="#e2e8f0" stroke="#cbd5e1"/>
+<text x="798.5" y="415.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">same service</text>
+<rect x="865" y="384" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="931.5" y="415.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="998" y="384" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1064.5" y="415.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="1131" y="384" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1197.5" y="415.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">no token mounted</text>
+<rect x="1264" y="384" width="133" height="54" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="1330.5" y="415.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#92400e">no egress policy</text>
+<rect x="20" y="438" width="180" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="469.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Metrics API</text>
+<rect x="200" y="438" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="266.5" y="469.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="333" y="438" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="399.5" y="469.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="466" y="438" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="532.5" y="469.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="599" y="438" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="665.5" y="469.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="732" y="438" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="798.5" y="469.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="865" y="438" width="133" height="54" fill="#e2e8f0" stroke="#cbd5e1"/>
+<text x="931.5" y="469.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">same service</text>
+<rect x="998" y="438" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1064.5" y="469.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="1131" y="438" width="133" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="1197.5" y="469.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">no token mounted</text>
+<rect x="1264" y="438" width="133" height="54" fill="#fef3c7" stroke="#cbd5e1"/>
+<text x="1330.5" y="469.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#92400e">no egress policy</text>
+<rect x="20" y="492" width="180" height="54" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="523.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">Sandbox</text>
+<rect x="200" y="492" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="266.5" y="523.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="333" y="492" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="399.5" y="523.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="466" y="492" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="532.5" y="523.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="599" y="492" width="133" height="54" fill="#d1fae5" stroke="#cbd5e1"/>
+<text x="665.5" y="523.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">port 3128 only</text>
+<rect x="732" y="492" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="798.5" y="523.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="865" y="492" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="931.5" y="523.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="998" y="492" width="133" height="54" fill="#e2e8f0" stroke="#cbd5e1"/>
+<text x="1064.5" y="523.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748b">same service</text>
+<rect x="1131" y="492" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1197.5" y="523.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="1264" y="492" width="133" height="54" fill="#f8fafc" stroke="#cbd5e1"/>
+<text x="1330.5" y="523.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#94a3b8">refused</text>
+<rect x="20" y="570" width="450" height="130" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="20" y="570" width="450" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="21" y="588" width="448" height="12" fill="#eff6ff"/>
+<text x="32" y="590" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">What admits a green cell</text>
+<text x="32" y="618" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Between services: an ingress network policy on the</text>
+<text x="32" y="635" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">called service, naming the caller and the port.</text>
+<text x="32" y="652" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Into the sandbox: only the router, on 8080 and 9090.</text>
+<text x="32" y="669" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Out of the sandbox: only the gateway, on 3128.</text>
+<text x="32" y="686" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">To the Kubernetes API: a small RBAC role.</text>
+<rect x="490" y="570" width="450" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="490" y="570" width="450" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="491" y="588" width="448" height="12" fill="#f8fafc"/>
+<text x="502" y="590" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">What the grey cells rely on</text>
+<text x="502" y="618" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Every called service has an ingress policy, so a</text>
+<text x="502" y="635" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">caller that is not named is refused.</text>
+<text x="502" y="652" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Pods with no service-account token cannot use the</text>
+<text x="502" y="669" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Kubernetes API, though nothing blocks the connection.</text>
+<text x="502" y="686" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">A sandbox has no route to anything else.</text>
+<rect x="960" y="570" width="440" height="130" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="960" y="570" width="440" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="961" y="588" width="438" height="12" fill="#fffbeb"/>
+<text x="972" y="590" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">What the amber cells mean</text>
+<text x="972" y="618" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Only the gateway pods and the sandboxes have an</text>
+<text x="972" y="635" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">egress network policy. Other platform pods are</text>
+<text x="972" y="652" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">limited by what they are written to call, and by</text>
+<text x="972" y="669" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the absence of credentials, not by a network rule.</text>
+<text x="972" y="686" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Adding egress policies is a hardening step.</text></svg>

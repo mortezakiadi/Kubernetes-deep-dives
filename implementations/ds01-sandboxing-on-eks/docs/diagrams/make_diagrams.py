@@ -370,11 +370,137 @@ def address_plan():
     ny = top + head_h + len(rows) * row_h + 24
     s.box(20, ny, 1380, 80, "Why two kinds of block", ["The split is what lets the sandbox pool have its own placement, security group and role, so the sandbox node class can only place nodes in the sandbox blocks, never among the platform services.", "It also gives VPC-level rules a range they can target on its own. This build adds none of those rules yet: both private kinds share one route table."], AMBER)
     return s.render()
+CHIPS = {"AWS": ("#fff7ed", "#d97706", "#92400e"), "K8s": ("#eff6ff", "#2563eb", "#1e40af"), "Ours": ("#ecfdf5", "#059669", "#065f46")}
+def chip(s, x, y, kind):
+    fill, stroke, ink = CHIPS[kind]
+    w = 14 + len(kind) * 6.6
+    s.parts.append(f'<rect x="{x}" y="{y - 12}" width="{w}" height="16" rx="8" fill="{fill}" stroke="{stroke}" stroke-width="1.2"/>')
+    s.text(x + w / 2, y, kind, 10.5, ink, "700", "middle")
+    return w
+def chip_line(s, x, y, text, kinds, size=12):
+    s.text(x, y, text, size, INK)
+    cx = x + len(text) * 5.85 + 10
+    for k in kinds:
+        cx += chip(s, cx, y, k) + 5
+def defence_in_depth():
+    """Figure: seven rings between untrusted code and the outside, with who provides each control."""
+    rings = [
+        ("1  AWS account and VPC (network level)", [
+            ("Sandbox, platform and public blocks; sandbox nodes sit in their own security group", ["AWS", "Ours"]),
+            ("That group admits only the cluster group, and the cluster group admits it back", ["AWS", "Ours"]),
+            ("No public IP on any node; one shared route table sends outbound traffic to the NAT gateway", ["AWS", "Ours"])]),
+        ("2  Access to the cluster and to AWS (identity level)", [
+            ("API endpoint open only to the admin address; API-only authentication", ["AWS", "Ours"]),
+            ("Cluster, platform-node and sandbox-node IAM roles with managed minimal policies, no inline ones", ["AWS", "Ours"]),
+            ("Control-plane audit and authenticator logs go to CloudWatch for 7 days", ["AWS", "Ours"])]),
+        ("3  The sandbox node (host level)", [
+            ("Own node pool, node class, subnets, security group and role; a taint keeps every other pod off", ["Ours"]),
+            ("Metadata service needs IMDSv2 with a hop limit of 1", ["AWS"])]),
+        ("4  Kubernetes policy (admission, identity and pod-network level)", [
+            ("Pod Security 'restricted' on every namespace; quota and limits on the sandbox namespace", ["K8s", "Ours"]),
+            ("Minimal RBAC for the Manager and Router; the sandbox service account has no role", ["K8s", "Ours"]),
+            ("Default-deny network policy: a sandbox reaches only the gateway on port 3128, only the router reaches it", ["K8s", "Ours"]),
+            ("The cluster's network-policy agent enforces it (EKS Auto Mode ships it switched off; we turn it on)", ["AWS", "Ours"]),
+            ("Gateway pods can reach three internet domain names and nothing else (a domain-name policy)", ["AWS", "Ours"])]),
+        ("5  The microVM (kernel level)", [
+            ("One microVM with its own kernel per pod (Nitro Sandboxes); its metadata address gives placement data only", ["AWS"]),
+            ("Every template names the isolated runtime class", ["Ours"])]),
+        ("6  The process (application level, inside)", [
+            ("Non-root, read-only root, no capabilities, default seccomp, no service-account token", ["K8s", "Ours"]),
+            ("The environment holds a placeholder, never a secret", ["Ours"])]),
+    ]
+    step_x, pad = 28, 14
+    head = [22 + len(lines) * 17 + 12 for _, lines in rings]
+    tops, y = [], 20
+    for h in head:
+        tops.append(y); y += h
+    inner_h = 52
+    bottoms = [0] * len(rings)
+    last_bottom = tops[-1] + head[-1] + inner_h + pad
+    for i in reversed(range(len(rings))):
+        bottoms[i] = last_bottom if i == len(rings) - 1 else bottoms[i + 1] + pad
+    H = bottoms[0] + 20
+    s = Svg(1420, H, "Defence in depth: six rings between untrusted code and the outside, and who provides each control")
+    fills = ["#f8fafc", "#f1f5f9", "#f8fafc", "#f1f5f9", "#f8fafc", "#fef2f2"]
+    for i, (title, lines) in enumerate(rings):
+        x, w = 20 + step_x * i, 1000 - 2 * step_x * i
+        s.parts.append(f'<rect x="{x}" y="{tops[i]}" width="{w}" height="{bottoms[i] - tops[i]}" rx="14" fill="{fills[i]}" stroke="{"#dc2626" if i == 5 else "#94a3b8"}" stroke-width="1.5"/>')
+        s.text(x + 14, tops[i] + 20, title, 13, "#991b1b" if i == 5 else INK, "700")
+        for j, (t, kinds) in enumerate(lines):
+            chip_line(s, x + 14, tops[i] + 40 + j * 17, t, kinds)
+    xi = 20 + step_x * 5 + 40
+    s.box(xi, tops[5] + head[5] + 6, 1000 - 2 * step_x * 5 - 80, 40, "The agent's script runs here", [], RED)
+    # right-hand panel
+    rx, rw = 1050, 350
+    s.box(rx, 20, rw, 196, "On the one way out (application level)", ["Gateway: allowlist per session, rate limit,", "byte budget, TLS ended for one host only", "Broker: credentials of 15 minutes at most,", "checked by the API for signature and expiry", "Tool gateway: per-agent tools, approvals,", "20 calls a minute, token ends with the session", "Every service: one audit line per event"], GREEN)
+    chip(s, rx + rw - 62, 40, "Ours")
+    s.box(rx, 236, rw, 112, "Between platform services", ["An ingress network policy on every service", "names who may call it, and on which port", "Bearer tokens between services"], BLUE)
+    chip(s, rx + rw - 110, 256, "K8s"); chip(s, rx + rw - 62, 256, "Ours")
+    s.box(rx, 368, rw, 112, "Who provides it", [], GREY)
+    for k, (kind, text) in enumerate([("AWS", "an AWS service or built-in behaviour"), ("K8s", "a Kubernetes feature that we configured"), ("Ours", "our design: a choice we made or code we wrote")]):
+        chip(s, rx + 12, 416 + k * 22, kind)
+        s.text(rx + 70, 416 + k * 22, text, 12, INK)
+    s.box(rx, 500, rw, 150, "Not restricted in this build", ["Platform pods have no egress network policy,", "except the gateway pods.", "Routing is one shared table for both kinds", "of private block.", "The sandbox group admits all traffic from the", "cluster group; pod policies narrow it."], AMBER)
+    return s.render()
+def who_may_call_whom():
+    """Figure: who may call whom, and what enforces each allowed path."""
+    callers = ["Orchestrator", "Router", "Manager", "Tool gateway", "Egress gateway", "Credential broker", "Metrics API", "Sandbox"]
+    callees = ["Manager", "Router", "Tool gateway", "Egress gateway", "Credential broker", "Metrics API", "Sandbox", "Kubernetes API", "Internet"]
+    allowed = {
+        ("Orchestrator", "Manager"): "port 8000", ("Orchestrator", "Router"): "port 8004", ("Orchestrator", "Tool gateway"): "port 8003",
+        ("Router", "Sandbox"): "8080, 9090", ("Router", "Kubernetes API"): "RBAC: claims, pods, exec",
+        ("Manager", "Kubernetes API"): "RBAC: claims, pods",
+        ("Tool gateway", "Manager"): "port 8000", ("Tool gateway", "Credential broker"): "port 8001", ("Tool gateway", "Metrics API"): "port 8443",
+        ("Egress gateway", "Manager"): "port 8000", ("Egress gateway", "Tool gateway"): "port 8003", ("Egress gateway", "Credential broker"): "port 8001",
+        ("Egress gateway", "Metrics API"): "port 8443", ("Egress gateway", "Internet"): "443, 3 domains",
+        ("Sandbox", "Egress gateway"): "port 3128 only",
+    }
+    open_cells = {(c, "Internet") for c in ("Orchestrator", "Router", "Manager", "Tool gateway", "Credential broker", "Metrics API")}
+    s = Svg(1420, 720, "Who may call whom, and what enforces each allowed path")
+    lx, top, lw, cw, hh, rh = 20, 60, 180, 133, 54, 54
+    s.text(20, 30, "Rows call, columns are called. Green: allowed, with the port or rule that admits it. Grey: refused. Amber: not restricted in this build.", 12.5, INK, "700")
+    for j, name in enumerate(callees):
+        x = lx + lw + j * cw
+        s.parts.append(f'<rect x="{x}" y="{top}" width="{cw}" height="{hh}" fill="#f1f5f9" stroke="#cbd5e1"/>')
+        words = name.split(" ")
+        lines = [name] if len(name) < 15 else [" ".join(words[:-1]), words[-1]]
+        for k, l in enumerate(lines):
+            s.text(x + cw / 2, top + 24 + k * 15 - (len(lines) - 1) * 7, l, 12, INK, "700", "middle")
+    for i, caller in enumerate(callers):
+        y = top + hh + i * rh
+        s.parts.append(f'<rect x="{lx}" y="{y}" width="{lw}" height="{rh}" fill="#f1f5f9" stroke="#cbd5e1"/>')
+        s.text(lx + 12, y + rh / 2 + 4, caller, 12, INK, "700")
+        for j, callee in enumerate(callees):
+            x = lx + lw + j * cw
+            key = (caller, callee)
+            if caller == callee:
+                fill, text, ink = "#e2e8f0", "same service", MUTED
+            elif key in allowed:
+                fill, text, ink = "#d1fae5", allowed[key], "#065f46"
+            elif key in open_cells:
+                fill, text, ink = "#fef3c7", "no egress policy", "#92400e"
+            elif caller == "Sandbox":
+                fill, text, ink = "#f8fafc", "refused", "#94a3b8"
+            elif callee == "Kubernetes API":
+                fill, text, ink = "#f1f5f9", "no token mounted", MUTED
+            else:
+                fill, text, ink = "#f8fafc", "refused", "#94a3b8"
+            s.parts.append(f'<rect x="{x}" y="{y}" width="{cw}" height="{rh}" fill="{fill}" stroke="#cbd5e1"/>')
+            lines = text.split(": ") if text.startswith("RBAC") else [text]
+            if text.startswith("RBAC"):
+                lines = ["RBAC role:", text.split(": ")[1]]
+            for k, l in enumerate(lines):
+                s.text(x + cw / 2, y + rh / 2 + 4 + k * 15 - (len(lines) - 1) * 7, l, 11.5 if allowed.get(key) else 11, ink, "700" if allowed.get(key) else "400", "middle")
+    ny = top + hh + len(callers) * rh + 24
+    s.box(20, ny, 450, 130, "What admits a green cell", ["Between services: an ingress network policy on the", "called service, naming the caller and the port.", "Into the sandbox: only the router, on 8080 and 9090.", "Out of the sandbox: only the gateway, on 3128.", "To the Kubernetes API: a small RBAC role."], BLUE)
+    s.box(490, ny, 450, 130, "What the grey cells rely on", ["Every called service has an ingress policy, so a", "caller that is not named is refused.", "Pods with no service-account token cannot use the", "Kubernetes API, though nothing blocks the connection.", "A sandbox has no route to anything else."], GREY)
+    s.box(960, ny, 440, 130, "What the amber cells mean", ["Only the gateway pods and the sandboxes have an", "egress network policy. Other platform pods are", "limited by what they are written to call, and by", "the absence of credentials, not by a network rule.", "Adding egress policies is a hardening step."], AMBER)
+    return s.render()
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
     for name, fn in (("a02-1", architecture), ("a02-2", topology), ("a02-3", network_paths), ("a02-4", credential_flow),
                      ("a02-5", context_overview), ("a02-6", context_sequence), ("a02-7", context_components),
-                     ("a02-8", envoy_gateway), ("a02-9", address_plan)):
+                     ("a02-8", envoy_gateway), ("a02-9", address_plan), ("a02-10", defence_in_depth), ("a02-11", who_may_call_whom)):
         (out / f"{name}.svg").write_text(fn())
         print("wrote", out / f"{name}.svg")

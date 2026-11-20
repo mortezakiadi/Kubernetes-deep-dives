@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="669px" viewBox="0 0 1420 669" style="background:#ffffff"><title>Defence in depth: six rings between untrusted code and the outside, and who provides each control</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="669" fill="#ffffff"/><rect x="20" y="20" width="1000" height="629" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="34" y="40" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">1  AWS account and VPC (network level)</text>
+<text x="34" y="60" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Sandbox, platform and public blocks; sandbox nodes sit in their own security group</text>
+<rect x="523.7" y="48" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="540.6" y="60" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<rect x="562.5" y="48" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="582.7" y="60" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="34" y="77" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">That group admits only the cluster group, and the cluster group admits it back</text>
+<rect x="500.29999999999995" y="65" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="517.1999999999999" y="77" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<rect x="539.0999999999999" y="65" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="559.3" y="77" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="34" y="94" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">No public IP on any node; one shared route table sends outbound traffic to the NAT gateway</text>
+<rect x="570.5" y="82" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="587.4" y="94" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<rect x="609.3" y="82" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="629.5" y="94" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<rect x="48" y="105" width="944" height="530" rx="14" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="62" y="125" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">2  Access to the cluster and to AWS (identity level)</text>
+<text x="62" y="145" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">API endpoint open only to the admin address; API-only authentication</text>
+<rect x="469.79999999999995" y="133" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="486.69999999999993" y="145" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<rect x="508.59999999999997" y="133" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="528.8" y="145" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="62" y="162" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Cluster, platform-node and sandbox-node IAM roles with managed minimal policies, no inline ones</text>
+<rect x="627.75" y="150" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="644.65" y="162" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<rect x="666.55" y="150" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="686.75" y="162" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="62" y="179" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Control-plane audit and authenticator logs go to CloudWatch for 7 days</text>
+<rect x="481.5" y="167" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="498.4" y="179" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<rect x="520.3" y="167" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="540.5" y="179" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<rect x="76" y="190" width="888" height="431" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="90" y="210" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">3  The sandbox node (host level)</text>
+<text x="90" y="230" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Own node pool, node class, subnets, security group and role; a taint keeps every other pod off</text>
+<rect x="649.9" y="218" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="670.1" y="230" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="90" y="247" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Metadata service needs IMDSv2 with a hop limit of 1</text>
+<rect x="398.34999999999997" y="235" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="415.24999999999994" y="247" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<rect x="104" y="258" width="832" height="349" rx="14" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="118" y="278" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">4  Kubernetes policy (admission, identity and pod-network level)</text>
+<text x="118" y="298" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Pod Security 'restricted' on every namespace; quota and limits on the sandbox namespace</text>
+<rect x="636.95" y="286" width="33.8" height="16" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="653.85" y="298" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1e40af">K8s</text>
+<rect x="675.75" y="286" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="695.95" y="298" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="118" y="315" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Minimal RBAC for the Manager and Router; the sandbox service account has no role</text>
+<rect x="596.0" y="303" width="33.8" height="16" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="612.9" y="315" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1e40af">K8s</text>
+<rect x="634.8" y="303" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="655.0" y="315" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="118" y="332" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Default-deny network policy: a sandbox reaches only the gateway on port 3128, only the router reaches it</text>
+<rect x="736.4" y="320" width="33.8" height="16" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="753.3" y="332" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1e40af">K8s</text>
+<rect x="775.1999999999999" y="320" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="795.4" y="332" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="118" y="349" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">The cluster's network-policy agent enforces it (EKS Auto Mode ships it switched off; we turn it on)</text>
+<rect x="707.15" y="337" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="724.05" y="349" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<rect x="745.9499999999999" y="337" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="766.15" y="349" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="118" y="366" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Gateway pods can reach three internet domain names and nothing else (a domain-name policy)</text>
+<rect x="654.5" y="354" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="671.4" y="366" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<rect x="693.3" y="354" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="713.5" y="366" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<rect x="132" y="377" width="776" height="216" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="146" y="397" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">5  The microVM (kernel level)</text>
+<text x="146" y="417" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">One microVM with its own kernel per pod (Nitro Sandboxes); its metadata address gives placement data only</text>
+<rect x="770.25" y="405" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="787.15" y="417" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<text x="146" y="434" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Every template names the isolated runtime class</text>
+<rect x="430.95" y="422" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="451.15" y="434" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<rect x="160" y="445" width="720" height="134" rx="14" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+<text x="174" y="465" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">6  The process (application level, inside)</text>
+<text x="174" y="485" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Non-root, read-only root, no capabilities, default seccomp, no service-account token</text>
+<rect x="675.4" y="473" width="33.8" height="16" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="692.3" y="485" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1e40af">K8s</text>
+<rect x="714.1999999999999" y="473" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="734.4" y="485" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="174" y="502" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">The environment holds a placeholder, never a secret</text>
+<rect x="482.34999999999997" y="490" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="502.54999999999995" y="502" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<rect x="200" y="519" width="640" height="40" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="200" y="519" width="640" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="201" y="537" width="638" height="12" fill="#fef2f2"/>
+<text x="212" y="539" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">The agent's script runs here</text>
+<rect x="1050" y="20" width="350" height="196" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="1050" y="20" width="350" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="1051" y="38" width="348" height="12" fill="#ecfdf5"/>
+<text x="1062" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">On the one way out (application level)</text>
+<text x="1062" y="68" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Gateway: allowlist per session, rate limit,</text>
+<text x="1062" y="85" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">byte budget, TLS ended for one host only</text>
+<text x="1062" y="102" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Broker: credentials of 15 minutes at most,</text>
+<text x="1062" y="119" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">checked by the API for signature and expiry</text>
+<text x="1062" y="136" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Tool gateway: per-agent tools, approvals,</text>
+<text x="1062" y="153" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">20 calls a minute, token ends with the session</text>
+<text x="1062" y="170" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Every service: one audit line per event</text>
+<rect x="1338" y="28" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="1358.2" y="40" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<rect x="1050" y="236" width="350" height="112" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1050" y="236" width="350" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1051" y="254" width="348" height="12" fill="#eff6ff"/>
+<text x="1062" y="256" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Between platform services</text>
+<text x="1062" y="284" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">An ingress network policy on every service</text>
+<text x="1062" y="301" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">names who may call it, and on which port</text>
+<text x="1062" y="318" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Bearer tokens between services</text>
+<rect x="1290" y="244" width="33.8" height="16" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="1306.9" y="256" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1e40af">K8s</text>
+<rect x="1338" y="244" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="1358.2" y="256" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<rect x="1050" y="368" width="350" height="112" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1050" y="368" width="350" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1051" y="386" width="348" height="12" fill="#f8fafc"/>
+<text x="1062" y="388" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Who provides it</text>
+<rect x="1062" y="404" width="33.8" height="16" rx="8" fill="#fff7ed" stroke="#d97706" stroke-width="1.2"/>
+<text x="1078.9" y="416" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#92400e">AWS</text>
+<text x="1120" y="416" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">an AWS service or built-in behaviour</text>
+<rect x="1062" y="426" width="33.8" height="16" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="1078.9" y="438" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1e40af">K8s</text>
+<text x="1120" y="438" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">a Kubernetes feature that we configured</text>
+<rect x="1062" y="448" width="40.4" height="16" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="1082.2" y="460" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Ours</text>
+<text x="1120" y="460" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">our design: a choice we made or code we wrote</text>
+<rect x="1050" y="500" width="350" height="150" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1050" y="500" width="350" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1051" y="518" width="348" height="12" fill="#fffbeb"/>
+<text x="1062" y="520" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Not restricted in this build</text>
+<text x="1062" y="548" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Platform pods have no egress network policy,</text>
+<text x="1062" y="565" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">except the gateway pods.</text>
+<text x="1062" y="582" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Routing is one shared table for both kinds</text>
+<text x="1062" y="599" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">of private block.</text>
+<text x="1062" y="616" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">The sandbox group admits all traffic from the</text>
+<text x="1062" y="633" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">cluster group; pod policies narrow it.</text></svg>
