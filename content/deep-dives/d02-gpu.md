@@ -536,8 +536,8 @@ spec:
 |---|---|---|---|
 | **ResourceSlice** | The list of devices on one node, each with its facts: product name, architecture, memory. | The DRA driver, per node | PersistentVolume (our comparison) |
 | **DeviceClass** | A named category of devices, such as `gpu.nvidia.com`. A request says which class it wants. | The device driver's side (NVIDIA ships its classes in the driver's Helm chart); a cluster admin can add more | A StorageClass |
-| **CEL** (Common Expression Language) | A one-line rule that is true or false for each device, such as "memory is at least 40Gi". It narrows a class down to the devices you accept. **Why it is needed:** a count or a node label can only say "one GPU" or "this node has A100s", while a rule can test each device's own facts. | You, inside a claim | n/a |
-| **ResourceClaimTemplate** | A recipe for a request: which class, which CEL rule, how many devices. | You | volumeClaimTemplates in a StatefulSet (our comparison) |
+| **CEL** (Common Expression Language) | A one-line rule that is true or false for each device, such as "memory is at least 40Gi". It narrows the devices down. A class has one, and your claim may add one. **Why it is needed:** a count or a node label can only say "one GPU" or "this node has A100s", while a rule can test each device's own facts. | The driver or an admin, inside a class. You, optionally, inside a claim | n/a |
+| **ResourceClaimTemplate** | A recipe for a request: which class, an optional CEL rule, how many devices (one by default). | You | volumeClaimTemplates in a StatefulSet (our comparison) |
 | **ResourceClaim** | One actual request, made from the recipe. The scheduler records which device it picked in the claim. | Kubernetes, one per pod | A PersistentVolumeClaim |
 
 ![If you know storage, you already know the shape of DRA](diagrams/extra/dra-storage-analogy.svg)
@@ -745,6 +745,7 @@ spec:
                 device.attributes["gpu.nvidia.com"].architecture == "Hopper" #!
 ```
 
+- **You do not have to write any CEL.** The class already carries a rule, and a claim that names only the class gets every device that rule allows (the hand-written claim in the template-or-claim example below has no CEL at all). A claim's own rule is optional and can only narrow further: the API requires a device to satisfy the class's selectors and the request's selectors, and an administrator can even create an empty class if users may ask for anything.
 - **The names in a rule come from the driver.** To see what you can filter on, read the ResourceSlices: `kubectl get resourceslices -o yaml` shows each device's attributes and capacity.
 - **Why a template and not a claim?** A claim you write by hand is one request that several pods can share, and it outlives any pod. A template gives every pod its own claim, made when the pod starts and removed with it. Ten replicas then get ten separate GPUs instead of sharing one.
 
@@ -824,7 +825,7 @@ How they fit: the driver publishes the devices (ResourceSlices) and the categori
 
 - **DeviceClass (from the driver):** `gpu.nvidia.com` names a category of devices. It comes with the NVIDIA DRA driver's Helm chart, so installing the driver creates it (plus `mig.nvidia.com` for MIG slices). The ResourceSlices, by contrast, are published by the running driver.
 - **ResourceSlice (from the driver, per node):** lists every device on the node with its attributes, such as product name and architecture, and its capacity, such as memory.
-- **ResourceClaimTemplate (you write it):** describes the device a pod needs: a device class plus a CEL selector such as "memory at least 40Gi".
+- **ResourceClaimTemplate (you write it):** describes the device a pod needs: a device class, plus an optional CEL selector such as "memory at least 40Gi".
 - **ResourceClaim (Kubernetes creates it):** one claim per pod, made from the template when the pod is created and deleted with the pod.
 - **Pod:** lists the claim under `spec.resourceClaims` and gives it to a container with `resources.claims`; there's no `nvidia.com/gpu` count.
 - **kube-scheduler (DynamicResources plugin):** filters out nodes with no free matching device, picks a node and a device, and writes that allocation into the claim.
