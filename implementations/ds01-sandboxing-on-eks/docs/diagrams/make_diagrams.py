@@ -496,11 +496,80 @@ def who_may_call_whom():
     s.box(490, ny, 450, 130, "What the grey cells rely on", ["Every called service has an ingress policy, so a", "caller that is not named is refused.", "Pods with no service-account token cannot use the", "Kubernetes API, though nothing blocks the connection.", "A sandbox has no route to anything else."], GREY)
     s.box(960, ny, 440, 130, "What the amber cells mean", ["Only the gateway pods and the sandboxes have an", "egress network policy. Other platform pods are", "limited by what they are written to call, and by", "the absence of credentials, not by a network rule.", "Adding egress policies is a hardening step."], AMBER)
     return s.render()
+def life_map():
+    """Figure: the eight steps of the life of one session, and the code and manifests behind each."""
+    rows = [
+        ("1", "Orchestrator", ["asks the Manager for a session:", "user, tenant, agent, template, hosts"],
+         ["platform/ds01/orchestrator.py   main(): command create", "platform/ds01/manager.py   route(), _create(): the checks"], GREEN),
+        ("2", "Manager", ["checks the tenant limit (three), creates", "the SandboxClaim with an end time"],
+         ["platform/ds01/manager.py   TEMPLATES, _create(): quota, claim", "k8s/40-platform.yaml   the Manager's Role (claims, pods)"], GREEN),
+        ("3", "Controller, Manager", ["a booted pod is adopted; the Manager", "waits for Ready and mints the token"],
+         ["terraform/20-platform/manifests.tf   the pinned controller", "k8s/20-sandboxes.yaml   SandboxWarmPool", "platform/ds01/manager.py, common.py   wait loop, mint()"], BLUE),
+        ("4", "Orchestrator, Router", ["commands and files go through the", "Router into the sandbox"],
+         ["platform/ds01/router.py   _resolve(), _exec(), _files(), _kube_exec()", "k8s/20-sandboxes.yaml   sandboxd command; Tier 3 annotation"], GREEN),
+        ("5", "Sandbox, egress gateway", ["the only way out; allowlist; TLS passed", "through, or ended and a key injected"],
+         ["k8s/20-sandboxes.yaml   proxy variables and the egress rule", "k8s/30-egress.yaml   fixed Service address, mitmdump", "platform/ds01/gateway_addon.py, manager.py   session(), by-ip"], BLUE),
+        ("6", "Tool gateway", ["session token, policy, approvals,", "rate limit, then the tool runs"],
+         ["platform/ds01/tool_gateway.py   route(), _rpc(), _run()", "platform/ds01/manager.py   the session-active lookup", "platform/ds01/broker.py   mint"], GREEN),
+        ("7", "Every service", ["one JSON line per event, with the", "session ID; one query joins them"],
+         ["platform/ds01/common.py   audit()", "scripts/audit-query.py   collect()", "the ds01/component label on every Deployment"], GREY),
+        ("8", "Manager, controller", ["delete, or the end time passes: claim,", "pod and workspace go; token is dead"],
+         ["platform/ds01/manager.py   _delete(), _internal(); lifecycle in _create()", "the controller enforces shutdownTime with shutdownPolicy Delete"], RED),
+    ]
+    row_h, top = 74, 56
+    s = Svg(1420, top + len(rows) * row_h + 40, "The eight steps of one session and the code behind each")
+    cols = [(20, 44, "Step"), (64, 210, "Who acts"), (274, 330, "What happens"), (604, 796, "Code and manifests that make it happen")]
+    for x, w, label in cols:
+        s.parts.append(f'<rect x="{x}" y="20" width="{w}" height="32" fill="#f1f5f9" stroke="#cbd5e1"/>')
+        s.text(x + 10, 41, label, 12.5, INK, "700")
+    for i, (n, who, what, code, c) in enumerate(rows):
+        y = top + i * row_h
+        for x, w, _ in cols:
+            s.parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{row_h}" fill="{"#ffffff" if i % 2 == 0 else "#f8fafc"}" stroke="#cbd5e1"/>')
+        s.badge(42, y + row_h / 2, n)
+        s.parts.append(f'<rect x="64" y="{y}" width="6" height="{row_h}" fill="{c["stroke"]}"/>')
+        s.text(80, y + row_h / 2 + 4, who, 12.5, c["ink"], "700")
+        for k, line in enumerate(what):
+            s.text(284, y + 30 + k * 17, line, 12, INK)
+        for k, line in enumerate(code):
+            s.text(614, y + 24 + k * 17, line, 11.5, INK)
+    return s.render()
+def claim_lifecycle():
+    """Figure: what happens to the claim, the pod, the pool and the token over the life of a session."""
+    stages = ["Before", "1  Claim created", "2  Ready", "3  Active", "4  Ended"]
+    lanes = [
+        ("Warm pool", ["2 booted pods wait", "(python-untrusted-pool)"], ["unchanged"], ["one pod is adopted;", "the pool boots a replacement"], ["refilled in the background"], ["unchanged"]),
+        ("SandboxClaim", ["does not exist"], ["created by the Manager:", "pool, allowlist, end time,", "policy Delete"], ["condition Ready; names", "its sandbox (about 0.4 s,", "10 s or more if cold)"], ["labels name the tenant,", "agent and template"], ["deleted by the Manager,", "or by the controller at", "the end time"]),
+        ("Sandbox pod", ["booted and idle,", "in the pool"], ["not touched yet"], ["now belongs to the claim"], ["runs commands; its node is", "never consolidated away"], ["deleted with the claim,", "and its workspace with it"]),
+        ("Session token", ["does not exist"], ["does not exist"], ["minted: session, tenant,", "agent, user, template;", "lives as long as the session"], ["checked on every tool call"], ["still unexpired, but the", "Manager no longer finds", "the session: refused"]),
+        ("What the gateways see", ["nothing"], ["nothing"], ["the egress gateway can map", "the pod's address to the", "session"], ["allowlist and rate limit", "applied for this session"], ["address maps to no session;", "tool gateway: session is", "no longer active"]),
+    ]
+    s = Svg(1420, 600, "The life of a SandboxClaim: pool, claim, pod, token and what the gateways see")
+    x0, cw, gap, top, rh = 200, 232, 10, 60, 100
+    for j, name in enumerate(stages):
+        x = x0 + j * (cw + gap)
+        s.parts.append(f'<rect x="{x}" y="16" width="{cw}" height="34" rx="6" fill="#1e293b"/>')
+        s.text(x + cw / 2, 38, name, 13, "#ffffff", "700", "middle")
+    palette = [GREEN, BLUE, GREEN, AMBER, RED]
+    for i, lane in enumerate(lanes):
+        y = top + i * rh
+        s.parts.append(f'<rect x="20" y="{y}" width="170" height="{rh - 8}" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>')
+        s.text(32, y + (rh - 8) / 2 + 4, lane[0], 12.5, INK, "700")
+        for j, lines in enumerate(lane[1:]):
+            x = x0 + j * (cw + gap)
+            c = palette[j]
+            dim = lines in (["does not exist"], ["unchanged"], ["nothing"], ["not touched yet"])
+            s.parts.append(f'<rect x="{x}" y="{y}" width="{cw}" height="{rh - 8}" rx="8" fill="{"#f8fafc" if dim else c["fill"]}" stroke="{"#cbd5e1" if dim else c["stroke"]}" stroke-width="1.3"/>')
+            for k, line in enumerate(lines):
+                s.text(x + 12, y + 28 + k * 17, line, 12, MUTED if dim else INK)
+    ny = top + len(lanes) * rh + 6
+    s.text(20, ny + 14, "Tested in S04 (warm pool, cold start, refill), S08 (a token stops working when its session ends) and S10 (the claim and its sandbox disappear at the end time).", 11.5, MUTED)
+    return s.render()
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
     for name, fn in (("a02-1", architecture), ("a02-2", topology), ("a02-3", network_paths), ("a02-4", credential_flow),
                      ("a02-5", context_overview), ("a02-6", context_sequence), ("a02-7", context_components),
-                     ("a02-8", envoy_gateway), ("a02-9", address_plan), ("a02-10", defence_in_depth), ("a02-11", who_may_call_whom)):
+                     ("a02-8", envoy_gateway), ("a02-9", address_plan), ("a02-10", defence_in_depth), ("a02-11", who_may_call_whom), ("a02-12", life_map), ("a02-13", claim_lifecycle)):
         (out / f"{name}.svg").write_text(fn())
         print("wrote", out / f"{name}.svg")

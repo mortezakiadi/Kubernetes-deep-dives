@@ -195,7 +195,8 @@ def code_blocks(h):
     def rep(m):
         lang, body = m.group(1), m.group(2)
         lines = body.rstrip("\n").split("\n")
-        return f'<pre class="snippet"><code class="language-{lang}">' + "".join(_fmt_line(l, lang) for l in lines) + "</code></pre>"
+        cls = "snippet numbered" if lines and lines[0].startswith("# from ") else "snippet"
+        return f'<pre class="{cls}"><code class="language-{lang}">' + "".join(_fmt_line(l, lang) for l in lines) + "</code></pre>"
     return re.sub(r'<pre><code class="language-(\w+)">(.*?)</code></pre>', rep, h, flags=re.S)
 
 

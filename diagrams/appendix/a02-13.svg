@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="600px" viewBox="0 0 1420 600" style="background:#ffffff"><title>The life of a SandboxClaim: pool, claim, pod, token and what the gateways see</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="600" fill="#ffffff"/><rect x="200" y="16" width="232" height="34" rx="6" fill="#1e293b"/>
+<text x="316.0" y="38" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Before</text>
+<rect x="442" y="16" width="232" height="34" rx="6" fill="#1e293b"/>
+<text x="558.0" y="38" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">1  Claim created</text>
+<rect x="684" y="16" width="232" height="34" rx="6" fill="#1e293b"/>
+<text x="800.0" y="38" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">2  Ready</text>
+<rect x="926" y="16" width="232" height="34" rx="6" fill="#1e293b"/>
+<text x="1042.0" y="38" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">3  Active</text>
+<rect x="1168" y="16" width="232" height="34" rx="6" fill="#1e293b"/>
+<text x="1284.0" y="38" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">4  Ended</text>
+<rect x="20" y="60" width="170" height="92" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="110.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">Warm pool</text>
+<rect x="200" y="60" width="232" height="92" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+<text x="212" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">2 booted pods wait</text>
+<text x="212" y="105" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">(python-untrusted-pool)</text>
+<rect x="442" y="60" width="232" height="92" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="454" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">unchanged</text>
+<rect x="684" y="60" width="232" height="92" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+<text x="696" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">one pod is adopted;</text>
+<text x="696" y="105" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">the pool boots a replacement</text>
+<rect x="926" y="60" width="232" height="92" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.3"/>
+<text x="938" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">refilled in the background</text>
+<rect x="1168" y="60" width="232" height="92" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1180" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">unchanged</text>
+<rect x="20" y="160" width="170" height="92" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="210.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">SandboxClaim</text>
+<rect x="200" y="160" width="232" height="92" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="212" y="188" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">does not exist</text>
+<rect x="442" y="160" width="232" height="92" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.3"/>
+<text x="454" y="188" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">created by the Manager:</text>
+<text x="454" y="205" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">pool, allowlist, end time,</text>
+<text x="454" y="222" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">policy Delete</text>
+<rect x="684" y="160" width="232" height="92" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+<text x="696" y="188" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">condition Ready; names</text>
+<text x="696" y="205" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">its sandbox (about 0.4 s,</text>
+<text x="696" y="222" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">10 s or more if cold)</text>
+<rect x="926" y="160" width="232" height="92" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.3"/>
+<text x="938" y="188" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">labels name the tenant,</text>
+<text x="938" y="205" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">agent and template</text>
+<rect x="1168" y="160" width="232" height="92" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.3"/>
+<text x="1180" y="188" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">deleted by the Manager,</text>
+<text x="1180" y="205" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">or by the controller at</text>
+<text x="1180" y="222" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">the end time</text>
+<rect x="20" y="260" width="170" height="92" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="310.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">Sandbox pod</text>
+<rect x="200" y="260" width="232" height="92" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+<text x="212" y="288" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">booted and idle,</text>
+<text x="212" y="305" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">in the pool</text>
+<rect x="442" y="260" width="232" height="92" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="454" y="288" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">not touched yet</text>
+<rect x="684" y="260" width="232" height="92" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+<text x="696" y="288" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">now belongs to the claim</text>
+<rect x="926" y="260" width="232" height="92" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.3"/>
+<text x="938" y="288" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">runs commands; its node is</text>
+<text x="938" y="305" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">never consolidated away</text>
+<rect x="1168" y="260" width="232" height="92" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.3"/>
+<text x="1180" y="288" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">deleted with the claim,</text>
+<text x="1180" y="305" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">and its workspace with it</text>
+<rect x="20" y="360" width="170" height="92" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="410.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">Session token</text>
+<rect x="200" y="360" width="232" height="92" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="212" y="388" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">does not exist</text>
+<rect x="442" y="360" width="232" height="92" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="454" y="388" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">does not exist</text>
+<rect x="684" y="360" width="232" height="92" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+<text x="696" y="388" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">minted: session, tenant,</text>
+<text x="696" y="405" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">agent, user, template;</text>
+<text x="696" y="422" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">lives as long as the session</text>
+<rect x="926" y="360" width="232" height="92" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.3"/>
+<text x="938" y="388" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">checked on every tool call</text>
+<rect x="1168" y="360" width="232" height="92" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.3"/>
+<text x="1180" y="388" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">still unexpired, but the</text>
+<text x="1180" y="405" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Manager no longer finds</text>
+<text x="1180" y="422" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">the session: refused</text>
+<rect x="20" y="460" width="170" height="92" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+<text x="32" y="510.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#334155">What the gateways see</text>
+<rect x="200" y="460" width="232" height="92" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="212" y="488" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">nothing</text>
+<rect x="442" y="460" width="232" height="92" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="454" y="488" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">nothing</text>
+<rect x="684" y="460" width="232" height="92" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+<text x="696" y="488" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">the egress gateway can map</text>
+<text x="696" y="505" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">the pod's address to the</text>
+<text x="696" y="522" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">session</text>
+<rect x="926" y="460" width="232" height="92" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.3"/>
+<text x="938" y="488" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">allowlist and rate limit</text>
+<text x="938" y="505" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">applied for this session</text>
+<rect x="1168" y="460" width="232" height="92" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.3"/>
+<text x="1180" y="488" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">address maps to no session;</text>
+<text x="1180" y="505" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">tool gateway: session is</text>
+<text x="1180" y="522" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">no longer active</text>
+<text x="20" y="580" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#64748b">Tested in S04 (warm pool, cold start, refill), S08 (a token stops working when its session ends) and S10 (the claim and its sandbox disappear at the end time).</text></svg>

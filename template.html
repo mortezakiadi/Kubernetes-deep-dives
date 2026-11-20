@@ -117,6 +117,10 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose pre.snippet .kl { background: rgba(250, 204, 21, .16); box-shadow: inset 3px 0 #facc15; margin: 0 -14px; padding: 0 14px; color: #fff3c4; }
 .prose pre.snippet .kl .tk { color: #fde68a; font-weight: 600; }
 .prose pre.snippet .kl .tc { color: #e5c76b; }
+.prose pre.snippet.numbered { counter-reset: kl; }
+.prose pre.snippet.numbered .ln { padding-left: 26px; }
+.prose pre.snippet.numbered .kl { position: relative; padding-left: 40px; }
+.prose pre.snippet.numbered .kl::before { counter-increment: kl; content: counter(kl); position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border-radius: 50%; background: #facc15; color: #1e293b; font: 700 10px/16px var(--font-mono); text-align: center; }
 .legend mark { margin-right: 2px; }
 .prose table code { white-space: nowrap; }
 .prose table { border-collapse: collapse; margin: 10px 0 14px; font-size: 14.5px; max-width: 100%; }

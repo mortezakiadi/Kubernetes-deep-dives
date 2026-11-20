@@ -90,7 +90,7 @@ def check_excerpts(text: str, base: pathlib.Path, where: str) -> int:
         for line in m.group(2).splitlines():
             if not line.strip() or line.strip() == "# ...":
                 continue
-            if line.rstrip() not in have:
+            if re.sub(r"\s*#!\s*$", "", line).rstrip() not in have:
                 raise SystemExit(f"{where}: this line is not in {m.group(1)}:\n  {line}")
         checked += 1
     return checked
