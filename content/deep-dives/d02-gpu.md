@@ -718,13 +718,17 @@ spec:
                 device.attributes["gpu.nvidia.com"].architecture == "Hopper" #!
 ```
 
-**Step 5. Why the class checks the device type.** The class's rule from Step 3 has a second part: the type must be `gpu`. This part exists because of MIG. MIG (Multi-Instance GPU) cuts one physical GPU into small, isolated slices. The last section of this deep dive explains it in full ([Different GPUs in one server, and MIG](#d06-5)). The GPU Operator's MIG manager creates the slices. The NVIDIA DRA driver then finds them and lists each slice as its own device, next to the whole GPUs ([NVIDIA's DRA driver install notes](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/dra-intro-install.html)). So one driver lists two kinds of device: whole GPUs and slices. In the driver's source, a slice copies the product name and the architecture from the GPU it was cut from. It adds its own type, `mig`, and a profile. The class checks the type to tell the two kinds apart. NVIDIA's MIG class has the same rule with the type set to `mig` ([the MIG class](https://github.com/NVIDIA/k8s-dra-driver-gpu/blob/main/deployments/helm/dra-driver-nvidia-gpu/templates/deviceclass-mig.yaml)). That is why a claim for whole GPUs does not match slices.
+**Step 5. Why the class checks the device type.** The class's rule from Step 3 has a second part: the type must be `gpu`. This part exists because of MIG. MIG (Multi-Instance GPU) cuts one physical GPU into small, isolated slices. The last section of this deep dive explains it in full ([Different GPUs in one server, and MIG](#d06-5)). The GPU Operator's MIG manager creates the slices. The NVIDIA DRA driver then finds them and lists each slice as its own device, next to the whole GPUs ([NVIDIA's DRA driver install notes](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/dra-intro-install.html)). So one driver lists two kinds of device: whole GPUs and slices.
 
 The picture compares two devices on the same node: a whole GPU on the left and a small slice of a GPU on the right. They look almost identical, with the same product name and the same architecture. Only the type differs, "gpu" on the left and "mig" on the right. In the top row, your claim asks only for "Hopper". Both devices are Hopper, so both qualify, and the orange box warns that your pod could be handed the small slice by mistake. In the bottom row, the class's rule is added, and it says the type must be "gpu". The slice's type is "mig", so the class removes it, and that is the grey box. Only the whole GPU is left, which is what you wanted.
 
 ![Why the class checks the device type](diagrams/extra/dra-class-type-test.svg)
 
-**The same idea on a whole node.** This node, gpu-node-2, is illustrative: a T4, an A100, an H100, and a second H100 that is split into MIG slices (one slice shown). A node can mix GPUs with MIG on and off, as the GPU Operator's `mixed` strategy allows. The claim asks for a Hopper GPU from the whole-GPU class `gpu.nvidia.com`. Comments mark which filter each device passes:
+**The same idea on a whole node.** Here is a whole node with four devices: a T4, an A100, an H100, and a slice of a second H100. We call the node gpu-node-2, and it is made up for this example. A real node can mix whole GPUs with GPUs that are split into slices. Your claim asks for a Hopper GPU, from the class for whole GPUs. The picture checks each device against both filters:
+
+![One node, four devices, two filters](diagrams/extra/dra-two-filters-node.svg)
+
+The same node as YAML. The comments say which filter each device passes:
 
 ```yaml
 # What the driver publishes (trimmed, illustrative values)
