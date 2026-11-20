@@ -39,6 +39,31 @@ def _bq_fences(md):
     md = re.sub(r"^(> *)```(\w+)\n((?:>.*\n)*?)> *```$", rep, md, flags=re.M)
     return md, blocks
 
+def _list_fences(md):
+    """A fenced block between two nested bullets ends the list, so Python-Markdown turns the next
+    indented bullet into a code block. Swap such a block for a placeholder line kept inside the
+    bullet above it, and return the rendered blocks to put back after rendering."""
+    lines, blocks, out, i = md.split("\n"), {}, [], 0
+    while i < len(lines):
+        if not re.match(r"^```", lines[i]):
+            out.append(lines[i]); i += 1; continue
+        j = i + 1
+        while j < len(lines) and not re.match(r"^```[ ]*$", lines[j]):
+            j += 1
+        k = j + 1
+        while k < len(lines) and lines[k].strip() == "":
+            k += 1
+        nxt = re.match(r"^( +)(?:- |\d+\. )", lines[k]) if j < len(lines) and k < len(lines) else None
+        if not nxt:
+            out.extend(lines[i:j + 1]); i = j + 1; continue
+        key = f"LISTCODE{len(blocks)}X"
+        blocks[key] = markdown.markdown("\n".join(lines[i:j + 1]), extensions=["extra", "sane_lists"])
+        # an unbroken line after the bullet keeps the list tight; the block is swapped in after rendering
+        while out and out[-1].strip() == "":
+            out.pop()
+        out.append(" " * (len(nxt.group(1)) * 2 + 4) + key)
+        i = k
+    return "\n".join(out), blocks
 def read_md(path):
     text = path.read_text(encoding="utf-8")
     meta, body = {}, text
@@ -50,8 +75,9 @@ def read_md(path):
                 meta[k.strip()] = v.strip().strip('"')
         body = m.group(2)
     body, bq = _bq_fences(body)
+    body, lf = _list_fences(body)
     out = markdown.markdown(_indent_lists(body), extensions=["extra", "sane_lists"])
-    for k, v in bq.items():
+    for k, v in {**bq, **lf}.items():
         out = re.sub(r"<p>\s*" + k + r"\s*</p>", lambda _m, v=v: v, out).replace(k, v)
     # Turn standalone images into zoomable diagram figures.
     def fig(mm):
