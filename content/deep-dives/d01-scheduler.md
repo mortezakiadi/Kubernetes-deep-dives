@@ -69,7 +69,7 @@ profiles:
 > - **It isn't a Kubernetes object.** It has `apiVersion` and `kind`, but you don't `kubectl apply` it (the API would reject it). It's a config file the kube-scheduler program reads at startup, passed with `--config`.
 > - **Where you can use it depends on who runs the scheduler:**
 >   - **Self-managed clusters** (for example kubeadm): point the scheduler's static pod at your own file, for example to switch to MostAllocated bin-packing or change plugin weights.
->   - **Managed clusters** (EKS, GKE, AKS): the provider runs the default scheduler, so you can't change its file. Instead, run a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete, ready-to-apply example is in [Appendix A: Running a second scheduler](#appendix-second-scheduler). For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see [Built-in plugins, and what a second scheduler changes](#d01-9) in the Kubernetes Multi-Scheduler deep dive.
+>   - **Managed clusters** (EKS, GKE, AKS): the provider runs the default scheduler, so you can't change its file. (EKS exposes one scoring setting, spread or pack by resource use, covered under LeastAllocated below.) For anything else, run a second scheduler as a normal Deployment with its own `KubeSchedulerConfiguration` from a ConfigMap, and point specific pods at it with `schedulerName`. Volcano and KAI work the same way, as replacement schedulers. A complete, ready-to-apply example is in [Appendix A: Running a second scheduler](#appendix-second-scheduler). For the full list of built-in plugins, and what changes once a second scheduler shares the cluster, see [Built-in plugins, and what a second scheduler changes](#d01-9) in the Kubernetes Multi-Scheduler deep dive.
 
 - **Node selector mismatch:** if the pod has a `nodeSelector` (for example `disktype: ssd`), any node without that exact label is dropped.
 
@@ -678,7 +678,7 @@ spec:
 
 **What the picture shows.** Once filtering has narrowed the list, the **scoring phase** (also called the ranking phase) picks the best of the capable nodes. Every remaining node runs through several priority functions, gets a score from each, and the highest total wins.
 
-- **LeastAllocated (the "spreader"):** the default strategy of the NodeResourcesFit plugin. It compares requested CPU and memory to capacity and gives emptier nodes higher scores, which spreads pods out and helps availability.
+- **LeastAllocated (the "spreader"):** the default strategy of the NodeResourcesFit plugin. It compares requested CPU and memory to capacity and gives emptier nodes higher scores, which spreads pods out and helps availability. On EKS you can switch it to MostAllocated (packing) for the whole cluster, and set the weights of CPU, memory and GPUs, with a cluster setting, without running a second scheduler ([AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-configuration.html)).
 - **BalancedResourceAllocation (the "balancer"):** keeps CPU and memory use even on a node. A node with lots of CPU but almost no free RAM scores lower for a memory-heavy pod, so nodes don't become lopsided.
 
 > **Note: how BalancedResourceAllocation works, and how to tune it**
@@ -913,7 +913,7 @@ profiles:
 >
 > - **The pattern behind the numbers:** things someone asked for explicitly (a `PreferNoSchedule` taint, a preferred affinity, a soft spread) count more than housekeeping the scheduler works out by itself ("prefer emptier nodes", "keep CPU and memory balanced", "the image is already here").
 > - **The cluster operator can override them:** whoever runs the scheduler, usually a platform team, can change any weight in its `KubeSchedulerConfiguration`, as in the YAML above.
-> - **On EKS, AWS runs the default scheduler** and you can't change its configuration, so the defaults always apply to it. Different weights need your own scheduler (a second scheduler, or a profile in it), chosen with `schedulerName`.
+> - **On EKS, AWS runs the default scheduler** and exposes only one scoring setting: whether NodeResourcesFit spreads or packs, and the weights of CPU, memory and GPUs inside it ([AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-configuration.html)). The plugin weights above always apply. Different plugin weights need your own scheduler (a second scheduler, or a profile in it), chosen with `schedulerName`.
 > - **Pod authors can't change plugin weights at all:** the only weights a pod controls are the ones inside its own preferred rules, like the `weight: 80`, and those only rank its preferences inside one plugin's score.
 
 - **Points and the final score:** points = score × weight for each plugin, and the final score is their sum. Node A gets 60 + 0 + 200 = **260**, node B 20 + 90 + 0 = **110**, so node A wins even though node B had the image.

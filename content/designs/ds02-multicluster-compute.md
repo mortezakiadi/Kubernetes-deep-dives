@@ -222,7 +222,7 @@ spec:
 **Going deeper.**
 
 - **DRA has been GA since Kubernetes 1.34.** The NVIDIA DRA driver allocates full GPUs and MIG devices; dynamic MIG creation and shared-capacity features are still alpha in the driver, so this design uses pre-configured MIG layouts for now.
-- **Keep the device plugin where DRA isn't needed yet.** Full-GPU training pods can keep using `nvidia.com/gpu` counts during the migration; DRA matters most for mixed GPU types and MIG.
+- **Keep the device plugin where DRA isn't needed yet.** Full-GPU training pods can keep using `nvidia.com/gpu` counts during the migration; DRA matters most for mixed GPU types and MIG. Kueue's quota on `nvidia.com/gpu` does not count devices that pods claim through DRA until they are mapped, so line the two up first (see [counting DRA devices in Kueue quotas](#d02-4)).
 - **EFA and NCCL settings belong in the platform's job templates,** not in every team's YAML, so a team can't accidentally run a 64-GPU job over the slow network path.
 
 ### Autoscaling: where capacity comes from

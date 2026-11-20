@@ -260,7 +260,7 @@ profiles:
 >         type: MostAllocated               # pack nodes full instead of spreading #!
 > ```
 >
-> - **So a "second scheduler" can be a second profile:** no second program is needed, as long as you control the scheduler's configuration. On EKS you don't control the default scheduler's, which is why the appendix runs a separate copy.
+> - **So a "second scheduler" can be a second profile:** no second program is needed, as long as you control the scheduler's configuration. On EKS you control only one of the default scheduler's scoring settings, not its profiles or plugin weights, which is why the appendix runs a separate copy.
 > - **Other schedulers have their own formats:** the idea is the same, but the files differ.
 >   - **Volcano:** a ConfigMap (`volcano-scheduler.conf`) listing the scheduling *actions* to run (such as enqueue, allocate, backfill) and the *plugins* in priority tiers (gang, drf, proportion and others).
 >   - **YuniKorn:** a ConfigMap (`yunikorn-configs`) that mainly describes the **queue** hierarchy, with quotas and policies per queue.
@@ -447,6 +447,17 @@ spec:
 - A **cohort** lends idle quota between teams and takes it back by preemption when its owner needs it.
 
 WorkloadPriorityClasses decide admission order, and fair sharing favors teams that have used less recently. Hard namespace ResourceQuotas can't do any of this: idle GPUs in one namespace never help another team's queue.
+
+> **Note: counting DRA devices in Kueue quotas**
+>
+> A Kueue quota counts only what it is told to count. A pod that asks for GPUs the old way (`nvidia.com/gpu: 2` in its limits) is counted under that name. A pod that asks through DRA writes no GPU count at all, so a quota on `nvidia.com/gpu` has nothing to count unless Kueue is set up to account for DRA devices. The [Kueue DRA docs](https://kueue.sigs.k8s.io/docs/concepts/dynamic_resource_allocation/) describe two ways to do that:
+>
+> - **Claim templates:** the pod points at a ResourceClaimTemplate. In its configuration you map each DeviceClass to a quota name (`deviceClassMappings`), and Kueue charges the template's `count` against it. This is beta since Kueue v0.18. Only templates work: a hand-written ResourceClaim in the pod spec is not supported and leaves the workload inadmissible. Only exact counts work, not a request for "all" devices.
+> - **Extended-resource requests:** the pod keeps asking for `nvidia.com/gpu: 1`, and the DeviceClass sets `extendedResourceName` so the scheduler creates the claim for it. Kueue sees this and counts the device once, under that name. This is beta since Kueue v0.19 and on by default there. NVIDIA's `gpu.nvidia.com` class does not set `extendedResourceName` to `nvidia.com/gpu`, so for this path you add a class that does ([NVIDIA docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html)).
+>
+> Don't configure the same class in both ways, or Kueue merges the two and the count can go wrong. For partitioned GPUs, Kueue can charge by a counter the driver publishes (for example GPU memory) instead of by device count, so a small slice isn't charged like a whole GPU (beta since v0.19). The Kueue docs name MIG as the example.
+>
+> Two limits to know. Quota is checked before the scheduler picks a device, so a workload can pass quota and still wait for a device. `waitForPodsReady` (see [Design 17](#design-gpu-scheduling)) evicts workloads that never become ready. And a mixed cluster that keeps full-GPU training on `nvidia.com/gpu` counts while sending MIG slices through DRA needs both quota paths to line up, or the slices may not be counted.
 
 ### Hardware-aware scheduling
 

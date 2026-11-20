@@ -3,7 +3,7 @@ id: appendix-second-scheduler
 title: "Appendix A: Running a second scheduler on a managed cluster"
 short: "A. Running a second scheduler"
 ---
-This appendix is a complete, ready-to-apply guide for one specific situation: you want different scheduling rules for *some* of your workloads (different plugin weights, or bin-packing instead of spreading), but you're on a managed cluster such as EKS, GKE or AKS, where you can't change the default scheduler's configuration.
+This appendix is a complete, ready-to-apply guide for one specific situation: you want different scheduling rules for *some* of your workloads (different plugin weights, or bin-packing instead of spreading), but you're on a managed cluster such as EKS, GKE or AKS, where you can't change the default scheduler's configuration. (EKS lets you change one setting, whether nodes are spread or packed by resource use, but it applies to every pod in the cluster.)
 
 The answer is to run a **second scheduler** next to the default one. It's the same official kube-scheduler program, deployed by you as an ordinary Deployment, with its own `KubeSchedulerConfiguration`. Pods choose it by setting `schedulerName`; every other pod keeps using the default scheduler. For background, see [Phase 1: filtering](#d01-1) (the note on `KubeSchedulerConfiguration`), [Phase 2: scoring plugins](#d01-3) and [Built-in plugins, and what a second scheduler changes](#d01-9).
 
@@ -16,9 +16,9 @@ The answer is to run a **second scheduler** next to the default one. It's the sa
 **What the picture shows.** A decision path from "I want different placement" to the lightest tool that achieves it.
 
 - **Can the pod say it itself?** Node affinity, pod affinity and anti-affinity, topology spread constraints, taints and tolerations change where *one workload* goes, with no new components. Try these first. See [Phase 1: filtering](#d01-1).
-- **Do you need to change the scoring itself?** Plugin weights, bin-packing (`MostAllocated`) instead of spreading, or turning a plugin off can't be expressed in a pod spec. Only a scheduler configuration can do it, and on a managed cluster the only configuration you control is your own scheduler's.
+- **Do you need to change the scoring itself?** Plugin weights, bin-packing (`MostAllocated`) instead of spreading, or turning a plugin off can't be expressed in a pod spec. Only a scheduler configuration can do it, and on a managed cluster the configuration you fully control is your own scheduler's. (EKS also lets you switch the default scheduler between spreading and packing, but only for the whole cluster.)
 - **Is the problem really about jobs, not pods?** All-or-nothing starts, quotas between teams and queueing are job-level problems. Use Kueue, Volcano or KAI (see [Volcano vs. Kueue](#d02-6)), not a second kube-scheduler.
-- **Do you only need bin-packing for node cost?** On EKS, Karpenter consolidation already repacks nodes after the fact. A second scheduler packs at placement time, so nodes empty out sooner, but it's one more component to run.
+- **Do you only need bin-packing for node cost?** On EKS, Karpenter consolidation already repacks nodes after the fact, and a cluster setting can switch the default scheduler to packing for every pod ([AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-configuration.html)). A second scheduler packs at placement time and only for the pods you choose, so nodes empty out sooner, but it's one more component to run.
 - **The answer for the scenario:** batch needs different *scoring*, and only for batch pods, so a second scheduler with a bin-packing profile is the right tool.
 
 **Going deeper.**
