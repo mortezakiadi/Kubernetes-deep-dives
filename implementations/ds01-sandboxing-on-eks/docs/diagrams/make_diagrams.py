@@ -565,11 +565,60 @@ def claim_lifecycle():
     ny = top + len(lanes) * rh + 6
     s.text(20, ny + 14, "Tested in S04 (warm pool, cold start, refill), S08 (a token stops working when its session ends) and S10 (the claim and its sandbox disappear at the end time).", 11.5, MUTED)
     return s.render()
+def node_vs_pod():
+    """Figure: the security groups are open between the node groups; network policy decides per pod."""
+    s = Svg(1420, 780, "Nodes in the VPC can talk; what may talk is decided at the pod level")
+    s.parts.append(f'<rect x="30" y="20" width="1360" height="58" rx="10" fill="{AMBER["fill"]}" stroke="{AMBER["stroke"]}" stroke-width="1.5"/>')
+    s.text(46, 44, "VPC level (security groups): wide open between the two groups of nodes", 13.5, AMBER["ink"], "700")
+    s.text(46, 64, "Every platform node may connect to every sandbox node, on every port, in both directions.", 12.5, INK)
+    cx = 1390 - 14 - 5 - 60 - 36
+    chip(s, cx, 46, "AWS")
+    chip(s, cx + 52, 46, "Ours")
+    s.zone(30, 100, 370, 520, "PLATFORM NODES (cluster security group)", GREEN)
+    s.zone(960, 100, 430, 520, "SANDBOX NODES (sandbox security group)", RED)
+    pods = ["Orchestrator pod", "Manager pod", "Tool gateway pod", "Router pod", "Egress gateway pod", "Credential broker pod"]
+    ys = {}
+    for i, name in enumerate(pods):
+        y = 140 + i * 78
+        ys[name] = y
+        good = name in ("Router pod", "Egress gateway pod")
+        c = GREEN if good else GREY
+        s.parts.append(f'<rect x="60" y="{y}" width="310" height="54" rx="10" fill="#ffffff" stroke="{c["stroke"]}" stroke-width="{2.2 if good else 1.4}"/>')
+        s.text(76, y + 32, name, 13, c["ink"], "700")
+    s.parts.append(f'<rect x="1000" y="360" width="350" height="130" rx="10" fill="#ffffff" stroke="{RED["stroke"]}" stroke-width="2.2"/>')
+    s.text(1016, 390, "Sandbox A (a pod, its own microVM)", 13, RED["ink"], "700")
+    s.text(1016, 412, "default deny in both directions;", 12, INK)
+    s.text(1016, 429, "one rule in, one rule out", 12, INK)
+    s.parts.append(f'<rect x="1000" y="540" width="350" height="70" rx="10" fill="#ffffff" stroke="{RED["stroke"]}" stroke-width="1.4"/>')
+    s.text(1016, 580, "Sandbox B (another session)", 13, RED["ink"], "700")
+    # the two flows that survive
+    s.arrow([(370, 396), (1000, 396)], "ok", "8080 and 9090: only the router's pods are admitted", 685, 388)
+    s.arrow([(1000, 474), (370, 474)], "ok", "3128: a sandbox may reach only the gateway's address", 685, 466)
+    # the flows that are refused
+    refused = [(ys["Orchestrator pod"] + 27, 366), (ys["Manager pod"] + 27, 374), (ys["Tool gateway pod"] + 27, 382)]
+    for y0, y1 in refused:
+        s.arrow([(370, y0), (1000, y1)], "bad", dash=True)
+        mx, my = 685, (y0 + y1) / 2
+        s.x_mark(mx, my)
+    s.text(720, 190, "refused by Sandbox A's ingress rule:", 11.5, "#991b1b", "700")
+    s.text(720, 207, "only the router's pods are named (S05 tries the orchestrator)", 11.5, "#991b1b")
+    s.arrow([(1175, 490), (1175, 540)], "bad", dash=True)
+    s.x_mark(1175, 515)
+    s.text(1195, 519, "refused: sandbox to sandbox (S05)", 11.5, "#991b1b", "700")
+    s.parts.append(f'<rect x="30" y="640" width="1360" height="110" rx="10" fill="{BLUE["fill"]}" stroke="{BLUE["stroke"]}" stroke-width="1.5"/>')
+    s.text(46, 666, "Pod level (network policy): the narrow control", 13.5, BLUE["ink"], "700")
+    s.text(46, 688, "A sandbox admits only the router's pods and may reach only the gateway on port 3128. Every other path drawn here is refused,", 12.5, INK)
+    s.text(46, 706, "even though the security groups would let the nodes carry it. The security group is the coarse outer wall. This is the specific one.", 12.5, INK)
+    s.text(46, 730, "Green: allowed. Red dashed: refused.", 11.5, MUTED)
+    chip(s, 1390 - 14 - 5 - 60 - 36 - 52, 666, "K8s")
+    chip(s, 1390 - 14 - 5 - 60 - 36, 666, "AWS")
+    chip(s, 1390 - 14 - 5 - 60 - 36 + 52, 666, "Ours")
+    return s.render()
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
     for name, fn in (("a02-1", architecture), ("a02-2", topology), ("a02-3", network_paths), ("a02-4", credential_flow),
                      ("a02-5", context_overview), ("a02-6", context_sequence), ("a02-7", context_components),
-                     ("a02-8", envoy_gateway), ("a02-9", address_plan), ("a02-10", defence_in_depth), ("a02-11", who_may_call_whom), ("a02-12", life_map), ("a02-13", claim_lifecycle)):
+                     ("a02-8", envoy_gateway), ("a02-9", address_plan), ("a02-10", defence_in_depth), ("a02-11", who_may_call_whom), ("a02-12", life_map), ("a02-13", claim_lifecycle), ("a02-14", node_vs_pod)):
         (out / f"{name}.svg").write_text(fn())
         print("wrote", out / f"{name}.svg")

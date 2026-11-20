@@ -179,6 +179,10 @@ In total I wrote about 1,150 lines of Python for the services, 870 lines of Kube
 
 The layers do four different jobs. Layers 1 to 3, 8 and 9 decide **who can connect**. Layers 4, 7 and 13 decide **who they are once connected**. Layers 5, 10 and 11 decide **what a compromised process can do** if everything else fails. Layers 12 to 14 decide **what is allowed on the one path that is left**, and keep a record of it.
 
+![Nodes in the VPC can talk; what may talk is decided at the pod level](diagrams/appendix/a02-14.svg)
+
+**What the picture shows.** Two levels that work differently. At the VPC level, the security groups are wide open between the platform nodes and the sandbox nodes: the rules name a group, not individual nodes, and they allow every port, in both directions. At the pod level, a network policy on the sandbox decides which pods may talk to it. Only the router's pods may connect to a sandbox, and a sandbox may connect only to the gateway's address on port 3128. The orchestrator, the Manager, the tool gateway and other sandboxes are refused, even though their nodes could reach the sandbox node. S05 tests two of these refusals: the orchestrator, and another sandbox. The security group is the coarse outer wall, and the network policy is the specific control. Network policies govern pod traffic, so what the security groups leave open between the nodes themselves is a reason to keep every platform node trusted. I did not confirm on the live cluster which platform nodes carry the cluster group, because the test cluster has been torn down.
+
 ![Who may call whom, and what enforces each allowed path](diagrams/appendix/a02-11.svg)
 
 **What the picture shows.** Every pair of components, with the rule that admits the call. A green cell is a path that exists, and it names the port or the role that admits it. A grey cell is refused, because the called service has an ingress policy that does not name the caller. The Kubernetes API column is controlled by roles, and by the absence of a token in most pods. The amber cells are the honest part. Only the gateway pods and the sandboxes have an egress network policy, so the other platform pods can reach the internet through the NAT gateway. What holds them back is that nothing they run calls out, and that they hold no credential worth stealing. Egress policies for them are a hardening step that this build does not take.
@@ -192,8 +196,8 @@ The highlighted lines, in order:
 1. `cidrsubnet(var.vpc_cidr, 4, 4 + count.index)`: carves the two sandbox blocks (10.20.64.0/20 and 10.20.80.0/20) out of the VPC range, so sandbox nodes have a range of their own.
 2. `"ds01/tier" = "sandbox"`: the tag on the subnet. The sandbox node class selects subnets by this tag, so a sandbox node can only be placed in these blocks.
 3. `aws_security_group "sandbox_nodes"`: a security group that only sandbox nodes use.
-4. `referenced_security_group_id = ...cluster_security_group_id`: the only source this group admits is the cluster security group, which is the control plane and the platform pods. Nothing else in the VPC can open a connection to a sandbox node.
-5. `referenced_security_group_id = aws_security_group.sandbox_nodes.id`: the reverse rule, on the cluster group: it admits the sandbox group, so sandbox nodes can reach the control plane and the egress gateway.
+4. `referenced_security_group_id = ...cluster_security_group_id`: the only source this group admits is the cluster security group, which the rule's description calls the control plane and the platform pods. The rule names a group, not individual nodes, and it allows every port, so any machine in that group can connect to a sandbox node at this level. Nothing outside the group can. The narrow control is the pod network policy (layer 8).
+5. `referenced_security_group_id = aws_security_group.sandbox_nodes.id`: the reverse rule, on the cluster group: it admits the sandbox group on every port. Its description names two uses, sandbox nodes reaching the control plane and the egress gateway. Pod network policy then limits what a sandbox pod may actually reach.
 
 ```hcl
 # from terraform/10-cluster/network.tf
