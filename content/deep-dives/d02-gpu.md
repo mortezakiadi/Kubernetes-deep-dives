@@ -1003,7 +1003,9 @@ spec:
               expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
 ```
 
-- **When several devices must fit together:** a GPU and the network card it sends data through should sit on the same PCIe root, so traffic doesn't cross the CPU. Both drivers publish the standard attribute `resource.kubernetes.io/pcieRoot`, and `matchAttribute` requires the two devices to share it. On EKS the network card is an EFA device, offered by the dranet driver. The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root. Here is a GPU plus an EFA device:
+- **When several devices must fit together:** a GPU and the network card it sends data through should sit on the same PCIe root, so traffic doesn't cross the CPU. Both drivers publish the standard attribute `resource.kubernetes.io/pcieRoot`, and `matchAttribute` requires the two devices to share it. On EKS the network card is an EFA device, offered by the dranet driver. The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root. The picture shows the idea, and the YAML after it asks for a GPU plus an EFA device:
+
+![When several devices must fit together](diagrams/extra/dra-pcie-root.svg)
 
 ```yaml
 apiVersion: resource.k8s.io/v1
