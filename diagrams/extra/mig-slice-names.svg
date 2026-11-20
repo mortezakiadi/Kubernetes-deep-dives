@@ -12,7 +12,7 @@
 <text x="256" y="210" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f9e5b" text-anchor="middle" >memory</text>
 <rect x="400.0" y="108" width="56.0" height="28" rx="14" fill="#3b6fd8" stroke="none" stroke-width="1.6"/>
 <text x="428" y="127.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle" >3g</text>
-<text x="470" y="127.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="400" fill="#1f2933" text-anchor="start" >= 3 of the GPU's 7 compute slices, so 3/7 of its processing power</text>
+<text x="470" y="127.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="400" fill="#1f2933" text-anchor="start" >= 3 of the GPU's 7 compute slices, so 3/7 of its streaming multiprocessors (SMs)</text>
 <rect x="400.0" y="154" width="72.0" height="28" rx="14" fill="#2f9e5b" stroke="none" stroke-width="1.6"/>
 <text x="436" y="173.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle" >40gb</text>
 <text x="486" y="173.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="400" fill="#1f2933" text-anchor="start" >= 40 GB of the GPU's 80 GB of memory (4 of its 8 memory slices)</text>
@@ -68,5 +68,5 @@
 <rect x="980.0" y="566" width="176.0" height="60" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
 <text x="1068.0" y="592" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >7g.80gb</text>
 <text x="1068.0" y="612" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle" >1: the whole GPU</text>
-<text x="24" y="652" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Slices of different sizes can share a GPU, but only in the placements NVIDIA allows, so not every mix fits.</text>
+<text x="24" y="652" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sizes can be mixed on one GPU. The NVIDIA driver chooses where each slice sits.</text>
 </svg>

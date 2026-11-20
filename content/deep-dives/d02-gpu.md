@@ -530,14 +530,14 @@ spec:
 
 **Scenario.** The inference team wants "any NVIDIA GPU with at least 40 GB" without depending on node labels, and the training team needs each worker's GPU on the same PCIe root as its network card. Neither can be said with `nvidia.com/gpu: 1`.
 
-**First, the words the picture uses.** DRA adds a few Kubernetes objects. If you know storage, the idea will feel familiar: a pod doesn't name a disk, it makes a *claim* for one of some *class*, and Kubernetes finds a match. DRA does the same for devices.
+**First, the words the picture uses.** DRA adds a few Kubernetes objects. If you know storage, the idea will feel familiar: a pod doesn't name a disk, it makes a *claim* for one of some *class*, and Kubernetes finds a match. DRA does the same for devices. Kubernetes' own [DRA documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/) makes that comparison with storage classes and PersistentVolumeClaims. The other two storage matches in the table are our own comparison.
 
 | Word | What it is | Who creates it | Storage comparison |
 |---|---|---|---|
-| **ResourceSlice** | The list of devices on one node, each with its facts: product name, architecture, memory. | The DRA driver, per node | Roughly the disks that exist |
+| **ResourceSlice** | The list of devices on one node, each with its facts: product name, architecture, memory. | The DRA driver, per node | PersistentVolume (our comparison) |
 | **DeviceClass** | A named category of devices, such as `gpu.nvidia.com`. A request says which class it wants. | The driver when you install it (an admin can add more) | A StorageClass |
 | **CEL** (Common Expression Language) | A one-line rule that is true or false for each device, such as "memory is at least 40Gi". It narrows a class down to the devices you accept. **Why it is needed:** a count or a node label can only say "one GPU" or "this node has A100s", while a rule can test each device's own facts. | You, inside a claim | n/a |
-| **ResourceClaimTemplate** | A recipe for a request: which class, which CEL rule, how many devices. | You | A template that stamps out claims |
+| **ResourceClaimTemplate** | A recipe for a request: which class, which CEL rule, how many devices. | You | volumeClaimTemplates in a StatefulSet (our comparison) |
 | **ResourceClaim** | One actual request, made from the recipe. The scheduler records which device it picked in the claim. | Kubernetes, one per pod | A PersistentVolumeClaim |
 
 ![If you know storage, you already know the shape of DRA](diagrams/extra/dra-storage-analogy.svg)
@@ -630,7 +630,38 @@ status:
         device: gpu-0                # the scheduler's pick, written into the claim #!
 ```
 
-- **DeviceClass answers "what kind of thing?"** `gpu.nvidia.com` means "an NVIDIA GPU". A class is itself a CEL rule: NVIDIA's says "the driver is `gpu.nvidia.com` and the device type is `gpu`", which is how the class keeps only GPUs. Your claim's own rule then narrows that further. The NVIDIA driver also creates `mig.nvidia.com` for MIG slices. You usually don't write a class; you pick one. `kubectl get deviceclass` lists what your cluster has.
+**What is special about the rule inside the DeviceClass.** Read alone, it only says "an NVIDIA GPU", and the device plugin gives you that too, through the name `nvidia.com/gpu`. What differs is where the definition lives and what it can see:
+
+- **The definition is data, not a fixed name.** With the device plugin, the plugin decides what counts as one GPU, and a pod can only ask for that name. In DRA the definition is a CEL rule stored in the DeviceClass. The API says every selector in a class must be satisfied by a device claimed through it, so each claim that names the class gets the rule without repeating it.
+- **Anyone can define another category by writing another rule.** Kubernetes' own documentation gives the example of a cost-optimized class and a high-performance class ([DRA docs](https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/)). The example below is ours, not something NVIDIA ships.
+- **The rule sees each device's own facts.** The second clause, `type == 'gpu'`, matters because one NVIDIA driver publishes both whole GPUs and MIG slices. In the driver's source a MIG slice copies the product name and architecture from its parent GPU and adds its own type (`mig`) and profile. Without the type test, a claim asking for "Hopper" in this class could be handed a MIG slice of a Hopper GPU. NVIDIA's MIG class has the same rule with the type set to `mig`.
+
+```yaml
+# Example (ours): an admin defines a category of their own, Hopper GPUs only
+apiVersion: resource.k8s.io/v1
+kind: DeviceClass
+metadata:
+  name: hopper-gpu
+spec:
+  selectors:
+  - cel:
+      expression: "device.driver == 'gpu.nvidia.com' && device.attributes['gpu.nvidia.com'].type == 'gpu' && device.attributes['gpu.nvidia.com'].architecture == 'Hopper'" #!
+---
+# A claim for that category needs no CEL of its own
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: one-hopper
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: hopper-gpu #!
+```
+
+- **DeviceClass answers "what kind of thing?"** `gpu.nvidia.com` means "an NVIDIA GPU". A class is itself a CEL rule: NVIDIA's says "the driver is `gpu.nvidia.com` and the device type is `gpu`", which is how the class keeps only GPUs. Your claim's own rule then narrows that further. The NVIDIA driver also creates `mig.nvidia.com` for MIG slices. Its rule is the same with the device type set to `mig`, and the driver publishes MIG slices with that type, so a claim for whole GPUs does not match slices. Both rules are in NVIDIA's DRA driver chart: [the GPU class](https://github.com/NVIDIA/k8s-dra-driver-gpu/blob/main/deployments/helm/dra-driver-nvidia-gpu/templates/deviceclass-gpu.yaml) and [the MIG class](https://github.com/NVIDIA/k8s-dra-driver-gpu/blob/main/deployments/helm/dra-driver-nvidia-gpu/templates/deviceclass-mig.yaml). You usually don't write a class; you pick one. `kubectl get deviceclass` lists what your cluster has.
 - **CEL answers "which ones exactly?"** CEL stands for Common Expression Language, a small language for writing true-or-false rules. DRA needs it because a count or a node label can only say "one GPU" or "this node has A100s". A rule can say "memory at least 40Gi" about each device, and the scheduler can test it against the facts the driver published. The scheduler runs your rule against every device in the class and keeps only those where it comes out true. Three rules, from simple to combined:
   - `device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0` reads "memory is at least 40Gi". `quantity("40Gi")` turns the text into an amount Kubernetes can compare, and `compareTo(...) >= 0` means "greater than or equal".
   - `device.attributes["gpu.nvidia.com"].architecture == "Hopper"` reads "the architecture is Hopper". Attributes are descriptive facts such as the product name or architecture; capacity holds amounts such as memory.
@@ -638,7 +669,7 @@ status:
 
 ![CEL is a filter: one node, three rules](diagrams/extra/dra-cel-filter.svg)
 
-The same three rules as YAML. The ResourceSlice is what the driver publishes for the mixed server in the picture (trimmed, with illustrative values); each ResourceClaimTemplate holds one rule. Note the two layers of CEL: the DeviceClass (`gpu.nvidia.com`) first keeps only GPUs, then your rule keeps only the big or Hopper ones.
+The same three rules as YAML. The ResourceSlice is what the driver publishes for the mixed server in the picture (trimmed, with illustrative values: a real device reports exact figures, a little below its advertised size); each ResourceClaimTemplate holds one rule. Note the two layers of CEL: the DeviceClass (`gpu.nvidia.com`) first keeps only GPUs, then your rule keeps only the big or Hopper ones.
 
 ```yaml
 apiVersion: resource.k8s.io/v1
@@ -649,24 +680,21 @@ spec:
   driver: gpu.nvidia.com
   nodeName: gpu-node-1
   pool: {name: gpu-node-1, generation: 1, resourceSliceCount: 1}
-  devices:                           # the five entries the rules run over
+  devices:                           # the four entries the rules run over
   - name: gpu-0
     attributes: {type: {string: gpu}, productName: {string: Tesla T4}, architecture: {string: Turing}}
-    capacity: {memory: {value: 16Gi}}
+    capacity: {memory: {value: 15Gi}}
   - name: gpu-1
     attributes: {type: {string: gpu}, productName: {string: NVIDIA A10G}, architecture: {string: Ampere}}
-    capacity: {memory: {value: 24Gi}}
+    capacity: {memory: {value: 23Gi}}
   - name: gpu-2
-    attributes: {type: {string: gpu}, productName: {string: NVIDIA A100-SXM4-40GB}, architecture: {string: Ampere}}
-    capacity: {memory: {value: 40Gi}}
-  - name: gpu-3
     attributes: {type: {string: gpu}, productName: {string: NVIDIA A100-SXM4-80GB}, architecture: {string: Ampere}}
     capacity: {memory: {value: 80Gi}}
-  - name: gpu-4
+  - name: gpu-3
     attributes: {type: {string: gpu}, productName: {string: NVIDIA H100 80GB HBM3}, architecture: {string: Hopper}}
     capacity: {memory: {value: 80Gi}}
 ---
-# Rule 1: memory is at least 40Gi  -> matches gpu-2, gpu-3, gpu-4
+# Rule 1: memory is at least 40Gi  -> matches gpu-2, gpu-3
 apiVersion: resource.k8s.io/v1
 kind: ResourceClaimTemplate
 metadata:
@@ -682,7 +710,7 @@ spec:
           - cel:
               expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
 ---
-# Rule 2: architecture is Hopper  -> matches gpu-4
+# Rule 2: architecture is Hopper  -> matches gpu-3
 apiVersion: resource.k8s.io/v1
 kind: ResourceClaimTemplate
 metadata:
@@ -698,7 +726,7 @@ spec:
           - cel:
               expression: device.attributes["gpu.nvidia.com"].architecture == "Hopper" #!
 ---
-# Rule 3: both, joined with &&  -> matches gpu-4
+# Rule 3: both, joined with &&  -> matches gpu-3
 apiVersion: resource.k8s.io/v1
 kind: ResourceClaimTemplate
 metadata:
@@ -786,7 +814,7 @@ spec:
           - name: gpu
 ```
 
-**Check (claims):** `kubectl get resourceclaims`. With A you see one claim, `shared-gpu`, and it stays after the pods are deleted. With B you see three claims with generated names, one per pod, and each disappears with its pod. In A the single device sits in one node, so all three pods run on that node.
+**Check (claims):** `kubectl get resourceclaims`. With A you see one claim, `shared-gpu`, and it stays after the pods are deleted. With B you see three claims with generated names, one per pod, and each disappears with its pod. In A, the claim's allocation records where its device is available (a node selector in the claim's status, [API reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/resource-claim-v1/)), so the three pods run where that device is.
 
 How they fit: the driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices.
 
@@ -850,7 +878,7 @@ spec:
 > - **`requests: - name: gpu`:** "I need one device, and I'll call it `gpu`."
 > - **`exactly:`:** allocate exactly one device that matches. DRA can also list alternatives ("this, or else that"); here there's only one option.
 > - **`deviceClassName: gpu.nvidia.com`:** only look at NVIDIA GPUs. The NVIDIA DRA driver creates this class when you install it.
-> - **The `cel` selector:** a small filter in CEL (Common Expression Language) that reads "this device's memory compared with 40Gi is 0 or more", that is, at least 40 GiB. An A10G (24 GB) is filtered out; an A100 (40 or 80 GB) or an H100 (80 GB) qualifies. The `memory` attribute is published by NVIDIA's driver, which is why the names depend on the driver.
+> - **The `cel` selector:** a small filter in CEL (Common Expression Language) that reads "this device's memory compared with 40Gi is 0 or more", that is, at least 40 GiB. An A10G (24 GB) is filtered out; an A100 or H100 with 80 GB qualifies. A device reports a little less than its advertised size (a T4 sold as 16 GB shows about 15 GB, [NVIDIA forum](https://forums.developer.nvidia.com/t/nvidia-t4-has-only-15g-of-memory/173099)), so read the real value from the ResourceSlice before you choose a threshold. The `memory` attribute is published by NVIDIA's driver, which is why the names depend on the driver.
 >
 > **Part 2: the Pod uses it**
 >
@@ -1011,7 +1039,7 @@ spec:
 
 **Scenario.** A research lab runs on-prem servers that mix GPU models, and wants to split one 80 GB H100 so several notebooks can share it. Node labels, the device plugin's count and DRA each see these servers differently, and only some of them can tell the GPUs apart.
 
-**First, what MIG is.** MIG (Multi-Instance GPU) is a feature built into NVIDIA's A100, H100 and newer data-center GPUs. It cuts one physical GPU into isolated slices, each with its own memory and its own share of the compute units. To Kubernetes, each slice then looks like a small GPU of its own, so one big GPU can serve several notebooks or small inference services at once.
+**First, what MIG is.** MIG (Multi-Instance GPU) is a feature built into NVIDIA GPUs from the Ampere generation on, such as the A100 and H100 ([NVIDIA GPU Operator docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html)). It cuts one physical GPU into isolated slices, up to seven on an A100 or H100, each with its own memory and its own share of the compute units. Kubernetes can then hand each slice to a different pod.
 
 A slice is named by its size, for example `3g.40gb`: the number before the `g` is how many of the GPU's seven compute slices it gets, and the number before `gb` is its memory in GB.
 
@@ -1041,7 +1069,7 @@ Now the same lab server, seen through each advertising method:
 | **Advertise the slices as a count** (`nvidia.com/mig-1g.10gb: 2`) | **Device plugin**, with a MIG strategy | The classic path. |
 | **Advertise each slice as a device** (class `mig.nvidia.com`) | **DRA driver**, with the device plugin turned off | The DRA path, instead of the device plugin. |
 | **Label the slices** (`nvidia.com/mig-1g.10gb.count`, `.memory`) | **GPU Feature Discovery** | Optional. Only if pods must choose a node by slice size. |
-| **Mark the node as having an NVIDIA card** | **Node Feature Discovery** | A helper only. It knows nothing about MIG; GPU Feature Discovery and the GPU Operator rely on it. |
+| **Mark the node as having an NVIDIA card** | **Node Feature Discovery** | A helper only. GPU Feature Discovery builds on it. |
 
 - **MIG is not a sixth way to advertise GPUs.** It changes what the GPU is, and the mechanisms you already know then report slices instead of whole GPUs:
   - **Count (device plugin):** each slice is counted and handed to one container, like a GPU. The `single` strategy calls every slice `nvidia.com/gpu` and needs them all the same size; the `mixed` strategy gives each size its own count, such as `nvidia.com/mig-1g.10gb`.
@@ -1049,7 +1077,7 @@ Now the same lab server, seen through each advertising method:
   - **DRA:** each slice is its own device under the `mig.nvidia.com` class, as in the Dynamic Resource Allocation section above.
   - **Reserving works the same:** labels choose the node, and the count or the claim reserves one slice on it. The difference is that the unit is a slice, and the layout is fixed before pods arrive.
 
-> **Installing it (device plugin path).** Nothing is installed on the card itself. You need a MIG-capable GPU (on AWS, p4d and p4de instances have A100s and p5 has H100s) and the NVIDIA GPU Operator, which installs the driver, device plugin, NFD and GFD. Install it with a MIG strategy, which also deploys the MIG manager, then label a node with the layout you want:
+> **Installing it (device plugin path).** Nothing is installed on the card itself. You need a MIG-capable GPU (on AWS, MIG is available on the P-family instance types with A100 and H100 GPUs, per [AWS's MIG on EKS guide](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-mig.html)) and the NVIDIA GPU Operator, which installs the driver, device plugin, NFD and GFD. Install it with a MIG strategy, which also deploys the MIG manager, then label a node with the layout you want:
 >
 > ```bash
 > helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
