@@ -658,11 +658,9 @@ status:
     uid: 7c1f6b2e-0a4d-4f4e-9b0a-2f6d5e8a1c33   # illustrative
 ```
 
-**What is special about the rule inside the DeviceClass.** Read alone, it only says "an NVIDIA GPU", and the device plugin gives you that too, through the name `nvidia.com/gpu`. What differs is where the definition lives and what it can see:
+**Why the class tests the device type.** The second clause of the class's rule, `type == 'gpu'`, matters because one NVIDIA driver publishes both whole GPUs and MIG slices. In the driver's source a MIG slice copies the product name and architecture from its parent GPU and adds its own type (`mig`) and profile. Without the type test, a claim asking for "Hopper" in this class could be handed a MIG slice of a Hopper GPU. NVIDIA's MIG class has the same rule with the type set to `mig`.
 
-- **The definition is data, not a fixed name.** With the device plugin, the plugin decides what counts as one GPU, and a pod can only ask for that name. In DRA the definition is a CEL rule stored in the DeviceClass. The API says every selector in a class must be satisfied by a device claimed through it, so each claim that names the class gets the rule without repeating it.
-- **Anyone can define another category by writing another rule.** Kubernetes' own documentation gives the example of a cost-optimized class and a high-performance class ([DRA docs](https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/)). The example below is ours, not something NVIDIA ships.
-- **The rule sees each device's own facts.** The second clause, `type == 'gpu'`, matters because one NVIDIA driver publishes both whole GPUs and MIG slices. In the driver's source a MIG slice copies the product name and architecture from its parent GPU and adds its own type (`mig`) and profile. Without the type test, a claim asking for "Hopper" in this class could be handed a MIG slice of a Hopper GPU. NVIDIA's MIG class has the same rule with the type set to `mig`.
+![Why the class tests the device type](diagrams/extra/dra-class-type-test.svg)
 
 **Both filters on one node.** The ResourceSlice below is illustrative: a T4, an A100, an H100, and a second H100 that is split into MIG slices (one slice shown). A node can mix GPUs with MIG on and off, as the GPU Operator's `mixed` strategy allows. The claim asks for a Hopper GPU from the whole-GPU class. The API requires a device to satisfy the class's rule and the request's rule, so the order below is only for reading.
 
@@ -714,6 +712,8 @@ spec:
 ```
 
 Only `gpu-2` is left. Take the claim's rule away and `gpu-2` is still allowed, but so are `gpu-0` and `gpu-1`, since the class only asks for whole NVIDIA GPUs. Take the class away and `mig-0` would pass the Hopper rule, which is what the class's type test prevents.
+
+**Anyone can define another category by writing another rule.** Kubernetes' own documentation gives the example of a cost-optimized class and a high-performance class ([DRA docs](https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/)). The example below is ours, not something NVIDIA ships.
 
 ```yaml
 # Example (ours): an admin defines a category of their own, Hopper GPUs only

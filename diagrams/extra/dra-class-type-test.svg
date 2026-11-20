@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 520" width="1180" height="520" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Why the class tests the device type</text>
+<rect x="24.0" y="50.0" width="36.6" height="22.0" rx="11" fill="#0f766e" stroke="none" stroke-width="1.6"/>
+<text x="42.3" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" >DRA</text>
+<text x="72.6" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >A MIG slice copies its parent GPU's product name and architecture. Only its type and profile differ.</text>
+<rect x="24.0" y="90.0" width="540.0" height="170.0" rx="14" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="40" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#e08a1e" text-anchor="start" >gpu-2: a whole H100</text>
+<rect x="34.0" y="128.0" width="520.0" height="24.0" rx="6" fill="#ffe9c7" stroke="none" stroke-width="0"/>
+<text x="44" y="144" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start" >type: gpu</text>
+<text x="44" y="170" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start" >productName: NVIDIA H100 80GB HBM3</text>
+<text x="44" y="196" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start" >architecture: Hopper</text>
+<rect x="616.0" y="90.0" width="540.0" height="170.0" rx="14" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="632" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#e08a1e" text-anchor="start" >mig-0: a slice of another H100</text>
+<rect x="626.0" y="128.0" width="520.0" height="24.0" rx="6" fill="#ffe9c7" stroke="none" stroke-width="0"/>
+<text x="636" y="144" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start" >type: mig</text>
+<rect x="626.0" y="154.0" width="520.0" height="24.0" rx="6" fill="#ffe9c7" stroke="none" stroke-width="0"/>
+<text x="636" y="170" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start" >profile: 1g.10gb</text>
+<text x="636" y="196" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start" >productName: NVIDIA H100 80GB HBM3</text>
+<rect x="969.4" y="182.0" width="170.6" height="18.0" rx="9" fill="#e4e9f0" stroke="none" stroke-width="0"/>
+<text x="1054.7" y="194.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5b6675" text-anchor="middle" >copied from the parent GPU</text>
+<text x="636" y="222" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start" >architecture: Hopper</text>
+<rect x="969.4" y="208.0" width="170.6" height="18.0" rx="9" fill="#e4e9f0" stroke="none" stroke-width="0"/>
+<text x="1054.7" y="220.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5b6675" text-anchor="middle" >copied from the parent GPU</text>
+<text x="24" y="290" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="start" >A claim rule on its own:  architecture == "Hopper"</text>
+<rect x="24.0" y="302.0" width="540.0" height="48.0" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<circle cx="52" cy="326" r="11" fill="#2f9e5b"/><path d="M47,326 L50.5,330 L57.5,322" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="74" y="331" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f9e5b" text-anchor="start" >gpu-2 qualifies</text>
+<rect x="616.0" y="302.0" width="540.0" height="48.0" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<circle cx="644" cy="326" r="11" fill="#2f9e5b"/><path d="M639,326 L642.5,330 L649.5,322" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="666" y="331" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e08a1e" text-anchor="start" >mig-0 qualifies too: a slice could be handed out</text>
+<text x="24" y="392" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="start" >The class's rule (driver is NVIDIA and type == 'gpu') plus the same claim rule:</text>
+<rect x="24.0" y="404.0" width="540.0" height="48.0" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<circle cx="52" cy="428" r="11" fill="#2f9e5b"/><path d="M47,428 L50.5,432 L57.5,424" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="74" y="433" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f9e5b" text-anchor="start" >gpu-2 qualifies</text>
+<rect x="616.0" y="404.0" width="540.0" height="48.0" rx="10" fill="#f6f8fb" stroke="#c5ccd6" stroke-width="1.4"/>
+<circle cx="644" cy="428" r="11" fill="#c5ccd6"/><path d="M640,424 L648,432 M648,424 L640,432" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+<text x="666" y="433" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#7b8794" text-anchor="start" >mig-0 filtered out by the class: its type is mig</text>
+<text x="24" y="486" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NVIDIA's MIG class uses the same rule with the type set to 'mig', so a claim for slices names that class instead.</text>
+<text x="24" y="505" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Attribute values are illustrative. The attribute names and the copy from the parent GPU are from NVIDIA's DRA driver source.</text>
+</svg>
