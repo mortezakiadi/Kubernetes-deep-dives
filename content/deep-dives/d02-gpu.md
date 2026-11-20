@@ -806,7 +806,7 @@ spec:
           deviceClassName: hopper-gpu #!
 ```
 
-**Step 6. The pod, and the claim Kubernetes makes for it.** The pod names the template from Step 4, and its container asks for the claim that Kubernetes makes from it:
+**Step 6. The pod that uses the template.** The pod names the template from Step 4, and its container asks for the claim that Kubernetes makes from it:
 
 ```yaml
 apiVersion: v1
@@ -829,7 +829,7 @@ spec:
 - **`containers[].resources.claims: - name: gpu`:** give the `server` container access to that device. In a pod with several containers, you choose which ones see the GPU.
 - **No GPU count under `resources.limits`:** the container lists `claims` instead. The claim *is* the request, so there is nothing to count. Notice there is no `nvidia.com/gpu: 1` anywhere in these manifests: that line belongs to the older device-plugin way used in the [GPU labels example](#gpu-labels-yaml) (Option 1 and Option 2), not to DRA.
 
-When the pod is created, Kubernetes copies the template's spec into a new ResourceClaim for that pod. Once the scheduler has picked a device, the claim looks like this (the status is written by the scheduler):
+**Step 7. The claim Kubernetes makes for the pod.** When the pod is created, Kubernetes copies the template's spec into a new ResourceClaim for that pod. Once the scheduler has picked a device, the claim looks like this (the status is written by the scheduler):
 
 ```yaml
 apiVersion: resource.k8s.io/v1
@@ -866,7 +866,7 @@ What happens when you apply the pod and the template:
 3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container. The plugin answers with the GPU's CDI names, and the container runtime uses them to add the GPU to the container (see the CDI note under Going deeper).
 4. **The server starts:** vLLM starts and sees exactly one GPU that's big enough.
 
-**Step 7. Template or claim?** A claim you write by hand is one request that several pods can share, and it outlives any pod. A template gives every pod its own claim, made when the pod starts and removed with it. Ten replicas then get ten separate GPUs instead of sharing one.
+**Step 8. Template or claim?** A claim you write by hand is one request that several pods can share, and it outlives any pod. A template gives every pod its own claim, made when the pod starts and removed with it. Ten replicas then get ten separate GPUs instead of sharing one.
 
 ![Template or claim: who gets which GPU](diagrams/extra/dra-template-vs-claim.svg)
 
@@ -936,7 +936,7 @@ spec:
 
 **Check (claims):** `kubectl get resourceclaims`. With A you see one claim, `shared-gpu`, and it stays after the pods are deleted. With B you see three claims with generated names, one per pod, and each disappears with its pod. In A, the claim's allocation records where its device is available (a node selector in the claim's status, [API reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/resource-claim-v1/)), so the three pods run where that device is.
 
-**Step 8. Putting it together.** The driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and, if you want, adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices.
+**Step 9. Putting it together.** The driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and, if you want, adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices.
 
 ![Dynamic Resource Allocation](diagrams/sections/d06-4.svg)
 
@@ -958,7 +958,7 @@ spec:
 >
 > DRA does two jobs. The scheduler's job is to choose the GPU, using the ResourceSlices and the claim. The second job is to hand that exact GPU to the container, and that is where **CDI** (Container Device Interface) comes in. CDI is an open standard for container runtimes, not a Kubernetes feature. A CDI entry is a named device, and its description lists what the runtime must change when it creates the container: device files, mounts, hooks and environment variables ([CDI tutorial](https://github.com/cncf-tags/container-device-interface/blob/main/TUTORIAL.md)).
 >
-> Here is what happens in step 3 of "What happens when you apply the pod and the template" in Step 6:
+> Here is what happens in step 3 of "What happens when you apply the pod and the template" in Step 7:
 >
 > 1. **The driver's kubelet plugin prepares the allocated GPU** on the node.
 > 2. **It answers the kubelet with the device's CDI names.** Kubernetes' kubelet API for DRA describes this reply as the devices the kubelet must make available through the container runtime, each with its CDI device IDs ([DRA kubelet API](https://github.com/kubernetes/kubelet/blob/master/pkg/apis/dra/v1/api.proto)).
