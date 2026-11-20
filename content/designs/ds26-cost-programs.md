@@ -224,7 +224,7 @@ spec:
 
 **What the picture shows.** Capacity created for work that's admitted, and released when it's gone.
 
-- **Queue-driven provisioning:** Kueue asks the autoscaler for the whole gang's capacity (a ProvisioningRequest) before admitting a workload. Nodes appear for a job that will start, and no partial gang holds on-demand nodes while waiting.
+- **Queue-driven provisioning:** Kueue asks the autoscaler for the whole gang's capacity (a ProvisioningRequest) before admitting a workload. Nodes appear for a job that will start, and no partial gang holds on-demand nodes while waiting. While it waits, the workload already holds its quota. If the request fails, Kueue releases that quota and the workload tries again after a backoff, three times by default ([Kueue docs](https://kueue.sigs.k8s.io/v0.20/docs/concepts/admission_check/provisioning_request/)).
 - **Scale to zero for development:** notebooks and dev environments run on a pool with a minimum of zero, with a warm buffer of one node per GPU type during working hours.
 - **Idle stop:** notebooks are checkpointed and stopped after an idle period ([Design 19](#design-scheduling-impact)'s idle policy), and their node is consolidated away.
 - **Start-time budget:** the trade-off is explicit. A notebook may take 3 to 5 minutes to start from zero, and the program publishes that number.

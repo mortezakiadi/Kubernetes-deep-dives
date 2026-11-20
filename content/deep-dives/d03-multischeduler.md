@@ -448,6 +448,12 @@ spec:
 
 WorkloadPriorityClasses decide admission order, and fair sharing favors teams that have used less recently. Hard namespace ResourceQuotas can't do any of this: idle GPUs in one namespace never help another team's queue.
 
+Three defaults decide how this behaves:
+
+- **Queue order:** a ClusterQueue's queueing strategy is `BestEffortFIFO` unless you change it. A workload that cannot be admitted does not hold up newer ones that fit. With `StrictFIFO`, an older workload that cannot be admitted blocks everything behind it ([Kueue docs](https://kueue.sigs.k8s.io/v0.20/docs/concepts/cluster_queue/)).
+- **Borrowing:** by default, queues in a cohort borrow first come, first served. Fair sharing is switched on in Kueue's own configuration, and [Design 17](#design-gpu-scheduling) shows how. A queue also gets its quota back by preemption only if `reclaimWithinCohort` is set. The default is `Never`, and the example below sets it ([preemption docs](https://kueue.sigs.k8s.io/docs/concepts/preemption/)).
+- **Priority:** a WorkloadPriorityClass sets the workload's place in Kueue's queue and in its preemption decisions. It does not change the pods' own priority. If a job names both a WorkloadPriorityClass and a PriorityClass, each applies to its own part ([Kueue docs](https://kueue.sigs.k8s.io/docs/concepts/workload_priority_class/)).
+
 > **Note: counting DRA devices in Kueue quotas**
 >
 > A Kueue quota counts only what it is told to count. A pod that asks for GPUs the old way (`nvidia.com/gpu: 2` in its limits) is counted under that name. A pod that asks through DRA writes no GPU count at all, so a quota on `nvidia.com/gpu` has nothing to count unless Kueue is set up to account for DRA devices. The [Kueue DRA docs](https://kueue.sigs.k8s.io/docs/concepts/dynamic_resource_allocation/) describe two ways to do that:
@@ -549,17 +555,17 @@ spec:
 - **Kueue's strength, fair sharing and borrowing:** marketing has a 10-GPU quota, data science has 50. On Friday night marketing is idle and data science needs 60. Both teams' ClusterQueues sit in the same cohort, so Kueue sees marketing's unused quota and lends its 10 GPUs. If someone in marketing submits a job on Saturday morning, Kueue preempts the borrowed work and returns the guaranteed GPUs. Volcano focuses on the performance of each job, not on sharing a budget between departments.
 
 ```yaml
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ResourceFlavor
 metadata:
   name: a100
 ---
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ClusterQueue
 metadata:
   name: data-science
 spec:
-  cohort: gpu-pool             # queues in one cohort can lend to each other #!
+  cohortName: gpu-pool           # queues in one cohort can lend to each other #!
   namespaceSelector: {}
   resourceGroups:
   - coveredResources: ["nvidia.com/gpu"]
@@ -572,7 +578,7 @@ spec:
   preemption:
     reclaimWithinCohort: Any   # a lender can take its GPUs back #!
 ---
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: LocalQueue
 metadata:
   name: ds-queue
