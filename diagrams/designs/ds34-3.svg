@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="600px" viewBox="0 0 1300 600" style="background:#ffffff"><title>Long transcripts</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="600" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Long transcripts: a deterministic timeline first, full text where it points</text>
+<rect x="30" y="60" width="620" height="200" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Tokens per transcript (average)</text>
+<text x="50" y="120.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">full transcript</text>
+<rect x="270" y="104" width="324" height="26" rx="3" fill="#94a3b8" fill-opacity="0.85" stroke="none"/>
+<text x="602.0" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">90,000</text>
+<text x="50" y="166.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">timeline</text>
+<rect x="270" y="150" width="25" height="26" rx="3" fill="#2563eb" fill-opacity="0.85" stroke="none"/>
+<text x="303.2" y="168" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">≈ 7,000</text>
+<text x="50" y="212.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">timeline + requested spans</text>
+<rect x="270" y="196" width="40" height="26" rx="3" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="317.6" y="214" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">≈ 11,000</text>
+<rect x="680" y="60" width="590" height="200" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="700" y="88" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Timeline rows (extracted by code)</text>
+<text x="700" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569">e/1</text>
+<text x="750" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">test_result</text>
+<text x="880" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">12 passed, 1 failed</text>
+<text x="700" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569">e/2</text>
+<text x="750" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">edit</text>
+<text x="880" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">apply_patch export.py</text>
+<text x="700" y="172" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569">e/4</text>
+<text x="750" y="172" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8">test_result</text>
+<text x="880" y="172" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">1 passed (targeted test)</text>
+<text x="700" y="206" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569">e/5</text>
+<text x="750" y="206" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">success_claim</text>
+<text x="880" y="206" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">All tests pass. The fix is complete.</text>
+<rect x="30" y="280" width="1240" height="180" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="308" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Missed late test failures, by transcript length (illustrative)</text>
+<text x="80" y="330.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">&lt; 20k tokens</text>
+<rect x="80" y="342" width="45" height="22" rx="3" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="133" y="359.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">full text 5%</text>
+<rect x="80" y="374" width="36" height="22" rx="3" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="124" y="391.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#047857">timeline-first 4%</text>
+<text x="480" y="330.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">20–60k</text>
+<rect x="480" y="342" width="108" height="22" rx="3" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="596" y="359.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">full text 12%</text>
+<rect x="480" y="374" width="45" height="22" rx="3" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="533" y="391.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#047857">timeline-first 5%</text>
+<text x="880" y="330.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">&gt; 60k</text>
+<rect x="880" y="342" width="297" height="22" rx="3" fill="#dc2626" fill-opacity="0.85" stroke="none"/>
+<text x="1185" y="359.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">full text 33%</text>
+<rect x="880" y="374" width="63" height="22" rx="3" fill="#059669" fill-opacity="0.85" stroke="none"/>
+<text x="951" y="391.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#047857">timeline-first 7%</text>
+<text x="80" y="440" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#475569">two passes: answer from the timeline, then fetch the full spans needed to confirm each claim</text>
+<rect x="30" y="485" width="1240" height="80" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="517.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: whole transcripts in context. Over 60,000 tokens, readers missed late test failures</text>
+<text x="50" y="543" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">about a third of the time.</text></svg>

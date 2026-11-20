@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="620px" viewBox="0 0 1300 620" style="background:#ffffff"><title>Operations</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="620" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">The inspection system has versions, tests and owners</text>
+<rect x="30" y="70" width="138" height="60" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="91.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1e40af">reader prompt</text>
+<rect x="180" y="70" width="138" height="60" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="192" y="91.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1e40af">reader model</text>
+<rect x="330" y="70" width="138" height="60" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="342" y="91.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#92400e">rubric</text>
+<rect x="480" y="70" width="138" height="60" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="492" y="91.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">timeline extractor</text>
+<text x="330" y="158.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8">= reader version, recorded on every finding</text>
+<rect x="30" y="180" width="600" height="260" rx="10" fill="#ffffff" fill-opacity="1" stroke="#cbd5e1"/>
+<text x="50" y="208" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Golden set recall by category: candidate reader</text>
+<text x="50" y="238.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">stopped early</text>
+<rect x="200" y="220" width="324" height="18" rx="2" fill="#94a3b8" fill-opacity="1" stroke="none"/>
+<text x="530.0" y="234" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#475569">90%</text>
+<rect x="200" y="240" width="328" height="18" rx="2" fill="#059669" fill-opacity="1" stroke="none"/>
+<text x="533.6" y="254" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">91%</text>
+<text x="50" y="290.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">lost the plan</text>
+<rect x="200" y="272" width="295" height="18" rx="2" fill="#94a3b8" fill-opacity="1" stroke="none"/>
+<text x="501.2" y="286" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#475569">82%</text>
+<rect x="200" y="292" width="302" height="18" rx="2" fill="#059669" fill-opacity="1" stroke="none"/>
+<text x="508.40000000000003" y="306" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">84%</text>
+<text x="50" y="342.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">flaky test</text>
+<rect x="200" y="324" width="288" height="18" rx="2" fill="#94a3b8" fill-opacity="1" stroke="none"/>
+<text x="494.0" y="338" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#475569">80%</text>
+<rect x="200" y="344" width="292" height="18" rx="2" fill="#059669" fill-opacity="1" stroke="none"/>
+<text x="497.6" y="358" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#047857">81%</text>
+<text x="50" y="394.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">tool timeout</text>
+<rect x="200" y="376" width="302" height="18" rx="2" fill="#94a3b8" fill-opacity="1" stroke="none"/>
+<text x="508.40000000000003" y="390" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#475569">84%</text>
+<rect x="200" y="396" width="220" height="18" rx="2" fill="#dc2626" fill-opacity="1" stroke="none"/>
+<text x="425.6" y="410" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#b91c1c">61%</text>
+<text x="50" y="430.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#475569">grey: current · colored: candidate → blocked</text>
+<rect x="660" y="70" width="610" height="110" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="672" y="92.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Findings flow out</text>
+<text x="672" y="115.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">behavior catalog (Design 31) · eval tasks (Design 32) · reward exploits (Design 29)</text>
+<rect x="660" y="200" width="610" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="672" y="222" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">SLOs</text>
+<text x="672" y="244" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">10k transcripts &lt; 6 h · audited precision &gt; 90% · sample, interval, reader version on every report</text>
+<rect x="660" y="330" width="610" height="110" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="672" y="352" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">v8 outcome</text>
+<text x="672" y="374" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">5 h compute + 3 h human review · top finding → eval slice + fixes in 2 environments</text>
+<rect x="30" y="465" width="1240" height="80" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="497.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: a reader prompt change improved readability and cut recall on “gave up after a timeout”</text>
+<text x="50" y="523" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">from 84% to 61%; a later investigation undercounted it.</text>
+<rect x="30" y="565" width="1240" height="40" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="587" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Keep people reading a few raw transcripts every week, without annotations</text></svg>
