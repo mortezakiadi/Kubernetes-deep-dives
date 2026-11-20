@@ -970,8 +970,31 @@ spec:
 >
 > 1. **The claim is created:** Kubernetes makes the pod's ResourceClaim from the template.
 > 2. **The scheduler filters and allocates:** its DynamicResources plugin checks the devices each node publishes (as ResourceSlices, written by the driver) and filters out nodes with no free NVIDIA GPU of 40 GiB or more. Then it picks a node and records the exact GPU it chose in the claim.
-> 3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container.
+> 3. **The kubelet prepares the device:** on that node, the kubelet asks the driver's kubelet plugin to set up that GPU and expose it to the `server` container. The plugin answers with the GPU's CDI names, and the container runtime uses them to add the GPU to the container (see the CDI note below).
 > 4. **The server starts:** vLLM starts and sees exactly one GPU that's big enough.
+>
+> **Note: how the chosen GPU gets into the container (CDI)**
+>
+> DRA does two jobs. The scheduler's job is to choose the GPU, using the ResourceSlices and the claim. The second job is to hand that exact GPU to the container, and that is where **CDI** (Container Device Interface) comes in. CDI is an open standard for container runtimes, not a Kubernetes feature. A CDI entry is a named device, and its description lists what the runtime must change when it creates the container: device files, mounts, hooks and environment variables ([CDI tutorial](https://github.com/cncf-tags/container-device-interface/blob/main/TUTORIAL.md)).
+>
+> Here is what happens in step 3:
+>
+> 1. **The driver's kubelet plugin prepares the allocated GPU** on the node.
+> 2. **It answers the kubelet with the device's CDI names.** Kubernetes' kubelet API for DRA describes this reply as the devices the kubelet must make available through the container runtime, each with its CDI device IDs ([DRA kubelet API](https://github.com/kubernetes/kubelet/blob/master/pkg/apis/dra/v1/api.proto)).
+> 3. **The container runtime (containerd or CRI-O) applies the matching entries** from the CDI files on the node, so the container starts with that GPU's device files and driver libraries already in place.
+>
+> This is a requirement for DRA, not a choice. NVIDIA lists a container runtime that supports CDI, and is set to use it for DRA-allocated devices, as a prerequisite of its DRA driver ([NVIDIA docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html)).
+>
+> **How this differs from the device plugin**
+>
+> | | Device plugin | DRA |
+> |---|---|---|
+> | **What the scheduler knows** | A count of free GPUs per node | Each GPU's own facts (ResourceSlice) and which one a claim got |
+> | **Who picks the exact GPU** | The plugin, when the kubelet asks at container start. The scheduler never knows which one. | The scheduler, and it records the pick in the claim |
+> | **How the container gets the GPU** | The plugin's reply lists device files and a setting that names the GPU. NVIDIA's container runtime reads that setting. This is the plugin's default in its README for version 0.17.1. The plugin can use CDI instead, and the GPU Operator has done so by default since 25.10. | Always CDI: the driver returns CDI names and the runtime applies them |
+> | **What the runtime must support** | Nothing special by default. CDI is optional. | CDI, required |
+>
+> In short, CDI does not change how DRA finds a GPU. It changes how the found GPU reaches the container: through a standard file the runtime reads, instead of a setting that NVIDIA's runtime has to interpret.
 >
 > **Note: how do you install DRA?**
 >
@@ -995,7 +1018,8 @@ spec:
 > Things to check before you rely on it:
 >
 > - **Kubernetes version:** NVIDIA asks for 1.34.2 or later.
-> - **Chart name:** from v0.4.0 the driver moved to `kubernetes-sigs` and the chart is called `dra-driver-nvidia-gpu`; use the name that matches your version.
+> - **Container runtime:** it must support CDI and be set to use it for DRA-allocated devices (see the CDI note above).
+ - **Chart name:** from v0.4.0 the driver moved to `kubernetes-sigs` and the chart is called `dra-driver-nvidia-gpu`; use the name that matches your version.
 > - **Don't run two allocators:** if the NVIDIA GPU Operator is installed, use v25.10.0 or later with its device plugin turned off, and label the GPU nodes (for example `nvidia.com/dra-kubelet-plugin=true`) so the driver runs only there.
 > - **Old-style requests aren't DRA:** a pod that asks for `nvidia.com/gpu: 1` under `resources.limits` still goes through the device plugin path, even with a DRA driver installed.
 > - **On EKS:** Bottlerocket nodes aren't supported by the NVIDIA DRA driver; Karpenter needs `settings.enableDRA: true` (alpha); and support for EKS Auto Mode was announced in November 2026 for Kubernetes 1.36+, so check the current AWS docs.
