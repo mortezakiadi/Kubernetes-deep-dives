@@ -210,9 +210,57 @@ def _label(node):
     return None
 
 
+# A paragraph that starts with a bold "Step N. Title." opens a collapsible step. The step runs until the next
+# step or the next "What the picture shows." / "Going deeper." / "Scenario." label or heading. Consecutive steps
+# share one Expand all / Collapse all bar. Every step starts collapsed, like the other accordions.
+_STEP_RE = re.compile(r"^Step\s+(\d+)\.\s*(.*?)\.?$")
+_STEP_END = ("What the picture shows.", "Going deeper.", "Scenario.")
+
+
+def _stepify(soup, root):
+    nodes = [n for n in root.children if isinstance(n, Tag)]
+    i = 0
+    while i < len(nodes):
+        lab = _label(nodes[i])
+        if not (lab and _STEP_RE.match(lab)):
+            i += 1
+            continue
+        j = i
+        while j < len(nodes) and nodes[j].name not in ("h2", "h3") and _label(nodes[j]) not in _STEP_END:
+            j += 1
+        run = nodes[i:j]
+        wrap = soup.new_tag("div", attrs={"class": "acc-region steps"})
+        run[0].insert_before(wrap)
+        wrap.append(BeautifulSoup('<div class="acc-tools"><button type="button" data-acc="open">Expand all</button>'
+                                  '<button type="button" data-acc="close">Collapse all</button></div>', "html.parser"))
+        body = None
+        for node in run:
+            lab = _label(node)
+            m = _STEP_RE.match(lab) if lab else None
+            node = node.extract()
+            if m:
+                det = soup.new_tag("details", attrs={"class": "acc step"})
+                summ = soup.new_tag("summary")
+                badge = soup.new_tag("span", attrs={"class": "acc-num"}); badge.string = m.group(1)
+                title = soup.new_tag("span", attrs={"class": "acc-title"}); title.string = m.group(2)
+                summ.append(badge); summ.append(title)
+                body = soup.new_tag("div", attrs={"class": "acc-body"})
+                node.find("strong", recursive=False).extract()
+                if node.contents and isinstance(node.contents[0], NavigableString):
+                    node.contents[0].replace_with(node.contents[0].lstrip())
+                if node.get_text(strip=True):
+                    body.append(node)
+                det.append(summ); det.append(body)
+                wrap.append(det)
+            else:
+                (body if body is not None else wrap).append(node)
+        i = j
+
+
 def accordionize(h):
     soup = BeautifulSoup(f"<div id='__root'>{h}</div>", "html.parser")
     root = soup.find(id="__root")
+    _stepify(soup, root)
     nodes = [n for n in root.children if isinstance(n, Tag)]
     i = 0
     while i < len(nodes):
