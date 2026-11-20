@@ -944,7 +944,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 
-<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">2 points</span></summary><div class="acc-body"><ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">1 points</span></summary><div class="acc-body"><ul>
 <li><mark class="kw">Dynamic Resource Allocation</mark> (stable since Kubernetes 1.34) lets a pod describe the device it needs, and the driver picks a match at scheduling time.</li>
 </ul><blockquote>
 <p><strong>Note: how the chosen GPU gets into the container (CDI)</strong></p>
@@ -963,9 +963,6 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Kueue quotas:</strong> if you use <mark class="kw-tool">Kueue</mark>, a <mark class="kw">quota</mark> on <code>nvidia.com/gpu</code> does not count devices that pods claim through DRA unless you map them. See <a href="#d02-4">counting DRA devices in Kueue quotas</a>.</li>
 <li><strong>On EKS:</strong> Bottlerocket nodes work with the NVIDIA DRA driver once you turn off the NVIDIA device plugin built into the Bottlerocket NVIDIA images (this needs Bottlerocket 1.63.0 or later, per <a href="https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-mig.html">AWS</a>). <mark class="kw-tool">Karpenter</mark> 1.15 or later needs <code>settings.enableDRA: true</code> (alpha; <a href="https://karpenter.sh/docs/tasks/dra/">Karpenter docs</a>). EKS Auto Mode includes the NVIDIA and <mark class="kw">EFA</mark> DRA drivers on Kubernetes 1.36 and later, as <a href="https://aws.amazon.com/about-aws/whats-new/2026/11/amazon-eks-auto-mode-karpenter-dra/">AWS announced in November 2026</a>; you create the DeviceClass objects yourself. Some AWS pages written earlier, including the 1.37 release notes, still say Auto Mode doesn't support the NVIDIA DRA driver, so check the current AWS docs.</li>
 </ul>
-</blockquote><ul>
-<li><strong>DRA compared with node labels and the device plugin.</strong> <a href="#gpu-labels-yaml">Option 2 in the GPU labels example</a> gets the same "at least 40 GB" result without DRA. It works in three steps: the <strong>node</strong> carries a label with its per-GPU memory (<code>nvidia.com/gpu.memory: "81920"</code> in the GPU node manifest at the top of that example, added automatically by <mark class="kw-tool">GPU Feature Discovery</mark>); Option 2 <mark class="kw-act">filters</mark> on that label with <mark class="kw">node affinity</mark> (<code>Gt 40000</code>); then it asks the device plugin for <code>nvidia.com/gpu: 1</code>, which only counts GPUs. DRA instead describes the <strong>device</strong> itself, so the scheduler checks each GPU's own properties. For one big GPU both work. The table that follows summarizes how the two differ, and the four cases after the table are where DRA goes further.</li>
-</ul><blockquote>
 <p><strong>How this differs from the device plugin</strong></p>
 <table>
 <thead>
@@ -1022,8 +1019,6 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </li>
 </ul>
 </blockquote></div></details>
-
-
 
 
 <h3 id="d06-5">Different GPUs in one server, and MIG</h3>

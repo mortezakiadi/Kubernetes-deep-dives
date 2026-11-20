@@ -983,8 +983,6 @@ spec:
 
 
 
-- **DRA compared with node labels and the device plugin.** [Option 2 in the GPU labels example](#gpu-labels-yaml) gets the same "at least 40 GB" result without DRA. It works in three steps: the **node** carries a label with its per-GPU memory (`nvidia.com/gpu.memory: "81920"` in the GPU node manifest at the top of that example, added automatically by GPU Feature Discovery); Option 2 filters on that label with node affinity (`Gt 40000`); then it asks the device plugin for `nvidia.com/gpu: 1`, which only counts GPUs. DRA instead describes the **device** itself, so the scheduler checks each GPU's own properties. For one big GPU both work. The table that follows summarizes how the two differ, and the four cases after the table are where DRA goes further.
-
 > **How this differs from the device plugin**
 >
 > | | Device plugin | DRA |
