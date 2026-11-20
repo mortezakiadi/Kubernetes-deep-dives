@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="620px" viewBox="0 0 1300 620" style="background:#ffffff"><title>Event-driven pipeline</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="620" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">Every change becomes an event, a plan and a tiered workflow</text>
+<rect x="30" y="60" width="230" height="76" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="42" y="82" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">Trainer</text>
+<text x="42" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">checkpoint written</text>
+<path d="M 260 98 L 310 230" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="150" width="230" height="76" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="42" y="172" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">CI</text>
+<text x="42" y="194" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">serving image / config merged</text>
+<path d="M 260 188 L 310 230" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="240" width="230" height="76" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="262" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Eval repo</text>
+<text x="42" y="284" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">grader · environment · suite</text>
+<path d="M 260 278 L 310 230" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="30" y="330" width="230" height="76" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="42" y="352" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Nightly</text>
+<text x="42" y="374" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">fixed reference models</text>
+<path d="M 260 368 L 310 230" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="310" y="180" width="200" height="100" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="322" y="202" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Event</text>
+<text x="322" y="224" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">component · old/new digest ·</text>
+<text x="322" y="238" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">model</text>
+<rect x="550" y="180" width="200" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="562" y="202" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Planner</text>
+<text x="562" y="224" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">tiers · slices · baseline ·</text>
+<text x="562" y="238" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">reuse</text>
+<path d="M 510 230 L 550 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="790" y="60" width="480" height="300" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="804" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">WORKFLOW (ONE PER PLAN)</text>
+<rect x="810" y="100" width="300" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="822" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">smoke</text>
+<text x="822" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">≈ 6 min · 300 items</text>
+<text x="1130" y="140" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#b91c1c">stop + alert if regression</text>
+<rect x="810" y="185" width="300" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="822" y="207" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">fast</text>
+<text x="822" y="229" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">≈ 40 min · 2,400 items, sequential</text>
+<path d="M 960 170 L 960 185" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="1130" y="225" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#b91c1c">stop + alert if regression</text>
+<rect x="810" y="270" width="300" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="822" y="292" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">full</text>
+<text x="822" y="314" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">≈ 18 h · realistic suite</text>
+<path d="M 960 255 L 960 270" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="1130" y="310" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#475569">RCs + schedule</text>
+<path d="M 750 230 L 790 230" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="310" y="320" width="440" height="80" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="322" y="342" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Detector</text>
+<text x="322" y="364" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">decision: pass · regression · undecided, with evidence</text>
+<rect x="310" y="420" width="210" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="322" y="442" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#065f46">Gates</text>
+<text x="322" y="464" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">promotion reads decisions</text>
+<rect x="540" y="420" width="210" height="70" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="552" y="442" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Alerts</text>
+<text x="552" y="464" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">triaged, grouped</text>
+<path d="M 790 330 L 750 350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="30" y="515" width="1240" height="80" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="547.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#b91c1c">Before: a nightly schedule. A change at 21:00 waited 23 hours, and four changes merged the same day</text>
+<text x="50" y="573" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">landed in one run with no way to tell them apart.</text></svg>
