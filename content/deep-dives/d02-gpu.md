@@ -578,7 +578,7 @@ metadata:
   name: gpu.nvidia.com
 spec:
   selectors:
-  - cel:                             # a class is itself defined by a CEL rule
+  - cel:                             # FILTER 1: the class's own rule, shipped by the driver's chart
       expression: "device.driver == 'gpu.nvidia.com' && device.attributes['gpu.nvidia.com'].type == 'gpu'"
 ---
 apiVersion: resource.k8s.io/v1
@@ -611,7 +611,7 @@ spec:
         exactly:
           deviceClassName: gpu.nvidia.com      # which class to ask for
           selectors:
-          - cel:                               # the rule that narrows it down #!
+          - cel:                               # FILTER 2: your claim's own rule (optional). A device must pass both #!
               expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
 ---
 # DRA, part 3: what Kubernetes makes for each pod, shown after scheduling
@@ -635,6 +635,57 @@ status:
 - **The definition is data, not a fixed name.** With the device plugin, the plugin decides what counts as one GPU, and a pod can only ask for that name. In DRA the definition is a CEL rule stored in the DeviceClass. The API says every selector in a class must be satisfied by a device claimed through it, so each claim that names the class gets the rule without repeating it.
 - **Anyone can define another category by writing another rule.** Kubernetes' own documentation gives the example of a cost-optimized class and a high-performance class ([DRA docs](https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/)). The example below is ours, not something NVIDIA ships.
 - **The rule sees each device's own facts.** The second clause, `type == 'gpu'`, matters because one NVIDIA driver publishes both whole GPUs and MIG slices. In the driver's source a MIG slice copies the product name and architecture from its parent GPU and adds its own type (`mig`) and profile. Without the type test, a claim asking for "Hopper" in this class could be handed a MIG slice of a Hopper GPU. NVIDIA's MIG class has the same rule with the type set to `mig`.
+
+**Both filters on one node.** The ResourceSlice below is illustrative: a T4, an A100, an H100, and a second H100 that is split into MIG slices (one slice shown). A node can mix GPUs with MIG on and off, as the GPU Operator's `mixed` strategy allows. The claim asks for a Hopper GPU from the whole-GPU class. The API requires a device to satisfy the class's rule and the request's rule, so the order below is only for reading.
+
+```yaml
+# What the driver publishes (trimmed, illustrative values)
+apiVersion: resource.k8s.io/v1
+kind: ResourceSlice
+metadata:
+  name: gpu-node-1-gpu.nvidia.com-x8k2p
+spec:
+  driver: gpu.nvidia.com
+  nodeName: gpu-node-1
+  pool: {name: gpu-node-1, generation: 1, resourceSliceCount: 1}
+  devices:
+  - name: gpu-0                      # passes FILTER 1, fails FILTER 2 (Turing, not Hopper)
+    attributes: {type: {string: gpu}, productName: {string: Tesla T4}, architecture: {string: Turing}}
+  - name: gpu-1                      # passes FILTER 1, fails FILTER 2 (Ampere, not Hopper)
+    attributes: {type: {string: gpu}, productName: {string: NVIDIA A100-SXM4-80GB}, architecture: {string: Ampere}}
+  - name: gpu-2                      # passes both filters: the only candidate #!
+    attributes: {type: {string: gpu}, productName: {string: NVIDIA H100 80GB HBM3}, architecture: {string: Hopper}}
+  - name: mig-0                      # would pass FILTER 2, but fails FILTER 1: its type is mig #!
+    attributes: {type: {string: mig}, profile: {string: 1g.10gb}, productName: {string: NVIDIA H100 80GB HBM3}, architecture: {string: Hopper}}
+---
+# FILTER 1: the class, from the driver's chart
+apiVersion: resource.k8s.io/v1
+kind: DeviceClass
+metadata:
+  name: gpu.nvidia.com
+spec:
+  selectors:
+  - cel:
+      expression: "device.driver == 'gpu.nvidia.com' && device.attributes['gpu.nvidia.com'].type == 'gpu'" #!
+---
+# FILTER 2: your claim's own rule, on top of the class
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: one-hopper-gpu
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.nvidia.com            # brings in FILTER 1
+          selectors:
+          - cel:
+              expression: device.attributes["gpu.nvidia.com"].architecture == "Hopper" #!
+```
+
+Only `gpu-2` is left. Take the claim's rule away and `gpu-2` is still allowed, but so are `gpu-0` and `gpu-1`, since the class only asks for whole NVIDIA GPUs. Take the class away and `mig-0` would pass the Hopper rule, which is what the class's type test prevents.
 
 ```yaml
 # Example (ours): an admin defines a category of their own, Hopper GPUs only
