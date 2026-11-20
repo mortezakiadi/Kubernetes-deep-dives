@@ -751,6 +751,14 @@ spec:
 
 **Scenario.** A research lab runs on-prem servers that mix GPU models, and wants to split one 80 GB H100 so several notebooks can share it. Node labels, the device plugin's count and DRA each see these servers differently, and only some of them can tell the GPUs apart.
 
+**First, what MIG is.** MIG (Multi-Instance GPU) is a feature built into NVIDIA's A100, H100 and newer data-center GPUs. It cuts one physical GPU into isolated slices, each with its own memory and its own share of the compute units. To Kubernetes, each slice then looks like a small GPU of its own, so one big GPU can serve several notebooks or small inference services at once.
+
+A slice is named by its size, for example `3g.40gb`: the number before the `g` is how many of the GPU's seven compute slices it gets, and the number before `gb` is its memory in GB.
+
+![How to read a MIG slice name](diagrams/extra/mig-slice-names.svg)
+
+Now the same lab server, seen through each advertising method:
+
 ![Different GPUs in one server, and MIG](diagrams/sections/d06-5.svg)
 
 **What the picture shows.** Two servers, and what each advertising method reports for them.
@@ -759,11 +767,35 @@ spec:
 - **Labels on the mixed server:** a node label holds one value, so `nvidia.com/gpu.product` and `nvidia.com/gpu.memory` can't describe both GPUs honestly.
 - **Count on the mixed server:** `nvidia.com/gpu: 2`. A pod asking for one GPU can get either the A100 or the T4.
 - **DRA on the mixed server:** each GPU is its own entry, so a claim for "at least 40Gi" can only get the A100.
-- **The MIG server:** MIG (Multi-Instance GPU) splits one A100 or H100 into isolated slices, each with its own memory and compute. Here an 80 GB H100 is split into one `3g.40gb`, one `2g.20gb` and two `1g.10gb` slices.
+- **The MIG server:** one 80 GB H100 cut into four slices, named as in the picture above: one `3g.40gb`, one `2g.20gb` and two `1g.10gb`. No slice is a whole GPU, and each one is advertised on its own.
 - **MIG with the device plugin:** the "single" strategy needs all slices on a node to be the same and still calls them `nvidia.com/gpu`; the "mixed" strategy publishes one count per size, such as `nvidia.com/mig-1g.10gb: 2`. Either way the layout is set in advance.
 - **MIG with DRA:** each slice is its own device under the `mig.nvidia.com` class, with a `profile` attribute and its own memory, so a claim can ask for a profile or a minimum size.
 
 **Going deeper.**
+
+- **MIG is not a sixth way to advertise GPUs.** It changes what the GPU is, and the mechanisms you already know then report slices instead of whole GPUs:
+  - **Count (device plugin):** each slice is counted and handed to one container, like a GPU. The `single` strategy calls every slice `nvidia.com/gpu` and needs them all the same size; the `mixed` strategy gives each size its own count, such as `nvidia.com/mig-1g.10gb`.
+  - **Labels (GPU Feature Discovery):** with `mixed`, the node gets labels per slice size, such as `nvidia.com/mig-1g.10gb.count` and `nvidia.com/mig-1g.10gb.memory`, so pods can still choose a node by what it holds.
+  - **DRA:** each slice is its own device under the `mig.nvidia.com` class, as in the Dynamic Resource Allocation section above.
+  - **Reserving works the same:** labels choose the node, and the count or the claim reserves one slice on it. The difference is that the unit is a slice, and the slice layout is fixed before pods arrive.
+
+> **Installing it.** MIG is built into the GPU, so nothing is installed on the card. You need a MIG-capable GPU (on AWS, p4d and p4de instances have A100s and p5 has H100s) and the NVIDIA GPU Operator, which installs the driver and device plugin and adds a MIG manager. Install it with a MIG strategy, then label a node with the layout you want:
+>
+> ```bash
+> helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+> helm repo update
+> helm install --wait --generate-name \
+>   -n gpu-operator --create-namespace \
+>   nvidia/gpu-operator \
+>   --set mig.strategy=mixed
+>
+> # "balanced" on an 80 GB H100: one 3g.40gb, one 2g.20gb, two 1g.10gb
+> kubectl label node gpu-node-1 nvidia.com/mig.config=all-balanced --overwrite
+> ```
+>
+> The strategy only decides how slices are advertised; it does not switch MIG on. The MIG manager does that when it sees the layout label: it stops the operator's GPU pods on that node, turns MIG mode on, cuts the slices and restarts them. Nothing else may be using the GPUs while it runs, and some cloud nodes need a reboot (see NVIDIA's GPU Operator MIG page). Pin a chart version in production.
+>
+> **Check (MIG):** `kubectl get node gpu-node-1 --show-labels | tr ',' '\n' | grep mig`, and wait for `nvidia.com/mig.config.state=success`.
 
 - Changing a MIG layout with the GPU Operator: label the node with the layout you want, for example `nvidia.com/mig.config=all-1g.10gb`, and the operator's MIG manager reconfigures the GPU. Pods using the GPU must be moved off first.
 - Newer versions of NVIDIA's DRA driver can also create MIG slices on demand for a claim and remove them when the claim is released (an alpha feature called DynamicMIG), instead of relying on a fixed layout.
