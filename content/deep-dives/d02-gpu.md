@@ -936,19 +936,11 @@ spec:
 
 **Check (claims):** `kubectl get resourceclaims`. With A you see one claim, `shared-gpu`, and it stays after the pods are deleted. With B you see three claims with generated names, one per pod, and each disappears with its pod. In A, the claim's allocation records where its device is available (a node selector in the claim's status, [API reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/resource-claim-v1/)), so the three pods run where that device is.
 
+**Is sharing a claim like sharing a CPU?** Roughly, yes. Pods that share a claim get access to the same GPU, a bit like programs sharing a CPU. But the claim only gives access. How the pods actually share the GPU is a setting of the driver. With NVIDIA's time-slicing, the pods' workloads interleave on the GPU, and NVIDIA's docs say there is no memory or fault isolation between them ([NVIDIA's time-slicing docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-sharing.html)). In NVIDIA's DRA driver, time-slicing is still in alpha ([AWS's EKS guide](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-dra-device-plugin.html)). With MIG, each pod gets its own isolated slice with its own memory instead. These are separate pods, not threads of one program.
+
 **Step 9. Putting it together.** The driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and, if you want, adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices.
 
 ![Dynamic Resource Allocation](diagrams/sections/d06-4.svg)
-
-**What the picture shows.** The DRA objects, who creates each one, and how a claim turns into one specific GPU in a container.
-
-- **DeviceClass (from the driver):** `gpu.nvidia.com` names a category of devices. It comes with the NVIDIA DRA driver's Helm chart, so installing the driver creates it (plus `mig.nvidia.com` for MIG slices). The ResourceSlices, by contrast, are published by the running driver.
-- **ResourceSlice (from the driver, per node):** lists every device on the node with its attributes, such as product name and architecture, and its capacity, such as memory.
-- **ResourceClaimTemplate (you write it):** describes the device a pod needs: a device class, plus an optional CEL selector such as "memory at least 40Gi".
-- **ResourceClaim (Kubernetes creates it):** one claim per pod, made from the template when the pod is created and deleted with the pod.
-- **Pod:** lists the claim under `spec.resourceClaims` and gives it to a container with `resources.claims`; there's no `nvidia.com/gpu` count.
-- **kube-scheduler (DynamicResources plugin):** filters out nodes with no free matching device, picks a node and a device, and writes that allocation into the claim.
-- **kubelet and the DRA driver's kubelet plugin:** prepare exactly the allocated device on the node and expose it to the container.
 
 **Going deeper.**
 
