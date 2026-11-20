@@ -832,6 +832,61 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 <h3 id="d06-4">Dynamic Resource Allocation</h3>
 <p><strong>Scenario.</strong> The inference team wants "any NVIDIA GPU with at least 40 GB" without depending on node labels, and the training team needs each worker's GPU on the same PCIe root as its network card. Neither can be said with <code>nvidia.com/gpu: 1</code>.</p>
+<p><strong>First, the words the picture uses.</strong> <mark class="kw">DRA</mark> adds a few Kubernetes objects. If you know storage, the idea will feel familiar: a pod doesn't name a disk, it makes a <em>claim</em> for one of some <em>class</em>, and Kubernetes finds a match. DRA does the same for devices.</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>What it is</th>
+<th>Who creates it</th>
+<th>Storage comparison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ResourceSlice</strong></td>
+<td>The list of devices on one node, each with its facts: product name, architecture, memory.</td>
+<td>The DRA driver, per node</td>
+<td>Roughly the disks that exist</td>
+</tr>
+<tr>
+<td><strong>DeviceClass</strong></td>
+<td>A named category of devices, such as <code>gpu.nvidia.com</code>. A request says which class it wants.</td>
+<td>The driver when you install it (an admin can add more)</td>
+<td>A StorageClass</td>
+</tr>
+<tr>
+<td><strong>CEL</strong></td>
+<td>A one-line rule that is true or false for each device, such as "memory is at least 40Gi". It narrows a class down to the devices you accept.</td>
+<td>You, inside a claim</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><strong>ResourceClaimTemplate</strong></td>
+<td>A recipe for a request: which class, which CEL rule, how many devices.</td>
+<td>You</td>
+<td>A template that stamps out claims</td>
+</tr>
+<tr>
+<td><strong>ResourceClaim</strong></td>
+<td>One actual request, made from the recipe. The scheduler records which device it picked in the claim.</td>
+<td>Kubernetes, one per pod</td>
+<td>A PersistentVolumeClaim</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>DeviceClass answers "what kind of thing?"</strong> <code>gpu.nvidia.com</code> means "an NVIDIA GPU". The NVIDIA driver also creates <code>mig.nvidia.com</code> for <mark class="kw">MIG</mark> slices. You usually don't write a class; you pick one. <code>kubectl get deviceclass</code> lists what your cluster has.</li>
+<li><strong>CEL answers "which ones exactly?"</strong> The scheduler runs your rule against every device in the class and keeps only those where it comes out true. Three rules, from simple to combined:<ul>
+<li><code>device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) &gt;= 0</code> reads "memory is at least 40Gi". <code>quantity("40Gi")</code> turns the text into an amount Kubernetes can compare, and <code>compareTo(...) &gt;= 0</code> means "greater than or equal".</li>
+<li><code>device.attributes["gpu.nvidia.com"].architecture == "Hopper"</code> reads "the architecture is Hopper". Attributes are descriptive facts such as the product name or architecture; capacity holds amounts such as memory.</li>
+<li>Join two rules with <code>&amp;&amp;</code> ("both must be true"), for example Hopper and at least 40Gi.</li>
+</ul>
+</li>
+<li><strong>The names in a rule come from the driver.</strong> To see what you can <mark class="kw-act">filter</mark> on, read the ResourceSlices: <code>kubectl get resourceslices -o yaml</code> shows each device's attributes and capacity.</li>
+<li><strong>Why a template and not a claim?</strong> A claim you write by hand is one request that several pods can share, and it outlives any pod. A template gives every pod its own claim, made when the pod starts and removed with it. Ten replicas then get ten separate GPUs instead of sharing one.</li>
+</ul>
+<p>How they fit: the driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Dynamic Resource Allocation" class="open" data-src="diagrams/sections/d06-4.svg" data-title="Dynamic Resource Allocation" type="button"><img alt="Diagram: Dynamic Resource Allocation" decoding="async" loading="lazy" src="diagrams/sections/d06-4.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> The <mark class="kw">DRA</mark> objects, who creates each one, and how a claim turns into one specific GPU in a container.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">DeviceClass (from the driver)</span></summary><div class="acc-body"><code>gpu.nvidia.com</code> names a category of devices. The NVIDIA DRA driver creates it when installed (plus <code>mig.nvidia.com</code> for <mark class="kw">MIG</mark> slices).</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">ResourceSlice (from the driver, per node)</span></summary><div class="acc-body">lists every device on the node with its attributes, such as product name and architecture, and its capacity, such as memory.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">ResourceClaimTemplate (you write it)</span></summary><div class="acc-body">describes the device a pod needs: a device class plus a CEL selector such as "memory at least 40Gi".</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">ResourceClaim (Kubernetes creates it)</span></summary><div class="acc-body">one claim per pod, made from the template when the pod is created and deleted with the pod.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Pod</span></summary><div class="acc-body">lists the claim under <code>spec.resourceClaims</code> and gives it to a container with <code>resources.claims</code>; there's no <code>nvidia.com/gpu</code> count.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">kube-scheduler (DynamicResources plugin)</span></summary><div class="acc-body"><mark class="kw-act">filters</mark> out nodes with no free matching device, picks a node and a device, and writes that allocation into the claim.</div></details><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">kubelet and the DRA driver's kubelet plugin</span></summary><div class="acc-body">prepare exactly the allocated device on the node and expose it to the container.</div></details></div>

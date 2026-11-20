@@ -530,6 +530,26 @@ spec:
 
 **Scenario.** The inference team wants "any NVIDIA GPU with at least 40 GB" without depending on node labels, and the training team needs each worker's GPU on the same PCIe root as its network card. Neither can be said with `nvidia.com/gpu: 1`.
 
+**First, the words the picture uses.** DRA adds a few Kubernetes objects. If you know storage, the idea will feel familiar: a pod doesn't name a disk, it makes a *claim* for one of some *class*, and Kubernetes finds a match. DRA does the same for devices.
+
+| Word | What it is | Who creates it | Storage comparison |
+|---|---|---|---|
+| **ResourceSlice** | The list of devices on one node, each with its facts: product name, architecture, memory. | The DRA driver, per node | Roughly the disks that exist |
+| **DeviceClass** | A named category of devices, such as `gpu.nvidia.com`. A request says which class it wants. | The driver when you install it (an admin can add more) | A StorageClass |
+| **CEL** | A one-line rule that is true or false for each device, such as "memory is at least 40Gi". It narrows a class down to the devices you accept. | You, inside a claim | n/a |
+| **ResourceClaimTemplate** | A recipe for a request: which class, which CEL rule, how many devices. | You | A template that stamps out claims |
+| **ResourceClaim** | One actual request, made from the recipe. The scheduler records which device it picked in the claim. | Kubernetes, one per pod | A PersistentVolumeClaim |
+
+- **DeviceClass answers "what kind of thing?"** `gpu.nvidia.com` means "an NVIDIA GPU". The NVIDIA driver also creates `mig.nvidia.com` for MIG slices. You usually don't write a class; you pick one. `kubectl get deviceclass` lists what your cluster has.
+- **CEL answers "which ones exactly?"** The scheduler runs your rule against every device in the class and keeps only those where it comes out true. Three rules, from simple to combined:
+  - `device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0` reads "memory is at least 40Gi". `quantity("40Gi")` turns the text into an amount Kubernetes can compare, and `compareTo(...) >= 0` means "greater than or equal".
+  - `device.attributes["gpu.nvidia.com"].architecture == "Hopper"` reads "the architecture is Hopper". Attributes are descriptive facts such as the product name or architecture; capacity holds amounts such as memory.
+  - Join two rules with `&&` ("both must be true"), for example Hopper and at least 40Gi.
+- **The names in a rule come from the driver.** To see what you can filter on, read the ResourceSlices: `kubectl get resourceslices -o yaml` shows each device's attributes and capacity.
+- **Why a template and not a claim?** A claim you write by hand is one request that several pods can share, and it outlives any pod. A template gives every pod its own claim, made when the pod starts and removed with it. Ten replicas then get ten separate GPUs instead of sharing one.
+
+How they fit: the driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices.
+
 ![Dynamic Resource Allocation](diagrams/sections/d06-4.svg)
 
 **What the picture shows.** The DRA objects, who creates each one, and how a claim turns into one specific GPU in a container.
