@@ -535,14 +535,14 @@ spec:
 | Word | What it is | Who creates it | Storage comparison |
 |---|---|---|---|
 | **ResourceSlice** | The list of devices on one node, each with its facts: product name, architecture, memory. | The DRA driver, per node | PersistentVolume (our comparison) |
-| **DeviceClass** | A named category of devices, such as `gpu.nvidia.com`. A request says which class it wants. | The driver when you install it (an admin can add more) | A StorageClass |
+| **DeviceClass** | A named category of devices, such as `gpu.nvidia.com`. A request says which class it wants. | The device driver's side (NVIDIA ships its classes in the driver's Helm chart); a cluster admin can add more | A StorageClass |
 | **CEL** (Common Expression Language) | A one-line rule that is true or false for each device, such as "memory is at least 40Gi". It narrows a class down to the devices you accept. **Why it is needed:** a count or a node label can only say "one GPU" or "this node has A100s", while a rule can test each device's own facts. | You, inside a claim | n/a |
 | **ResourceClaimTemplate** | A recipe for a request: which class, which CEL rule, how many devices. | You | volumeClaimTemplates in a StatefulSet (our comparison) |
 | **ResourceClaim** | One actual request, made from the recipe. The scheduler records which device it picked in the claim. | Kubernetes, one per pod | A PersistentVolumeClaim |
 
 ![If you know storage, you already know the shape of DRA](diagrams/extra/dra-storage-analogy.svg)
 
-The same words as YAML. First the storage side, then the DRA side. The DeviceClass is the one the NVIDIA driver installs (trimmed); the ResourceSlice shows one device of the node (trimmed).
+The same words as YAML. First the storage side, then the DRA side. The DeviceClass is the one NVIDIA's driver chart installs (trimmed); the ResourceSlice shows one device of the node (trimmed).
 
 ```yaml
 # STORAGE: a class, and a StatefulSet that makes one claim per pod
@@ -822,7 +822,7 @@ How they fit: the driver publishes the devices (ResourceSlices) and the categori
 
 **What the picture shows.** The DRA objects, who creates each one, and how a claim turns into one specific GPU in a container.
 
-- **DeviceClass (from the driver):** `gpu.nvidia.com` names a category of devices. The NVIDIA DRA driver creates it when installed (plus `mig.nvidia.com` for MIG slices).
+- **DeviceClass (from the driver):** `gpu.nvidia.com` names a category of devices. It comes with the NVIDIA DRA driver's Helm chart, so installing the driver creates it (plus `mig.nvidia.com` for MIG slices). The ResourceSlices, by contrast, are published by the running driver.
 - **ResourceSlice (from the driver, per node):** lists every device on the node with its attributes, such as product name and architecture, and its capacity, such as memory.
 - **ResourceClaimTemplate (you write it):** describes the device a pod needs: a device class plus a CEL selector such as "memory at least 40Gi".
 - **ResourceClaim (Kubernetes creates it):** one claim per pod, made from the template when the pod is created and deleted with the pod.
@@ -877,7 +877,7 @@ spec:
 > - **`name: gpu-40gb-plus`:** the name the pod uses to point at this request.
 > - **`requests: - name: gpu`:** "I need one device, and I'll call it `gpu`."
 > - **`exactly:`:** allocate exactly one device that matches. DRA can also list alternatives ("this, or else that"); here there's only one option.
-> - **`deviceClassName: gpu.nvidia.com`:** only look at NVIDIA GPUs. The NVIDIA DRA driver creates this class when you install it.
+> - **`deviceClassName: gpu.nvidia.com`:** only look at NVIDIA GPUs. NVIDIA's Helm chart creates this class when you install the driver.
 > - **The `cel` selector:** a small filter in CEL (Common Expression Language) that reads "this device's memory compared with 40Gi is 0 or more", that is, at least 40 GiB. An A10G (24 GB) is filtered out; an A100 or H100 with 80 GB qualifies. A device reports a little less than its advertised size (a T4 sold as 16 GB shows about 15 GB, [NVIDIA forum](https://forums.developer.nvidia.com/t/nvidia-t4-has-only-15g-of-memory/173099)), so read the real value from the ResourceSlice before you choose a threshold. The `memory` attribute is published by NVIDIA's driver, which is why the names depend on the driver.
 >
 > **Part 2: the Pod uses it**
@@ -908,7 +908,7 @@ spec:
 > # check that the driver pods are running
 > kubectl get pods -n nvidia-dra-driver-gpu
 >
-> # the driver creates the DeviceClass the claim above refers to
+> # the driver's chart creates the DeviceClass the claim above refers to
 > kubectl get deviceclass gpu.nvidia.com
 > ```
 >
