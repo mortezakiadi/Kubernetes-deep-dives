@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 380" width="1180" height="380" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start">How the chosen GPU gets into the container (CDI)</text>
+<rect x="24" y="50" width="44" height="22" rx="11" fill="#0f766e" stroke="#0f766e" stroke-width="1.6"/>
+<text x="46" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">CDI</text>
+<text x="80" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start">The scheduler chooses the GPU. CDI is how that exact GPU reaches the container.</text>
+<rect x="50" y="100" width="196" height="100" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="148.0" y="130" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="middle">Scheduler</text>
+<text x="148.0" y="158" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">picks the GPU and</text>
+<text x="148.0" y="177" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">records it in the claim</text>
+<text x="62" y="92" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="start">1</text>
+<path d="M249,150 L268,150" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="271" y="100" width="196" height="100" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="369.0" y="130" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="middle">kubelet</text>
+<text x="369.0" y="158" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">asks the driver's kubelet</text>
+<text x="369.0" y="177" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">plugin to prepare it</text>
+<text x="283" y="92" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#2f9e5b" text-anchor="start">2</text>
+<path d="M470,150 L489,150" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="492" y="100" width="196" height="100" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="590.0" y="130" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="middle">Driver's kubelet plugin</text>
+<text x="590.0" y="158" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">prepares the GPU and</text>
+<text x="590.0" y="177" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">answers with its CDI names</text>
+<text x="504" y="92" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#2f9e5b" text-anchor="start">3</text>
+<path d="M691,150 L710,150" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="713" y="100" width="196" height="100" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="811.0" y="130" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="middle">Container runtime</text>
+<text x="811.0" y="158" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">(containerd or CRI-O) applies</text>
+<text x="811.0" y="177" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">the matching CDI entries</text>
+<text x="725" y="92" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#2f9e5b" text-anchor="start">4</text>
+<path d="M912,150 L931,150" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="934" y="100" width="196" height="100" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="1032.0" y="130" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="middle">Container</text>
+<text x="1032.0" y="158" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">starts with the GPU's device</text>
+<text x="1032.0" y="177" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">files and libraries in place</text>
+<text x="946" y="92" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#2f9e5b" text-anchor="start">5</text>
+<rect x="653" y="250" width="316" height="84" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="811.0" y="276" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="middle">CDI files on the node</text>
+<text x="811.0" y="298" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">each entry is a named device and lists</text>
+<text x="811.0" y="316" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">device files, mounts, hooks, environment variables</text>
+<path d="M811.0,250 L811.0,203" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<text x="823.0" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#5b6675" text-anchor="start">reads</text>
+<text x="24" y="362" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">CDI is an open standard for container runtimes, not a Kubernetes feature. NVIDIA's DRA driver requires a runtime that supports it.</text>
+</svg>
