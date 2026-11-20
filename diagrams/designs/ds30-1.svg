@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="620px" viewBox="0 0 1300 620" style="background:#ffffff"><title>World model</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="620" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">A world: members, services, nodes and a scenario, declared together</text>
+<rect x="30" y="60" width="900" height="470" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="44" y="84" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">WORLD WORLD-7F3A91 (NAMESPACE)</text>
+<rect x="50" y="100" width="204" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="62" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">engineer</text>
+<text x="62" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">agent · gVisor sandbox</text>
+<rect x="268" y="100" width="204" height="70" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="280" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1e40af">reviewer</text>
+<text x="280" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">agent · sandbox</text>
+<rect x="486" y="100" width="204" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="498" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">customer</text>
+<text x="498" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">simulated user · mail</text>
+<rect x="704" y="100" width="204" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="716" y="122" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">pm</text>
+<text x="716" y="144" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">simulated user · chat</text>
+<text x="50" y="210" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">services (templates + data snapshots)</text>
+<rect x="50" y="220" width="132" height="60" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="62" y="242.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">git</text>
+<rect x="195" y="220" width="132" height="60" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="207" y="242.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">tickets</text>
+<rect x="340" y="220" width="132" height="60" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="352" y="242.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">chat</text>
+<rect x="485" y="220" width="132" height="60" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="497" y="242.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">mail</text>
+<rect x="630" y="220" width="132" height="60" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="642" y="242.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">app</text>
+<rect x="775" y="220" width="132" height="60" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+<text x="787" y="242.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">db</text>
+<text x="50" y="320" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0f172a">nodes (optional, microVMs)</text>
+<rect x="50" y="330" width="156" height="60" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="62" y="352" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">db-node-1</text>
+<text x="62" y="374" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">kata</text>
+<rect x="220" y="330" width="156" height="60" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="232" y="352" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">db-node-2</text>
+<text x="232" y="374" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">kata</text>
+<rect x="390" y="330" width="156" height="60" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="402" y="352" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">db-node-3</text>
+<text x="402" y="374" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">kata</text>
+<rect x="570" y="330" width="340" height="60" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="582" y="352" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">mock internet</text>
+<text x="582" y="374" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">mirrors, docs, fake APIs</text>
+<rect x="50" y="410" width="860" height="100" rx="8" fill="#fffbeb" stroke="#d97706"/>
+<text x="70" y="436" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">scenario</text>
+<text x="70" y="462" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#0f172a">00:00 customer mails “export fails &gt; 2 GB” · 00:20 pm escalates in chat · fault: disk 92% on db-node-2</text>
+<text x="70" y="488" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#475569">budgets: 2 h wall · 8 h world time · 600 agent steps</text>
+<rect x="970" y="60" width="300" height="140" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="982" y="82" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#991b1b">Verifier (outside)</text>
+<text x="982" y="104" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">checks git, tickets, mail, db at the end;</text>
+<text x="982" y="118" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">milestones: repro · fix-merged · reply-sent</text>
+<rect x="970" y="220" width="300" height="140" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="982" y="242" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#92400e">Scenario controller (outside)</text>
+<text x="982" y="264" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">world clock, events, faults, persona turns</text>
+<rect x="970" y="380" width="300" height="150" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="982" y="402" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Versioned by digest</text>
+<text x="982" y="424" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">world template · service templates · data</text>
+<text x="982" y="438" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#334155">snapshots · personas</text>
+<rect x="30" y="550" width="1240" height="50" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="581" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b91c1c">Before: a hand-built VM per task: 25 minutes to start, 40 at a time, and no two runs behaved the same.</text></svg>

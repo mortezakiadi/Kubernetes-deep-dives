@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300px" height="580px" viewBox="0 0 1300 580" style="background:#ffffff"><title>World clock</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-ok-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-bad-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-flow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-blue-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-muted-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1300" height="580" fill="#ffffff"/><text x="650" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">World time advances with actions, not with cluster load (illustrative)</text>
+<text x="188" y="95" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#dc2626">wall clock, busy cluster</text>
+<line x1="200" y1="90" x2="1220" y2="90" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="200" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="217" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="234" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="251" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="268" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="285" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="302" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="319" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="336" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="353" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="370" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="387" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="404" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="421" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="438" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="455" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="472" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="489" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="506" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="523" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="540" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="557" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="574" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="591" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="608" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="625" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="642" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="659" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="676" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="693" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="710" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="727" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="744" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="761" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="778" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="795" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="812" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="829" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="846" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="863" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="880" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="897" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="914" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="931" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="948" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="965" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="982" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="999" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1016" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1033" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1050" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1067" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1084" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1101" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1118" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1135" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1152" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1169" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1186" cy="90" r="2.5" fill="#dc2626"/>
+<circle cx="1203" cy="90" r="2.5" fill="#dc2626"/>
+<line x1="571" y1="74" x2="571" y2="106" stroke="#dc2626" stroke-width="3"/>
+<text x="576.9090909090909" y="72.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#dc2626">escalation after 22 agent steps</text>
+<text x="188" y="185" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2563eb">wall clock, quiet cluster</text>
+<line x1="200" y1="180" x2="1220" y2="180" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="200" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="217" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="234" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="251" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="268" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="285" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="302" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="319" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="336" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="353" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="370" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="387" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="404" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="421" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="438" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="455" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="472" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="489" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="506" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="523" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="540" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="557" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="574" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="591" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="608" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="625" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="642" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="659" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="676" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="693" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="710" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="727" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="744" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="761" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="778" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="795" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="812" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="829" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="846" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="863" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="880" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="897" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="914" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="931" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="948" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="965" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="982" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="999" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1016" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1033" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1050" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1067" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1084" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1101" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1118" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1135" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1152" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1169" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1186" cy="180" r="2.5" fill="#2563eb"/>
+<circle cx="1203" cy="180" r="2.5" fill="#2563eb"/>
+<text x="1220" y="166.0" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#2563eb">escalation after 67 agent steps (off the right edge)</text>
+<text x="188" y="275" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#059669">world clock (any load)</text>
+<line x1="200" y1="270" x2="1220" y2="270" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="200" cy="270" r="2.5" fill="#059669"/>
+<circle cx="217" cy="270" r="2.5" fill="#059669"/>
+<circle cx="234" cy="270" r="2.5" fill="#059669"/>
+<circle cx="251" cy="270" r="2.5" fill="#059669"/>
+<circle cx="268" cy="270" r="2.5" fill="#059669"/>
+<circle cx="285" cy="270" r="2.5" fill="#059669"/>
+<circle cx="302" cy="270" r="2.5" fill="#059669"/>
+<circle cx="319" cy="270" r="2.5" fill="#059669"/>
+<circle cx="336" cy="270" r="2.5" fill="#059669"/>
+<circle cx="353" cy="270" r="2.5" fill="#059669"/>
+<circle cx="370" cy="270" r="2.5" fill="#059669"/>
+<circle cx="387" cy="270" r="2.5" fill="#059669"/>
+<circle cx="404" cy="270" r="2.5" fill="#059669"/>
+<circle cx="421" cy="270" r="2.5" fill="#059669"/>
+<circle cx="438" cy="270" r="2.5" fill="#059669"/>
+<circle cx="455" cy="270" r="2.5" fill="#059669"/>
+<circle cx="472" cy="270" r="2.5" fill="#059669"/>
+<circle cx="489" cy="270" r="2.5" fill="#059669"/>
+<circle cx="506" cy="270" r="2.5" fill="#059669"/>
+<circle cx="523" cy="270" r="2.5" fill="#059669"/>
+<circle cx="540" cy="270" r="2.5" fill="#059669"/>
+<circle cx="557" cy="270" r="2.5" fill="#059669"/>
+<circle cx="574" cy="270" r="2.5" fill="#059669"/>
+<circle cx="591" cy="270" r="2.5" fill="#059669"/>
+<circle cx="608" cy="270" r="2.5" fill="#059669"/>
+<circle cx="625" cy="270" r="2.5" fill="#059669"/>
+<circle cx="642" cy="270" r="2.5" fill="#059669"/>
+<circle cx="659" cy="270" r="2.5" fill="#059669"/>
+<circle cx="676" cy="270" r="2.5" fill="#059669"/>
+<circle cx="693" cy="270" r="2.5" fill="#059669"/>
+<circle cx="710" cy="270" r="2.5" fill="#059669"/>
+<circle cx="727" cy="270" r="2.5" fill="#059669"/>
+<circle cx="744" cy="270" r="2.5" fill="#059669"/>
+<circle cx="761" cy="270" r="2.5" fill="#059669"/>
+<circle cx="778" cy="270" r="2.5" fill="#059669"/>
+<circle cx="795" cy="270" r="2.5" fill="#059669"/>
+<circle cx="812" cy="270" r="2.5" fill="#059669"/>
+<circle cx="829" cy="270" r="2.5" fill="#059669"/>
+<circle cx="846" cy="270" r="2.5" fill="#059669"/>
+<circle cx="863" cy="270" r="2.5" fill="#059669"/>
+<circle cx="880" cy="270" r="2.5" fill="#059669"/>
+<circle cx="897" cy="270" r="2.5" fill="#059669"/>
+<circle cx="914" cy="270" r="2.5" fill="#059669"/>
+<circle cx="931" cy="270" r="2.5" fill="#059669"/>
+<circle cx="948" cy="270" r="2.5" fill="#059669"/>
+<circle cx="965" cy="270" r="2.5" fill="#059669"/>
+<circle cx="982" cy="270" r="2.5" fill="#059669"/>
+<circle cx="999" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1016" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1033" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1050" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1067" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1084" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1101" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1118" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1135" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1152" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1169" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1186" cy="270" r="2.5" fill="#059669"/>
+<circle cx="1203" cy="270" r="2.5" fill="#059669"/>
+<line x1="880" y1="254" x2="880" y2="286" stroke="#059669" stroke-width="3"/>
+<text x="886.0" y="252.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#059669">escalation after 40 agent steps</text>
+<text x="200" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#334155">dots = agent steps · with world time, the escalation always lands after 40 steps (30 world-s per step)</text>
+<rect x="30" y="360" width="296" height="90" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="42" y="382.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Pause during inference</text>
+<text x="42" y="405.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">load can't change the task</text>
+<rect x="342" y="360" width="296" height="90" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="354" y="382.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Time in services</text>
+<text x="354" y="405.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">time service or offset shim</text>
+<rect x="654" y="360" width="296" height="90" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="666" y="382.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Tool time counts</text>
+<text x="666" y="405.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">a 6-min test run costs world time</text>
+<rect x="966" y="360" width="296" height="90" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.6"/>
+<text x="978" y="382.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Seeds + recording</text>
+<text x="978" y="405.0" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" fill="#334155">data, personas, faults, mock internet</text>
+<rect x="30" y="480" width="1240" height="70" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+<text x="50" y="520" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#b91c1c">Before: the escalation arrived early on busy clusters and late on quiet ones: task difficulty depended on load.</text></svg>
