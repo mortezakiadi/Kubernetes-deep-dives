@@ -542,7 +542,7 @@ spec:
 
 ![If you know storage, you already know the shape of DRA](diagrams/extra/dra-storage-analogy.svg)
 
-The same words as YAML. First the storage side, then the DRA side. The DeviceClass is the one NVIDIA's driver chart installs (trimmed); the ResourceSlice shows one device of the node (trimmed).
+The same words as YAML. First the storage side, then the DRA side, in the order things happen: the driver publishes, you write a template and a pod, and Kubernetes makes the claim for that pod. The DeviceClass is the one NVIDIA's driver chart installs (trimmed); the ResourceSlice shows one device of the node (trimmed).
 
 ```yaml
 # STORAGE: a class, and a StatefulSet that makes one claim per pod
@@ -614,12 +614,36 @@ spec:
           - cel:                               # FILTER 2: your claim's own rule (optional). A device must pass both #!
               expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
 ---
-# DRA, part 3: what Kubernetes makes for each pod, shown after scheduling
+# DRA, part 3: the pod that uses it (you write this too)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: inference-dra
+spec:
+  resourceClaims:
+  - name: gpu
+    resourceClaimTemplateName: gpu-40gb-plus     # "make me a claim from this template" #!
+  containers:
+  - name: server
+    image: vllm/vllm-openai:latest
+    resources:
+      claims:
+      - name: gpu                                # this container gets what the claim allocates #!
+---
+# DRA, part 4: what Kubernetes makes for that pod, shown after scheduling
 apiVersion: resource.k8s.io/v1
 kind: ResourceClaim                  # one real request #!
 metadata:
   name: inference-dra-gpu-x7k2p      # generated name
-# spec: copied from the template above
+spec:                                # copied unchanged from the template above
+  devices:
+    requests:
+    - name: gpu
+      exactly:
+        deviceClassName: gpu.nvidia.com            # brings in FILTER 1, the class's rule
+        selectors:
+        - cel:                                     # FILTER 2 came along in the copy
+            expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
 status:
   allocation:
     devices:
@@ -627,7 +651,11 @@ status:
       - request: gpu
         driver: gpu.nvidia.com
         pool: gpu-node-1
-        device: gpu-0                # the scheduler's pick, written into the claim #!
+        device: gpu-0                # a device that passed both filters: the scheduler's pick #!
+  reservedFor:                       # who uses the claim: the pod above #!
+  - resource: pods
+    name: inference-dra
+    uid: 7c1f6b2e-0a4d-4f4e-9b0a-2f6d5e8a1c33   # illustrative
 ```
 
 **What is special about the rule inside the DeviceClass.** Read alone, it only says "an NVIDIA GPU", and the device plugin gives you that too, through the name `nvidia.com/gpu`. What differs is where the definition lives and what it can see:
