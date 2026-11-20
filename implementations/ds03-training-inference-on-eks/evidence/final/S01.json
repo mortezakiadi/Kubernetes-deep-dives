@@ -1,0 +1,100 @@
+{
+ "id": "S01",
+ "title": "The platform at rest: components, node pools and queues",
+ "design_ref": "The platform at a glance; Three workload families",
+ "purpose": "Show what was built: one EKS cluster, the workload APIs, the scheduler and queues, the serving gateway, the metrics stack, one GPU pool per family, and no GPU capacity running while nothing is queued.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "aws eks describe-cluster --name ds03-trainserve --query 'cluster.[name,status,version]' --output text",
+   "output": "ds03-trainserve\tACTIVE\t1.37",
+   "exit_code": 0,
+   "seconds": 1.57
+  },
+  {
+   "display": "kubectl get deploy -A -o jsonpath=<controller images>",
+   "output": "agentgateway-system/agentgateway controller:v1.4.1\ninference/qwen-router-epp llm-d/llm-d-router-endpoint-picker:v0.9.0\nkeda/keda-operator kedacore/keda:2.21.1\nkeda/keda-operator-metrics-apiserver kedacore/keda-metrics-apiserver:2.21.1\nkubeflow-system/jobset-controller jobset/jobset:v0.13.0\nkubeflow-system/kubeflow-trainer-controller-manager kubeflow/trainer/trainer-controller-manager:v2.4.0\nkueue-system/kueue-controller-manager kueue/kueue:v0.20.7\nlws-system/lws-controller-manager lws/lws:v1.0.0",
+   "exit_code": 0,
+   "seconds": 1.67
+  },
+  {
+   "display": "kubectl get pods -A --field-selector=status.phase!=Running,status.phase!=Succeeded   # anything not running?",
+   "output": "\nNo resources found",
+   "exit_code": 0,
+   "seconds": 1.48
+  },
+  {
+   "display": "kubectl get nodepool -o custom-columns=NAME:.metadata.name,GPU-LIMIT:.spec.limits.nvidia\\.com/gpu,FAMILIES:.spec.template.spec.requirements[2].values,TAINT:.spec.template.spec.taints[0].key",
+   "output": "NAME              GPU-LIMIT   FAMILIES           TAINT\ngeneral-purpose   <none>      [4]                <none>\ngpu-inference     3           [g6 g5 g6e g4dn]   nvidia.com/gpu\ngpu-research      1           [g6 g5 g6e g4dn]   nvidia.com/gpu\ngpu-training      2           [g6 g5 g6e g4dn]   nvidia.com/gpu\nsystem            <none>      [4]                CriticalAddonsOnly",
+   "exit_code": 0,
+   "seconds": 1.43
+  },
+  {
+   "display": "kubectl get clusterqueue -o custom-columns=QUEUE:.metadata.name,COHORT:.spec.cohortName,GPU-QUOTA:.spec.resourceGroups[0].flavors[0].resources[2].nominalQuota,LENDING:.spec.resourceGroups[0].flavors[0].resources[2].lendingLimit,FLAVOR:.spec.resourceGroups[0].flavors[0].name",
+   "output": "QUEUE       COHORT      GPU-QUOTA   LENDING   FLAVOR\nbatch       gpu-fleet   0           <none>    gpu-inference\nnotebooks   gpu-fleet   1           <none>    gpu-research\nserving     gpu-fleet   2           1         gpu-inference\ntraining    gpu-fleet   2           <none>    gpu-training",
+   "exit_code": 0,
+   "seconds": 1.59
+  },
+  {
+   "display": "kubectl get clustertrainingruntime,gateway,httproute,inferencepool,scaledobject -A",
+   "output": "NAME                                                        AGE\nclustertrainingruntime.trainer.kubeflow.org/torch-gpu-ddp   101s\n\nNAMESPACE      NAME                                                  CLASS          ADDRESS         PROGRAMMED   AGE\ninference-gw   gateway.gateway.networking.k8s.io/inference-gateway   agentgateway   172.20.16.226   True         4m34s\n\nNAMESPACE   NAME                                              HOSTNAMES   AGE\ninference   httproute.gateway.networking.k8s.io/qwen-router               4m27s\n\nNAMESPACE   NAME                                                    AGE\ninference   inferencepool.inference.networking.k8s.io/qwen-router   4m27s\n\nNAMESPACE   NAME                             SCALETARGETKIND   SCALETARGETNAME   MIN   MAX   READY   ACTIVE    FALLBACK   PAUSED   TRIGGERS   AUTHENTICATIONS   AGE\ninference   scaledobject.keda.sh/vllm-qwen                     vllm-qwen         1     2     True    Unknown   False      True                                  16s",
+   "exit_code": 0,
+   "seconds": 2.37
+  },
+  {
+   "display": "kubectl get nodes -L ds03/pool,node.kubernetes.io/instance-type   # at rest",
+   "output": "NAME                  STATUS   ROLES    AGE     VERSION               POOL   INSTANCE-TYPE\ni-0b14bca523d0c6137   Ready    <none>   4m26s   v1.37.1-eks-577a51e          c6a.large\ni-0ec66fb757f431c5a   Ready    <none>   4m53s   v1.37.1-eks-577a51e          c6a.large",
+   "exit_code": 0,
+   "seconds": 1.45
+  },
+  {
+   "display": "kubectl get nodeclaims   # every machine the node pools have bought",
+   "output": "NAME                    TYPE        CAPACITY    ZONE         NODE                  READY   AGE\ngeneral-purpose-dw9mz   c6a.large   on-demand   us-east-1a   i-0b14bca523d0c6137   True    4m45s\ngeneral-purpose-hzz8w   c6a.large   on-demand   us-east-1c   i-0ec66fb757f431c5a   True    5m12s",
+   "exit_code": 0,
+   "seconds": 1.66
+  }
+ ],
+ "checks": [
+  {
+   "description": "the cluster is ACTIVE on Kubernetes 1.37",
+   "passed": true,
+   "because": "Terraform created one EKS Auto Mode cluster at the pinned minor version."
+  },
+  {
+   "description": "Kueue 0.20.7, Kubeflow Trainer 2.4.0, JobSet, LeaderWorkerSet, KEDA, agentgateway and the endpoint picker are all running",
+   "passed": true,
+   "because": "Each is installed by Terraform from a pinned chart version. The controllers' own image tags are the evidence."
+  },
+  {
+   "description": "every pod in the cluster is running",
+   "passed": true,
+   "because": "Helm waited for each release to be ready before Terraform moved on."
+  },
+  {
+   "description": "there is one GPU pool per workload family, each tainted so only Kueue-admitted pods can use it",
+   "passed": true,
+   "because": "The pools are Auto Mode NodePools with a GPU taint. A pod gets the toleration only through its Kueue ResourceFlavor."
+  },
+  {
+   "description": "four queues share one cohort: notebooks, training, serving and batch",
+   "passed": true,
+   "because": "Terraform creates one ClusterQueue per family, all naming the cohort gpu-fleet, so idle quota can be borrowed."
+  },
+  {
+   "description": "batch has no GPU of its own and serving may lend at most one of its two",
+   "passed": true,
+   "because": "Batch work runs only on what serving is not using, and serving keeps a guaranteed floor of one GPU."
+  },
+  {
+   "description": "the training runtime, the inference gateway, its route, the pool and the autoscaler exist",
+   "passed": true,
+   "because": "Each is created by Terraform; none is created by a user."
+  },
+  {
+   "description": "no GPU capacity is bought while nothing is queued",
+   "passed": true,
+   "because": "The GPU pools start empty. A node is bought only when an admitted pod needs it. (EC2 does not list Auto Mode's instances to the account, so the NodeClaims, which are the pools' own record of every machine, are the evidence.)"
+  }
+ ],
+ "notes": []
+}

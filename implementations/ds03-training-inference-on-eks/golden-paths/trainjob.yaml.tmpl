@@ -1,0 +1,21 @@
+# Training golden path. A researcher writes this much; the platform's runtime supplies the image, the network settings,
+# the checkpoint-friendly entry point, the restart policy and the metrics.
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: TrainJob
+metadata:
+  name: ${name}
+  namespace: llm-train
+  labels:
+    kueue.x-k8s.io/queue-name: training          # Kueue admits all the job's pods at once, or none
+    kueue.x-k8s.io/priority-class: training
+spec:
+  runtimeRef:
+    apiGroup: trainer.kubeflow.org
+    kind: ClusterTrainingRuntime
+    name: torch-gpu-ddp
+  trainer:
+    numNodes: ${nodes}
+    args: [${args}]
+    resourcesPerNode:
+      requests: { cpu: "3", memory: 12Gi, nvidia.com/gpu: "1" }
+      limits: { nvidia.com/gpu: "1" }

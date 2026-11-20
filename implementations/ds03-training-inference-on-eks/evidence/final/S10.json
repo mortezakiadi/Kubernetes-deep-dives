@@ -1,0 +1,112 @@
+{
+ "id": "S10",
+ "title": "Inference: one model replica spread over two nodes",
+ "design_ref": "Inference: the serving stack (LeaderWorkerSet)",
+ "purpose": "Run one replica of a model as a leader pod and a worker pod on two GPU nodes, admitted as one unit, serving through pipeline parallelism. Kill the worker and see the whole group come back.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl create -f large-model.yaml   # LeaderWorkerSet vllm-big: 1 replica = 1 leader + 1 worker, 1 GPU each, pipeline parallel size 2",
+   "output": "leaderworkerset.leaderworkerset.x-k8s.io/vllm-big created",
+   "exit_code": 0,
+   "seconds": 3.16
+  },
+  {
+   "display": "kubectl -n inference get lws,pods -o wide",
+   "output": "NAME                                                READY   DESIRED   UP-TO-DATE   AGE\nleaderworkerset.leaderworkerset.x-k8s.io/vllm-big   1       1         1            2m9s\n\nNAME                                   READY   STATUS    RESTARTS   AGE    IP             NODE                  NOMINATED NODE   READINESS GATES\npod/qwen-router-epp-68599b865d-v96r8   1/1     Running   0          129m   10.31.60.26    i-0ec66fb757f431c5a   <none>           <none>\npod/vllm-big-0                         1/1     Running   0          2m9s   10.31.66.1     i-0f1a1a236a5b68576   <none>           <none>\npod/vllm-big-0-1                       1/1     Running   0          2m9s   10.31.58.193   i-0385255da11fb048f   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.5
+  },
+  {
+   "display": "kubectl -n inference get workloads   # how Kueue sees the group",
+   "output": "leaderworkerset-vllm-big-0-cbfa5  pods: 2  queue: serving  admitted: True",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n inference exec vllm-big-0 -- <chat request>   # question to the leader",
+   "output": "Paris",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n inference exec vllm-big-0 -- nvidia-smi --query-gpu=name,memory.used --format=csv,noheader",
+   "output": "Tesla T4, 12319 MiB",
+   "exit_code": 0,
+   "seconds": 1.72
+  },
+  {
+   "display": "kubectl -n inference exec vllm-big-0-1 -- nvidia-smi --query-gpu=name,memory.used --format=csv,noheader",
+   "output": "Tesla T4, 12515 MiB",
+   "exit_code": 0,
+   "seconds": 1.76
+  },
+  {
+   "display": "kubectl logs: which pipeline stage each pod runs",
+   "output": "(Worker_PP0 pid=N)\n(Worker_PP1 pid=N)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n inference delete pod vllm-big-0-1   # lose the worker",
+   "output": "pod \"vllm-big-0-1\" deleted from inference namespace",
+   "exit_code": 0,
+   "seconds": 1.35
+  },
+  {
+   "display": "the leader pod after the worker was lost",
+   "output": "leader uid before 1c541253, after 9c69e171",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "time from losing the worker to a ready group again",
+   "output": "124 seconds",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "both pods of the replica are ready",
+   "passed": true,
+   "because": "The leader serves the API and the worker runs headless; the leader is ready only once both halves of the model are loaded."
+  },
+  {
+   "description": "the two pods run on two different GPU nodes",
+   "passed": true,
+   "because": "Each pod asks for one GPU, and a node has one."
+  },
+  {
+   "description": "Kueue admitted the two pods as one Workload",
+   "passed": true,
+   "because": "Kueue's LeaderWorkerSet integration treats the group as one unit: both GPUs or neither, never one."
+  },
+  {
+   "description": "the two-node replica answers correctly",
+   "passed": true,
+   "because": "The leader's engine runs layers 0 to 11 locally and sends the activations to the worker, which runs the rest."
+  },
+  {
+   "description": "both GPUs hold part of the model",
+   "passed": true,
+   "because": "Pipeline parallelism splits the layers between the two GPUs; each one holds its half plus cache."
+  },
+  {
+   "description": "the leader runs pipeline stage 0 and the worker stage 1",
+   "passed": true,
+   "because": "The pods' own logs name their stage."
+  },
+  {
+   "description": "losing the worker recreated the leader too: the group restarts as one",
+   "passed": true,
+   "because": "RecreateGroupOnPodRestart: a half-group would serve nothing, and the surviving half would hold a GPU for nothing."
+  },
+  {
+   "description": "the group came back and answers again",
+   "passed": true,
+   "because": "Both pods were recreated, reloaded the model and re-formed the pipeline."
+  }
+ ],
+ "notes": []
+}

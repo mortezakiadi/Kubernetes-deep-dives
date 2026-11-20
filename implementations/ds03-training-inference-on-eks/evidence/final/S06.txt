@@ -1,0 +1,98 @@
+# S06: From training to serving: registry, gates and rollback
+# Design reference: From training to serving: registry and promotion
+
+$ aws s3 rm s3://<bucket>/registry/ evals/ --recursive   # start from an empty registry
+registry and evaluations cleared
+
+$ kubectl create -f job.yaml   # platform/reg-v1: modelops.py register --name qwen2.5-0.5b-instruct --source Qwen/Qwen2.5-0.5B-Instruct --note 'base model'
+job.batch/reg-v1 created
+
+$ kubectl -n platform logs job/reg-v1
+{"registered": "qwen2.5-0.5b-instruct/v1", "files": 7, "mb": 1000}
+
+$ kubectl create -f job.yaml   # platform/prune-v2: modelops.py prune --name qwen2.5-0.5b-instruct --parent v1 --sparsity 0.15 --note 'light compression'
+job.batch/prune-v2 created
+
+$ kubectl -n platform logs job/prune-v2
+{"registered": "qwen2.5-0.5b-instruct/v2", "parent": "v1", "target_sparsity": 0.15, "zeroed_fraction": 0.1503}
+
+$ kubectl create -f job.yaml   # platform/prune-v3: modelops.py prune --name qwen2.5-0.5b-instruct --parent v1 --sparsity 0.80 --note 'aggressive compression'
+job.batch/prune-v3 created
+
+$ kubectl -n platform logs job/prune-v3
+{"registered": "qwen2.5-0.5b-instruct/v3", "parent": "v1", "target_sparsity": 0.8, "zeroed_fraction": 0.7995}
+
+$ kubectl create -f batch-eval.yaml   # eval-v1: evaluate qwen2.5-0.5b-instruct/v1 on a borrowed GPU
+job.batch/eval-v1 created
+
+$ kubectl -n batch-eval logs job/eval-v1 | tail -1
+{"version": "v1", "quality": 0.8333333333333334, "correct": 25, "questions": 30, "tokens_per_second": 1931.3, "model_load_seconds": 67.6}
+
+$ kubectl create -f batch-eval.yaml   # eval-v2: evaluate qwen2.5-0.5b-instruct/v2 on a borrowed GPU
+job.batch/eval-v2 created
+
+$ kubectl -n batch-eval logs job/eval-v2 | tail -1
+{"version": "v2", "quality": 0.9333333333333333, "correct": 28, "questions": 30, "tokens_per_second": 1948.4, "model_load_seconds": 57.5}
+
+$ kubectl create -f batch-eval.yaml   # eval-v3: evaluate qwen2.5-0.5b-instruct/v3 on a borrowed GPU
+job.batch/eval-v3 created
+
+$ kubectl -n batch-eval logs job/eval-v3 | tail -1
+{"version": "v3", "quality": 0.0, "correct": 0, "questions": 30, "tokens_per_second": 2004.2, "model_load_seconds": 54.9}
+
+$ evaluation results
+v1: 25/30 correct, 1931.3 tokens/s
+v2: 28/30 correct, 1948.4 tokens/s
+v3: 0/30 correct, 2004.2 tokens/s
+
+$ kubectl create -f job.yaml   # platform/promote-v1: modelops.py promote --name qwen2.5-0.5b-instruct --version v1 --to production
+job.batch/promote-v1 created
+
+$ kubectl -n platform logs job/promote-v1
+{"time": "2026-11-20T06:50:41.023488+00:00", "model": "qwen2.5-0.5b-instruct", "version": "v1", "to": "production", "approved": true, "gates": [{"gate": "quality", "passed": true, "detail": "quality 0.83 vs required 0.50"}, {"gate": "throughput", "passed": true, "detail": "1931 tokens/s vs required 100"}, {"gate": "integrity", "passed": true, "detail": "weights match the manifest checksums"}]}
+
+$ kubectl create -f job.yaml   # platform/promote-v3: modelops.py promote --name qwen2.5-0.5b-instruct --version v3 --to production
+job.batch/promote-v3 created
+
+$ kubectl -n platform logs job/promote-v3
+{"time": "2026-11-20T06:51:04.709144+00:00", "model": "qwen2.5-0.5b-instruct", "version": "v3", "to": "production", "approved": false, "gates": [{"gate": "quality", "passed": false, "detail": "quality 0.00 vs required 0.73 (production v1 scores 0.83)"}, {"gate": "throughput", "passed": true, "detail": "2004 tokens/s vs required 100"}, {"gate": "integrity", "passed": true, "detail": "weights match the manifest checksums"}]}
+
+$ kubectl create -f job.yaml   # platform/promote-v2: modelops.py promote --name qwen2.5-0.5b-instruct --version v2 --to production
+job.batch/promote-v2 created
+
+$ kubectl -n platform logs job/promote-v2
+{"time": "2026-11-20T06:51:30.278889+00:00", "model": "qwen2.5-0.5b-instruct", "version": "v2", "to": "production", "approved": true, "gates": [{"gate": "quality", "passed": true, "detail": "quality 0.93 vs required 0.73 (production v1 scores 0.83)"}, {"gate": "throughput", "passed": true, "detail": "1948 tokens/s vs required 100"}, {"gate": "integrity", "passed": true, "detail": "weights match the manifest checksums"}]}
+
+$ kubectl create -f job.yaml   # platform/show: modelops.py show --name qwen2.5-0.5b-instruct
+job.batch/show created
+
+$ kubectl -n platform logs job/show
+{"name": "qwen2.5-0.5b-instruct", "versions": ["v1", "v2", "v3"], "pointers": {"staging": null, "production": "v2"}, "evaluations": {"v1": {"quality": 0.8333333333333334, "tokens_per_second": 1931.3}, "v2": {"quality": 0.9333333333333333, "tokens_per_second": 1948.4}, "v3": {"quality": 0.0, "tokens_per_second": 2004.2}}}
+
+$ kubectl -n inference exec vllm-qwen-766f48bb69-7tdjl -c vllm -- cat /models/current/VERSION   # which version is the server running?
+v2
+
+$ time from scale-up to a ready replica
+111 seconds; a GPU node was bought for it: no, one was already running with the image on it
+
+$ kubectl create -f job.yaml   # platform/promote-back: modelops.py promote --name qwen2.5-0.5b-instruct --version v1 --to production --max-regression 0.5
+job.batch/promote-back created
+
+$ kubectl -n platform logs job/promote-back
+{"time": "2026-11-20T06:54:08.804726+00:00", "model": "qwen2.5-0.5b-instruct", "version": "v1", "to": "production", "approved": true, "gates": [{"gate": "quality", "passed": true, "detail": "quality 0.83 vs required 0.50 (production v2 scores 0.93)"}, {"gate": "throughput", "passed": true, "detail": "1931 tokens/s vs required 100"}, {"gate": "integrity", "passed": true, "detail": "weights match the manifest checksums"}]}
+
+$ kubectl -n inference rollout restart deploy/vllm-qwen   # the rollback: point at v1, restart
+deployment.apps/vllm-qwen restarted
+
+$ kubectl -n inference exec vllm-qwen-5cb57c5c6f-npwqx -c vllm -- cat /models/current/VERSION   # after the rollback
+v1
+
+[PASS] version v1 is registered with its files and checksums
+[PASS] two candidates were derived from v1 by pruning, and each records its parent and transform
+[PASS] all three versions were evaluated on the same 30 questions, on a GPU borrowed from the serving queue
+[PASS] v1 is promoted: the first version has no production baseline to beat
+[PASS] v3 (80% of weights removed) is REFUSED by the quality gate
+[PASS] v2 (15% removed) passes every gate
+[PASS] the production pointer now names v2 and the audit trail holds all three decisions
+[PASS] the server runs exactly the version the production pointer names (v2)
+[PASS] the rollback put v1 back in service

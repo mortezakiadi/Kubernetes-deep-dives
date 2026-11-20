@@ -1,0 +1,108 @@
+{
+ "id": "S07",
+ "title": "Inference: the gateway and inference-aware routing",
+ "design_ref": "Inference: the serving stack",
+ "purpose": "Send requests through the gateway to two model replicas. Compare how much of each prompt was already cached when the endpoint picker chose the replica, against a plain Kubernetes Service in front of the same pods.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n inference get pods -o wide",
+   "output": "NAME                               READY   STATUS    RESTARTS   AGE    IP             NODE                  NOMINATED NODE   READINESS GATES\nqwen-router-epp-68599b865d-v96r8   1/1     Running   0          173m   10.31.60.26    i-0ec66fb757f431c5a   <none>           <none>\nvllm-qwen-5cb57c5c6f-czzdc         1/1     Running   0          36m    10.31.46.225   i-0d0d0e3fda6fb150e   <none>           <none>\nvllm-qwen-5cb57c5c6f-hnc74         1/1     Running   0          36m    10.31.58.192   i-0385255da11fb048f   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.33
+  },
+  {
+   "display": "zones of the two replicas",
+   "output": "us-east-1b, us-east-1c",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl get gateway,httproute,inferencepool -A",
+   "output": "NAMESPACE      NAME                                                  CLASS          ADDRESS         PROGRAMMED   AGE\ninference-gw   gateway.gateway.networking.k8s.io/inference-gateway   agentgateway   172.20.16.226   True         173m\n\nNAMESPACE   NAME                                              HOSTNAMES   AGE\ninference   httproute.gateway.networking.k8s.io/qwen-router               173m\n\nNAMESPACE   NAME                                                    AGE\ninference   inferencepool.inference.networking.k8s.io/qwen-router   173m",
+   "exit_code": 0,
+   "seconds": 1.49
+  },
+  {
+   "display": "kubectl -n inference get configmap qwen-router-epp   # the endpoint picker's scorers",
+   "output": "- type: queue-scorer\n- type: kv-cache-utilization-scorer\n- type: prefix-cache-scorer\n- type: metrics-data-source\n- type: core-metrics-extractor\n  - pluginRef: queue-scorer\n    weight: 2\n  - pluginRef: kv-cache-utilization-scorer\n    weight: 2\n  - pluginRef: prefix-cache-scorer\n    weight: 3",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl create -f job.yaml   # a pod inside the cluster: POST http://inference-gateway.inference-gw.svc/v1/chat/completions",
+   "output": "job.batch/gw-test created",
+   "exit_code": 0,
+   "seconds": 2.35
+  },
+  {
+   "display": "kubectl -n platform logs job/gw-test",
+   "output": "qwen2.5-0.5b -> Paris",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl create -f loadgen-job.yaml   # lg-gateway: 8 long documents x 6 questions each, through gateway",
+   "output": "job.batch/lg-gateway created",
+   "exit_code": 0,
+   "seconds": 2.32
+  },
+  {
+   "display": "kubectl -n platform logs job/lg-gateway",
+   "output": "{\"requests\": 48, \"errors\": 0, \"cache_hit_rate\": 0.822, \"ttft_p50\": 0.08, \"ttft_p95\": 1.461, \"queried_tokens_per_pod\": {\"10.31.46.225:8000\": 67020, \"10.31.58.192:8000\": 66852}}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl create -f loadgen-job.yaml   # lg-plainservice: 8 long documents x 6 questions each, through plain-service",
+   "output": "job.batch/lg-plainservice created",
+   "exit_code": 0,
+   "seconds": 2.47
+  },
+  {
+   "display": "kubectl -n platform logs job/lg-plainservice",
+   "output": "{\"requests\": 48, \"errors\": 0, \"cache_hit_rate\": 0.654, \"ttft_p50\": 0.141, \"ttft_p95\": 2.764, \"queried_tokens_per_pod\": {\"10.31.46.225:8000\": 77808, \"10.31.58.192:8000\": 55584}}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "summary",
+   "output": "cache hit rate: gateway 0.822 vs plain Service 0.654\ntime to first token (median / p95): gateway 0.08 / 1.461 s, plain Service 0.141 / 2.764 s",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "two replicas are ready",
+   "passed": true,
+   "because": "The Deployment asks Kueue for two GPUs; the serving queue owns two."
+  },
+  {
+   "description": "the endpoint picker scores replicas on queue depth, KV-cache use and prefix-cache match",
+   "passed": true,
+   "because": "These are the chart's default plugins for vLLM."
+  },
+  {
+   "description": "a chat request through the gateway returns the right answer",
+   "passed": true,
+   "because": "Gateway -> HTTPRoute -> InferencePool -> endpoint picker -> a vLLM replica, then back."
+  },
+  {
+   "description": "every request succeeded on both paths",
+   "passed": true,
+   "because": "Both runs sent 48 streamed requests."
+  },
+  {
+   "description": "the endpoint picker found at least 10 points more of each prompt already cached than a plain Service did",
+   "passed": true,
+   "because": "It sends follow-up questions to the replica that already holds the document's KV cache; a plain Service spreads them over both replicas, so a document is often computed on both."
+  },
+  {
+   "description": "time to first token was lower through the picker",
+   "passed": true,
+   "because": "A cached prefix skips most of the prompt processing, which is what the first token waits for."
+  }
+ ],
+ "notes": []
+}

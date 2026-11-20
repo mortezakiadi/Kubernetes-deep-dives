@@ -1,0 +1,85 @@
+{
+ "id": "S11",
+ "title": "Observability: the number each workload family lives by",
+ "design_ref": "Observability: the numbers each workload lives by",
+ "purpose": "Read, from one Prometheus and from the training events, the numbers that matter to each family, all labelled by family and run, for the work the earlier scenarios did.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "Prometheus: GPU-hours by namespace (the family) over the last 6 hours",
+   "output": "batch-eval     0.98 GPU-hours\ngpu-buffer     0.48 GPU-hours\ninference      5.82 GPU-hours\nllm-train      2.05 GPU-hours\nresearch       0.17 GPU-hours",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "Prometheus: time to first token, all model servers, last 6 hours",
+   "output": "p50 0.748 s   p95 2.348 s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "Prometheus: prefix-cache hit rate over the last 6 hours",
+   "output": "0.04",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "Prometheus: peak GPU utilization per pod over 6 hours (DCGM_FI_DEV_GPU_UTIL_RATIO x 100), highest first",
+   "output": "inference    vllm-qwen-5cb57c5c6f-n856k               100%\ninference    vllm-qwen-5cb57c5c6f-hnc74               100%\ninference    vllm-qwen-5cb57c5c6f-czzdc               100%\nllm-train    s05-node-0-0-bk2nh                       100%\nllm-train    s05-node-0-1-x2x8z                       100%\nllm-train    s05-node-0-0-bdwmh                       100%\nllm-train    s05-node-0-1-gnqk9                       100%\nllm-train    s05-node-0-1-9czmm                       100%\nllm-train    s05-node-0-0-4pxjz                       100%\nllm-train    s05-node-0-0-brmjw                       100%",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "Prometheus: graphics-engine activity and tensor-core activity per pod (a finer signal than utilization)",
+   "output": "llm-train    s05-node-0-0-bdwmh                     engine   100%  tensor   4.6%\nllm-train    s05-node-0-1-gnqk9                     engine   100%  tensor   4.4%\nllm-train    s05-node-0-0-4pxjz                     engine   100%  tensor   4.6%\nllm-train    s05-node-0-0-nttx5                     engine   100%  tensor   4.4%\nllm-train    s05-node-0-0-rfqdg                     engine   100%  tensor   4.4%\ninference    vllm-qwen-5cb57c5c6f-czzdc             engine    99%  tensor  13.4%\ninference    vllm-qwen-5cb57c5c6f-npwqx             engine    99%  tensor  13.1%\nllm-train    s03-node-0-1-mzqcg                     engine    99%  tensor  11.0%",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "training events in S3, per run: time to first step after the process started, median tokens per second, median checkpoint pause, attempts",
+   "output": "s03        first step after 3.6 s   22883 tokens/s   checkpoint pause 0.53 s   attempts 1\ns04-async  first step after 3.6 s   21530 tokens/s   checkpoint pause 0.34 s   attempts 1\ns04-sync   first step after 3.7 s   20812 tokens/s   checkpoint pause 2.62 s   attempts 1\ns05        first step after 4.3 s   10026 tokens/s   checkpoint pause 0.36 s   attempts 3",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl get workloads -A   # what is queued or admitted right now",
+   "output": "inference/serving: pod-vllm-qwen-5cb57c5c6f-cmkkw-e1b06",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl get clusterqueue   # the queues' own counters",
+   "output": "NAME        COHORT      PENDING WORKLOADS\nbatch       gpu-fleet   0\nnotebooks   gpu-fleet   0\nserving     gpu-fleet   0\ntraining    gpu-fleet   0",
+   "exit_code": 0,
+   "seconds": 1.5
+  }
+ ],
+ "checks": [
+  {
+   "description": "GPU usage is attributable to each family that ran GPU work",
+   "passed": true,
+   "because": "Every pod carries its namespace, and the namespace is the family; one query answers 'what did each family use'."
+  },
+  {
+   "description": "time to first token is available as a percentile across every replica that ever served",
+   "passed": true,
+   "because": "vLLM exports a histogram of it; Prometheus kept the samples from replicas that no longer exist."
+  },
+  {
+   "description": "per-pod GPU utilization comes from the GPU driver's own counters and names the pod and the family",
+   "passed": true,
+   "because": "A DCGM exporter runs on every GPU node and joins each GPU's counters to the pod that held it."
+  },
+  {
+   "description": "training reports step time, throughput, checkpoint pause and attempts for every run",
+   "passed": true,
+   "because": "The training script writes these as events to S3 at every checkpoint and exit, so they survive the pods that wrote them."
+  },
+  {
+   "description": "each queue reports its pending and admitted workloads",
+   "passed": true,
+   "because": "Kueue keeps these counters on every ClusterQueue."
+  }
+ ],
+ "notes": []
+}

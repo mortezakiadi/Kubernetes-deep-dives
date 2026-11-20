@@ -1,0 +1,96 @@
+{
+ "id": "S09",
+ "title": "Sharing GPUs: batch work borrows serving's idle GPU and gives it back",
+ "design_ref": "Sharing GPUs between training and inference",
+ "purpose": "Run a resumable batch job on the GPU serving is not using. When serving needs that GPU, Kueue must take it back, serving must come up on it, and the batch job must later resume where it stopped.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl create -f batch-job.yaml   # batch-resumable: 80 items of GPU work (about 5 s each), queue batch, no GPU quota of its own",
+   "output": "job.batch/batch-resumable created",
+   "exit_code": 0,
+   "seconds": 2.85
+  },
+  {
+   "display": "kubectl get clusterqueue serving batch   # who uses and who borrows",
+   "output": "QUEUE     GPU-IN-USE   GPU-BORROWED\nserving   1            0\nbatch     1            1",
+   "exit_code": 0,
+   "seconds": 1.71
+  },
+  {
+   "display": "kubectl -n batch-eval logs <batch pod> --tail=3",
+   "output": "{\"ev\": \"item\", \"item\": 3}\n{\"ev\": \"item\", \"item\": 4}\n{\"ev\": \"item\", \"item\": 5}",
+   "exit_code": 0,
+   "seconds": 1.73
+  },
+  {
+   "display": "kubectl -n batch-eval get workload   # the borrower's Workload",
+   "output": "QuotaReserved=False: couldn't assign flavors to pod set main: insufficient unused quota for cpu in flavor gpu-inference, 3 more needed, insufficient unused quota for memory in flavor gpu-inference, 12Gi more needed, insufficient unused quota for nvidia.com/gpu in flavor gpu-infere\nEvicted=True: Preempted to accommodate a workload (UID: 75df2432-3b27-40fb-9d1b-0743be69778c, JobUID: 7bcb26bb-9a70-4a7a-9c12-b5cf692be209) due to reclamation within the cohort; preemptor path: /gpu-fleet/serving; preemptee path: /gpu-fleet/batch\nAdmitted=False: The workload has no reservation\nPreempted=True: Preempted to accommodate a workload (UID: 75df2432-3b27-40fb-9d1b-0743be69778c, JobUID: 7bcb26bb-9a70-4a7a-9c12-b5cf692be209) due to reclamation within the cohort; preemptor path: /gpu-fleet/serving; preemptee path: /gpu-fleet/batch",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "time from the scale-up command to the preemption",
+   "output": "3 seconds",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "time from the scale-up command to the second replica serving",
+   "output": "161 seconds; a GPU node was bought for it: no, it used a node that was already running",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n inference get pods -o wide",
+   "output": "NAME                               READY   STATUS    RESTARTS   AGE     IP            NODE                  NOMINATED NODE   READINESS GATES\nqwen-router-epp-68599b865d-v96r8   1/1     Running   0          5h      10.31.60.26   i-0ec66fb757f431c5a   <none>           <none>\nvllm-qwen-5cb57c5c6f-cmkkw         1/1     Running   0          46m     10.31.71.64   i-0c8c5b086b7317ecf   <none>           <none>\nvllm-qwen-5cb57c5c6f-rnpz6         1/1     Running   0          2m40s   10.31.16.18   i-029ada4d0617337bc   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.63
+  },
+  {
+   "display": "kubectl -n batch-eval get job,workload,pods   # the batch job, waiting",
+   "output": "NAME                        STATUS      COMPLETIONS   DURATION   AGE\njob.batch/batch-resumable   Suspended   0/1                      9m44s\n\nNAME                                                QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE\nworkload.kueue.x-k8s.io/job-batch-resumable-22a2c   batch                 False                 9m44s",
+   "exit_code": 0,
+   "seconds": 1.94
+  },
+  {
+   "display": "kubectl -n batch-eval logs <batch pod>   # after re-admission",
+   "output": "WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\n{\"ev\": \"start\", \"resumed_from_item\": 11, \"total\": 80, \"gpu\": \"Tesla T4\", \"t\": 1795171951.432279}\n{\"ev\": \"item\", \"item\": 12}\n{\"ev\": \"item\", \"item\": 13}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the batch job is running on a GPU it borrowed from the serving queue",
+   "passed": true,
+   "because": "Batch owns no GPU quota. Serving owns two, uses one, and may lend one."
+  },
+  {
+   "description": "when serving scaled up, Kueue preempted the batch job to take the GPU back",
+   "passed": true,
+   "because": "Serving's queue is within its own quota and reclaimWithinCohort is Any, so a borrower is the first thing to go."
+  },
+  {
+   "description": "serving got its second GPU and the replica is ready",
+   "passed": true,
+   "because": "Kueue gave the replica the quota the batch Workload released."
+  },
+  {
+   "description": "the batch job was requeued, not lost",
+   "passed": true,
+   "because": "Kueue suspends the Job and keeps its Workload in the queue."
+  },
+  {
+   "description": "when serving scaled back down the batch job was admitted again and resumed from its saved progress, not from item 0",
+   "passed": true,
+   "because": "It read its progress from S3 and continued at item 11."
+  },
+  {
+   "description": "the batch job completed all its items",
+   "passed": true,
+   "because": "Preemption cost it a restart, not its progress."
+  }
+ ],
+ "notes": []
+}

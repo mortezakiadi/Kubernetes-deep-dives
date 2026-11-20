@@ -1,0 +1,55 @@
+# S02: Research: a GPU notebook in minutes, taken back when idle
+# Design reference: Research: interactive environments
+
+$ kubectl create -f notebook.yaml   # nb-ana: JupyterLab, 1 GPU, 5 GiB workspace, research queue
+statefulset.apps/nb-ana created
+
+Error from server (AlreadyExists): error when creating "STDIN": services "nb-ana" already exists
+
+$ kubectl -n research get workloads -o custom-columns=NAME:.metadata.name,QUEUE:.spec.queueName,PRIORITY:.spec.priority,ADMITTED:.status.admission.clusterQueue
+NAME                       QUEUE       PRIORITY   ADMITTED
+statefulset-nb-ana-e0591   notebooks   100        notebooks
+
+$ time from kubectl create to a ready notebook
+172 seconds; a GPU node was bought for it: yes
+
+$ kubectl -n research exec nb-ana-0 -- nvidia-smi --query-gpu=name,memory.total --format=csv
+name, memory.total [MiB]
+Tesla T4, 15360 MiB
+
+$ kubectl -n research exec nb-ana-0 -- bash -c "echo 'experiment 1 ...' > /workspace/notes.txt; cat ...; df -h /workspace"
+experiment 1: attention variant, lr 3e-4
+/dev/nvme3n1    4.9G   28K  4.9G   1% /workspace
+
+$ kubectl -n platform logs deploy/notebook-culler | grep nb-ana   # the culler's checks (idle limit 120 s in this build; 60 minutes in the design)
+{"ev": "check", "notebook": "nb-ana", "idle_seconds": 13, "limit": 120, "busy": false}
+{"ev": "check", "notebook": "nb-ana", "idle_seconds": 28, "limit": 120, "busy": false}
+...
+{"ev": "check", "notebook": "nb-ana", "idle_seconds": 118, "limit": 120, "busy": false}
+{"ev": "check", "notebook": "nb-ana", "idle_seconds": 133, "limit": 120, "busy": false}
+{"ev": "culled", "notebook": "nb-ana", "idle_seconds": 133}
+
+$ time from ready to culled
+139 seconds, with nobody touching the notebook
+
+$ kubectl -n research get pods,pvc,workloads   # after the cull
+NAME                                       STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/workspace-nb-ana-0   Bound    pvc-c222ab9b-e208-4388-96a6-7543e963df8a   5Gi        RWO            ebs-auto       <unset>                 5m21s
+
+NAME                                               QUEUE       RESERVED IN   ADMITTED   FINISHED   AGE
+workload.kueue.x-k8s.io/statefulset-nb-ana-e0591   notebooks                 False                 5m21s
+
+$ kubectl -n research exec nb-ana-0 -- cat /workspace/notes.txt   # after the restart
+experiment 1: attention variant, lr 3e-4
+
+$ time to restart
+10 seconds
+
+[PASS] the notebook was admitted through the research queue at opportunistic priority
+[PASS] the notebook got a GPU and is ready in under 12 minutes
+[PASS] a GPU is visible inside the notebook container
+[PASS] the workspace is a separate 5 GiB volume
+[PASS] the idle notebook was stopped automatically
+[PASS] the GPU quota was released
+[PASS] the workspace volume was kept
+[PASS] the file written before the cull is still there after the restart

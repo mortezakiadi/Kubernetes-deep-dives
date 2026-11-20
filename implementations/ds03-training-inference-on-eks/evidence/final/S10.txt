@@ -1,0 +1,48 @@
+# S10: Inference: one model replica spread over two nodes
+# Design reference: Inference: the serving stack (LeaderWorkerSet)
+
+$ kubectl create -f large-model.yaml   # LeaderWorkerSet vllm-big: 1 replica = 1 leader + 1 worker, 1 GPU each, pipeline parallel size 2
+leaderworkerset.leaderworkerset.x-k8s.io/vllm-big created
+
+$ kubectl -n inference get lws,pods -o wide
+NAME                                                READY   DESIRED   UP-TO-DATE   AGE
+leaderworkerset.leaderworkerset.x-k8s.io/vllm-big   1       1         1            2m9s
+
+NAME                                   READY   STATUS    RESTARTS   AGE    IP             NODE                  NOMINATED NODE   READINESS GATES
+pod/qwen-router-epp-68599b865d-v96r8   1/1     Running   0          129m   10.31.60.26    i-0ec66fb757f431c5a   <none>           <none>
+pod/vllm-big-0                         1/1     Running   0          2m9s   10.31.66.1     i-0f1a1a236a5b68576   <none>           <none>
+pod/vllm-big-0-1                       1/1     Running   0          2m9s   10.31.58.193   i-0385255da11fb048f   <none>           <none>
+
+$ kubectl -n inference get workloads   # how Kueue sees the group
+leaderworkerset-vllm-big-0-cbfa5  pods: 2  queue: serving  admitted: True
+
+$ kubectl -n inference exec vllm-big-0 -- <chat request>   # question to the leader
+Paris
+
+$ kubectl -n inference exec vllm-big-0 -- nvidia-smi --query-gpu=name,memory.used --format=csv,noheader
+Tesla T4, 12319 MiB
+
+$ kubectl -n inference exec vllm-big-0-1 -- nvidia-smi --query-gpu=name,memory.used --format=csv,noheader
+Tesla T4, 12515 MiB
+
+$ kubectl logs: which pipeline stage each pod runs
+(Worker_PP0 pid=N)
+(Worker_PP1 pid=N)
+
+$ kubectl -n inference delete pod vllm-big-0-1   # lose the worker
+pod "vllm-big-0-1" deleted from inference namespace
+
+$ the leader pod after the worker was lost
+leader uid before 1c541253, after 9c69e171
+
+$ time from losing the worker to a ready group again
+124 seconds
+
+[PASS] both pods of the replica are ready
+[PASS] the two pods run on two different GPU nodes
+[PASS] Kueue admitted the two pods as one Workload
+[PASS] the two-node replica answers correctly
+[PASS] both GPUs hold part of the model
+[PASS] the leader runs pipeline stage 0 and the worker stage 1
+[PASS] losing the worker recreated the leader too: the group restarts as one
+[PASS] the group came back and answers again

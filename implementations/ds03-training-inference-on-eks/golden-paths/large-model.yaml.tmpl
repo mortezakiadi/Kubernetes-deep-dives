@@ -1,0 +1,112 @@
+# A model replica that spans two nodes (Design 03: "a model that needs several nodes per replica runs as a LeaderWorkerSet").
+# One leader pod and one worker pod are created, scaled and restarted together, and Kueue admits them as one unit.
+# vLLM's own multi-node mode is used, with no Ray: the leader serves the API, the worker runs headless, and the two
+# find each other through the variables LeaderWorkerSet injects. The model is small here; pipeline parallelism across
+# two nodes is forced so the multi-node path is exercised.
+apiVersion: leaderworkerset.x-k8s.io/v1
+kind: LeaderWorkerSet
+metadata:
+  name: vllm-big
+  namespace: inference
+  labels:
+    kueue.x-k8s.io/queue-name: serving
+    kueue.x-k8s.io/priority-class: production
+spec:
+  replicas: 1
+  leaderWorkerTemplate:
+    size: 2
+    restartPolicy: RecreateGroupOnPodRestart   # if either pod dies, the whole group is recreated
+    leaderTemplate:
+      metadata:
+        labels: { role: leader }
+      spec:
+        serviceAccountName: serving
+        enableServiceLinks: false
+        initContainers:
+        - name: fetch-weights
+          image: public.ecr.aws/aws-cli/aws-cli:2.27.0
+          command: ["/bin/sh", "-c"]
+          args: ["V=$$(aws s3 cp s3://$$BUCKET/registry/models/${model}/pointers/production -); aws s3 sync s3://$$BUCKET/registry/models/${model}/$$V/ /models/current --only-show-errors"]
+          envFrom: [{ configMapRef: { name: platform-env } }]
+          volumeMounts: [{ name: models, mountPath: /models }]
+        containers:
+        - name: vllm
+          image: vllm/vllm-openai:${vllm}
+          command:
+          - vllm
+          - serve
+          - /models/current
+          - --served-model-name
+          - qwen-big
+          - --port
+          - "8000"
+          - --max-model-len
+          - "4096"
+          - --pipeline-parallel-size
+          - "2"
+          - --nnodes
+          - $$(LWS_GROUP_SIZE)
+          - --node-rank
+          - $$(LWS_WORKER_INDEX)
+          - --master-addr
+          - $$(LWS_LEADER_ADDRESS)
+          - --enforce-eager
+          - --gpu-memory-utilization
+          - "0.85"
+          env:
+          - { name: NCCL_SOCKET_IFNAME, value: eth0 }
+          - { name: NCCL_IB_DISABLE, value: "1" }
+          ports: [{ name: http, containerPort: 8000 }]
+          resources:
+            requests: { cpu: "3", memory: 12Gi, nvidia.com/gpu: "1" }
+            limits: { nvidia.com/gpu: "1" }
+          readinessProbe: { httpGet: { path: /health, port: http }, periodSeconds: 5, failureThreshold: 1 }
+          startupProbe: { httpGet: { path: /health, port: http }, periodSeconds: 5, failureThreshold: 240 }
+          volumeMounts: [{ name: models, mountPath: /models }, { name: shm, mountPath: /dev/shm }]
+        volumes:
+        - { name: models, emptyDir: {} }
+        - { name: shm, emptyDir: { medium: Memory, sizeLimit: 4Gi } }
+    workerTemplate:
+      spec:
+        serviceAccountName: serving
+        enableServiceLinks: false
+        initContainers:
+        - name: fetch-weights
+          image: public.ecr.aws/aws-cli/aws-cli:2.27.0
+          command: ["/bin/sh", "-c"]
+          args: ["V=$$(aws s3 cp s3://$$BUCKET/registry/models/${model}/pointers/production -); aws s3 sync s3://$$BUCKET/registry/models/${model}/$$V/ /models/current --only-show-errors"]
+          envFrom: [{ configMapRef: { name: platform-env } }]
+          volumeMounts: [{ name: models, mountPath: /models }]
+        containers:
+        - name: vllm-worker
+          image: vllm/vllm-openai:${vllm}
+          command:
+          - vllm
+          - serve
+          - /models/current
+          - --served-model-name
+          - qwen-big
+          - --max-model-len
+          - "4096"
+          - --pipeline-parallel-size
+          - "2"
+          - --nnodes
+          - $$(LWS_GROUP_SIZE)
+          - --node-rank
+          - $$(LWS_WORKER_INDEX)
+          - --master-addr
+          - $$(LWS_LEADER_ADDRESS)
+          - --enforce-eager
+          - --gpu-memory-utilization
+          - "0.85"
+          - --headless
+          env:
+          - { name: NCCL_SOCKET_IFNAME, value: eth0 }
+          - { name: NCCL_IB_DISABLE, value: "1" }
+          resources:
+            requests: { cpu: "3", memory: 12Gi, nvidia.com/gpu: "1" }
+            limits: { nvidia.com/gpu: "1" }
+          volumeMounts: [{ name: models, mountPath: /models }, { name: shm, mountPath: /dev/shm }]
+        volumes:
+        - { name: models, emptyDir: {} }
+        - { name: shm, emptyDir: { medium: Memory, sizeLimit: 4Gi } }

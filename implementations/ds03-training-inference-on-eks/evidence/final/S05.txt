@@ -1,0 +1,56 @@
+# S05: Training: a lost node and a hung rank, with nobody there
+# Design reference: Training: reliability at scale
+
+$ kubectl create -f trainjob.yaml   # s05: 2 nodes x 1 GPU, 600 steps, checkpoint every 50 (async)
+trainjob.trainer.kubeflow.org/s05 created
+
+$ before the failure
+job is at step about 150; the node holding rank 1 is i-010fd73f6354562aa (NodeClaim gpu-training-pqhgd)
+
+$ kubectl delete nodeclaim gpu-training-pqhgd   # the node under rank 1 is taken away while the job runs
+nodeclaim.karpenter.sh "gpu-training-pqhgd" deleted
+
+$ kubectl -n llm-train get jobset s05   # restarts counter
+NAME   TERMINALSTATE   RESTARTS   COMPLETED   SUSPENDED   STARTTIME   AGE
+s05                    1                      false                   9m22s
+
+$ what the job did on its own
+resumed from checkpoint at step 150 after 240 s (a replacement GPU node was bought and the image pulled)
+
+$ kubectl -n llm-train exec s05-node-0-1-gnqk9 -- python -c '<SIGSTOP the training process>'   # rank 1 freezes; it does not crash
+stopped 15 ['/opt/conda/bin/python3.11', '-u', '/workloads/train.py']
+
+$ the watchdog's own event (rank 0)
+{"rank": 0, "ev": "watchdog", "idle_seconds": 61.8, "limit": 60.0, "step": 233}
+
+$ kubectl -n llm-train get trainjob,jobset   # finished
+NAME                                STATE      AGE
+trainjob.trainer.kubeflow.org/s05   Complete   17m
+
+NAME                         TERMINALSTATE   RESTARTS   COMPLETED   SUSPENDED   STARTTIME   AGE
+jobset.jobset.x-k8s.io/s05   Completed       2          True        false                   17m
+
+$ every attempt, from the events in S3
+10:23:31 rank 0 start      {"run": "s05", "world": 2, "params_m": 85.4, "mode": "async"}
+10:28:41 rank 0 start      {"run": "s05", "world": 2, "params_m": 85.4, "mode": "async"}
+10:28:48 rank 0 resume     {"step": 150, "seconds": 6.4}
+10:30:58 rank 0 watchdog   {"idle_seconds": 61.8, "limit": 60.0, "step": 233}
+10:31:45 rank 0 start      {"run": "s05", "world": 2, "params_m": 85.4, "mode": "async"}
+10:31:50 rank 0 resume     {"step": 200, "seconds": 5.22}
+10:37:28 rank 0 done       {"steps": 600, "started_at_step": 200, "median_step_seconds": 0.815, "wall_seconds": 346.0}
+
+$ goodput
+wall time from first start to done: 837 s
+median step time 0.82 s (0.39 s of compute plus the 0.45 s delay I added per step so the run lasts long enough to interfere with)
+productive time (600 steps): 490 s
+goodput: 59% of the wall time
+steps recomputed: about 0 after the node loss (the live step count can lag by a scrape), 33 after the hang
+
+[PASS] after the node loss the job restarted itself and resumed from a checkpoint, not from step 0
+[PASS] the work lost to the failure is at most one checkpoint interval (50 steps)
+[PASS] rank 1's training process was frozen
+[PASS] the watchdog noticed that no step had completed for 60 seconds and ended the process
+[PASS] the job finished all 600 steps after two disruptions without anyone touching it
+[PASS] the second restart also resumed from a checkpoint
+[PASS] the work lost to the hang is also at most one checkpoint interval
+[PASS] goodput is measured and reported

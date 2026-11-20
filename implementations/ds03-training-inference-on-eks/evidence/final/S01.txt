@@ -1,0 +1,69 @@
+# S01: The platform at rest: components, node pools and queues
+# Design reference: The platform at a glance; Three workload families
+
+$ aws eks describe-cluster --name ds03-trainserve --query 'cluster.[name,status,version]' --output text
+ds03-trainserve	ACTIVE	1.37
+
+$ kubectl get deploy -A -o jsonpath=<controller images>
+agentgateway-system/agentgateway controller:v1.4.1
+inference/qwen-router-epp llm-d/llm-d-router-endpoint-picker:v0.9.0
+keda/keda-operator kedacore/keda:2.21.1
+keda/keda-operator-metrics-apiserver kedacore/keda-metrics-apiserver:2.21.1
+kubeflow-system/jobset-controller jobset/jobset:v0.13.0
+kubeflow-system/kubeflow-trainer-controller-manager kubeflow/trainer/trainer-controller-manager:v2.4.0
+kueue-system/kueue-controller-manager kueue/kueue:v0.20.7
+lws-system/lws-controller-manager lws/lws:v1.0.0
+
+$ kubectl get pods -A --field-selector=status.phase!=Running,status.phase!=Succeeded   # anything not running?
+
+No resources found
+
+$ kubectl get nodepool -o custom-columns=NAME:.metadata.name,GPU-LIMIT:.spec.limits.nvidia\.com/gpu,FAMILIES:.spec.template.spec.requirements[2].values,TAINT:.spec.template.spec.taints[0].key
+NAME              GPU-LIMIT   FAMILIES           TAINT
+general-purpose   <none>      [4]                <none>
+gpu-inference     3           [g6 g5 g6e g4dn]   nvidia.com/gpu
+gpu-research      1           [g6 g5 g6e g4dn]   nvidia.com/gpu
+gpu-training      2           [g6 g5 g6e g4dn]   nvidia.com/gpu
+system            <none>      [4]                CriticalAddonsOnly
+
+$ kubectl get clusterqueue -o custom-columns=QUEUE:.metadata.name,COHORT:.spec.cohortName,GPU-QUOTA:.spec.resourceGroups[0].flavors[0].resources[2].nominalQuota,LENDING:.spec.resourceGroups[0].flavors[0].resources[2].lendingLimit,FLAVOR:.spec.resourceGroups[0].flavors[0].name
+QUEUE       COHORT      GPU-QUOTA   LENDING   FLAVOR
+batch       gpu-fleet   0           <none>    gpu-inference
+notebooks   gpu-fleet   1           <none>    gpu-research
+serving     gpu-fleet   2           1         gpu-inference
+training    gpu-fleet   2           <none>    gpu-training
+
+$ kubectl get clustertrainingruntime,gateway,httproute,inferencepool,scaledobject -A
+NAME                                                        AGE
+clustertrainingruntime.trainer.kubeflow.org/torch-gpu-ddp   101s
+
+NAMESPACE      NAME                                                  CLASS          ADDRESS         PROGRAMMED   AGE
+inference-gw   gateway.gateway.networking.k8s.io/inference-gateway   agentgateway   172.20.16.226   True         4m34s
+
+NAMESPACE   NAME                                              HOSTNAMES   AGE
+inference   httproute.gateway.networking.k8s.io/qwen-router               4m27s
+
+NAMESPACE   NAME                                                    AGE
+inference   inferencepool.inference.networking.k8s.io/qwen-router   4m27s
+
+NAMESPACE   NAME                             SCALETARGETKIND   SCALETARGETNAME   MIN   MAX   READY   ACTIVE    FALLBACK   PAUSED   TRIGGERS   AUTHENTICATIONS   AGE
+inference   scaledobject.keda.sh/vllm-qwen                     vllm-qwen         1     2     True    Unknown   False      True                                  16s
+
+$ kubectl get nodes -L ds03/pool,node.kubernetes.io/instance-type   # at rest
+NAME                  STATUS   ROLES    AGE     VERSION               POOL   INSTANCE-TYPE
+i-0b14bca523d0c6137   Ready    <none>   4m26s   v1.37.1-eks-577a51e          c6a.large
+i-0ec66fb757f431c5a   Ready    <none>   4m53s   v1.37.1-eks-577a51e          c6a.large
+
+$ kubectl get nodeclaims   # every machine the node pools have bought
+NAME                    TYPE        CAPACITY    ZONE         NODE                  READY   AGE
+general-purpose-dw9mz   c6a.large   on-demand   us-east-1a   i-0b14bca523d0c6137   True    4m45s
+general-purpose-hzz8w   c6a.large   on-demand   us-east-1c   i-0ec66fb757f431c5a   True    5m12s
+
+[PASS] the cluster is ACTIVE on Kubernetes 1.37
+[PASS] Kueue 0.20.7, Kubeflow Trainer 2.4.0, JobSet, LeaderWorkerSet, KEDA, agentgateway and the endpoint picker are all running
+[PASS] every pod in the cluster is running
+[PASS] there is one GPU pool per workload family, each tainted so only Kueue-admitted pods can use it
+[PASS] four queues share one cohort: notebooks, training, serving and batch
+[PASS] batch has no GPU of its own and serving may lend at most one of its two
+[PASS] the training runtime, the inference gateway, its route, the pool and the autoscaler exist
+[PASS] no GPU capacity is bought while nothing is queued

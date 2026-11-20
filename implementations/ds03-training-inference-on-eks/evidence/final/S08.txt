@@ -1,0 +1,74 @@
+# S08: Inference: scaling on queue depth, and what a cold start costs
+# Design reference: Inference: autoscaling and cold starts
+
+$ kubectl get nodes -l ds03/pool=inference   # before the test: one replica, one node
+1 GPU node in the inference pool
+
+$ kubectl -n inference get scaledobject vllm-qwen   # the autoscaling signal: requests waiting in the model servers' queues
+sum(vllm:num_requests_waiting{namespace="inference"})  threshold 4  min 1 max 2
+
+$ kubectl create -f loadgen-job.yaml   # lg-load-cold: 32 concurrent streams for 600 s through the gateway
+job.batch/lg-load-cold created
+
+$ kubectl -n inference get deploy,hpa   # the autoscaler added a replica
+NAME                              READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/qwen-router-epp   1/1     1            1           3h39m
+deployment.apps/vllm-qwen         2/2     2            2           3h35m
+
+NAME                                                     REFERENCE              TARGETS     MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/keda-hpa-vllm-qwen   Deployment/vllm-qwen   0/4 (avg)   1         2         2          10m
+
+$ Prometheus: max over the last 15 minutes of sum(vllm:num_requests_waiting)
+24 requests waiting at the peak
+
+$ cold start of the new replica (new GPU node bought for it)
+{
+ "pod": "vllm-qwen-5cb57c5c6f-wlnpd",
+ "new_node": true,
+ "admission_and_node_s": 45,
+ "serving_image_pull_s": 306,
+ "small_init_image_pull_s": 6,
+ "weights_fetch_s": 5,
+ "model_load_s": 123,
+ "total_s": 504
+}
+
+$ kubectl -n platform logs job/lg-load-cold
+{"mode": "load", "concurrency": 32, "seconds": 600, "completed": 14974, "errors": 0, "requests_per_second": 24.96, "ttft_p50": 1.092, "ttft_p95": 1.22}
+
+$ kubectl -n gpu-buffer get pods -o wide   # the warm buffer: a low-priority pod holding a GPU node, serving image already pulled
+NAME                          READY   STATUS    RESTARTS   AGE     IP            NODE                  NOMINATED NODE   READINESS GATES
+gpu-buffer-78f5cd7cc9-87md4   1/1     Running   0          6m29s   10.31.19.19   i-02477228601a8b63c   <none>           <none>
+
+$ time to bring the buffer node up
+388 seconds
+
+$ kubectl create -f loadgen-job.yaml   # lg-load-warm: 32 concurrent streams for 600 s through the gateway
+job.batch/lg-load-warm created
+
+$ cold start of the new replica (warm buffer node)
+{
+ "pod": "vllm-qwen-5cb57c5c6f-n856k",
+ "new_node": false,
+ "admission_and_node_s": 0,
+ "serving_image_pull_s": 0,
+ "small_init_image_pull_s": 6,
+ "weights_fetch_s": 6,
+ "model_load_s": 105,
+ "total_s": 125
+}
+
+$ kubectl -n gpu-buffer get events   # what happened to the placeholder
+Killing: Stopping container hold
+Preempted: Preempted by pod 1a17b0de-0302-4dfd-bc03-a98bbeaba9f3 on node i-02477228601a8b63c
+
+$ kubectl -n platform logs job/lg-load-warm
+{"mode": "load", "concurrency": 32, "seconds": 600, "completed": 23233, "errors": 0, "requests_per_second": 38.72, "ttft_p50": 0.398, "ttft_p95": 1.139}
+
+[PASS] the autoscaler watches requests waiting, not CPU or GPU utilization
+[PASS] the queue grew, and the autoscaler added a second replica because of it
+[PASS] the cold replica needed a new GPU node
+[PASS] the load completed without errors while scaling out
+[PASS] the new replica took over the buffer's node
+[PASS] a replica placed on a warm node starts at least 2 minutes sooner than one that needed a new node
+[PASS] on the warm path the 10 GB serving image was not pulled again

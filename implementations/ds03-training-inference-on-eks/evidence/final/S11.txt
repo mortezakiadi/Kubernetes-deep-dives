@@ -1,0 +1,59 @@
+# S11: Observability: the number each workload family lives by
+# Design reference: Observability: the numbers each workload lives by
+
+$ Prometheus: GPU-hours by namespace (the family) over the last 6 hours
+batch-eval     0.98 GPU-hours
+gpu-buffer     0.48 GPU-hours
+inference      5.82 GPU-hours
+llm-train      2.05 GPU-hours
+research       0.17 GPU-hours
+
+$ Prometheus: time to first token, all model servers, last 6 hours
+p50 0.748 s   p95 2.348 s
+
+$ Prometheus: prefix-cache hit rate over the last 6 hours
+0.04
+
+$ Prometheus: peak GPU utilization per pod over 6 hours (DCGM_FI_DEV_GPU_UTIL_RATIO x 100), highest first
+inference    vllm-qwen-5cb57c5c6f-n856k               100%
+inference    vllm-qwen-5cb57c5c6f-hnc74               100%
+inference    vllm-qwen-5cb57c5c6f-czzdc               100%
+llm-train    s05-node-0-0-bk2nh                       100%
+llm-train    s05-node-0-1-x2x8z                       100%
+llm-train    s05-node-0-0-bdwmh                       100%
+llm-train    s05-node-0-1-gnqk9                       100%
+llm-train    s05-node-0-1-9czmm                       100%
+llm-train    s05-node-0-0-4pxjz                       100%
+llm-train    s05-node-0-0-brmjw                       100%
+
+$ Prometheus: graphics-engine activity and tensor-core activity per pod (a finer signal than utilization)
+llm-train    s05-node-0-0-bdwmh                     engine   100%  tensor   4.6%
+llm-train    s05-node-0-1-gnqk9                     engine   100%  tensor   4.4%
+llm-train    s05-node-0-0-4pxjz                     engine   100%  tensor   4.6%
+llm-train    s05-node-0-0-nttx5                     engine   100%  tensor   4.4%
+llm-train    s05-node-0-0-rfqdg                     engine   100%  tensor   4.4%
+inference    vllm-qwen-5cb57c5c6f-czzdc             engine    99%  tensor  13.4%
+inference    vllm-qwen-5cb57c5c6f-npwqx             engine    99%  tensor  13.1%
+llm-train    s03-node-0-1-mzqcg                     engine    99%  tensor  11.0%
+
+$ training events in S3, per run: time to first step after the process started, median tokens per second, median checkpoint pause, attempts
+s03        first step after 3.6 s   22883 tokens/s   checkpoint pause 0.53 s   attempts 1
+s04-async  first step after 3.6 s   21530 tokens/s   checkpoint pause 0.34 s   attempts 1
+s04-sync   first step after 3.7 s   20812 tokens/s   checkpoint pause 2.62 s   attempts 1
+s05        first step after 4.3 s   10026 tokens/s   checkpoint pause 0.36 s   attempts 3
+
+$ kubectl get workloads -A   # what is queued or admitted right now
+inference/serving: pod-vllm-qwen-5cb57c5c6f-cmkkw-e1b06
+
+$ kubectl get clusterqueue   # the queues' own counters
+NAME        COHORT      PENDING WORKLOADS
+batch       gpu-fleet   0
+notebooks   gpu-fleet   0
+serving     gpu-fleet   0
+training    gpu-fleet   0
+
+[PASS] GPU usage is attributable to each family that ran GPU work
+[PASS] time to first token is available as a percentile across every replica that ever served
+[PASS] per-pod GPU utilization comes from the GPU driver's own counters and names the pod and the family
+[PASS] training reports step time, throughput, checkpoint pause and attempts for every run
+[PASS] each queue reports its pending and admitted workloads

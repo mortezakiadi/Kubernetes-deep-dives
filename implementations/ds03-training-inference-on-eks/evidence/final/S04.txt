@@ -1,0 +1,41 @@
+# S04: Training: checkpoints that do not stall the GPUs
+# Design reference: Training: data and checkpoints
+
+$ kubectl create -f trainjob.yaml   # s04-sync: 2 nodes x 1 GPU, 120 steps, checkpoint every 30 (sync)
+trainjob.trainer.kubeflow.org/s04-sync created
+
+$ checkpoint events from S3, sync run (rank 0)
+step 30: pause 2.85 s
+step 60: pause 2.62 s
+step 90: pause 2.14 s
+step 120: pause 2.63 s
+local write 0.38 s, upload to S3 1.88 s, 681.7 MB (rank 0 shard)
+
+$ kubectl create -f trainjob.yaml   # s04-async: 2 nodes x 1 GPU, 120 steps, checkpoint every 30 (async)
+trainjob.trainer.kubeflow.org/s04-async created
+
+$ checkpoint events from S3, async run (rank 0)
+step 30: pause 0.53 s
+step 60: pause 0.53 s
+step 90: pause 0.16 s
+step 120: pause 0.16 s
+local write 0.54 s, upload to S3 2.25 s, 681.7 MB (rank 0 shard)
+
+$ comparison (median pause per checkpoint, whole-run time)
+sync  : 2.62 s per checkpoint, run took 61.3 s
+async : 0.34 s per checkpoint, run took 55.4 s
+async stops training 7.6x less per checkpoint
+
+$ aws s3api list-objects-v2 --prefix runs/s04-async/ckpt/step-000060/   # modified times
+done-0                 06:17:10
+done-1                 06:17:09
+shard-0-of-2.pt        06:17:08
+shard-1-of-2.pt        06:17:07
+
+$ cost of the checkpoint cadence
+async at one checkpoint every 30 steps costs 2.9% of training time in pauses (step time about 0.39 s)
+
+[PASS] both runs completed with every checkpoint written
+[PASS] asynchronous checkpointing stops training at least 3 times less than writing inline
+[PASS] the background upload really did take longer than the pause (the work moved off the training path)
+[PASS] a checkpoint's completion marker is written after its shard, so a half-written checkpoint is never chosen

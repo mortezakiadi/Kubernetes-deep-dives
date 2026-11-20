@@ -1,0 +1,53 @@
+# S09: Sharing GPUs: batch work borrows serving's idle GPU and gives it back
+# Design reference: Sharing GPUs between training and inference
+
+$ kubectl create -f batch-job.yaml   # batch-resumable: 80 items of GPU work (about 5 s each), queue batch, no GPU quota of its own
+job.batch/batch-resumable created
+
+$ kubectl get clusterqueue serving batch   # who uses and who borrows
+QUEUE     GPU-IN-USE   GPU-BORROWED
+serving   1            0
+batch     1            1
+
+$ kubectl -n batch-eval logs <batch pod> --tail=3
+{"ev": "item", "item": 3}
+{"ev": "item", "item": 4}
+{"ev": "item", "item": 5}
+
+$ kubectl -n batch-eval get workload   # the borrower's Workload
+QuotaReserved=False: couldn't assign flavors to pod set main: insufficient unused quota for cpu in flavor gpu-inference, 3 more needed, insufficient unused quota for memory in flavor gpu-inference, 12Gi more needed, insufficient unused quota for nvidia.com/gpu in flavor gpu-infere
+Evicted=True: Preempted to accommodate a workload (UID: 75df2432-3b27-40fb-9d1b-0743be69778c, JobUID: 7bcb26bb-9a70-4a7a-9c12-b5cf692be209) due to reclamation within the cohort; preemptor path: /gpu-fleet/serving; preemptee path: /gpu-fleet/batch
+Admitted=False: The workload has no reservation
+Preempted=True: Preempted to accommodate a workload (UID: 75df2432-3b27-40fb-9d1b-0743be69778c, JobUID: 7bcb26bb-9a70-4a7a-9c12-b5cf692be209) due to reclamation within the cohort; preemptor path: /gpu-fleet/serving; preemptee path: /gpu-fleet/batch
+
+$ time from the scale-up command to the preemption
+3 seconds
+
+$ time from the scale-up command to the second replica serving
+161 seconds; a GPU node was bought for it: no, it used a node that was already running
+
+$ kubectl -n inference get pods -o wide
+NAME                               READY   STATUS    RESTARTS   AGE     IP            NODE                  NOMINATED NODE   READINESS GATES
+qwen-router-epp-68599b865d-v96r8   1/1     Running   0          5h      10.31.60.26   i-0ec66fb757f431c5a   <none>           <none>
+vllm-qwen-5cb57c5c6f-cmkkw         1/1     Running   0          46m     10.31.71.64   i-0c8c5b086b7317ecf   <none>           <none>
+vllm-qwen-5cb57c5c6f-rnpz6         1/1     Running   0          2m40s   10.31.16.18   i-029ada4d0617337bc   <none>           <none>
+
+$ kubectl -n batch-eval get job,workload,pods   # the batch job, waiting
+NAME                        STATUS      COMPLETIONS   DURATION   AGE
+job.batch/batch-resumable   Suspended   0/1                      9m44s
+
+NAME                                                QUEUE   RESERVED IN   ADMITTED   FINISHED   AGE
+workload.kueue.x-k8s.io/job-batch-resumable-22a2c   batch                 False                 9m44s
+
+$ kubectl -n batch-eval logs <batch pod>   # after re-admission
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+{"ev": "start", "resumed_from_item": 11, "total": 80, "gpu": "Tesla T4", "t": 1795171951.432279}
+{"ev": "item", "item": 12}
+{"ev": "item", "item": 13}
+
+[PASS] the batch job is running on a GPU it borrowed from the serving queue
+[PASS] when serving scaled up, Kueue preempted the batch job to take the GPU back
+[PASS] serving got its second GPU and the replica is ready
+[PASS] the batch job was requeued, not lost
+[PASS] when serving scaled back down the batch job was admitted again and resumed from its saved progress, not from item 0
+[PASS] the batch job completed all its items

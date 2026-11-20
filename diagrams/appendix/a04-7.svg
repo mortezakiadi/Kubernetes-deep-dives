@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="380px" viewBox="0 0 1420 380" style="background:#ffffff"><title>A model version's life: register, evaluate, gate, promote, serve, roll back</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="380" fill="#ffffff"/><rect x="20" y="70" width="215" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="20" y="70" width="215" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="21" y="88" width="213" height="12" fill="#f8fafc"/>
+<text x="32" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">1  register</text>
+<text x="32" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">download, hash, write</text>
+<text x="32" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">v1 (immutable)</text>
+<path d="M235 135 L252 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="252" y="70" width="215" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="252" y="70" width="215" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="253" y="88" width="213" height="12" fill="#f8fafc"/>
+<text x="264" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">2  derive</text>
+<text x="264" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">prune 15% -&gt; v2</text>
+<text x="264" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">prune 80% -&gt; v3</text>
+<text x="264" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">parent + transform recorded</text>
+<path d="M467 135 L484 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="484" y="70" width="215" height="130" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="484" y="70" width="215" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="485" y="88" width="213" height="12" fill="#eff6ff"/>
+<text x="496" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">3  evaluate</text>
+<text x="496" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">batch job on a GPU</text>
+<text x="496" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">30 questions, same for all</text>
+<text x="496" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tokens per second</text>
+<path d="M699 135 L716 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="716" y="70" width="215" height="130" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="716" y="70" width="215" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="717" y="88" width="213" height="12" fill="#fffbeb"/>
+<text x="728" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">4  gate</text>
+<text x="728" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">quality &gt;= floor and</text>
+<text x="728" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">&gt;= production - 0.10</text>
+<text x="728" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">throughput, checksum</text>
+<path d="M931 135 L948 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="948" y="70" width="215" height="130" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="948" y="70" width="215" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="949" y="88" width="213" height="12" fill="#ecfdf5"/>
+<text x="960" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">5  promote</text>
+<text x="960" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pointer -&gt; version</text>
+<text x="960" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">audit record (also</text>
+<text x="960" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">for refusals)</text>
+<path d="M1163 135 L1180 135" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1180" y="70" width="215" height="130" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1180" y="70" width="215" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1181" y="88" width="213" height="12" fill="#fef2f2"/>
+<text x="1192" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">6  serve + roll back</text>
+<text x="1192" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">init container reads pointer</text>
+<text x="1192" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">restart = rollout</text>
+<text x="1192" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">repoint + restart = rollback</text>
+<text x="20" y="250" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">v3 (80% of weights removed) fails the quality gate. v2 passes. The decision and its evidence are written either way.</text></svg>

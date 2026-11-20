@@ -1,0 +1,112 @@
+{
+ "id": "S05",
+ "title": "Training: a lost node and a hung rank, with nobody there",
+ "design_ref": "Training: reliability at scale",
+ "purpose": "Take one GPU node away from a running job, then freeze one rank mid-run. The job must restart itself and resume from checkpoints each time, with bounded lost work.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl create -f trainjob.yaml   # s05: 2 nodes x 1 GPU, 600 steps, checkpoint every 50 (async)",
+   "output": "trainjob.trainer.kubeflow.org/s05 created",
+   "exit_code": 0,
+   "seconds": 4.16
+  },
+  {
+   "display": "before the failure",
+   "output": "job is at step about 150; the node holding rank 1 is i-010fd73f6354562aa (NodeClaim gpu-training-pqhgd)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl delete nodeclaim gpu-training-pqhgd   # the node under rank 1 is taken away while the job runs",
+   "output": "nodeclaim.karpenter.sh \"gpu-training-pqhgd\" deleted",
+   "exit_code": 0,
+   "seconds": 1.57
+  },
+  {
+   "display": "kubectl -n llm-train get jobset s05   # restarts counter",
+   "output": "NAME   TERMINALSTATE   RESTARTS   COMPLETED   SUSPENDED   STARTTIME   AGE\ns05                    1                      false                   9m22s",
+   "exit_code": 0,
+   "seconds": 1.45
+  },
+  {
+   "display": "what the job did on its own",
+   "output": "resumed from checkpoint at step 150 after 240 s (a replacement GPU node was bought and the image pulled)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n llm-train exec s05-node-0-1-gnqk9 -- python -c '<SIGSTOP the training process>'   # rank 1 freezes; it does not crash",
+   "output": "stopped 15 ['/opt/conda/bin/python3.11', '-u', '/workloads/train.py']",
+   "exit_code": 0,
+   "seconds": 1.93
+  },
+  {
+   "display": "the watchdog's own event (rank 0)",
+   "output": "{\"rank\": 0, \"ev\": \"watchdog\", \"idle_seconds\": 61.8, \"limit\": 60.0, \"step\": 233}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n llm-train get trainjob,jobset   # finished",
+   "output": "NAME                                STATE      AGE\ntrainjob.trainer.kubeflow.org/s05   Complete   17m\n\nNAME                         TERMINALSTATE   RESTARTS   COMPLETED   SUSPENDED   STARTTIME   AGE\njobset.jobset.x-k8s.io/s05   Completed       2          True        false                   17m",
+   "exit_code": 0,
+   "seconds": 1.5
+  },
+  {
+   "display": "every attempt, from the events in S3",
+   "output": "10:23:31 rank 0 start      {\"run\": \"s05\", \"world\": 2, \"params_m\": 85.4, \"mode\": \"async\"}\n10:28:41 rank 0 start      {\"run\": \"s05\", \"world\": 2, \"params_m\": 85.4, \"mode\": \"async\"}\n10:28:48 rank 0 resume     {\"step\": 150, \"seconds\": 6.4}\n10:30:58 rank 0 watchdog   {\"idle_seconds\": 61.8, \"limit\": 60.0, \"step\": 233}\n10:31:45 rank 0 start      {\"run\": \"s05\", \"world\": 2, \"params_m\": 85.4, \"mode\": \"async\"}\n10:31:50 rank 0 resume     {\"step\": 200, \"seconds\": 5.22}\n10:37:28 rank 0 done       {\"steps\": 600, \"started_at_step\": 200, \"median_step_seconds\": 0.815, \"wall_seconds\": 346.0}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "goodput",
+   "output": "wall time from first start to done: 837 s\nmedian step time 0.82 s (0.39 s of compute plus the 0.45 s delay I added per step so the run lasts long enough to interfere with)\nproductive time (600 steps): 490 s\ngoodput: 59% of the wall time\nsteps recomputed: about 0 after the node loss (the live step count can lag by a scrape), 33 after the hang",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "after the node loss the job restarted itself and resumed from a checkpoint, not from step 0",
+   "passed": true,
+   "because": "JobSet's failure policy restarts the whole group; the script finds the newest complete checkpoint in S3 and loads it."
+  },
+  {
+   "description": "the work lost to the failure is at most one checkpoint interval (50 steps)",
+   "passed": true,
+   "because": "Prometheus said step 150 just before the node was removed (it can be one 10-second scrape, about 12 steps, behind) and the job resumed from step 150."
+  },
+  {
+   "description": "rank 1's training process was frozen",
+   "passed": true,
+   "because": "SIGSTOP freezes the process without ending it, which is what a stuck collective looks like to Kubernetes: nothing fails."
+  },
+  {
+   "description": "the watchdog noticed that no step had completed for 60 seconds and ended the process",
+   "passed": true,
+   "because": "A frozen peer leaves rank 0 waiting in a collective forever. Its own timer is the only thing that can notice."
+  },
+  {
+   "description": "the job finished all 600 steps after two disruptions without anyone touching it",
+   "passed": true,
+   "because": "JobSet restarted the group 2 times; each restart resumed from the newest checkpoint."
+  },
+  {
+   "description": "the second restart also resumed from a checkpoint",
+   "passed": true,
+   "because": "The hang restart read the checkpoints the first attempt had written."
+  },
+  {
+   "description": "the work lost to the hang is also at most one checkpoint interval",
+   "passed": true,
+   "because": "The watchdog fired at step 233 and the job resumed from step 200."
+  },
+  {
+   "description": "goodput is measured and reported",
+   "passed": true,
+   "because": "Goodput is the share of wall time that produced new steps, after restarts, replacement nodes, image pulls and lost work."
+  }
+ ],
+ "notes": []
+}

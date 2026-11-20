@@ -1,0 +1,74 @@
+{
+ "id": "S04",
+ "title": "Training: checkpoints that do not stall the GPUs",
+ "design_ref": "Training: data and checkpoints",
+ "purpose": "Run the same job twice, once writing checkpoints inline and once in the background, and measure how long each one stops training.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl create -f trainjob.yaml   # s04-sync: 2 nodes x 1 GPU, 120 steps, checkpoint every 30 (sync)",
+   "output": "trainjob.trainer.kubeflow.org/s04-sync created",
+   "exit_code": 0,
+   "seconds": 2.78
+  },
+  {
+   "display": "checkpoint events from S3, sync run (rank 0)",
+   "output": "step 30: pause 2.85 s\nstep 60: pause 2.62 s\nstep 90: pause 2.14 s\nstep 120: pause 2.63 s\nlocal write 0.38 s, upload to S3 1.88 s, 681.7 MB (rank 0 shard)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl create -f trainjob.yaml   # s04-async: 2 nodes x 1 GPU, 120 steps, checkpoint every 30 (async)",
+   "output": "trainjob.trainer.kubeflow.org/s04-async created",
+   "exit_code": 0,
+   "seconds": 3.25
+  },
+  {
+   "display": "checkpoint events from S3, async run (rank 0)",
+   "output": "step 30: pause 0.53 s\nstep 60: pause 0.53 s\nstep 90: pause 0.16 s\nstep 120: pause 0.16 s\nlocal write 0.54 s, upload to S3 2.25 s, 681.7 MB (rank 0 shard)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "comparison (median pause per checkpoint, whole-run time)",
+   "output": "sync  : 2.62 s per checkpoint, run took 61.3 s\nasync : 0.34 s per checkpoint, run took 55.4 s\nasync stops training 7.6x less per checkpoint",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3api list-objects-v2 --prefix runs/s04-async/ckpt/step-000060/   # modified times",
+   "output": "done-0                 06:17:10\ndone-1                 06:17:09\nshard-0-of-2.pt        06:17:08\nshard-1-of-2.pt        06:17:07",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "cost of the checkpoint cadence",
+   "output": "async at one checkpoint every 30 steps costs 2.9% of training time in pauses (step time about 0.39 s)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "both runs completed with every checkpoint written",
+   "passed": true,
+   "because": "Checkpoints at steps 30, 60, 90 and the final step, from both ranks."
+  },
+  {
+   "description": "asynchronous checkpointing stops training at least 3 times less than writing inline",
+   "passed": true,
+   "because": "Async pauses only for the device-to-host copy; the disk write and the S3 upload run on a background thread."
+  },
+  {
+   "description": "the background upload really did take longer than the pause (the work moved off the training path)",
+   "passed": true,
+   "because": "Write plus upload took several times the pause the training loop saw."
+  },
+  {
+   "description": "a checkpoint's completion marker is written after its shard, so a half-written checkpoint is never chosen",
+   "passed": true,
+   "because": "The loader accepts a step only when every rank's marker exists, and markers are written last."
+  }
+ ],
+ "notes": []
+}

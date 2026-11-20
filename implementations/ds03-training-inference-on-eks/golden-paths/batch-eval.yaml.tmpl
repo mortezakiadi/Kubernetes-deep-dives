@@ -1,0 +1,31 @@
+# Batch golden path: evaluate a registered model version on a GPU nobody else is using.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${name}
+  namespace: batch-eval
+  labels:
+    kueue.x-k8s.io/queue-name: batch              # borrows idle serving GPUs, gives them back when serving needs them
+    kueue.x-k8s.io/priority-class: opportunistic
+spec:
+  backoffLimit: ${backoff}
+  ttlSecondsAfterFinished: 7200
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: evaluator
+      containers:
+      - name: eval
+        image: vllm/vllm-openai:${vllm}
+        command: ["bash", "-c", "pip install -q boto3 2>&1 | tail -1; python3 /code/eval.py"]
+        env:
+        - { name: MODEL_NAME, value: ${model} }
+        - { name: MODEL_VERSION, value: ${version} }
+        envFrom: [{ configMapRef: { name: platform-env } }]
+        resources:
+          requests: { cpu: "3", memory: 12Gi, nvidia.com/gpu: "1" }
+          limits: { nvidia.com/gpu: "1" }
+        volumeMounts: [{ name: code, mountPath: /code }, { name: shm, mountPath: /dev/shm }]
+      volumes:
+      - { name: code, configMap: { name: workload-code } }
+      - { name: shm, emptyDir: { medium: Memory, sizeLimit: 2Gi } }

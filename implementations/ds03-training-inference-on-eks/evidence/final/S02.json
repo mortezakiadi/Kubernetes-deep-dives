@@ -1,0 +1,112 @@
+{
+ "id": "S02",
+ "title": "Research: a GPU notebook in minutes, taken back when idle",
+ "design_ref": "Research: interactive environments",
+ "purpose": "Start a notebook from the golden-path manifest. It must get a GPU through the research queue, keep its files when the idle culler stops it, and give the GPU back.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl create -f notebook.yaml   # nb-ana: JupyterLab, 1 GPU, 5 GiB workspace, research queue",
+   "output": "statefulset.apps/nb-ana created\n\nError from server (AlreadyExists): error when creating \"STDIN\": services \"nb-ana\" already exists",
+   "exit_code": 1,
+   "seconds": 2.87
+  },
+  {
+   "display": "kubectl -n research get workloads -o custom-columns=NAME:.metadata.name,QUEUE:.spec.queueName,PRIORITY:.spec.priority,ADMITTED:.status.admission.clusterQueue",
+   "output": "NAME                       QUEUE       PRIORITY   ADMITTED\nstatefulset-nb-ana-e0591   notebooks   100        notebooks",
+   "exit_code": 0,
+   "seconds": 1.19
+  },
+  {
+   "display": "time from kubectl create to a ready notebook",
+   "output": "172 seconds; a GPU node was bought for it: yes",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n research exec nb-ana-0 -- nvidia-smi --query-gpu=name,memory.total --format=csv",
+   "output": "name, memory.total [MiB]\nTesla T4, 15360 MiB",
+   "exit_code": 0,
+   "seconds": 1.58
+  },
+  {
+   "display": "kubectl -n research exec nb-ana-0 -- bash -c \"echo 'experiment 1 ...' > /workspace/notes.txt; cat ...; df -h /workspace\"",
+   "output": "experiment 1: attention variant, lr 3e-4\n/dev/nvme3n1    4.9G   28K  4.9G   1% /workspace",
+   "exit_code": 0,
+   "seconds": 1.63
+  },
+  {
+   "display": "kubectl -n platform logs deploy/notebook-culler | grep nb-ana   # the culler's checks (idle limit 120 s in this build; 60 minutes in the design)",
+   "output": "{\"ev\": \"check\", \"notebook\": \"nb-ana\", \"idle_seconds\": 13, \"limit\": 120, \"busy\": false}\n{\"ev\": \"check\", \"notebook\": \"nb-ana\", \"idle_seconds\": 28, \"limit\": 120, \"busy\": false}\n...\n{\"ev\": \"check\", \"notebook\": \"nb-ana\", \"idle_seconds\": 118, \"limit\": 120, \"busy\": false}\n{\"ev\": \"check\", \"notebook\": \"nb-ana\", \"idle_seconds\": 133, \"limit\": 120, \"busy\": false}\n{\"ev\": \"culled\", \"notebook\": \"nb-ana\", \"idle_seconds\": 133}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "time from ready to culled",
+   "output": "139 seconds, with nobody touching the notebook",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n research get pods,pvc,workloads   # after the cull",
+   "output": "NAME                                       STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE\npersistentvolumeclaim/workspace-nb-ana-0   Bound    pvc-c222ab9b-e208-4388-96a6-7543e963df8a   5Gi        RWO            ebs-auto       <unset>                 5m21s\n\nNAME                                               QUEUE       RESERVED IN   ADMITTED   FINISHED   AGE\nworkload.kueue.x-k8s.io/statefulset-nb-ana-e0591   notebooks                 False                 5m21s",
+   "exit_code": 0,
+   "seconds": 1.53
+  },
+  {
+   "display": "kubectl -n research exec nb-ana-0 -- cat /workspace/notes.txt   # after the restart",
+   "output": "experiment 1: attention variant, lr 3e-4",
+   "exit_code": 0,
+   "seconds": 1.7
+  },
+  {
+   "display": "time to restart",
+   "output": "10 seconds",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the notebook was admitted through the research queue at opportunistic priority",
+   "passed": true,
+   "because": "The golden-path manifest carries the queue and priority labels. Kueue turned them into a Workload admitted by the notebooks queue, with the opportunistic class's value (100)."
+  },
+  {
+   "description": "the notebook got a GPU and is ready in under 12 minutes",
+   "passed": true,
+   "because": "When no GPU node is running, one is bought for the notebook, so the time includes the node, the image pull and the JupyterLab install."
+  },
+  {
+   "description": "a GPU is visible inside the notebook container",
+   "passed": true,
+   "because": "The container requested one nvidia.com/gpu, so the device plugin handed it a device."
+  },
+  {
+   "description": "the workspace is a separate 5 GiB volume",
+   "passed": true,
+   "because": "A StatefulSet volume claim backs /workspace; it is not part of the container."
+  },
+  {
+   "description": "the idle notebook was stopped automatically",
+   "passed": true,
+   "because": "The culler asks each Jupyter server when it was last used and scales the StatefulSet to zero past the limit."
+  },
+  {
+   "description": "the GPU quota was released",
+   "passed": true,
+   "because": "Scaling to zero deletes the pod, so Kueue frees the Workload's quota."
+  },
+  {
+   "description": "the workspace volume was kept",
+   "passed": true,
+   "because": "Deleting a StatefulSet pod never deletes its volume claim."
+  },
+  {
+   "description": "the file written before the cull is still there after the restart",
+   "passed": true,
+   "because": "The same volume was attached to the new pod."
+  }
+ ],
+ "notes": []
+}

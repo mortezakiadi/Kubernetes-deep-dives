@@ -1,0 +1,44 @@
+# Research golden path: a JupyterLab server with a GPU and a personal workspace volume.
+apiVersion: v1
+kind: Service
+metadata: { name: ${name}, namespace: research }
+spec:
+  clusterIP: None
+  selector: { app: ${name} }
+  ports: [{ port: 8888 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ${name}
+  namespace: research
+  labels:
+    ds03/notebook: "true"
+    kueue.x-k8s.io/queue-name: notebooks          # research work runs through its own queue
+    kueue.x-k8s.io/priority-class: opportunistic  # and can be reclaimed by training
+  annotations: { ds03/token: "${token}" }
+spec:
+  serviceName: ${name}
+  replicas: 1
+  selector: { matchLabels: { app: ${name} } }
+  template:
+    metadata:
+      labels:
+        app: ${name}
+        kueue.x-k8s.io/priority-class: opportunistic   # the pod carries the priority too
+    spec:
+      serviceAccountName: notebook
+      containers:
+      - name: lab
+        image: pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime
+        command: ["bash", "-c", "pip install -q jupyterlab 2>&1 | tail -1; cd /workspace && exec jupyter lab --no-browser --allow-root --ip=0.0.0.0 --port=8888 --ServerApp.token=${token}"]
+        resources:
+          requests: { cpu: "3", memory: 12Gi, nvidia.com/gpu: "1" }
+          limits: { nvidia.com/gpu: "1" }
+        volumeMounts: [{ name: workspace, mountPath: /workspace }]
+  volumeClaimTemplates:
+  - metadata: { name: workspace }
+    spec:
+      accessModes: [ReadWriteOnce]
+      storageClassName: ebs-auto
+      resources: { requests: { storage: 5Gi } }

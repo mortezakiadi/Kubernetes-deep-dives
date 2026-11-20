@@ -1,0 +1,135 @@
+{
+ "id": "S03",
+ "title": "Training: the job lifecycle from one manifest",
+ "design_ref": "Training: the job lifecycle",
+ "purpose": "Submit a two-node training job with the golden-path manifest. All its pods must be admitted together, land in one zone, train, checkpoint, and finish. A job that does not fit must not start at all.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl create -f trainjob.yaml   # s03: 2 nodes x 1 GPU, 300 steps, checkpoint every 100 (async)",
+   "output": "trainjob.trainer.kubeflow.org/s03 created",
+   "exit_code": 0,
+   "seconds": 3.39
+  },
+  {
+   "display": "kubectl create -f trainjob.yaml   # s03-big: 3 nodes x 1 GPU. The training queue owns 2 GPUs.",
+   "output": "trainjob.trainer.kubeflow.org/s03-big created",
+   "exit_code": 0,
+   "seconds": 2.87
+  },
+  {
+   "display": "kubectl -n llm-train get workloads -o custom-columns=NAME:.metadata.name,QUEUE:.spec.queueName,ADMITTED:.status.admission.clusterQueue,PENDING:.status.conditions[?(@.type==\"QuotaReserved\")].status",
+   "output": "NAME                     QUEUE      ADMITTED   PENDING\ntrainjob-s03-big-bc06b   training   <none>     False\ntrainjob-s03-c7830       training   training   True",
+   "exit_code": 0,
+   "seconds": 1.58
+  },
+  {
+   "display": "kubectl -n llm-train get pods | grep s03-big",
+   "output": "(none: the job has not started)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n llm-train get workload <s03-big> -o jsonpath='{.status.conditions[0].message}'",
+   "output": "couldn't assign flavors to pod set node: insufficient quota for cpu in flavor gpu-training, previously considered podsets requests (0) + current podset request (9) > maximum capacity (6), insufficient quota for memory in flavor gpu-training, previously considered podsets requests (0) + current podset request (36Gi) > maximum capacity (24Gi), insufficient quota for nvidia.com/gpu in flavor gpu-training, previously considered podsets requests (0) + current podset request (3) > maximum capacity (2)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n llm-train get pods -l jobset.sigs.k8s.io/jobset-name=s03 -o custom-columns=NAME,CREATED",
+   "output": "s03-node-0-0-tkj4v  2026-11-20T06:02:58Z\ns03-node-0-1-mzqcg  2026-11-20T06:02:58Z\n(created 0 s apart)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "time from admission to both pods running",
+   "output": "532 seconds (two GPU nodes bought, image pulled)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n llm-train get pods -l jobset.sigs.k8s.io/jobset-name=s03 -o wide",
+   "output": "NAME                 READY   STATUS    RESTARTS   AGE     IP             NODE                  NOMINATED NODE   READINESS GATES\ns03-node-0-0-tkj4v   1/1     Running   0          9m39s   10.31.58.161   i-03bb4fbfa1b96b77c   <none>           <none>\ns03-node-0-1-mzqcg   1/1     Running   0          9m39s   10.31.58.33    i-09843dd82345a4d7e   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.44
+  },
+  {
+   "display": "kubectl get nodes -l ds03/pool=training -L topology.kubernetes.io/zone,node.kubernetes.io/instance-type",
+   "output": "NAME                  STATUS     ROLES    AGE    VERSION               ZONE         INSTANCE-TYPE\ni-03bb4fbfa1b96b77c   Ready      <none>   9m6s   v1.37.1-eks-577a51e   us-east-1c   g4dn.xlarge\ni-075db62835bdd79e7   NotReady   <none>   9m6s   v1.37.1-eks-577a51e   us-east-1a   g4dn.xlarge\ni-09843dd82345a4d7e   Ready      <none>   2m4s   v1.37.1-eks-577a51e   us-east-1c   g4dn.xlarge",
+   "exit_code": 0,
+   "seconds": 1.84
+  },
+  {
+   "display": "Prometheus: ds03_train_tokens_per_second{run=\"s03\"}   # scraped from the training pods while they run",
+   "output": "rank 0: 22559 tokens/s\nrank 1: 22368 tokens/s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "training events from S3 (rank 0): burn-in, start, first step, loss, done",
+   "output": "{\"ev\": \"burnin\", \"ok\": true, \"seconds\": 0.47, \"gpu\": \"Tesla T4\"}\n{\"ev\": \"start\", \"run\": \"s03\", \"world\": 2, \"params_m\": 85.4, \"mode\": \"async\", \"node\": \"i-03bb4fbfa1b96b77c\"}\n{\"ev\": \"first_step\", \"step\": 1, \"seconds_since_start\": 3.6}\n{\"ev\": \"step\", \"step\": 20, \"loss\": 2.6714, \"step_seconds\": 0.356, \"tokens_per_second\": 23017}\n{\"ev\": \"step\", \"step\": 100, \"loss\": 2.4602, \"step_seconds\": 0.352, \"tokens_per_second\": 23288}\n{\"ev\": \"step\", \"step\": 200, \"loss\": 2.3421, \"step_seconds\": 0.367, \"tokens_per_second\": 22328}\n{\"ev\": \"step\", \"step\": 300, \"loss\": 2.0121, \"step_seconds\": 0.355, \"tokens_per_second\": 23081}\n{\"ev\": \"done\", \"steps\": 300, \"started_at_step\": 0, \"median_step_seconds\": 0.36, \"wall_seconds\": 117.5}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "median step time and throughput",
+   "output": "0.36 s per step; 22883 tokens per second across both GPUs",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 ls s3://<bucket>/runs/s03/ckpt/ --recursive",
+   "output": "step-000100/done-0\nstep-000100/done-1\nstep-000100/shard-0-of-2.pt\nstep-000100/shard-1-of-2.pt\nstep-000200/done-0\nstep-000200/done-1\nstep-000200/shard-0-of-2.pt\nstep-000200/shard-1-of-2.pt\nstep-000300/done-0\nstep-000300/done-1\nstep-000300/shard-0-of-2.pt\nstep-000300/shard-1-of-2.pt",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the 3-GPU job is held back with no pods at all, not started partially",
+   "passed": true,
+   "because": "Kueue admits a TrainJob's whole PodSet or none of it. The queue owns 2 GPUs and the job needs 3."
+  },
+  {
+   "description": "Kueue says why: insufficient quota in the training flavor",
+   "passed": true,
+   "because": "The Workload's own condition message names the missing resource."
+  },
+  {
+   "description": "both pods of the job were created at the same moment, after admission",
+   "passed": true,
+   "because": "Kueue unsuspends the whole job on admission, so JobSet creates all pods together."
+  },
+  {
+   "description": "both nodes are in the same availability zone",
+   "passed": true,
+   "because": "The runtime's pod template requires pod affinity on the zone, so the second pod joins the first pod's zone."
+  },
+  {
+   "description": "Prometheus is scraping live training metrics from both ranks",
+   "passed": true,
+   "because": "The runtime's pod template carries scrape annotations; Prometheus discovers the pods through the API server."
+  },
+  {
+   "description": "the job finished all 300 steps",
+   "passed": true,
+   "because": "The TrainJob reports Complete when every pod exits cleanly."
+  },
+  {
+   "description": "each node ran a GPU burn-in before training and passed",
+   "passed": true,
+   "because": "The training script multiplies large matrices on the GPU first and refuses to start if the result is not finite."
+  },
+  {
+   "description": "the loss went down",
+   "passed": true,
+   "because": "Loss fell from 2.6714 to 2.0121: the model learned from the dataset in S3."
+  },
+  {
+   "description": "the final checkpoint has both ranks' shards and both completion markers",
+   "passed": true,
+   "because": "Each rank writes its own shard, then its marker; a checkpoint counts only when every marker exists."
+  }
+ ],
+ "notes": []
+}

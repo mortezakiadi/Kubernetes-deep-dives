@@ -1,0 +1,63 @@
+# S07: Inference: the gateway and inference-aware routing
+# Design reference: Inference: the serving stack
+
+$ kubectl -n inference get pods -o wide
+NAME                               READY   STATUS    RESTARTS   AGE    IP             NODE                  NOMINATED NODE   READINESS GATES
+qwen-router-epp-68599b865d-v96r8   1/1     Running   0          173m   10.31.60.26    i-0ec66fb757f431c5a   <none>           <none>
+vllm-qwen-5cb57c5c6f-czzdc         1/1     Running   0          36m    10.31.46.225   i-0d0d0e3fda6fb150e   <none>           <none>
+vllm-qwen-5cb57c5c6f-hnc74         1/1     Running   0          36m    10.31.58.192   i-0385255da11fb048f   <none>           <none>
+
+$ zones of the two replicas
+us-east-1b, us-east-1c
+
+$ kubectl get gateway,httproute,inferencepool -A
+NAMESPACE      NAME                                                  CLASS          ADDRESS         PROGRAMMED   AGE
+inference-gw   gateway.gateway.networking.k8s.io/inference-gateway   agentgateway   172.20.16.226   True         173m
+
+NAMESPACE   NAME                                              HOSTNAMES   AGE
+inference   httproute.gateway.networking.k8s.io/qwen-router               173m
+
+NAMESPACE   NAME                                                    AGE
+inference   inferencepool.inference.networking.k8s.io/qwen-router   173m
+
+$ kubectl -n inference get configmap qwen-router-epp   # the endpoint picker's scorers
+- type: queue-scorer
+- type: kv-cache-utilization-scorer
+- type: prefix-cache-scorer
+- type: metrics-data-source
+- type: core-metrics-extractor
+  - pluginRef: queue-scorer
+    weight: 2
+  - pluginRef: kv-cache-utilization-scorer
+    weight: 2
+  - pluginRef: prefix-cache-scorer
+    weight: 3
+
+$ kubectl create -f job.yaml   # a pod inside the cluster: POST http://inference-gateway.inference-gw.svc/v1/chat/completions
+job.batch/gw-test created
+
+$ kubectl -n platform logs job/gw-test
+qwen2.5-0.5b -> Paris
+
+$ kubectl create -f loadgen-job.yaml   # lg-gateway: 8 long documents x 6 questions each, through gateway
+job.batch/lg-gateway created
+
+$ kubectl -n platform logs job/lg-gateway
+{"requests": 48, "errors": 0, "cache_hit_rate": 0.822, "ttft_p50": 0.08, "ttft_p95": 1.461, "queried_tokens_per_pod": {"10.31.46.225:8000": 67020, "10.31.58.192:8000": 66852}}
+
+$ kubectl create -f loadgen-job.yaml   # lg-plainservice: 8 long documents x 6 questions each, through plain-service
+job.batch/lg-plainservice created
+
+$ kubectl -n platform logs job/lg-plainservice
+{"requests": 48, "errors": 0, "cache_hit_rate": 0.654, "ttft_p50": 0.141, "ttft_p95": 2.764, "queried_tokens_per_pod": {"10.31.46.225:8000": 77808, "10.31.58.192:8000": 55584}}
+
+$ summary
+cache hit rate: gateway 0.822 vs plain Service 0.654
+time to first token (median / p95): gateway 0.08 / 1.461 s, plain Service 0.141 / 2.764 s
+
+[PASS] two replicas are ready
+[PASS] the endpoint picker scores replicas on queue depth, KV-cache use and prefix-cache match
+[PASS] a chat request through the gateway returns the right answer
+[PASS] every request succeeded on both paths
+[PASS] the endpoint picker found at least 10 points more of each prompt already cached than a plain Service did
+[PASS] time to first token was lower through the picker

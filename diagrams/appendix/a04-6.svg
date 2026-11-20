@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="560px" viewBox="0 0 1420 560" style="background:#ffffff"><title>Sharing GPUs: serving's idle GPU lent to batch work, taken back on demand</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="560" fill="#ffffff"/><text x="40" y="40" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#334155">Cohort gpu-fleet. serving owns 2 GPUs of flavor gpu-inference and may lend 1. batch owns none.</text>
+<rect x="40" y="70" width="325" height="170" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="70" width="325" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="88" width="323" height="12" fill="#ecfdf5"/>
+<text x="52" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">1  Night: serving uses 1 of 2</text>
+<text x="52" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one replica runs</text>
+<text x="52" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the other GPU is idle quota</text>
+<text x="52" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">batch borrows it: a resumable job</text>
+<text x="52" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">runs on a second node, saves progress to S3</text>
+<path d="M365 155 L385 155" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="385" y="70" width="325" height="170" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="385" y="70" width="325" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="386" y="88" width="323" height="12" fill="#fffbeb"/>
+<text x="397" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">2  Traffic grows: serving asks for 2</text>
+<text x="397" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">KEDA adds a replica; its pod asks Kueue</text>
+<text x="397" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">serving is within its own quota</text>
+<text x="397" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reclaimWithinCohort: Any</text>
+<path d="M710 155 L730 155" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="730" y="70" width="325" height="170" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="730" y="70" width="325" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="731" y="88" width="323" height="12" fill="#fef2f2"/>
+<text x="742" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">3  Reclaim</text>
+<text x="742" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Kueue preempts the batch Workload</text>
+<text x="742" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the Job is suspended, its pod removed</text>
+<text x="742" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the replica takes the GPU (image already there)</text>
+<path d="M1055 155 L1075 155" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1075" y="70" width="325" height="170" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1075" y="70" width="325" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1076" y="88" width="323" height="12" fill="#eff6ff"/>
+<text x="1087" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">4  Traffic falls: serving back to 1</text>
+<text x="1087" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">batch is admitted again</text>
+<text x="1087" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reads its progress, resumes at item N</text>
+<text x="1087" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">and finishes</text>
+<rect x="40" y="280" width="1330" height="120" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="280" width="1330" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="41" y="298" width="1328" height="12" fill="#f8fafc"/>
+<text x="52" y="300" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">What makes this safe</text>
+<text x="52" y="328" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Only work that tolerates eviction may borrow: the batch job saves progress after every item, so preemption costs a restart, not the work.</text>
+<text x="52" y="345" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Serving keeps a floor: lendingLimit 1 means one of its two GPUs can never be lent out.</text>
+<text x="52" y="362" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Borrowing needs the same flavor: batch lists gpu-inference, so it can only land on inference nodes, where serving's image is already cached.</text>
+<rect x="40" y="420" width="1330" height="110" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="40" y="420" width="1330" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="41" y="438" width="1328" height="12" fill="#fffbeb"/>
+<text x="52" y="440" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">What it costs</text>
+<text x="52" y="468" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Reclaim time is not free: a preempted pod must end and the replica must load its weights. The scenario measures it.</text>
+<text x="52" y="485" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Training and research keep their own flavors and cannot be borrowed from: multi-day training must not be evicted for a chat spike.</text></svg>
