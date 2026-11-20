@@ -15,22 +15,23 @@
 <rect x="322" y="140" width="250" height="120" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
 <text x="447" y="176" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#1f2933" text-anchor="middle">PCIe root</text>
 <text x="447" y="198" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle">(the Root Complex)</text>
-<text x="447" y="226" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">the starting point of the</text>
-<text x="447" y="244" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">PCIe hierarchy</text>
+<text x="447" y="224" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">the starting point of the PCIe hierarchy</text>
+<rect x="347" y="234" width="200" height="20" rx="10" fill="#ffe9c7" stroke="#e08a1e" stroke-width="0"/>
+<text x="447" y="248.5" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="middle">its name: pci0000:17</text>
 <path d="M574,200 L636,200" stroke="#5b6675" stroke-width="2" fill="none" marker-end="url(#ar)"/>
 <rect x="640" y="96" width="516" height="214" rx="14" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.6"/>
-<text x="656" y="120" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7b8794" text-anchor="start">One PCIe switch hierarchy: the devices under this root</text>
+<text x="656" y="120" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7b8794" text-anchor="start">The devices under the root pci0000:17: one PCIe switch hierarchy</text>
 <rect x="660" y="140" width="230" height="140" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6"/>
 <text x="675" y="166" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="start">A GPU</text>
 <text x="675" y="190" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">class: gpu.nvidia.com</text>
 <rect x="675" y="218" width="200" height="40" rx="8" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.4"/>
-<text x="775" y="243" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot: pci0000:17</text>
+<text x="775" y="243" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot = pci0000:17</text>
 <rect x="906" y="140" width="230" height="140" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6"/>
 <text x="921" y="166" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#1f2933" text-anchor="start">A network card (EFA)</text>
 <text x="921" y="190" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">class: efa.networking.k8s.aws</text>
 <rect x="921" y="218" width="200" height="40" rx="8" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.4"/>
-<text x="1021" y="243" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot: pci0000:17</text>
-<text x="24" y="348" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start">Each device publishes the root it sits under as the attribute pcieRoot, in the format pci&lt;domain&gt;:&lt;bus&gt;. Same value, same root.</text>
+<text x="1021" y="243" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot = pci0000:17</text>
+<text x="24" y="348" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start">The box in the middle is the PCIe root. pcieRoot is the attribute each device publishes: the name of the root it sits under, in the format pci&lt;domain&gt;:&lt;bus&gt;.</text>
 <text x="24" y="372" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">Kubernetes' docs say to keep devices under the same root, with matchAttribute, for the lowest-latency communication.</text>
 <text x="24" y="396" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">The values are illustrative.</text>
 </svg>
