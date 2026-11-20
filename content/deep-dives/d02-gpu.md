@@ -609,7 +609,7 @@ spec:
       requests:
       - name: gpu
         exactly:
-          deviceClassName: gpu.nvidia.com      # which class to ask for
+          deviceClassName: gpu.nvidia.com      # FILTER 1 comes in here: the class's rule (the DeviceClass above) is inherited by this request #!
           selectors:
           - cel:                               # FILTER 2: your claim's own rule (optional). A device must pass both #!
               expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0
