@@ -773,13 +773,23 @@ Now the same lab server, seen through each advertising method:
 
 **Going deeper.**
 
+- **Do you need to install anything? Yes, on the Kubernetes side.** The card has MIG built in, but Kubernetes sees no slices until something creates them and something else advertises them. These are separate jobs with separate pieces:
+
+| Job | Who does it | Needed? |
+|---|---|---|
+| **Cut the GPU into slices** (switch MIG on, create the layout) | **MIG Manager**, part of the GPU Operator. NVIDIA's `mig-parted` tool does the same by hand on a host. | **Always.** The device plugin and DRA only advertise slices that already exist (DynamicMIG, below, is the alpha exception). |
+| **Advertise the slices as a count** (`nvidia.com/mig-1g.10gb: 2`) | **Device plugin**, with a MIG strategy | The classic path. |
+| **Advertise each slice as a device** (class `mig.nvidia.com`) | **DRA driver**, with the device plugin turned off | The DRA path, instead of the device plugin. |
+| **Label the slices** (`nvidia.com/mig-1g.10gb.count`, `.memory`) | **GPU Feature Discovery** | Optional. Only if pods must choose a node by slice size. |
+| **Mark the node as having an NVIDIA card** | **Node Feature Discovery** | A helper only. It knows nothing about MIG; GPU Feature Discovery and the GPU Operator rely on it. |
+
 - **MIG is not a sixth way to advertise GPUs.** It changes what the GPU is, and the mechanisms you already know then report slices instead of whole GPUs:
   - **Count (device plugin):** each slice is counted and handed to one container, like a GPU. The `single` strategy calls every slice `nvidia.com/gpu` and needs them all the same size; the `mixed` strategy gives each size its own count, such as `nvidia.com/mig-1g.10gb`.
-  - **Labels (GPU Feature Discovery):** with `mixed`, the node gets labels per slice size, such as `nvidia.com/mig-1g.10gb.count` and `nvidia.com/mig-1g.10gb.memory`, so pods can still choose a node by what it holds.
+  - **Labels (GPU Feature Discovery):** with `mixed`, the node gets labels per slice size, so pods can still choose a node by what it holds. With `single`, the product label gains the slice profile instead.
   - **DRA:** each slice is its own device under the `mig.nvidia.com` class, as in the Dynamic Resource Allocation section above.
-  - **Reserving works the same:** labels choose the node, and the count or the claim reserves one slice on it. The difference is that the unit is a slice, and the slice layout is fixed before pods arrive.
+  - **Reserving works the same:** labels choose the node, and the count or the claim reserves one slice on it. The difference is that the unit is a slice, and the layout is fixed before pods arrive.
 
-> **Installing it.** MIG is built into the GPU, so nothing is installed on the card. You need a MIG-capable GPU (on AWS, p4d and p4de instances have A100s and p5 has H100s) and the NVIDIA GPU Operator, which installs the driver and device plugin and adds a MIG manager. Install it with a MIG strategy, then label a node with the layout you want:
+> **Installing it (device plugin path).** Nothing is installed on the card itself. You need a MIG-capable GPU (on AWS, p4d and p4de instances have A100s and p5 has H100s) and the NVIDIA GPU Operator, which installs the driver, device plugin, NFD and GFD. Install it with a MIG strategy, which also deploys the MIG manager, then label a node with the layout you want:
 >
 > ```bash
 > helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
@@ -794,6 +804,8 @@ Now the same lab server, seen through each advertising method:
 > ```
 >
 > The strategy only decides how slices are advertised; it does not switch MIG on. The MIG manager does that when it sees the layout label: it stops the operator's GPU pods on that node, turns MIG mode on, cuts the slices and restarts them. Nothing else may be using the GPUs while it runs, and some cloud nodes need a reboot (see NVIDIA's GPU Operator MIG page). Pin a chart version in production.
+>
+> **With DRA instead:** install the Operator with its device plugin turned off and the DRA driver on, as in the Dynamic Resource Allocation section, and set the layout with the same node label. Then restart the DRA driver pod so it discovers the slices the MIG manager created.
 >
 > **Check (MIG):** `kubectl get node gpu-node-1 --show-labels | tr ',' '\n' | grep mig`, and wait for `nvidia.com/mig.config.state=success`.
 

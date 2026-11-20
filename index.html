@@ -911,24 +911,64 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <figure class="diagram"><button aria-label="Open diagram full screen: Different GPUs in one server, and MIG" class="open" data-src="diagrams/sections/d06-5.svg" data-title="Different GPUs in one server, and MIG" type="button"><img alt="Diagram: Different GPUs in one server, and MIG" decoding="async" loading="lazy" src="diagrams/sections/d06-5.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> Two servers, and what each advertising method reports for them.</p>
 <div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">The mixed server</span></summary><div class="acc-body">one A100 (80 GB) and one T4 (16 GB) in the same machine. Cloud GPU instances always have identical GPUs, but on-prem and lab servers can mix models.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Labels on the mixed server</span></summary><div class="acc-body">a node label holds one value, so <code>nvidia.com/gpu.product</code> and <code>nvidia.com/gpu.memory</code> can't describe both GPUs honestly.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Count on the mixed server</span></summary><div class="acc-body"><code>nvidia.com/gpu: 2</code>. A pod asking for one GPU can get either the A100 or the T4.</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">DRA on the mixed server</span></summary><div class="acc-body">each GPU is its own entry, so a claim for "at least 40Gi" can only get the A100.</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">The MIG server</span></summary><div class="acc-body">one 80 GB H100 cut into four slices, named as in the picture above: one <code>3g.40gb</code>, one <code>2g.20gb</code> and two <code>1g.10gb</code>. No slice is a whole GPU, and each one is advertised on its own.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">MIG with the device plugin</span></summary><div class="acc-body">the "single" strategy needs all slices on a node to be the same and still calls them <code>nvidia.com/gpu</code>; the "mixed" strategy publishes one count per size, such as <code>nvidia.com/mig-1g.10gb: 2</code>. Either way the layout is set in advance.</div></details><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">MIG with DRA</span></summary><div class="acc-body">each slice is its own device under the <code>mig.nvidia.com</code> class, with a <code>profile</code> attribute and its own memory, so a claim can ask for a profile or a minimum size.</div></details></div>
-<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">4 points</span></summary><div class="acc-body"><ul>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">5 points</span></summary><div class="acc-body"><ul>
+<li><strong>Do you need to install anything? Yes, on the Kubernetes side.</strong> The card has <mark class="kw">MIG</mark> built in, but Kubernetes sees no slices until something creates them and something else advertises them. These are separate jobs with separate pieces:</li>
+</ul><table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Who does it</th>
+<th>Needed?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cut the GPU into slices</strong> (switch MIG on, create the layout)</td>
+<td><strong>MIG Manager</strong>, part of the GPU Operator. NVIDIA's <code>mig-parted</code> tool does the same by hand on a host.</td>
+<td><strong>Always.</strong> The device plugin and DRA only advertise slices that already exist (DynamicMIG, below, is the alpha exception).</td>
+</tr>
+<tr>
+<td><strong>Advertise the slices as a count</strong> (<code>nvidia.com/mig-1g.10gb: 2</code>)</td>
+<td><strong>Device plugin</strong>, with a MIG strategy</td>
+<td>The classic path.</td>
+</tr>
+<tr>
+<td><strong>Advertise each slice as a device</strong> (class <code>mig.nvidia.com</code>)</td>
+<td><strong>DRA driver</strong>, with the device plugin turned off</td>
+<td>The DRA path, instead of the device plugin.</td>
+</tr>
+<tr>
+<td><strong>Label the slices</strong> (<code>nvidia.com/mig-1g.10gb.count</code>, <code>.memory</code>)</td>
+<td><strong>GPU Feature Discovery</strong></td>
+<td>Optional. Only if pods must choose a node by slice size.</td>
+</tr>
+<tr>
+<td><strong>Mark the node as having an NVIDIA card</strong></td>
+<td><strong>Node Feature Discovery</strong></td>
+<td>A helper only. It knows nothing about MIG; GPU Feature Discovery and the GPU Operator rely on it.</td>
+</tr>
+</tbody>
+</table><ul>
 <li><strong>MIG is not a sixth way to advertise GPUs.</strong> It changes what the GPU is, and the mechanisms you already know then report slices instead of whole GPUs:<ul>
 <li><strong>Count (device plugin):</strong> each slice is counted and handed to one container, like a GPU. The <code>single</code> strategy calls every slice <code>nvidia.com/gpu</code> and needs them all the same size; the <code>mixed</code> strategy gives each size its own count, such as <code>nvidia.com/mig-1g.10gb</code>.</li>
-<li><strong>Labels (GPU Feature Discovery):</strong> with <code>mixed</code>, the node gets labels per slice size, such as <code>nvidia.com/mig-1g.10gb.count</code> and <code>nvidia.com/mig-1g.10gb.memory</code>, so pods can still choose a node by what it holds.</li>
+<li><strong>Labels (GPU Feature Discovery):</strong> with <code>mixed</code>, the node gets labels per slice size, so pods can still choose a node by what it holds. With <code>single</code>, the product label gains the slice profile instead.</li>
 <li><strong>DRA:</strong> each slice is its own device under the <code>mig.nvidia.com</code> class, as in the <mark class="kw">Dynamic Resource Allocation</mark> section above.</li>
-<li><strong>Reserving works the same:</strong> labels choose the node, and the count or the claim reserves one slice on it. The difference is that the unit is a slice, and the slice layout is fixed before pods arrive.</li>
+<li><strong>Reserving works the same:</strong> labels choose the node, and the count or the claim reserves one slice on it. The difference is that the unit is a slice, and the layout is fixed before pods arrive.</li>
 </ul>
 </li>
 </ul><blockquote>
-<p><strong>Installing it.</strong> <mark class="kw">MIG</mark> is built into the GPU, so nothing is installed on the card. You need a MIG-capable GPU (on AWS, p4d and p4de instances have A100s and p5 has H100s) and the NVIDIA <mark class="kw-tool">GPU Operator</mark>, which installs the driver and <mark class="kw">device plugin</mark> and adds a MIG manager. Install it with a MIG strategy, then label a node with the layout you want:</p>
+<p><strong>Installing it (device plugin path).</strong> Nothing is installed on the card itself. You need a MIG-capable GPU (on AWS, p4d and p4de instances have A100s and p5 has H100s) and the NVIDIA <mark class="kw-tool">GPU Operator</mark>, which installs the driver, <mark class="kw">device plugin</mark>, NFD and GFD. Install it with a MIG strategy, which also deploys the MIG manager, then label a node with the layout you want:</p>
 <pre class="snippet"><code class="language-bash"><span class="ln">helm repo add nvidia https://helm.ngc.nvidia.com/nvidia</span><span class="ln">helm repo update</span><span class="ln">helm install --wait --generate-name \</span><span class="ln">  -n gpu-operator --create-namespace \</span><span class="ln">  nvidia/gpu-operator \</span><span class="ln">  --set mig.strategy=mixed</span><span class="ln"> </span><span class="ln"><span class="tc"># "balanced" on an 80 GB H100: one 3g.40gb, one 2g.20gb, two 1g.10gb</span></span><span class="ln">kubectl label node gpu-node-1 nvidia.com/mig.config=all-balanced --overwrite</span></code></pre>
 <p>The strategy only decides how slices are advertised; it does not switch MIG on. The MIG manager does that when it sees the layout label: it stops the operator's GPU pods on that node, turns MIG mode on, cuts the slices and restarts them. Nothing else may be using the GPUs while it runs, and some cloud nodes need a reboot (see NVIDIA's GPU Operator MIG page). Pin a chart version in production.</p>
+<p><strong>With DRA instead:</strong> install the Operator with its device plugin turned off and the <mark class="kw">DRA</mark> driver on, as in the Dynamic Resource Allocation section, and set the layout with the same node label. Then restart the DRA driver pod so it discovers the slices the MIG manager created.</p>
 <p><strong>Check (MIG):</strong> <code>kubectl get node gpu-node-1 --show-labels | tr ',' '\n' | grep mig</code>, and wait for <code>nvidia.com/mig.config.state=success</code>.</p>
 </blockquote><ul>
 <li>Changing a MIG layout with the GPU Operator: label the node with the layout you want, for example <code>nvidia.com/mig.config=all-1g.10gb</code>, and the operator's MIG manager reconfigures the GPU. Pods using the GPU must be moved off first.</li>
-<li>Newer versions of NVIDIA's <mark class="kw">DRA</mark> driver can also create MIG slices on demand for a claim and remove them when the claim is released (an alpha feature called DynamicMIG), instead of relying on a fixed layout.</li>
+<li>Newer versions of NVIDIA's DRA driver can also create MIG slices on demand for a claim and remove them when the claim is released (an alpha feature called DynamicMIG), instead of relying on a fixed layout.</li>
 <li>Asking for a MIG slice, with the device plugin and with DRA:</li>
 </ul><pre class="snippet"><code class="language-yaml"><span class="ln"><span class="tc"># Device plugin, "mixed" MIG strategy: ask for a slice size by resource name</span></span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: notebook-small</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: jupyter</span><span class="ln">    <span class="tk">image</span>: jupyter/base-notebook:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">limits</span>:</span><span class="ln kl">        <span class="tk">nvidia.com/mig-1g.10gb</span>: 1</span><span class="ln">---</span><span class="ln"><span class="tc"># DRA: ask for a MIG slice by profile</span></span><span class="ln"><span class="tk">apiVersion</span>: resource.k8s.io/v1</span><span class="ln"><span class="tk">kind</span>: ResourceClaimTemplate</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: small-mig-slice</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">spec</span>:</span><span class="ln">    <span class="tk">devices</span>:</span><span class="ln">      <span class="tk">requests</span>:</span><span class="ln">      - <span class="tk">name</span>: mig</span><span class="ln">        <span class="tk">exactly</span>:</span><span class="ln kl">          <span class="tk">deviceClassName</span>: mig.nvidia.com</span><span class="ln">          <span class="tk">selectors</span>:</span><span class="ln">          - <span class="tk">cel</span>:</span><span class="ln kl">              <span class="tk">expression</span>: device.attributes["gpu.nvidia.com"].profile == "1g.10gb"</span><span class="ln">---</span><span class="ln"><span class="tk">apiVersion</span>: v1</span><span class="ln"><span class="tk">kind</span>: Pod</span><span class="ln"><span class="tk">metadata</span>:</span><span class="ln">  <span class="tk">name</span>: notebook-small-dra</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">resourceClaims</span>:</span><span class="ln">  - <span class="tk">name</span>: mig</span><span class="ln">    <span class="tk">resourceClaimTemplateName</span>: small-mig-slice</span><span class="ln">  <span class="tk">containers</span>:</span><span class="ln">  - <span class="tk">name</span>: jupyter</span><span class="ln">    <span class="tk">image</span>: jupyter/base-notebook:latest</span><span class="ln">    <span class="tk">resources</span>:</span><span class="ln">      <span class="tk">claims</span>:</span><span class="ln">      - <span class="tk">name</span>: mig</span></code></pre></div></details>
+
+
 
 
 
