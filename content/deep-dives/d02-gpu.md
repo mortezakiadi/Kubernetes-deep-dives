@@ -536,7 +536,7 @@ spec:
 |---|---|---|---|
 | **ResourceSlice** | The list of devices on one node, each with its facts: product name, architecture, memory. | The DRA driver, per node | Roughly the disks that exist |
 | **DeviceClass** | A named category of devices, such as `gpu.nvidia.com`. A request says which class it wants. | The driver when you install it (an admin can add more) | A StorageClass |
-| **CEL** | A one-line rule that is true or false for each device, such as "memory is at least 40Gi". It narrows a class down to the devices you accept. | You, inside a claim | n/a |
+| **CEL** (Common Expression Language) | A one-line rule that is true or false for each device, such as "memory is at least 40Gi". It narrows a class down to the devices you accept. **Why it is needed:** a count or a node label can only say "one GPU" or "this node has A100s", while a rule can test each device's own facts. | You, inside a claim | n/a |
 | **ResourceClaimTemplate** | A recipe for a request: which class, which CEL rule, how many devices. | You | A template that stamps out claims |
 | **ResourceClaim** | One actual request, made from the recipe. The scheduler records which device it picked in the claim. | Kubernetes, one per pod | A PersistentVolumeClaim |
 
@@ -631,7 +631,7 @@ status:
 ```
 
 - **DeviceClass answers "what kind of thing?"** `gpu.nvidia.com` means "an NVIDIA GPU". A class is itself a CEL rule: NVIDIA's says "the driver is `gpu.nvidia.com` and the device type is `gpu`", which is how the class keeps only GPUs. Your claim's own rule then narrows that further. The NVIDIA driver also creates `mig.nvidia.com` for MIG slices. You usually don't write a class; you pick one. `kubectl get deviceclass` lists what your cluster has.
-- **CEL answers "which ones exactly?"** The scheduler runs your rule against every device in the class and keeps only those where it comes out true. Three rules, from simple to combined:
+- **CEL answers "which ones exactly?"** CEL stands for Common Expression Language, a small language for writing true-or-false rules. DRA needs it because a count or a node label can only say "one GPU" or "this node has A100s". A rule can say "memory at least 40Gi" about each device, and the scheduler can test it against the facts the driver published. The scheduler runs your rule against every device in the class and keeps only those where it comes out true. Three rules, from simple to combined:
   - `device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0` reads "memory is at least 40Gi". `quantity("40Gi")` turns the text into an amount Kubernetes can compare, and `compareTo(...) >= 0` means "greater than or equal".
   - `device.attributes["gpu.nvidia.com"].architecture == "Hopper"` reads "the architecture is Hopper". Attributes are descriptive facts such as the product name or architecture; capacity holds amounts such as memory.
   - Join two rules with `&&` ("both must be true"), for example Hopper and at least 40Gi.
