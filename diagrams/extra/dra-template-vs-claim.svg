@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 610" width="1180" height="610" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Template or claim: who gets which GPU</text>
+<rect x="24.0" y="50.0" width="36.6" height="22.0" rx="11" fill="#0f766e" stroke="none" stroke-width="1.6"/>
+<text x="42.3" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" >DRA</text>
+<text x="72.6" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >Both ask for a device. They differ in how many pods share what gets allocated.</text>
+<rect x="24.0" y="88.0" width="548.0" height="400.0" rx="14" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="40" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#1f2933" text-anchor="start" >A ResourceClaim you write by hand</text>
+<text x="40" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >One request that several pods point at.</text>
+<rect x="44.0" y="200.0" width="120.0" height="52.0" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="104" y="231" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >pod 1</text>
+<path d="M164,226 L232,284.5" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="44.0" y="290.0" width="120.0" height="52.0" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="104" y="321" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >pod 2</text>
+<path d="M164,316 L232,316.0" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="44.0" y="380.0" width="120.0" height="52.0" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="104" y="411" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >pod 3</text>
+<path d="M164,406 L232,347.5" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="236.0" y="262.0" width="160.0" height="108.0" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="316" y="298" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >ResourceClaim</text>
+<text x="316" y="318" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >shared-gpu</text>
+<text x="316" y="340" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#3b6fd8" text-anchor="middle" >written by you</text>
+<path d="M396,316 L446,316" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="450.0" y="286.0" width="106.0" height="60.0" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="503" y="312" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >gpu-0</text>
+<text x="503" y="331" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle" >one device</text>
+<text x="40" y="452" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start" >All three pods share the same device.</text>
+<text x="40" y="472" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >The claim stays until you delete it, even when the pods are gone.</text>
+<rect x="608.0" y="88.0" width="548.0" height="400.0" rx="14" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="624" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15.5" font-weight="700" fill="#1f2933" text-anchor="start" >A ResourceClaimTemplate</text>
+<text x="624" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >A recipe. Kubernetes makes one claim per pod from it.</text>
+<rect x="628.0" y="262.0" width="130.0" height="108.0" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="693" y="296" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle" >Resource</text>
+<text x="693" y="313" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle" >ClaimTemplate</text>
+<text x="693" y="336" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="400" fill="#5b6675" text-anchor="middle" >gpu-40gb-plus</text>
+<text x="693" y="354" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#3b6fd8" text-anchor="middle" >written by you</text>
+<path d="M758,289.0 L806,226" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)" stroke-dasharray="5 4"/>
+<rect x="810.0" y="198.0" width="196.0" height="56.0" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="908" y="222" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle" >claim for pod 1</text>
+<text x="908" y="241" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="middle" >removed with pod 1</text>
+<path d="M1006,226 L1040,226" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="1044.0" y="202.0" width="98.0" height="48.0" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="1093" y="231" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >gpu-0</text>
+<path d="M758,316.0 L806,316" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)" stroke-dasharray="5 4"/>
+<rect x="810.0" y="288.0" width="196.0" height="56.0" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="908" y="312" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle" >claim for pod 2</text>
+<text x="908" y="331" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="middle" >removed with pod 2</text>
+<path d="M1006,316 L1040,316" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="1044.0" y="292.0" width="98.0" height="48.0" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="1093" y="321" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >gpu-1</text>
+<path d="M758,343.0 L806,406" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)" stroke-dasharray="5 4"/>
+<rect x="810.0" y="378.0" width="196.0" height="56.0" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="908" y="402" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle" >claim for pod 3</text>
+<text x="908" y="421" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="middle" >removed with pod 3</text>
+<path d="M1006,406 L1040,406" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<rect x="1044.0" y="382.0" width="98.0" height="48.0" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="1093" y="411" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >gpu-2</text>
+<text x="624" y="452" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start" >Each pod gets its own device.</text>
+<text x="624" y="472" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Each claim is made when its pod is created and removed with it.</text>
+<rect x="24.0" y="506.0" width="1132.0" height="64.0" rx="12" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="40" y="532" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >Rule of thumb</text>
+<text x="40" y="553" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start" >Ten replicas that each need their own GPU: use a template. One device that several pods or jobs should share, or that must outlive a pod: write a claim.</text>
+</svg>

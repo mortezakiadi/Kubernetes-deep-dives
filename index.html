@@ -262,7 +262,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>14 deep dives</li>
         <li>34 designs</li>
-        <li>910 scenario sections</li>
+        <li>913 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -875,6 +875,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 </tr>
 </tbody>
 </table>
+<figure class="diagram"><button aria-label="Open diagram full screen: If you know storage, you already know the shape of DRA" class="open" data-src="diagrams/extra/dra-storage-analogy.svg" data-title="If you know storage, you already know the shape of DRA" type="button"><img alt="Diagram: If you know storage, you already know the shape of DRA" decoding="async" loading="lazy" src="diagrams/extra/dra-storage-analogy.svg"/><span class="hint">Open full screen</span></button></figure>
 <ul>
 <li><strong>DeviceClass answers "what kind of thing?"</strong> <code>gpu.nvidia.com</code> means "an NVIDIA GPU". The NVIDIA driver also creates <code>mig.nvidia.com</code> for <mark class="kw">MIG</mark> slices. You usually don't write a class; you pick one. <code>kubectl get deviceclass</code> lists what your cluster has.</li>
 <li><strong>CEL answers "which ones exactly?"</strong> The scheduler runs your rule against every device in the class and keeps only those where it comes out true. Three rules, from simple to combined:<ul>
@@ -883,9 +884,13 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li>Join two rules with <code>&amp;&amp;</code> ("both must be true"), for example Hopper and at least 40Gi.</li>
 </ul>
 </li>
+</ul>
+<figure class="diagram"><button aria-label="Open diagram full screen: CEL is a filter: one node, three rules" class="open" data-src="diagrams/extra/dra-cel-filter.svg" data-title="CEL is a filter: one node, three rules" type="button"><img alt="Diagram: CEL is a filter: one node, three rules" decoding="async" loading="lazy" src="diagrams/extra/dra-cel-filter.svg"/><span class="hint">Open full screen</span></button></figure>
+<ul>
 <li><strong>The names in a rule come from the driver.</strong> To see what you can <mark class="kw-act">filter</mark> on, read the ResourceSlices: <code>kubectl get resourceslices -o yaml</code> shows each device's attributes and capacity.</li>
 <li><strong>Why a template and not a claim?</strong> A claim you write by hand is one request that several pods can share, and it outlives any pod. A template gives every pod its own claim, made when the pod starts and removed with it. Ten replicas then get ten separate GPUs instead of sharing one.</li>
 </ul>
+<figure class="diagram"><button aria-label="Open diagram full screen: Template or claim: who gets which GPU" class="open" data-src="diagrams/extra/dra-template-vs-claim.svg" data-title="Template or claim: who gets which GPU" type="button"><img alt="Diagram: Template or claim: who gets which GPU" decoding="async" loading="lazy" src="diagrams/extra/dra-template-vs-claim.svg"/><span class="hint">Open full screen</span></button></figure>
 <p>How they fit: the driver publishes the devices (ResourceSlices) and the categories (DeviceClasses). You write a template that names a class and adds a CEL rule. The pod points at the template, Kubernetes turns it into a claim, and the scheduler matches the claim against the ResourceSlices.</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Dynamic Resource Allocation" class="open" data-src="diagrams/sections/d06-4.svg" data-title="Dynamic Resource Allocation" type="button"><img alt="Diagram: Dynamic Resource Allocation" decoding="async" loading="lazy" src="diagrams/sections/d06-4.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> The <mark class="kw">DRA</mark> objects, who creates each one, and how a claim turns into one specific GPU in a container.</p>
