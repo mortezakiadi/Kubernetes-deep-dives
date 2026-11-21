@@ -1003,11 +1003,15 @@ spec:
               expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
 ```
 
-- **When several devices must fit together:** a GPU and the network card it sends data through should sit on the same PCIe root, so traffic doesn't cross the CPU. A PCIe root (formally the PCIe Root Complex) is the part of the machine that connects the CPU and memory to PCIe devices such as GPUs and network cards, and devices under the same root share one PCIe switch hierarchy ([Kubernetes docs](https://kubernetes.io/docs/reference/node/dra-standard-device-attributes/), [root complex](https://en.wikipedia.org/wiki/Root_complex)). Both drivers publish the standard attribute `resource.kubernetes.io/pcieRoot`, and `matchAttribute` requires the two devices to share it. On EKS the network card is an EFA device, offered by the dranet driver. The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root. The first picture shows what a PCIe root is, the second shows the idea of the claim, and the YAML after them asks for a GPU plus an EFA device:
+- **When several devices must fit together:** a GPU and the network card it sends data through should sit on the same PCIe root, so traffic doesn't cross the CPU. A PCIe root (formally the PCIe Root Complex) is the part of the machine that connects the CPU and memory to PCIe devices such as GPUs and network cards, and devices under the same root share one PCIe switch hierarchy ([Kubernetes docs](https://kubernetes.io/docs/reference/node/dra-standard-device-attributes/), [root complex](https://en.wikipedia.org/wiki/Root_complex)).
 
-![What a PCIe root is](diagrams/extra/dra-pcie-root-explained.svg)
+  ![What a PCIe root is](diagrams/extra/dra-pcie-root-explained.svg)
 
-![When several devices must fit together](diagrams/extra/dra-pcie-root.svg)
+  Two drivers publish the devices in this example. The NVIDIA GPU DRA driver publishes the GPUs. The dranet driver publishes the network card, which on EKS is an EFA device. Both publish the standard attribute `resource.kubernetes.io/pcieRoot` for their devices ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)), and `matchAttribute` requires the two devices to share it. The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root.
+
+  ![When several devices must fit together](diagrams/extra/dra-pcie-root.svg)
+
+  This claim asks for a GPU plus an EFA device that share a PCIe root:
 
 ```yaml
 apiVersion: resource.k8s.io/v1
