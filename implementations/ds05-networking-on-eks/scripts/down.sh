@@ -31,6 +31,30 @@ lattice_cleanup() {
 (cd "$ROOT/terraform/30-platform" && terraform destroy -input=false -auto-approve) || { lattice_cleanup; (cd "$ROOT/terraform/30-platform" && terraform destroy -input=false -auto-approve); }
 lattice_cleanup
 (cd "$ROOT/terraform/20-clusters" && terraform destroy -input=false -auto-approve) || (cd "$ROOT/terraform/20-clusters" && terraform destroy -input=false -auto-approve)
+# The controllers leave things in the cluster VPCs that block the VPC's deletion (DependencyViolation) and that Terraform does not know: a target
+# group (Lattice and ELB) and the security groups named k8s-* of the load balancers. The two security groups refer to each other: the second pass
+# takes what the first could not.
+lb_sg_cleanup() {
+  for region in us-east-1 eu-west-1; do
+    for vpc in $(aws ec2 describe-vpcs --region "$region" --filters "Name=tag:Project,Values=ds05-networking" --query 'Vpcs[].VpcId' --output text 2>/dev/null); do
+      for tg in $(aws vpc-lattice list-target-groups --region "$region" --query "items[?vpcIdentifier=='$vpc'].id" --output text 2>/dev/null); do
+        aws vpc-lattice delete-target-group --region "$region" --target-group-identifier "$tg" >/dev/null 2>&1 || true
+      done
+      for tg in $(aws elbv2 describe-target-groups --region "$region" --query "TargetGroups[?VpcId=='$vpc'].TargetGroupArn" --output text 2>/dev/null); do
+        aws elbv2 delete-target-group --region "$region" --target-group-arn "$tg" >/dev/null 2>&1 || true
+      done
+      for pass in 1 2; do
+        for sg in $(aws ec2 describe-security-groups --region "$region" --filters "Name=vpc-id,Values=$vpc" --query "SecurityGroups[?starts_with(GroupName, 'k8s-')].GroupId" --output text 2>/dev/null); do
+          aws ec2 delete-security-group --region "$region" --group-id "$sg" >/dev/null 2>&1 || true
+        done
+      done
+    done
+  done
+}
+lb_sg_cleanup
 # Deleting a VPC that took its range from IPAM makes Terraform wait for IPAM to release the allocation, which takes a long time (tens of minutes).
 (cd "$ROOT/terraform/10-network" && terraform destroy -input=false -auto-approve) || (cd "$ROOT/terraform/10-network" && terraform destroy -input=false -auto-approve)
+# EKS creates each cluster's log group itself, so Terraform does not own it and it outlives the cluster.
+aws logs delete-log-group --region us-east-1 --log-group-name /aws/eks/ds05-networking-main/cluster >/dev/null 2>&1 || true
+aws logs delete-log-group --region eu-west-1 --log-group-name /aws/eks/ds05-networking-second/cluster >/dev/null 2>&1 || true
 "$ROOT/scripts/verify-clean.sh"
