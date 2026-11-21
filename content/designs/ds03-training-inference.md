@@ -202,6 +202,11 @@ spec:
 
 - The serving stack never pulls weights straight from a training bucket. It pulls a promoted version from the registry, so what runs in production is always something that passed the gates.
 - Keep the last two production versions warm in the weight cache, so a rollback takes a deployment change, not a 20-minute download.
+- **Know what auto-sync promises.** With automated sync, Argo CD applies a merged change within about three minutes: it polls Git every 120 seconds plus up to 60 seconds of jitter, unless a Git webhook triggers it sooner ([Automated sync](https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/)).
+  - **Self-heal:** `selfHeal: true` reverts live edits to the objects defined in Git, such as the InferenceService. The pods those objects create aren't in Git, so Argo CD doesn't compare them.
+  - **Prune:** off by default, so a file deleted from Git leaves its object running until pruning is turned on.
+  - **Rollback:** Argo CD's own rollback is disabled while auto-sync is on, so a rollback is a `git revert`.
+  - **Pull requests, not pushes:** have the pipeline open a pull request for each promotion rather than push to the deployed branch, so the gate stays a review.
 
 ### Inference: the serving stack
 

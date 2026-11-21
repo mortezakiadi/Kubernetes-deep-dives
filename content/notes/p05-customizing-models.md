@@ -172,6 +172,7 @@ spec:
 
 - **The runtime is where platform expertise lives:** EFA and NCCL settings, shared memory, the checkpoint path and metrics are defined once and tested, not copied into every job. See [Kubeflow Trainer](#d02-6).
 - **Alternatives:** **Ray/KubeRay** (`RayJob` on a RayCluster; code ships in images or repositories), **DeepSpeed** as a training library inside any of these, and **Unsloth** for fast single-GPU fine-tuning.
+- **Hyperparameter sweeps:** Katib, Kubeflow's long-time tuner, is deprecated ([Katib](https://github.com/kubeflow/katib)). Its replacement is **OptimizationJob**, part of Kubeflow Trainer since 2.4: each trial is a TrainJob that uses your runtime, and trials report their metrics to the Trainer instead of through a sidecar. It is alpha and off by default (feature gate `OptimizationJob`, which needs `TrainJobStatus`), and so far it offers only random and grid search ([OptimizationJob API](https://github.com/kubeflow/trainer/blob/v2.4.0/pkg/apis/trainer/v1alpha1/optimizationjob_types.go)). Until it matures, run a sweep as ordinary TrainJobs on the low-priority, preemptible queue ([Design 26](#ds26-8)), and record each trial's parameters and results with the run.
 
 ### Data, network and checkpoints
 

@@ -74,6 +74,7 @@ client.set_registered_model_alias("support-assistant", "production", mv.version)
 
 - **Promote through Git as well as the registry:** the alias tells you which version is "production"; a reviewed change to the serving manifest makes it so. Both together give you an audit trail and a rollback.
 - **Keep evaluation results next to the version,** so "did this model pass?" is answered by the registry, not by someone's notebook.
+- **Not every registry has stages.** In the Kubeflow Model Registry a version is only `LIVE` or `ARCHIVED`. Record `candidate`, `staging` or `production` as a custom property, and find versions with the REST API's `filterQuery` ([OpenAPI spec](https://github.com/kubeflow/model-registry/blob/main/api/openapi/model-registry.yaml)). The Git change to the serving manifest is still what deploys.
 
 ### Four ways to get weights into a pod
 

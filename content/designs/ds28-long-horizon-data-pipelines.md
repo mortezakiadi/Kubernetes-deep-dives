@@ -221,6 +221,7 @@ spec:
 
 - **Batches of hundreds, not one workflow per task:** very large fan-outs strain the workflow controller. Batches of a few hundred candidates per workflow keep it responsive.
 - **Results as data, not logs:** each step writes a structured result row (task, step, version, verdict, cost) to the warehouse, which feeds the funnel and makes reruns auditable.
+- **Clean up intermediate artifacts:** set `artifactGC.strategy: OnWorkflowDeletion` (or `OnWorkflowCompletion`) on the workflow, and `Never` on the outputs you must keep. Put `{{workflow.uid}}` in the S3 keys, so two runs of the same template never delete each other's files. Deletion runs in its own pod, which needs a service account allowed to delete from the bucket ([Artifact garbage collection](https://argo-workflows.readthedocs.io/en/latest/walk-through/artifacts/)).
 
 ### Running long rollouts at scale
 
