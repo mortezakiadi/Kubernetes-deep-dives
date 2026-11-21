@@ -1003,11 +1003,29 @@ spec:
               expression: device.capacity["gpu.nvidia.com"].memory.compareTo(quantity("40Gi")) >= 0 #!
 ```
 
+- **The network card has its own driver, slices and class:** The GPU and the EFA card come from two different drivers, so each has its own objects. The NVIDIA driver publishes the ResourceSlices for the GPUs, and the dranet driver publishes the ResourceSlices for the EFA cards. You never apply a ResourceSlice yourself, because the drivers publish them on each node. The slices expose attributes such as `pciBusID`, `rdmaDevice` and `resource.kubernetes.io/pcieRoot`. On EKS, the AWS-supported `aws-dranet` Helm chart installs the dranet driver, a DaemonSet that publishes only EFA devices, and the DeviceClass for them. The dranet docs list EKS 1.34 or newer with EFA-enabled worker nodes as the prerequisite ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)).
+
+    ![Two drivers, two sets of objects, one claim](diagrams/extra/dra-gpu-efa-objects.svg)
+
+    The EFA class is `efa.networking.k8s.aws`. Its rule keeps a device only if it comes from the dranet driver (`dra.net`) and its PCI device name is "Elastic Fabric Adapter (EFA)". A claim names this class to ask for an EFA card, the same way it names `gpu.nvidia.com` to ask for a GPU. This is the class as the dranet docs show it:
+
+```yaml
+apiVersion: resource.k8s.io/v1
+kind: DeviceClass
+metadata:
+  name: efa.networking.k8s.aws
+spec:
+  selectors:
+  - cel:
+      expression: |
+        device.driver == "dra.net" &&
+        device.attributes["dra.net"].pciDevice == 'Elastic Fabric Adapter (EFA)'
+```
 - **When several devices must fit together:** a GPU and the network card it sends data through should sit on the same PCIe root, so traffic doesn't cross the CPU. A PCIe root (formally the PCIe Root Complex) is the part of the machine that connects the CPU and memory to PCIe devices such as GPUs and network cards, and devices under the same root share one PCIe switch hierarchy ([Kubernetes docs](https://kubernetes.io/docs/reference/node/dra-standard-device-attributes/), [root complex](https://en.wikipedia.org/wiki/Root_complex)).
 
     ![What a PCIe root is](diagrams/extra/dra-pcie-root-explained.svg)
 
-    Two drivers publish the devices in this example. The NVIDIA GPU DRA driver publishes the GPUs. The dranet driver publishes the network card, which on EKS is an EFA device. Both publish the standard attribute `resource.kubernetes.io/pcieRoot` for their devices ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)), and `matchAttribute` requires the two devices to share it. The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root.
+    Two drivers publish the devices in this example. The NVIDIA GPU DRA driver publishes the GPUs. The dranet driver publishes the network card, which on EKS is an EFA device (its slices and class are in the point "The network card has its own driver, slices and class"). Both publish the standard attribute `resource.kubernetes.io/pcieRoot` for their devices ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)), and `matchAttribute` requires the two devices to share it. The same constraint with `requests: ["gpus"]` and `count: 2` keeps two GPUs on the same PCIe root.
 
     ![When several devices must fit together](diagrams/extra/dra-pcie-root.svg)
 
@@ -1032,6 +1050,13 @@ spec:
       - requests: ["gpu", "efa"]                   # these two devices... #!
         matchAttribute: resource.kubernetes.io/pcieRoot   # ...must share a PCIe root #!
 ```
+
+- **What the same root is worth:** The dranet project measured it on p4d.24xlarge nodes, which have 8 A100 GPUs and 4 EFA cards spread across 4 PCIe roots. The test ran the NCCL all-reduce test on 2 nodes with 1 GPU per worker, over EFA through aws-ofi-nccl. One template asked for a GPU and an EFA card on the same root. The other asked for the same devices without the constraint. GDR means GPU Direct RDMA: the network card moves data to and from GPU memory over a direct PCIe path. Without a shared root, GDR is off and the data crosses the CPU and PCIe switch fabric. The dranet docs call the result roughly 1.9 times slower, and this is one run on one instance type from the project's example, not a general figure ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)).
+
+| Template | GPU root | EFA root | GDR | Average bus bandwidth |
+|---|---|---|---|---|
+| gpu-efa-aligned | pci0000:10 | pci0000:10 | Yes | about 11.35 GB/s |
+| gpu-efa-unaligned | pci0000:10 | pci0000:a0 | No | about 6.04 GB/s |
 
 - **When pods share a GPU:** create one `ResourceClaim` by name (not a template) and point several pods at it, so they all get the same GPU. How they share it is a driver setting; here NVIDIA's time-slicing (it may need to be turned on in the driver). Time-slicing means the pods take turns on the GPU. There is no memory or compute isolation between them ([AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)); MIG is what isolates. A claim made from a *template* is a separate claim for every pod, so template replicas share a GPU only when the driver's **consumable shares** are on. That is an alpha feature in NVIDIA's driver, and the Kubernetes side is on by default from 1.36 ([NVIDIA docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html)). Without it, each replica gets a whole GPU. Here is one claim and one of the pods that share it:
 

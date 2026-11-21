@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 640" width="1180" height="640" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start">Two drivers, two sets of objects, one claim</text>
+<rect x="24" y="50" width="48" height="22" rx="11" fill="#0f766e" stroke="#0f766e" stroke-width="1.6"/>
+<text x="48" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">DRA</text>
+<text x="84" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start">A GPU and an EFA card come from different drivers, so each has its own ResourceSlices and its own DeviceClass.</text>
+<text x="24" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start">Drivers</text>
+<text x="290" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start">ResourceSlices (each driver publishes its own)</text>
+<text x="696" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start">DeviceClasses</text>
+<text x="972" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start">Your claim template</text>
+<rect x="24" y="110" width="200" height="190" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="38" y="140" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start">NVIDIA GPU</text>
+<text x="38" y="160" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start">DRA driver</text>
+<text x="38" y="186" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">driver name:</text>
+<text x="38" y="204" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">gpu.nvidia.com</text>
+<text x="38" y="234" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="start">publishes the GPUs</text>
+<rect x="24" y="330" width="200" height="150" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="38" y="360" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start">dranet driver</text>
+<text x="38" y="386" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">driver name:</text>
+<text x="38" y="404" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">dra.net</text>
+<text x="38" y="432" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="start">publishes the EFA cards</text>
+<text x="38" y="450" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">(on EKS: aws-dranet chart)</text>
+<path d="M226,205 L286,205" stroke="#5b6675" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+<text x="257" y="197" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6675" text-anchor="middle">publishes</text>
+<path d="M226,405 L286,405" stroke="#5b6675" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+<text x="257" y="397" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6675" text-anchor="middle">publishes</text>
+<rect x="290" y="110" width="340" height="190" rx="10" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="304" y="136" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start">ResourceSlice: the GPUs</text>
+<rect x="302" y="150" width="316" height="28" rx="7" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.2"/>
+<text x="314" y="169" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-0</text>
+<rect x="390" y="153" width="214" height="22" rx="7" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2"/>
+<text x="497" y="168.5" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot = pci0000:17</text>
+<rect x="302" y="184" width="316" height="28" rx="7" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.2"/>
+<text x="314" y="203" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-1</text>
+<rect x="390" y="187" width="214" height="22" rx="7" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2"/>
+<text x="497" y="202.5" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot = pci0000:17</text>
+<rect x="302" y="218" width="316" height="28" rx="7" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.2"/>
+<text x="314" y="237" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-2</text>
+<rect x="390" y="221" width="214" height="22" rx="7" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2"/>
+<text x="497" y="236.5" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot = pci0000:b8</text>
+<rect x="302" y="252" width="316" height="28" rx="7" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.2"/>
+<text x="314" y="271" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-3</text>
+<rect x="390" y="255" width="214" height="22" rx="7" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2"/>
+<text x="497" y="270.5" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot = pci0000:b8</text>
+<rect x="290" y="330" width="340" height="150" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="304" y="356" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start">ResourceSlice: the EFA cards</text>
+<rect x="302" y="370" width="316" height="28" rx="7" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.2"/>
+<text x="314" y="389" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">efa-0</text>
+<rect x="390" y="373" width="214" height="22" rx="7" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2"/>
+<text x="497" y="388.5" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot = pci0000:17</text>
+<rect x="302" y="404" width="316" height="28" rx="7" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.2"/>
+<text x="314" y="423" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">efa-1</text>
+<rect x="390" y="407" width="214" height="22" rx="7" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2"/>
+<text x="497" y="422.5" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot = pci0000:b8</text>
+<path d="M632,205 L692,205" stroke="#5b6675" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+<text x="663" y="197" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6675" text-anchor="middle">picked by</text>
+<path d="M632,405 L692,405" stroke="#5b6675" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+<text x="663" y="397" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6675" text-anchor="middle">picked by</text>
+<rect x="696" y="110" width="214" height="190" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="710" y="138" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="start">DeviceClass</text>
+<text x="710" y="162" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start">gpu.nvidia.com</text>
+<text x="710" y="192" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">rule: the device comes from</text>
+<text x="710" y="208" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">the NVIDIA driver and its</text>
+<text x="710" y="224" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">type is a GPU</text>
+<text x="710" y="256" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">ships with the NVIDIA</text>
+<text x="710" y="272" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">driver's Helm chart</text>
+<rect x="696" y="330" width="214" height="150" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
+<text x="710" y="358" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="start">DeviceClass</text>
+<text x="710" y="380" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">efa.networking.k8s.aws</text>
+<text x="710" y="408" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">rule: the device comes from</text>
+<text x="710" y="424" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">dra.net and its PCI device is</text>
+<text x="710" y="440" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">'Elastic Fabric Adapter (EFA)'</text>
+<text x="710" y="464" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">created by the aws-dranet chart</text>
+<rect x="972" y="110" width="184" height="370" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="986" y="136" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">ResourceClaimTemplate</text>
+<text x="986" y="154" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">gpu-plus-efa</text>
+<rect x="982" y="171" width="164" height="68" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="992" y="191" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">request: gpu</text>
+<text x="992" y="209" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">class:</text>
+<text x="992" y="225" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="11.5" font-weight="700" fill="#1f2933" text-anchor="start">gpu.nvidia.com</text>
+<rect x="982" y="365" width="164" height="80" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="992" y="385" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">request: efa</text>
+<text x="992" y="403" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">class:</text>
+<text x="992" y="419" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="11.5" font-weight="700" fill="#1f2933" text-anchor="start">efa.networking</text>
+<text x="992" y="434" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="11.5" font-weight="700" fill="#1f2933" text-anchor="start">.k8s.aws</text>
+<rect x="982" y="253" width="164" height="104" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.4"/>
+<text x="1064" y="301" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">constraint:</text>
+<text x="1064" y="319" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">same pcieRoot</text>
+<path d="M912,205 L968,205" stroke="#5b6675" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+<text x="941" y="197" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6675" text-anchor="middle">named in</text>
+<path d="M912,405 L968,405" stroke="#5b6675" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+<text x="941" y="397" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6675" text-anchor="middle">named in</text>
+<text x="24" y="520" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start">Each driver publishes its own ResourceSlices, and the aws-dranet chart creates the EFA class. Both kinds of slice carry the same attribute name, pcieRoot,</text>
+<text x="24" y="540" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start">so one constraint can compare a GPU with an EFA card even though two drivers published them.</text>
+<text x="24" y="570" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">The EFA class rule and the claim follow the dranet project's EKS example. Slice contents are trimmed to the attributes this page uses.</text>
+<text x="24" y="592" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">Device names and root values are illustrative.</text>
+</svg>
