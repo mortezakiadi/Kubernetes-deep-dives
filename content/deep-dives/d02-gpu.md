@@ -1051,11 +1051,15 @@ spec:
         matchAttribute: resource.kubernetes.io/pcieRoot   # ...must share a PCIe root #!
 ```
 
-- **What the same root is worth:** The dranet project ran the same speed test twice. It used AWS machines of type p4d.24xlarge, which have 8 GPUs and 4 EFA cards spread over 4 PCIe roots. Two machines took part, each with one GPU, and the test was the NCCL all-reduce test, which measures how fast GPUs exchange data.
+- **What the same root is worth:** Someone ran the same network speed test twice on AWS machines. The first time, the GPU and the network card sat on the same PCIe root. The second time, they sat on different roots.
 
-    In the first run, each GPU and its EFA card sat on the same PCIe root. Data went straight between the card and the GPU. In the second run, they sat on different roots, so the data had to detour through the CPU. The detour also switches off GDR (GPU Direct RDMA), the direct path between the network card and the GPU's memory.
+    On the same root, data went straight between the card and the GPU, at about 11.35 GB/s. On different roots, the data had to detour through the CPU, and the speed dropped to about 6.04 GB/s, roughly half.
 
-    The detour made the test about 1.9 times slower, as the table shows. This is one test on one machine type, so don't read it as a general rule ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)).
+    ![The same test on the same root and on different roots](diagrams/extra/dra-same-root-test.svg)
+
+    The test comes from the dranet project's EKS example. It used p4d.24xlarge machines, which have 8 GPUs and 4 EFA cards spread over 4 PCIe roots. Two machines took part, each with one GPU. The test was the NCCL all-reduce test, which measures how fast GPUs exchange data. In both runs the machines had the same GPU and the same number of EFA cards.
+
+    The detour also switches off GDR (GPU Direct RDMA), the direct path between the network card and the GPU's memory. This is one test on one machine type, so don't read it as a general rule ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)). The table has the exact roots and speeds:
 
 | Run | GPU root | EFA root | Direct path (GDR) | Speed the test reported |
 |---|---|---|---|---|
