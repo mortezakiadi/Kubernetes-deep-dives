@@ -13,13 +13,17 @@ locals {
 }
 
 module "main" {
-  source       = "./modules/platform"
-  providers    = { aws = aws, kubectl = kubectl.main, helm = helm.main }
-  project      = var.project
-  cluster_name = local.clusters.main.name
-  region       = var.regions.main
-  vpc_id       = local.vpcs.prod-main.id
-  alb_name     = "ds05-main"
+  source                    = "./modules/platform"
+  providers                 = { aws = aws, kubectl = kubectl.main, helm = helm.main }
+  project                   = var.project
+  cluster_name              = local.clusters.main.name
+  region                    = var.regions.main
+  vpc_id                    = local.vpcs.prod-main.id
+  alb_name                  = "ds05-main"
+  account_id                = var.account_id
+  lattice                   = true
+  lattice_service_network   = aws_vpclattice_service_network.this.name
+  lattice_allowed_role_arns = [local.vpcs.legacy-main.role]
 }
 module "second" {
   source       = "./modules/platform"
@@ -30,6 +34,19 @@ module "second" {
   vpc_id       = local.vpcs.prod-second.id
   alb_name     = "ds05-second"
   cilium       = true
+}
+
+# ---- the Lattice service network, and the VPCs that may call into it ------------------------------------------------------
+# A service network is regional, so it lives in the main region. The cluster's own VPC is associated by the controller; the others here.
+resource "aws_vpclattice_service_network" "this" {
+  name      = "ds05-lattice"
+  auth_type = "NONE"
+}
+resource "aws_vpclattice_service_network_vpc_association" "callers" {
+  for_each                   = { nonprod-main = local.vpcs.nonprod-main, legacy-main = local.vpcs.legacy-main }
+  vpc_identifier             = each.value.id
+  service_network_identifier = aws_vpclattice_service_network.this.id
+  security_group_ids         = [each.value.sg]
 }
 
 # ---- global name, answered from the nearest healthy region ------------------------------------------------------------------

@@ -338,7 +338,448 @@ def s05_address_exhaustion():
     return sc
 
 
-SCENARIOS = {"S01": s01_address_plan, "S02": s02_core_network, "S03": s03_reachability, "S04": s04_pod_addresses, "S05": s05_address_exhaustion}
+# --------------------------------------------------------------------------------------------------------------
+# S06  services across VPCs
+# --------------------------------------------------------------------------------------------------------------
+def signed_curl(domain, path="/"):
+    """The command a caller runs to call a Lattice service with its instance role's credentials (SigV4)."""
+    return ("T=$(curl -s -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token); "
+            "R=$(curl -s -H \"X-aws-ec2-metadata-token: $T\" http://169.254.169.254/latest/meta-data/iam/security-credentials/); "
+            "J=$(curl -s -H \"X-aws-ec2-metadata-token: $T\" http://169.254.169.254/latest/meta-data/iam/security-credentials/$R); "
+            "g() { echo $J | python3 -c \"import sys,json;print(json.load(sys.stdin)['$1'])\"; }; "
+            f"curl -s -m 8 -w '\\nHTTP %{{http_code}}' --aws-sigv4 'aws:amz:{MAIN}:vpc-lattice-svcs' --user \"$(g AccessKeyId):$(g SecretAccessKey)\" "
+            f"-H \"x-amz-security-token: $(g Token)\" -H 'x-amz-content-sha256: UNSIGNED-PAYLOAD' http://{domain}{path} | grep -E '^(Hostname|X-Amzn-Lattice-Identity|RemoteAddr|HTTP|AccessDenied)' | cut -c1-420")
+
+
+def until_text(sc, name, cmd, text, seconds, display):
+    """Run a command on a host every few seconds until its output contains text; record only the last attempt, and say how long it took."""
+    t0 = time.time()
+    while True:
+        code, out = host(name, cmd)
+        if text in out or time.time() - t0 > seconds:
+            break
+        time.sleep(5)
+    sc.steps.append(Step(redact(display), redact(out + f"\n(after {time.time() - t0:.0f} seconds)"), code, round(time.time() - t0, 2)))
+    return out
+
+
+def s06_lattice():
+    sc = Scenario("S06", "Services across VPCs by name: VPC Lattice", "Services across clusters and accounts",
+                  "Export the web service of the production cluster under a name, and call it from a VPC whose addresses overlap with the cluster's, with no route between them. Then show that the service's own policy, not the network, says who may call.")
+    V = vpcs()
+    rc, out = kube("main", "-n", "shop", "get", "httproute", "web", "-o", "jsonpath={.status.parents[0].conditions[*].type}={.status.parents[0].conditions[*].status}")
+    svc = awsj("vpc-lattice", "list-services", region=MAIN)["items"][0]
+    dom = svc["dnsEntry"]["domainName"]
+    show(sc, "kubectl -n shop get httproute web ; aws vpc-lattice list-services   # the exported service", f"HTTPRoute conditions: {out}\nLattice service {svc['name']} ({svc['status']})\nname: {dom}")
+    sc.expect("the route is accepted and the service exists in Lattice under a stable name", "Accepted" in out and "True" in out and svc["status"] == "ACTIVE" and svc["name"] == "web-shop",
+              "The Gateway API controller turned the HTTPRoute for the web Service into a Lattice service, its listener and a target group of the pods' addresses.")
+    sn = next(n["id"] for n in awsj("vpc-lattice", "list-service-networks", region=MAIN)["items"] if n["name"] == "ds05-lattice")
+    assoc = awsj("vpc-lattice", "list-service-network-vpc-associations", "--service-network-identifier", sn, region=MAIN)["items"]
+    names = {a["vpcId"]: a["status"] for a in assoc}
+    inv = {v["id"]: k for k, v in V.items()}
+    show(sc, "aws vpc-lattice list-service-network-vpc-associations   # the VPCs that can reach the service network", "\n".join(f"{inv.get(v, v):14s} {st}" for v, st in sorted(names.items(), key=lambda kv: inv.get(kv[0], kv[0]))))
+    sc.expect("three VPCs are associated: the cluster's, the non-production one and the legacy one", {inv.get(v) for v in names} == {"prod-main", "nonprod-main", "legacy-main"} and all(st == "ACTIVE" for st in names.values()),
+              "Terraform associates the callers' VPCs. The controller associates the cluster's own. The association is the only thing that connects a VPC to the network of services.")
+    cmp_ = f"legacy VPC range {V['legacy-main']['cidr']} ; prod-main range {V['prod-main']['cidr']}"
+    show(sc, "the two ranges", cmp_)
+    sc.expect("the legacy VPC and the cluster's VPC use the same range", V["legacy-main"]["cidr"] == V["prod-main"]["cidr"], "That is why no route can exist between them. Lattice does not need one.")
+    node_ip = next(a["address"] for a in kj("main", "get", "nodes")["items"][0]["status"]["addresses"] if a["type"] == "InternalIP")
+    code, out = run_host(sc, "legacy-main", f"ping -c 2 -W 1 {node_ip} | tail -2; true", display=f"[legacy-main] ping {node_ip}   # an address that exists in the cluster's VPC")
+    sc.expect("a ping to the cluster's range goes nowhere from the legacy VPC", "100% packet loss" in out or "0 received" in out, "The legacy VPC has no route to the core network, and a route to the same range would reach itself.")
+    code, out = run_host(sc, "legacy-main", f"curl -s -m 8 -w '\\nHTTP %{{http_code}}' http://{dom}/ | grep -E 'HTTP|AccessDenied' | cut -c1-200", display="[legacy-main] curl http://<service name>/   # by name, without credentials")
+    sc.expect("a call without credentials is refused by the service", "HTTP 403" in out, "The service's authentication type is AWS_IAM: Lattice checks the caller's signature before a request reaches the pods.")
+    code, out = run_host(sc, "legacy-main", signed_curl(dom), display="[legacy-main] curl --aws-sigv4 http://<service name>/   # signed with the host's role")
+    sc.expect("the legacy host, signed, reaches a pod of the web service, and the pod is told who called", "HTTP 200" in out and "Hostname: web-" in out and "ds05-networking-legacy-main-host" in out,
+              "Lattice delivers the request to a pod over its own network and adds the verified caller identity as a header. The pod sees a Lattice address, not the caller's.")
+    code, out = run_host(sc, "nonprod-main", signed_curl(dom), display="[nonprod-main] curl --aws-sigv4 http://<service name>/   # signed, but not named in the service's policy")
+    sc.expect("the non-production host, signed, is refused: the service's policy does not name it", "HTTP 403" in out and "AccessDenied" in out,
+              "Both policies must allow: the caller's own (it has one) and the service's (it does not list nonprod). The caller's team cannot grant itself access to somebody else's service.")
+    code, out = run_host(sc, "nonprod-main", f"curl -s -m 4 -o /dev/null -w 'HTTP %{{http_code}}' http://{tf_out('30-platform', 'albs')['main']}/health; true", display="[nonprod-main] curl http://<production load balancer>/health   # the network path, for comparison")
+    sc.expect("the same host has no network path to production", "HTTP 000" in out or "HTTP 200" not in out, "S03: nonprod and prod share no routes. Lattice gave nonprod no path either: it gave it a named, authorized one that production's owner can grant or withdraw.")
+    # grant, then withdraw
+    pol = kj("main", "-n", "shop", "get", "iamauthpolicy", "web")
+    orig = json.loads(pol["spec"]["policy"])
+    roles = orig["Statement"][0]["Principal"]["AWS"]
+    granted = json.loads(json.dumps(orig))
+    granted["Statement"][0]["Principal"]["AWS"] = list(roles) + [V["nonprod-main"]["role"]]
+    try:
+        subprocess.run([KUBECTL, "--context", "main", "-n", "shop", "patch", "iamauthpolicy", "web", "--type", "merge", "-p", json.dumps({"spec": {"policy": json.dumps(granted)}})], capture_output=True, text=True, env=ENV)
+        out2 = until_text(sc, "nonprod-main", signed_curl(dom), "HTTP 200", 120, "[nonprod-main] the same call, repeated until it works, after the policy names nonprod's role (a one-line change to the IAMAuthPolicy)")
+    finally:
+        subprocess.run([KUBECTL, "--context", "main", "-n", "shop", "patch", "iamauthpolicy", "web", "--type", "merge", "-p", json.dumps({"spec": {"policy": json.dumps(orig)}})], capture_output=True, text=True, env=ENV)
+    out3 = until_text(sc, "nonprod-main", signed_curl(dom), "HTTP 403", 120, "[nonprod-main] the same call, repeated until it is refused again, after the change is reverted")
+    sc.expect("granting is one change in the cluster, and so is withdrawing", "HTTP 200" in out2 and "HTTP 403" in out3, "The policy is a Kubernetes object owned by the team that owns the service. The controller writes it to Lattice, and a change takes effect within a minute or so (the time is printed).")
+    return sc
+
+
+# --------------------------------------------------------------------------------------------------------------
+# S07  load balancing in layers
+# --------------------------------------------------------------------------------------------------------------
+def pod_zones(ctx, ns="shop"):
+    nodes = {n["metadata"]["name"]: n["metadata"]["labels"]["topology.kubernetes.io/zone"] for n in kj(ctx, "get", "nodes")["items"]}
+    return {p["metadata"]["name"]: nodes[p["spec"]["nodeName"]] for p in kj(ctx, "-n", ns, "get", "pods", "-l", "app=web")["items"] if p["spec"].get("nodeName")}
+
+
+def zone_spread(ctx, n=60):
+    """Call the web service n times from the probe pod and count the answers by the zone of the pod that gave them."""
+    zones = pod_zones(ctx)
+    probe = kj(ctx, "-n", "shop", "get", "pods", "-l", "app=probe")["items"][0]
+    nodes = {n_["metadata"]["name"]: n_["metadata"]["labels"]["topology.kubernetes.io/zone"] for n_ in kj(ctx, "get", "nodes")["items"]}
+    mine = nodes[probe["spec"]["nodeName"]]
+    code, out = pod(ctx, "shop", f"for i in $(seq {n}); do curl -s -m 2 http://web.shop.svc/ | grep -m1 Hostname; done")
+    got = [l.split()[-1] for l in out.splitlines() if l.startswith("Hostname")]
+    count = {}
+    for h in got:
+        count[zones.get(h, "?")] = count.get(zones.get(h, "?"), 0) + 1
+    return mine, count, len(got)
+
+
+def s07_load_balancing():
+    sc = Scenario("S07", "Load balancing in layers: DNS, load balancer, service", "Load balancing in layers",
+                  "Follow a request down the layers. A name that answers with the nearest region and drops a region that cannot serve. A load balancer that sends to pod addresses, not nodes. A service that prefers the caller's zone and still fails over. A rolling update that does not drop requests.")
+    albs = tf_out("30-platform", "albs")
+    # a) global: the name
+    ans = {}
+    for ctx in ("main", "second"):
+        rc, out = pod(ctx, "shop", "dig +short app.ds05.internal")
+        ans[ctx] = sorted(out.split())
+    show(sc, "dig +short app.ds05.internal   # the same name, asked from a pod in each region", f"from {MAIN}:  {' '.join(ans['main'])}\nfrom {SECOND}: {' '.join(ans['second'])}")
+    sc.expect("the same name gives the nearest region's load balancer", ans["main"] and ans["second"] and all(a.startswith("10.60.") for a in ans["main"]) and all(a.startswith("10.62.") for a in ans["second"]),
+              "Two latency-routed alias records share one name. Route 53 answers each caller with the record of the region closest to the VPC the question came from.")
+    # b) regional: targets
+    lb = awsj("elbv2", "describe-load-balancers", "--names", "ds05-main", region=MAIN)["LoadBalancers"][0]
+    tg = awsj("elbv2", "describe-target-groups", "--load-balancer-arn", lb["LoadBalancerArn"], region=MAIN)["TargetGroups"][0]
+    th = awsj("elbv2", "describe-target-health", "--target-group-arn", tg["TargetGroupArn"], region=MAIN)["TargetHealthDescriptions"]
+    show(sc, "aws elbv2 describe-target-health   # what the load balancer sends to", f"target type: {tg['TargetType']}\n" + "\n".join(f"{t['Target']['Id']:16s} {t['Target'].get('AvailabilityZone', '?'):12s} {t['TargetHealth']['State']}" for t in sorted(th, key=lambda t: t["Target"]["Id"])))
+    sc.expect("the load balancer sends straight to six pod addresses in three zones, all healthy", tg["TargetType"] == "ip" and len(th) == 6 and all(t["TargetHealth"]["State"] == "healthy" for t in th) and len({t["Target"].get("AvailabilityZone") for t in th}) == 3
+              and all(t["Target"]["Id"].startswith("100.64.") for t in th),
+              "The Ingress asks for target type ip, so the controller registers each pod's own address and not a node port. The load balancer checks each pod's /health every five seconds.")
+    # c) global: a region that cannot serve is dropped
+    kube("main", "-n", "shop", "scale", "deployment/web", "--replicas=0")
+    t0 = time.time()
+    flipped = wait_for(lambda: all(a.startswith("10.62.") for a in pod("main", "shop", "dig +short app.ds05.internal")[1].split()) and pod("main", "shop", "dig +short app.ds05.internal")[1].split(), 420, 8)
+    took = time.time() - t0
+    rc, body = pod("main", "shop", "curl -s -m 4 http://app.ds05.internal/ | head -1")
+    show(sc, "kubectl -n shop scale deployment/web --replicas=0   # the main region's web service has no pod; then dig again from the main region",
+         f"answer after {took:.0f} seconds: {' '.join(flipped) if flipped else '(no change)'}\ncurl http://app.ds05.internal/ -> {body}")
+    sc.expect("a region with no healthy target is dropped from the answer, and the caller is sent to the other region", bool(flipped) and "ds05-networking-second" in body,
+              f"The alias records evaluate the load balancer's target health. With no healthy target the main record is no longer eligible, so Route 53 answers with the next best region. It took {took:.0f} seconds here.")
+    kube("main", "-n", "shop", "scale", "deployment/web", "--replicas=6")
+    t1 = time.time()
+    back = wait_for(lambda: pod("main", "shop", "dig +short app.ds05.internal")[1].split() and all(a.startswith("10.60.") for a in pod("main", "shop", "dig +short app.ds05.internal")[1].split()), 420, 8)
+    show(sc, "kubectl -n shop scale deployment/web --replicas=6   # restore; then dig again", f"the nearest region is answered again after {time.time() - t1:.0f} seconds" if back else "(not restored in time)")
+    sc.expect("when its pods are healthy again, the region is answered again", bool(back), "Nothing was changed in DNS: the health of the load balancer's targets is what the record follows.")
+    wait_for(lambda: kj("main", "-n", "shop", "get", "deployment", "web")["status"].get("readyReplicas") == 6, 120, 3)
+    # d) in-cluster: the zone
+    mine, base, n1 = zone_spread("main")
+    show(sc, "curl http://web.shop.svc/ x 60 from a pod in " + mine + "   # a plain Service: any pod, any zone", ", ".join(f"{z}: {c}" for z, c in sorted(base.items())))
+    kube("main", "-n", "shop", "patch", "service", "web", "--type", "merge", "-p", '{"spec":{"trafficDistribution":"PreferClose"}}')
+    time.sleep(15)
+    mine, close, n2 = zone_spread("main")
+    show(sc, "kubectl -n shop patch service web -p '{\"spec\":{\"trafficDistribution\":\"PreferClose\"}}' ; the same 60 calls", ", ".join(f"{z}: {c}" for z, c in sorted(close.items())))
+    sc.expect("a plain Service spreads calls over all three zones, a PreferClose Service keeps them in the caller's zone", n1 >= 55 and n2 >= 55 and len(base) == 3 and base.get(mine, 0) < 0.8 * n1 and close.get(mine, 0) >= 0.95 * n2,
+              f"The same-zone share went from {100 * base.get(mine, 0) // max(n1, 1)}% to {100 * close.get(mine, 0) // max(n2, 1)}%. Each cross-zone call is data that is paid for twice (S10).")
+    zones = pod_zones("main")
+    mine_pods = [p for p, z in zones.items() if z == mine]
+    ips = {p["metadata"]["name"]: p["status"]["podIP"] for p in kj("main", "-n", "shop", "get", "pods", "-l", "app=web")["items"]}
+    for p in mine_pods:
+        pod("main", "shop", f"curl -s -m 3 -X POST -d 500 http://{ips[p]}/health >/dev/null")
+    time.sleep(15)
+    mine, fail, n3 = zone_spread("main")
+    show(sc, f"make every web pod in {mine} fail its readiness check ({len(mine_pods)} pods), then the same 60 calls", ", ".join(f"{z}: {c}" for z, c in sorted(fail.items())) + f"   ({n3} of 60 answered)")
+    for p in mine_pods:
+        pod("main", "shop", f"curl -s -m 3 -X POST -d 200 http://{ips[p]}/health >/dev/null")
+    sc.expect("when the local zone has no ready pod, calls still succeed from the other zones", n3 >= 55 and fail.get(mine, 0) == 0, "PreferClose is a preference. With no ready endpoint in the zone, the Service routes to endpoints in the others.")
+    kube("main", "-n", "shop", "patch", "service", "web", "--type", "merge", "-p", '{"spec":{"trafficDistribution":null}}')
+    # e) draining
+    alb = albs["main"]
+
+    def load(seconds, retry=False):
+        r = "--retry 3 --retry-all-errors --retry-delay 0 " if retry else ""
+        return host_start("shared-main", f"n=0; end=$((SECONDS+{seconds})); : > /tmp/bad; while [ $SECONDS -lt $end ]; do c=$(curl -s -o /dev/null -m 2 {r}-w '%{{http_code}}' http://{alb}/); n=$((n+1)); [ \"$c\" = 200 ] || echo \"$(date +%s) $c\" >> /tmp/bad; done; echo \"requests $n\"; echo \"failed $(wc -l < /tmp/bad)\"; cat /tmp/bad | awk '{{print $2}}' | sort | uniq -c | tr '\\n' ' '", seconds + 60)
+
+    def summary(out):
+        n = int(re.search(r"requests (\d+)", out).group(1))
+        f = int(re.search(r"failed (\d+)", out).group(1))
+        return n, f, out.splitlines()[-1].strip() if out.splitlines() else ""
+    wait_for(lambda: kj("main", "-n", "shop", "get", "deployment", "web")["status"].get("readyReplicas") == 6, 240, 3)
+    h = load(45)
+    out0 = host_finish(h, 200)
+    n0, f0, _ = summary(out0)
+    h = load(75)
+    time.sleep(10)
+    kube("main", "-n", "shop", "scale", "deployment/web", "--replicas=8")
+    time.sleep(50)
+    out1 = host_finish(h, 200)
+    n1, f1, _ = summary(out1)
+    wait_for(lambda: kj("main", "-n", "shop", "get", "deployment", "web")["status"].get("readyReplicas") == 8, 240, 3)
+    h = load(75)
+    time.sleep(10)
+    kube("main", "-n", "shop", "scale", "deployment/web", "--replicas=6")
+    time.sleep(55)
+    out2 = host_finish(h, 200)
+    n2, f2, kinds2 = summary(out2)
+    wait_for(lambda: kj("main", "-n", "shop", "get", "deployment", "web")["status"].get("readyReplicas") == 6, 240, 3)
+    h = load(75, retry=True)
+    time.sleep(10)
+    kube("main", "-n", "shop", "scale", "deployment/web", "--replicas=8")
+    time.sleep(25)
+    kube("main", "-n", "shop", "scale", "deployment/web", "--replicas=6")
+    time.sleep(35)
+    out3 = host_finish(h, 200)
+    n3, f3, _ = summary(out3)
+    show(sc, "a steady stream of calls to the load balancer from the shared host, while pods come and go (readiness gates on, preStop 45 s, load balancer delay 30 s)",
+         f"no change:                {n0:6d} calls, {f0} failed\n6 -> 8 pods:               {n1:6d} calls, {f1} failed\n8 -> 6 pods (two removed): {n2:6d} calls, {f2} failed ({kinds2})\nsame, caller retries:     {n3:6d} calls, {f3} failed")
+    sc.expect("with no change and when pods are added, no call fails", f0 == 0 and f1 == 0, "Adding a pod does not disturb the others: the load balancer sends to a new address only when it is healthy, and the readiness gate holds the pod back until then.")
+    sc.expect("when two pods are removed, a few calls fail in the first seconds, in a number that is a small fraction of all calls", 0 < f2 < 0.01 * n2,
+              "I could not remove these errors with the settings the design names (a drain delay shorter than the grace period, a pre-stop pause that outlasts the delay, readiness gates). They come at the moment a pod is told to stop, as 502 answers and connection time-outs. I did not find the cause.")
+    sc.expect("a caller that retries an idempotent request loses none", f3 == 0, "The remaining protection is on the client side: a short retry for requests that can be repeated.")
+    return sc
+
+
+# --------------------------------------------------------------------------------------------------------------
+# S08  isolation in layers
+# --------------------------------------------------------------------------------------------------------------
+def apply_yaml(ctx, doc):
+    p = subprocess.run([KUBECTL, "--context", ctx, "apply", "-f", "-"], input=json.dumps(doc), text=True, capture_output=True, env=ENV)
+    return p.returncode == 0, (p.stdout + p.stderr).strip()
+
+
+def cnp(name, tier, priority, subject, ingress=None, egress=None):
+    spec = {"tier": tier, "priority": priority, "subject": subject}
+    if ingress:
+        spec["ingress"] = ingress
+    if egress:
+        spec["egress"] = egress
+    return {"apiVersion": "networking.k8s.aws/v1alpha1", "kind": "ClusterNetworkPolicy", "metadata": {"name": name}, "spec": spec}
+
+
+def ns_sel(name):
+    return {"namespaces": {"matchLabels": {"kubernetes.io/metadata.name": name}}}
+
+
+def can(ctx, ns, url, seconds=3):
+    """True when a call from the probe pod of a namespace succeeds."""
+    rc, out = pod(ctx, ns, f"curl -s -m {seconds} -o /dev/null -w '%{{http_code}}' {url}; true")
+    return out.strip().endswith("200")
+
+
+def settle(fn, want, seconds=60):
+    """Policies reach the nodes within seconds; wait until a check shows the wanted answer, and return it."""
+    end = time.time() + seconds
+    v = fn()
+    while v != want and time.time() < end:
+        time.sleep(3)
+        v = fn()
+    return v
+
+
+def s08_isolation():
+    sc = Scenario("S08", "Isolation in layers: guardrails the namespaces cannot override", "Network isolation in layers",
+                  "Try the paths that must fail. Start with a cluster where everything can talk to everything, add the cluster-wide guardrails one at a time, and show that a team's own policy can open what the guardrails leave to it and cannot open what they forbid.")
+    ctx = "main"
+    LEDGER = "http://ledger.payments.svc/"
+    WEB = "http://web.shop.svc/"
+    IMDS = "http://169.254.169.254/latest/meta-data/"
+    created = []
+
+    def put(doc, label):
+        ok, msg = apply_yaml(ctx, doc)
+        created.append((doc["kind"], doc["metadata"].get("namespace"), doc["metadata"]["name"]))
+        show(sc, f"kubectl apply -f {doc['metadata']['name']}.yaml   # {label}", msg or "applied")
+        return ok
+
+    def matrix(title):
+        rows = {
+            "dev -> payments ledger": can(ctx, "dev", LEDGER),
+            "shop -> payments ledger": can(ctx, "shop", LEDGER),
+            "monitoring -> payments ledger": can(ctx, "monitoring", LEDGER),
+            "dev -> shop web": can(ctx, "dev", WEB),
+            "any pod -> instance metadata": can(ctx, "dev", IMDS + "instance-id") or (pod(ctx, "dev", "curl -s -m 3 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 5' http://169.254.169.254/latest/api/token | wc -c")[1].strip() not in ("0", "")),
+        }
+        show(sc, f"the paths that must fail, and the ones that must work   # {title}", "\n".join(f"{k:32s} {'open' if v else 'blocked'}" for k, v in rows.items()))
+        return rows
+    try:
+        base = matrix("no policy at all")
+        sc.expect("with no policy, every path is open, including the instance metadata service", all(base.values()),
+                  "A cluster without policies allows everything. The metadata service answers a pod because the node's metadata hop limit is 2, which containers need for some SDKs and which also lets a compromised pod ask for the node's credentials.")
+        # layer: admin guardrails
+        put(cnp("admin-no-imds", "Admin", 5, {"namespaces": {}}, egress=[{"name": "deny-imds", "action": "Deny", "to": [{"networks": ["169.254.169.254/32"]}]}]),
+            "Admin tier: no pod may reach the instance metadata service")
+        put(cnp("admin-protect-payments", "Admin", 10, ns_sel("payments"),
+                ingress=[{"name": "deny-everyone-else", "action": "Deny",
+                          "from": [{"namespaces": {"matchExpressions": [{"key": "kubernetes.io/metadata.name", "operator": "NotIn", "values": ["shop", "monitoring", "payments"]}]}}]}]),
+            "Admin tier: payments refuses every namespace except shop, monitoring and itself")
+        guard = None
+
+        def probe_state():
+            return (can(ctx, "dev", LEDGER), can(ctx, "shop", LEDGER))
+        settle(probe_state, (False, True), 90)
+        guard = matrix("with the two Admin guardrails")
+        sc.expect("the guardrails close the two paths and leave the allowed ones open", not guard["dev -> payments ledger"] and guard["shop -> payments ledger"] and guard["monitoring -> payments ledger"] and guard["dev -> shop web"] and not guard["any pod -> instance metadata"],
+                  "Admin policies are evaluated first. A Deny wins over any Accept, whatever the order, so the exception for shop and monitoring is written into the Deny itself (everyone except these). A pod in dev cannot reach payments and no pod reaches the metadata service, while shop and monitoring still reach the ledger.")
+        # a team cannot override
+        put({"apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "let-dev-in", "namespace": "payments"},
+             "spec": {"podSelector": {}, "policyTypes": ["Ingress"], "ingress": [{"from": [{"namespaceSelector": {"matchLabels": {"kubernetes.io/metadata.name": "dev"}}}]}]}},
+            "the payments team writes a NetworkPolicy that lets dev in")
+        time.sleep(20)
+        still = can(ctx, "dev", LEDGER)
+        show(sc, "dev -> payments ledger, after the team's own policy", "open" if still else "blocked")
+        sc.expect("a namespace's own policy cannot open what an Admin policy denies", not still, "The Admin tier is above the namespace tier. The team can only restrict further what the guardrails leave open.")
+        # baseline: a default that a team can override
+        put(cnp("baseline-deny-dev", "Baseline", 100, ns_sel("shop"), ingress=[{"name": "deny-dev", "action": "Deny", "from": [ns_sel("dev")]}]),
+            "Baseline tier: shop refuses calls from dev unless its team says otherwise")
+        settle(lambda: can(ctx, "dev", WEB), False, 90)
+        b1 = can(ctx, "dev", WEB)
+        allow_dev = {"apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "allow-dev", "namespace": "shop"},
+                     "spec": {"podSelector": {"matchLabels": {"app": "web"}}, "policyTypes": ["Ingress"],
+                              "ingress": [{"from": [{"namespaceSelector": {"matchLabels": {"kubernetes.io/metadata.name": "dev"}}}, {"ipBlock": {"cidr": "10.60.0.0/16"}}]}]}}
+        put(allow_dev, "the shop team opens web to dev, and to the load balancer's addresses, with a NetworkPolicy")
+        b2 = settle(lambda: can(ctx, "dev", WEB), True, 90)
+        show(sc, "dev -> shop web", f"with the Baseline deny naming dev: {'open' if b1 else 'blocked'}\nafter the shop team's NetworkPolicy: {'open' if b2 else 'blocked'}")
+        sc.expect("a Baseline deny closes dev to shop, and the shop team's own policy opens it again", not b1 and b2,
+                  "The Baseline tier is below the namespace tier. It sets the default posture, and a NetworkPolicy of the owning team overrides it for exactly what the team allows.")
+        kube(ctx, "delete", "clusternetworkpolicy", "baseline-deny-dev")
+        # the form in the design's own example: deny from every namespace
+        put(cnp("baseline-default-deny", "Baseline", 100, {"namespaces": {}}, ingress=[{"name": "deny-all-pods", "action": "Deny", "from": [{"namespaces": {"matchLabels": {}}}]}]),
+            "Baseline tier, the form in the design's example: every namespace refuses calls from every namespace")
+        allow_all = json.loads(json.dumps(allow_dev))
+        allow_all["metadata"]["name"] = "allow-everyone"
+        allow_all["spec"]["ingress"] = [{"from": [{"namespaceSelector": {}}, {"ipBlock": {"cidr": "10.60.0.0/16"}}]}]
+        put(allow_all, "the shop team admits every namespace with a NetworkPolicy")
+        time.sleep(60)
+        c1, c2 = can(ctx, "dev", WEB), can(ctx, "shop", WEB)
+        show(sc, "dev -> shop web ; shop -> shop web   # after 60 seconds", f"dev: {'open' if c1 else 'blocked'}\nshop (its own namespace): {'open' if c2 else 'blocked'}")
+        sc.expect("finding: a Baseline deny that names every namespace was NOT overridden by a NetworkPolicy, not even inside the namespace's own",
+                  not c1 and not c2,
+                  "The same deny naming one namespace was overridden (above). With an all-namespaces peer, the NetworkPolicy had no effect in this cluster (VPC CNI add-on 1.22.4). I did not find the cause. The design's example uses this form for its zero-trust default, so treat it as untested for exceptions.")
+        kube(ctx, "delete", "clusternetworkpolicy", "baseline-default-deny")
+        kube(ctx, "-n", "shop", "delete", "networkpolicy", "allow-everyone")
+        # traffic from outside the cluster is not pod-to-pod
+        albs = tf_out("30-platform", "albs")
+        code, out = host("shared-main", f"curl -s -m 4 -o /dev/null -w '%{{http_code}}' http://{albs['main']}/health; true")
+        show(sc, "[shared-main] curl http://<production load balancer>/health   # traffic from outside the cluster, with every policy in place", f"HTTP {out.strip()}")
+        sc.expect("the policies, written for pod-to-pod traffic, do not cut the load balancer's traffic", out.strip().endswith("200"), "Namespace selectors match pods. The load balancer's address is in the VPC, so it is governed by the security group layer (S04), not by these policies.")
+    finally:
+        for kind, ns, name in created:
+            kube(ctx, *(["-n", ns] if ns else []), "delete", kind.lower(), name, "--ignore-not-found")
+    # the second cluster: names, not addresses
+    ctx2 = "second"
+    check = lambda url: can(ctx2, "dev", url, 4)
+    open1 = (check("https://checkip.amazonaws.com"), check("https://aws.amazon.com"))
+    show(sc, "[second/dev] curl https://checkip.amazonaws.com ; curl https://aws.amazon.com   # no policy yet", "checkip.amazonaws.com: " + ("open" if open1[0] else "blocked") + "\naws.amazon.com: " + ("open" if open1[1] else "blocked"))
+    fq = {"apiVersion": "cilium.io/v2", "kind": "CiliumNetworkPolicy", "metadata": {"name": "egress-by-name", "namespace": "dev"},
+          "spec": {"endpointSelector": {}, "egress": [
+              {"toEndpoints": [{"matchLabels": {"k8s:io.kubernetes.pod.namespace": "kube-system", "k8s-app": "kube-dns"}}], "toPorts": [{"ports": [{"port": "53", "protocol": "ANY"}], "rules": {"dns": [{"matchPattern": "*"}]}}]},
+              {"toFQDNs": [{"matchName": "checkip.amazonaws.com"}], "toPorts": [{"ports": [{"port": "443", "protocol": "TCP"}]}]}]}}
+    ok, msg = apply_yaml(ctx2, fq)
+    show(sc, "kubectl --context second apply -f egress-by-name.yaml   # Cilium: dev may use the DNS service and one domain name, nothing else", msg or "applied")
+    try:
+        r = settle(lambda: (check("https://checkip.amazonaws.com"), check("https://aws.amazon.com")), (True, False), 90)
+        show(sc, "[second/dev] the same two calls, with the policy", "checkip.amazonaws.com: " + ("open" if r[0] else "blocked") + "\naws.amazon.com: " + ("open" if r[1] else "blocked"))
+        rc, cache = kube(ctx2, "-n", "kube-system", "exec", "ds/cilium", "--", "cilium-dbg", "fqdn", "cache", "list")
+        show(sc, "kubectl -n kube-system exec ds/cilium -- cilium-dbg fqdn cache list   # what the name resolved to", "\n".join(cache.splitlines()[:8]))
+        sc.expect("a pod may reach the one domain its policy names and no other", open1[0] and open1[1] and r == (True, False),
+                  "Cilium watches the pod's DNS answers and allows only the addresses that the named domain resolves to. The rule is written with a name, so it keeps working when the addresses change.")
+    finally:
+        kube(ctx2, "-n", "dev", "delete", "ciliumnetworkpolicy", "egress-by-name", "--ignore-not-found")
+    return sc
+
+
+# --------------------------------------------------------------------------------------------------------------
+# S09  DNS across clusters and the data center
+# --------------------------------------------------------------------------------------------------------------
+DNS_COUNT = "curl -s 169.254.20.10:9253/metrics | grep '^coredns_dns_requests_total' | grep 'server=\"dns://172.20.0.10:53\"' | awk '{s+=$2} END {print s+0}'"
+
+
+def s09_dns():
+    sc = Scenario("S09", "DNS across clusters and the data center", "DNS across clouds and clusters",
+                  "Resolve one name from every kind of place: a pod, a VPC that shares the private zone, a VPC that does not, and the data center's own DNS server. Then count what a pod's resolver does for one lookup.")
+    V = vpcs()
+    dns = tf_out("10-network", "dns")
+    name_in = "registry.ds05.internal"
+    name_dc = "registry.corp.dc.test"
+    shared_ip, dc_ip = V["shared-main"]["ip"], V["hybrid-second"]["ip"]
+    rows = []
+
+    def ask(label, where, cmd):
+        if where[0] == "pod":
+            code, out = pod(where[1], where[2], cmd)
+        else:
+            code, out = host(where[1], cmd)
+        a = out.strip().splitlines()[0] if out.strip() else ""
+        rows.append((label, a or "(no answer)"))
+        return a
+    r = {}
+    r["pod_main_in"] = ask(f"pod in {MAIN}      {name_in}", ("pod", "main", "shop"), f"dig +short {name_in}")
+    r["pod_second_in"] = ask(f"pod in {SECOND}   {name_in}", ("pod", "second", "shop"), f"dig +short {name_in}")
+    r["nonprod_in"] = ask(f"nonprod host     {name_in}", ("host", "nonprod-main"), f"dig +short {name_in}")
+    r["legacy_in"] = ask(f"legacy host      {name_in}", ("host", "legacy-main"), f"dig +short {name_in}")
+    r["dc_vpc_in"] = ask(f"data center host, VPC resolver   {name_in}", ("host", "hybrid-second"), f"dig +short {name_in}")
+    r["dc_dns_in"] = ask(f"data center host, its own DNS    {name_in}", ("host", "hybrid-second"), f"dig +short @127.0.0.1 {name_in}")
+    show(sc, f"dig +short {name_in}   # a name in the private zone, from six places", "\n".join(f"{l:50s} {a}" for l, a in rows))
+    sc.expect("the private zone answers every VPC it is associated with, in both regions", r["pod_main_in"] == shared_ip and r["pod_second_in"] == shared_ip and r["nonprod_in"] == shared_ip,
+              "The zone is associated with prod-main, prod-second, nonprod-main and shared-main. The VPC resolver of an associated VPC answers from the zone, whatever the region.")
+    sc.expect("a VPC that is not associated, the legacy one and the data center's, does not get an answer from its own resolver", r["legacy_in"] in ("", "(no answer)") and r["dc_vpc_in"] in ("", "(no answer)"),
+              "Naming is per VPC. Routing to the registry can work and the name still not resolve.")
+    sc.expect("the data center's own DNS server resolves it, by forwarding to the inbound resolver endpoint", r["dc_dns_in"] == shared_ip,
+              "The data center's server forwards the zone ds05.internal to the two addresses of the inbound endpoint, which asks the VPC resolver of the shared VPC.")
+    code, log = run_host(sc, "hybrid-second", f"grep -E 'forwarded {name_in}|query.A. {name_in}' /var/log/dnsmasq.log | tail -2", display="[hybrid-second] the data center DNS server's log for that lookup")
+    sc.expect("its log shows the question going to the inbound endpoint's addresses", any(ip in log for ip in dns["inbound_ips"]), "The addresses in the log are the endpoint's two network interfaces, in the shared VPC, reached across the core network.")
+    # the other direction
+    rows.clear()
+    r["pod_main_dc"] = ask(f"pod in {MAIN}      {name_dc}", ("pod", "main", "shop"), f"dig +short {name_dc}")
+    r["pod_second_dc"] = ask(f"pod in {SECOND}   {name_dc}", ("pod", "second", "shop"), f"dig +short {name_dc}")
+    r["shared_dc"] = ask(f"shared host      {name_dc}", ("host", "shared-main"), f"dig +short {name_dc}")
+    r["nonprod_dc"] = ask(f"nonprod host     {name_dc}", ("host", "nonprod-main"), f"dig +short {name_dc}")
+    show(sc, f"dig +short {name_dc}   # a name only the data center knows, from four places", "\n".join(f"{l:50s} {a}" for l, a in rows))
+    sc.expect("pods in both regions and the shared host resolve the data center's name through a forwarding rule", r["pod_main_dc"] == dc_ip and r["pod_second_dc"] == dc_ip and r["shared_dc"] == dc_ip,
+              "A resolver rule for corp.dc.test forwards to the data center's DNS server through an outbound endpoint. There is one endpoint and one rule in each region, because rules are regional.")
+    sc.expect("a VPC that the rule is not associated with does not resolve it", r["nonprod_dc"] in ("", "(no answer)"), "The rule is associated with prod-main, prod-second and shared-main, and with no other VPC.")
+    code, log = run_host(sc, "hybrid-second", f"grep 'query.A. {name_dc}' /var/log/dnsmasq.log | tail -3", display="[hybrid-second] the data center DNS server's log: who asked?")
+    out_ips = [i["Ip"] for ep in awsj("route53resolver", "list-resolver-endpoints", region=MAIN)["ResolverEndpoints"] if ep["Direction"] == "OUTBOUND"
+               for i in awsj("route53resolver", "list-resolver-endpoint-ip-addresses", "--resolver-endpoint-id", ep["Id"], region=MAIN)["IpAddresses"]]
+    out_ips += [i["Ip"] for ep in awsj("route53resolver", "list-resolver-endpoints", region=SECOND)["ResolverEndpoints"] if ep["Direction"] == "OUTBOUND"
+                for i in awsj("route53resolver", "list-resolver-endpoint-ip-addresses", "--resolver-endpoint-id", ep["Id"], region=SECOND)["IpAddresses"]]
+    show(sc, "aws route53resolver list-resolver-endpoint-ip-addresses   # the outbound endpoints' addresses", ", ".join(sorted(out_ips)))
+    sc.expect("the questions came from the outbound endpoints' addresses, not from the pods or the hosts", bool(re.findall(r"from ([\d.]+)", log)) and all(ip in out_ips for ip in re.findall(r"from ([\d.]+)", log)),
+              "The data center sees one small set of addresses, which is what its firewall rules and its DNS logs can be written against.")
+    # the cache and the search list
+    rc, ds = kube("main", "-n", "kube-system", "get", "daemonset", "node-local-dns", "-o", "jsonpath={.status.desiredNumberScheduled} {.status.numberReady}")
+    nodes_n = len(kj("main", "get", "nodes")["items"])
+    show(sc, "kubectl -n kube-system get daemonset node-local-dns   # one cache on every node", f"desired / ready: {ds}   nodes: {nodes_n}")
+    d, rdy = [int(x) for x in ds.split()]
+    sc.expect("a DNS cache runs on every node", d == nodes_n == rdy, "A pod's resolver address, the cluster DNS service, is answered by the cache on its own node. A lookup that is cached never leaves the node.")
+    code, rs = pod("main", "shop", "cat /etc/resolv.conf")
+    show(sc, "[main/shop] cat /etc/resolv.conf", rs)
+
+    def questions(run):
+        """Count the DNS questions a pod sends for one lookup, by listening on the pod's own network interface while it looks the name up."""
+        script = ("(timeout 6 tcpdump -n -i any udp dst port 53 > /tmp/q.txt 2>/dev/null &) ; sleep 1.5; " + run + " >/dev/null 2>&1; sleep 1.5; pkill tcpdump; sleep 0.5; grep -o ' A? [^ ]*' /tmp/q.txt | sort -u | wc -l")
+        return script
+    def n_questions(run, where):
+        if where == "shop":
+            rc, out = pod("main", "shop", questions(run))
+        else:
+            rc, out = kube("main", "-n", "dev", "exec", where, "--", "sh", "-c", questions(run))
+        return int(out.strip().splitlines()[-1])
+    n_default = n_questions(f"getent ahostsv4 {name_dc}", "shop")
+    n_dot = n_questions(f"getent ahostsv4 {name_dc}.", "shop")
+    show(sc, "tcpdump in the pod while it looks up a name   # how many DNS questions does one lookup send?",
+         f"getent ahostsv4 {name_dc}    -> {n_default} questions\ngetent ahostsv4 {name_dc}.   -> {n_dot} question (the name written with its final dot)")
+    kube("main", "-n", "dev", "delete", "pod", "ndots1", "--ignore-not-found", "--wait=true")
+    apply_yaml("main", {"apiVersion": "v1", "kind": "Pod", "metadata": {"name": "ndots1", "namespace": "dev"},
+                        "spec": {"dnsConfig": {"options": [{"name": "ndots", "value": "1"}]}, "containers": [{"name": "c", "image": "nicolaka/netshoot:v0.13", "command": ["sleep", "600"]}]}})
+    kube("main", "-n", "dev", "wait", "--for=condition=Ready", "pod/ndots1", "--timeout=120s")
+    n_ndots = n_questions(f"getent ahostsv4 {name_dc}", "ndots1")
+    kube("main", "-n", "dev", "delete", "pod", "ndots1", "--wait=false")
+    show(sc, "the same lookup from a pod with ndots 1 in its dnsConfig", f"{n_ndots} question")
+    sc.expect("with the default search list one lookup of a name with two dots costs five questions; ndots 1, or a trailing dot, costs one", n_default == 5 and n_dot == 1 and n_ndots == 1,
+              "A name with fewer dots than ndots (5) is tried first with every search domain added: three cluster domains and the VPC's own, all of which answer 'no such name', and only then as written. For a workload that mostly calls external names, lowering ndots removes four of five questions.")
+    return sc
+
+
+SCENARIOS = {"S01": s01_address_plan, "S02": s02_core_network, "S03": s03_reachability, "S04": s04_pod_addresses, "S05": s05_address_exhaustion, "S06": s06_lattice, "S07": s07_load_balancing, "S08": s08_isolation, "S09": s09_dns}
 
 
 def main():

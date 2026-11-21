@@ -5,6 +5,7 @@ terraform {
     aws     = { source = "hashicorp/aws", version = "~> 6.0" }
     kubectl = { source = "alekc/kubectl", version = "~> 2.1" }
     helm    = { source = "hashicorp/helm", version = "~> 3.0" }
+    http    = { source = "hashicorp/http", version = "~> 3.4" }
   }
 }
 
@@ -109,7 +110,12 @@ resource "kubectl_manifest" "ns" {
   yaml_body = yamlencode({
     apiVersion = "v1"
     kind       = "Namespace"
-    metadata   = { name = each.key, labels = { "pod-security.kubernetes.io/enforce" = "baseline" } }
+    metadata = {
+      name = each.key
+      labels = merge({ "pod-security.kubernetes.io/enforce" = "baseline" },
+      # In shop, a pod is Ready only once the load balancer reports its address healthy (a pod readiness gate).
+      each.key == "shop" ? { "elbv2.k8s.aws/pod-readiness-gate-inject" = "enabled" } : {})
+    }
   })
 }
 
@@ -141,7 +147,7 @@ resource "kubectl_manifest" "web" {
       }
     }
   })
-  depends_on = [kubectl_manifest.ns]
+  depends_on = [kubectl_manifest.ns, helm_release.cilium]
 }
 resource "kubectl_manifest" "web_svc" {
   yaml_body = yamlencode({
@@ -197,7 +203,7 @@ resource "kubectl_manifest" "ledger" {
       }
     }
   })
-  depends_on = [kubectl_manifest.ns]
+  depends_on = [kubectl_manifest.ns, helm_release.cilium]
 }
 resource "kubectl_manifest" "ledger_svc" {
   yaml_body = yamlencode({
@@ -227,7 +233,7 @@ resource "kubectl_manifest" "probe" {
       }
     }
   })
-  depends_on = [kubectl_manifest.ns]
+  depends_on = [kubectl_manifest.ns, helm_release.cilium]
 }
 
 # ---- Cilium, chained behind the VPC CNI (only where asked) ------------------------------------------------------------------

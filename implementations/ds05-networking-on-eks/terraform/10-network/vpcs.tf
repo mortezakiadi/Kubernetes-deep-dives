@@ -74,11 +74,13 @@ module "hybrid_second" {
   # The data center's own DNS server: it answers for corp.dc.test and forwards ds05.internal to the inbound resolver endpoint in AWS.
   host_script      = <<-SCRIPT
     dnf install -y dnsmasq bind-utils
+    # The packaged configuration binds to interfaces at start; bind-dynamic waits for an address, so the server survives a reboot.
+    sed -i 's/^bind-interfaces/#bind-interfaces/' /etc/dnsmasq.conf
     MYIP=$(hostname -I | awk '{print $1}')
     cat > /etc/dnsmasq.d/dc.conf <<CONF
     listen-address=$MYIP
     listen-address=127.0.0.1
-    bind-interfaces
+    bind-dynamic
     no-resolv
     log-queries
     log-facility=/var/log/dnsmasq.log

@@ -308,6 +308,16 @@ resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.host[0].name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+# The caller's own permission to use VPC Lattice. The service's auth policy decides separately who may call it; both must allow (S06).
+resource "aws_iam_role_policy" "lattice_invoke" {
+  count = var.host ? 1 : 0
+  name  = "lattice-invoke"
+  role  = aws_iam_role.host[0].id
+  policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [{ Effect = "Allow", Action = "vpc-lattice-svcs:Invoke", Resource = "*" }]
+  })
+}
 resource "aws_iam_instance_profile" "host" {
   count = var.host ? 1 : 0
   name  = "${var.project}-${var.name}-host"

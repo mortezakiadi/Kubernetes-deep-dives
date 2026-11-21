@@ -116,3 +116,23 @@ def run_pod(sc, ctx, ns, cmd, display=None, timeout=60):
 def reach(url_host, port=8080, path="/whoami", timeout=4):
     """The command a host or pod runs to test whether it can fetch something: prints OK <body> or FAIL <reason>."""
     return (f"out=$(curl -sS -m {timeout} http://{url_host}:{port}{path} 2>&1) && echo \"OK $out\" || echo \"FAIL $(echo $out | tr -d '\\n' | cut -c1-60)\"")
+
+
+def host_start(name, cmd, timeout=300):
+    """Start a command on a host and return a handle; host_finish waits for it."""
+    region = HOST_REGION[name]
+    iid = vpcs()[name]["host"]
+    sent = awsj("ssm", "send-command", "--instance-ids", iid, "--document-name", "AWS-RunShellScript",
+                "--parameters", json.dumps({"commands": [cmd]}), "--timeout-seconds", str(timeout), region=region)
+    return (sent["Command"]["CommandId"], iid, region)
+
+
+def host_finish(handle, timeout=300):
+    cid, iid, region = handle
+    end = time.time() + timeout
+    while time.time() < end:
+        time.sleep(2)
+        inv = awsj("ssm", "get-command-invocation", "--command-id", cid, "--instance-id", iid, region=region)
+        if inv.get("Status") in ("Success", "Failed", "TimedOut", "Cancelled"):
+            return (inv.get("StandardOutputContent", "") + inv.get("StandardErrorContent", "")).strip()
+    return "timed out"
