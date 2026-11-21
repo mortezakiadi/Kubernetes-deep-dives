@@ -779,7 +779,263 @@ def s09_dns():
     return sc
 
 
-SCENARIOS = {"S01": s01_address_plan, "S02": s02_core_network, "S03": s03_reachability, "S04": s04_pod_addresses, "S05": s05_address_exhaustion, "S06": s06_lattice, "S07": s07_load_balancing, "S08": s08_isolation, "S09": s09_dns}
+# --------------------------------------------------------------------------------------------------------------
+# S10  what traffic costs: NAT and the zone
+# --------------------------------------------------------------------------------------------------------------
+def s10_traffic_cost():
+    import boto3, gzip, io, secrets
+    sc = Scenario("S10", "Traffic and cost: keep AWS traffic off the NAT gateway, and stay in the zone", "Cost and traffic engineering",
+                  "Measure two things the bill is made of. First, what a NAT gateway carries when a pod reads from S3 with and without the S3 gateway endpoint. Second, how many bytes between pods cross a zone boundary with a plain Service and with one that prefers the caller's zone.")
+    V = vpcs()
+    session = boto3.Session(profile_name=ENV.get("AWS_PROFILE", "admin"), region_name=MAIN)
+    s3, cw = session.client("s3"), session.client("cloudwatch")
+    bucket = f"{PROJECT}-test-{secrets.token_hex(4)}"
+    s3.create_bucket(Bucket=bucket)
+    flow_id = None
+    ep = awsj("ec2", "describe-vpc-endpoints", "--filters", "Name=vpc-id,Values=" + V["prod-main"]["id"], "Name=service-name,Values=com.amazonaws.us-east-1.s3", region=MAIN)["VpcEndpoints"][0]
+    rtb = ep["RouteTableIds"][0]
+    nat = awsj("ec2", "describe-nat-gateways", "--filter", "Name=tag:Project,Values=" + PROJECT, region=MAIN)["NatGateways"][0]["NatGatewayId"]
+    try:
+        # ---- part 1: S3 through the endpoint, or through the NAT gateway
+        size_mb = 100
+        s3.upload_fileobj(io.BytesIO(b"\0" * (size_mb * 1024 * 1024)), bucket, "blob")
+        url = s3.generate_presigned_url("get_object", Params={"Bucket": bucket, "Key": "blob"}, ExpiresIn=3600)
+        show(sc, "aws s3 cp blob s3://<test bucket>/   # a 100 MB object, and a presigned link to it", f"{size_mb} MB uploaded")
+        routes = awsj("ec2", "describe-route-tables", "--route-table-ids", rtb, region=MAIN)["RouteTables"][0]["Routes"]
+        show(sc, "aws ec2 describe-route-tables   # the cluster VPC's private route table", "\n".join(sorted(f"{r.get('DestinationCidrBlock') or 'S3 prefix list':16s} -> {'S3 gateway endpoint' if str(r.get('GatewayId', '')).startswith('vpce') else ('NAT gateway' if r.get('NatGatewayId') else r.get('GatewayId', r.get('CoreNetworkArn') and 'core network'))}" for r in routes)))
+
+        def download(times=3):
+            t0 = time.time()
+            rc, out = pod("main", "shop", f"for i in $(seq {times}); do curl -s -o /dev/null -w '%{{size_download}} ' '{url}'; done", timeout=300)
+            return t0, time.time(), sum(int(x) for x in out.split() if x.isdigit())
+        a0, a1, abytes = download()
+        show(sc, "[main/shop] curl <presigned link> x 3   # the endpoint's route is in place", f"downloaded {abytes / 1e6:.0f} MB in {a1 - a0:.0f} seconds")
+        time.sleep(75)  # the NAT gateway's counters are per minute: keep the two downloads in different minutes
+        awsj("ec2", "modify-vpc-endpoint", "--vpc-endpoint-id", ep["VpcEndpointId"], "--remove-route-table-ids", rtb, region=MAIN)
+
+        def route_gone():
+            rs = awsj("ec2", "describe-route-tables", "--route-table-ids", rtb, region=MAIN)["RouteTables"][0]["Routes"]
+            return not any(str(r.get("GatewayId", "")).startswith("vpce") for r in rs)
+        wait_for(route_gone, 120, 5)
+        time.sleep(40)
+        b0, b1, bbytes = download()
+        awsj("ec2", "modify-vpc-endpoint", "--vpc-endpoint-id", ep["VpcEndpointId"], "--add-route-table-ids", rtb, region=MAIN)
+        show(sc, "aws ec2 modify-vpc-endpoint --remove-route-table-ids ... ; the same three downloads ; then --add-route-table-ids ...", f"downloaded {bbytes / 1e6:.0f} MB in {b1 - b0:.0f} seconds, with the endpoint's route removed")
+
+        def nat_bytes(t0, t1):
+            lo = int(t0 // 60) * 60
+            r = cw.get_metric_statistics(Namespace="AWS/NATGateway", MetricName="BytesInFromDestination", Dimensions=[{"Name": "NatGatewayId", "Value": nat}],
+                                         StartTime=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(lo - 60)), EndTime=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t1 + 60)), Period=60, Statistics=["Sum"])
+            return sum(d["Sum"] for d in r["Datapoints"] if lo <= d["Timestamp"].timestamp() <= t1)
+        # ---- part 2: bytes between pods, by zone (flow logs of the cluster VPC)
+        flow = awsj("ec2", "create-flow-logs", "--resource-type", "VPC", "--resource-ids", V["prod-main"]["id"], "--traffic-type", "ALL", "--log-destination-type", "s3",
+                    "--log-destination", f"arn:aws:s3:::{bucket}/flow/", "--max-aggregation-interval", "60",
+                    "--log-format", "${srcaddr} ${dstaddr} ${bytes} ${start} ${end} ${flow-direction} ${pkt-srcaddr} ${pkt-dstaddr}", region=MAIN)
+        flow_id = (flow.get("FlowLogIds") or [None])[0]
+        show(sc, "aws ec2 create-flow-logs --resource-type VPC ... --max-aggregation-interval 60   # flow logs of the cluster VPC, to the test bucket", f"flow log {flow_id or flow}")
+        kube("main", "-n", "shop", "patch", "service", "web", "--type", "merge", "-p", '{"spec":{"trafficDistribution":null}}')
+        time.sleep(180)  # a flow log records from the moment it is active, a minute or two after it is created
+        probe = kj("main", "-n", "shop", "get", "pods", "-l", "app=probe")["items"][0]["status"]["podIP"]
+        zones = pod_zones("main")
+        ips = {p["status"]["podIP"]: zones[p["metadata"]["name"]] for p in kj("main", "-n", "shop", "get", "pods", "-l", "app=web")["items"]}
+        nodes = {n["metadata"]["name"]: n["metadata"]["labels"]["topology.kubernetes.io/zone"] for n in kj("main", "get", "nodes")["items"]}
+        mine = nodes[kj("main", "-n", "shop", "get", "pods", "-l", "app=probe")["items"][0]["spec"]["nodeName"]]
+
+        def bulk():
+            t0 = time.time()
+            pod("main", "shop", "for i in $(seq 30); do curl -s -o /dev/null 'http://web.shop.svc/data?size=5&unit=MB'; done", timeout=300)
+            return t0, time.time()
+        p0, p1 = bulk()
+        kube("main", "-n", "shop", "patch", "service", "web", "--type", "merge", "-p", '{"spec":{"trafficDistribution":"PreferClose"}}')
+        time.sleep(150)  # flow logs are written in one-minute bins: keep the two experiments out of the same bin
+        q0, q1 = bulk()
+        kube("main", "-n", "shop", "patch", "service", "web", "--type", "merge", "-p", '{"spec":{"trafficDistribution":null}}')
+        show(sc, f"[main/shop probe in {mine}] fetch 30 x 5 MB from the web service, with a plain Service, then with PreferClose", f"150 MB each time; windows {p1 - p0:.0f} s and {q1 - q0:.0f} s")
+
+        seen = {"files": 0, "records": 0}
+
+        def flow_bytes(t0, t1):
+            """Bytes sent by web pods on other nodes to the probe, by the zone of the sending pod, from the flow-log records written at the sender (traffic between two pods on one node never reaches a network interface, so no flow log sees it)."""
+            got = {}
+            seen["files"] = seen["records"] = 0
+            for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix="flow/"):
+                for o in page.get("Contents", []):
+                    body = gzip.decompress(s3.get_object(Bucket=bucket, Key=o["Key"])["Body"].read()).decode().splitlines()[1:]
+                    seen["files"] += 1
+                    for line in body:
+                        f = line.split()
+                        seen["records"] += 1
+                        if len(f) < 8 or f[5] != "egress" or f[7] != probe or f[6] not in ips:
+                            continue
+                        if t0 - 65 <= int(f[3]) <= t1 + 5:
+                            got[ips[f[6]]] = got.get(ips[f[6]], 0) + int(f[2])
+            return got
+        # wait for the logs
+        def ready():
+            a, b = flow_bytes(p0, p1), flow_bytes(q0, q1)
+            return (a, b) if sum(a.values()) > 40e6 and sum(b.values()) > 40e6 else None
+        wait_for(ready, 900, 30)
+        time.sleep(90)
+        a, b = flow_bytes(p0, p1), flow_bytes(q0, q1)
+        # the NAT gateway's own counters take a few minutes more to appear
+        def nat_ready():
+            x, y = nat_bytes(a0, a1), nat_bytes(b0, b1)
+            return (x, y) if y > 0.5 * bbytes else None
+        nb = wait_for(nat_ready, 600, 30) or (nat_bytes(a0, a1), nat_bytes(b0, b1))
+        show(sc, "CloudWatch AWS/NATGateway BytesInFromDestination   # bytes the NAT gateway received from the internet, in each download window",
+             f"with the S3 endpoint route:    {nb[0] / 1e6:8.1f} MB   (the pod downloaded {abytes / 1e6:.0f} MB)\nwithout the S3 endpoint route: {nb[1] / 1e6:8.1f} MB   (the pod downloaded {bbytes / 1e6:.0f} MB)")
+        sc.expect("with the endpoint's route, S3 traffic stays off the NAT gateway; without it, nearly all of it goes through", nb[0] < 0.1 * abytes and nb[1] > 0.8 * bbytes and abytes > 250e6 and bbytes > 250e6,
+                  "A gateway endpoint adds a more specific route (the S3 prefix list) to the route table, so the traffic leaves the VPC through the endpoint, which has no hourly or per-gigabyte charge. Without that route, the same bytes take the default route to the NAT gateway, which charges for every gigabyte it processes.")
+
+        def share(d):
+            tot = sum(d.values()) or 1
+            return {z: 100 * v / tot for z, v in d.items()}, 100 * (tot - d.get(mine, 0)) / tot
+        sa, ca = share(a)
+        sb, cb = share(b)
+        show(sc, "VPC flow logs: bytes the web pods on other nodes sent to the probe, by the zone of the sending pod",
+             f"({seen['files']} log files, {seen['records']} records read)\n" +
+             f"plain Service:   " + ", ".join(f"{z}: {v / 1e6:.0f} MB" for z, v in sorted(a.items())) + f"   -> {ca:.0f}% crossed a zone boundary\nPreferClose:     " + ", ".join(f"{z}: {v / 1e6:.0f} MB" for z, v in sorted(b.items())) + f"   -> {cb:.0f}% crossed a zone boundary")
+        sc.expect("with a plain Service most of the bytes cross a zone boundary; with PreferClose almost none do", sum(a.values()) > 40e6 and sum(b.values()) > 40e6 and ca > 40 and cb < 10,
+                  "Cross-zone traffic is billed in both directions. The probe asked for 150 MB twice. Only the bytes that left the node are in a flow log: answers from a pod on the probe's own node never reach a network interface. Of those, a plain Service sent most to other zones; PreferClose kept them in the caller's zone.")
+        sc.expect("the flow log is the evidence for the monthly review: its records carry the sender, receiver and bytes of every flow", sum(a.values()) > 0, "A review of data transfer by source, destination and zone is a query over these records, labelled with the owning team from the pod addresses.")
+    finally:
+        if flow_id:
+            awsj("ec2", "delete-flow-logs", "--flow-log-ids", flow_id, region=MAIN)
+        try:
+            awsj("ec2", "modify-vpc-endpoint", "--vpc-endpoint-id", ep["VpcEndpointId"], "--add-route-table-ids", rtb, region=MAIN)
+        except Exception:
+            pass
+        kube("main", "-n", "shop", "patch", "service", "web", "--type", "merge", "-p", '{"spec":{"trafficDistribution":null}}')
+        try:
+            for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket):
+                for o in page.get("Contents", []):
+                    s3.delete_object(Bucket=bucket, Key=o["Key"])
+            s3.delete_bucket(Bucket=bucket)
+        except Exception:
+            pass
+    return sc
+
+
+# --------------------------------------------------------------------------------------------------------------
+# S11  failure drills
+# --------------------------------------------------------------------------------------------------------------
+def wan(*args):
+    return awsj("networkmanager", *args, region="us-west-2")
+
+
+def s11_failures():
+    sc = Scenario("S11", "Failure drills: a bad network change, a lost zone, a lost cache, a lost DNS server", "Failure modes and operations",
+                  "Do to the network what the design's failure table says can happen to it, and show what the people using it see: a policy change that cuts a path, a zone that disappears under load, the node-local DNS cache that stops, and the data center's DNS server that goes down.")
+    V = vpcs()
+    albs = tf_out("30-platform", "albs")
+    # ---- 1. a bad core network change, previewed, applied, and rolled back
+    cn = wan("list-core-networks")["CoreNetworks"][0]["CoreNetworkId"]
+    live = wan("get-core-network-policy", "--core-network-id", cn, "--alias", "LIVE")["CoreNetworkPolicy"]
+    doc = json.loads(live["PolicyDocument"])
+    bad = json.loads(json.dumps(doc))
+    for act in bad["segment-actions"]:
+        if act.get("action") == "share" and act["segment"] == "shared":
+            act["share-with"] = [x for x in act["share-with"] if x != "hybrid"]
+    new = wan("put-core-network-policy", "--core-network-id", cn, "--policy-document", json.dumps(bad), "--description", "drill: shared stops sharing with hybrid")["CoreNetworkPolicy"]
+    nv = new["PolicyVersionId"]
+    cs = wan("get-core-network-change-set", "--core-network-id", cn, "--policy-version-id", str(nv))
+    for _ in range(30):
+        if cs.get("CoreNetworkChanges"):
+            break
+        time.sleep(5)
+        cs = wan("get-core-network-change-set", "--core-network-id", cn, "--policy-version-id", str(nv))
+    kinds = {}
+    for c in cs.get("CoreNetworkChanges", []):
+        kinds[(c["Type"], c["Action"])] = kinds.get((c["Type"], c["Action"]), 0) + 1
+    show(sc, f"aws networkmanager put-core-network-policy ... ; get-core-network-change-set --policy-version-id {nv}   # the change, as a preview, before anything happens",
+         "\n".join(f"{t:28s} {a:8s} x{n}" for (t, a), n in sorted(kinds.items())) or "(no changes listed)")
+    code, before = run_host(sc, "shared-main", reach(V["hybrid-second"]["ip"], timeout=3), display="[shared-main] curl http://<hybrid host>:8080/whoami   # still open: the change is only a preview")
+    sc.expect("the preview lists the change and nothing is different on the network yet", bool(kinds) and before.startswith("OK"), "A new policy version is validated and turned into a change set, which is not applied until someone executes it. A reviewer reads this list before approving.")
+    t0 = time.time()
+    wan("execute-core-network-change-set", "--core-network-id", cn, "--policy-version-id", str(nv))
+
+    def live_is(v):
+        return int(wan("get-core-network-policy", "--core-network-id", cn, "--alias", "LIVE")["CoreNetworkPolicy"]["PolicyVersionId"]) == v
+    wait_for(lambda: live_is(nv), 1500, 15)
+    cut = wait_for(lambda: (lambda o: o if not o.startswith("OK") else None)(host("shared-main", reach(V["hybrid-second"]["ip"], timeout=3))[1]), 600, 10)
+    took = time.time() - t0
+    show(sc, f"aws networkmanager execute-core-network-change-set --policy-version-id {nv} ; then curl <hybrid host> from shared", f"the path closed {took:.0f} seconds after the change was executed\n{cut}")
+    code, still = run_host(sc, "nonprod-main", reach(V["shared-main"]["ip"], timeout=3), display="[nonprod-main] curl http://<shared host>:8080/whoami   # a path the change did not touch")
+    sc.expect("the change cut exactly the path it said it would, and no other", bool(cut) and still.startswith("OK"), "Only the share between shared and hybrid was removed, so only the routes between those two segments were withdrawn.")
+    t1 = time.time()
+    rest = wan("restore-core-network-policy-version", "--core-network-id", cn, "--policy-version-id", str(int(live["PolicyVersionId"])))["CoreNetworkPolicy"]
+    rv = int(rest["PolicyVersionId"])
+    for _ in range(40):
+        cs2 = wan("get-core-network-change-set", "--core-network-id", cn, "--policy-version-id", str(rv))
+        if cs2.get("CoreNetworkChanges"):
+            break
+        time.sleep(5)
+    wan("execute-core-network-change-set", "--core-network-id", cn, "--policy-version-id", str(rv))
+    wait_for(lambda: live_is(rv), 1500, 15)
+    back = wait_for(lambda: host("shared-main", reach(V["hybrid-second"]["ip"], timeout=3))[1].startswith("OK"), 600, 10)
+    show(sc, f"aws networkmanager restore-core-network-policy-version --policy-version-id {live['PolicyVersionId']} ; execute-core-network-change-set --policy-version-id {rv}   # the rollback",
+         f"the path was open again {time.time() - t1:.0f} seconds after the rollback was started")
+    sc.expect("a rollback is a new version that restores the old policy, and it brings the path back", bool(back), "Every version is kept. Restoring one creates a new version with its content, which is executed like any other change. In Git terms: a revert.")
+    # ---- 2. a zone disappears under load
+    alb = albs["main"]
+    ng = f"{PROJECT}-main-us-east-1a"
+    lg = host_start("shared-main", f"n=0; end=$((SECONDS+200)); : > /tmp/bad; while [ $SECONDS -lt $end ]; do c=$(curl -s -o /dev/null -m 2 -w '%{{http_code}}' http://{alb}/); n=$((n+1)); [ \"$c\" = 200 ] || echo \"$(date +%s) $c\" >> /tmp/bad; done; echo \"requests $n\"; echo \"failed $(wc -l < /tmp/bad)\"; echo \"first $(head -1 /tmp/bad | cut -d' ' -f1) last $(tail -1 /tmp/bad | cut -d' ' -f1)\"", 300)
+    time.sleep(20)
+    lost = time.time()
+    groups_1a = [ng, f"{PROJECT}-main-tiny"]  # both node groups of the zone: the second one is the node group of S05
+    for g in groups_1a:
+        awsj("eks", "update-nodegroup-config", "--cluster-name", f"{PROJECT}-main", "--nodegroup-name", g, "--scaling-config", "minSize=0,maxSize=3,desiredSize=0", region=MAIN)
+    out = host_finish(lg, 300)
+    nreq = int(re.search(r"requests (\d+)", out).group(1))
+    nfail = int(re.search(r"failed (\d+)", out).group(1))
+    m = re.search(r"first (\d+) last (\d+)", out)
+    span = (int(m.group(2)) - int(m.group(1))) if m and m.group(1) else 0
+    wait_for(lambda: kj("main", "-n", "shop", "get", "deployment", "web")["status"].get("readyReplicas") == 6, 300, 5)
+    nodes = [(n["metadata"]["labels"]["topology.kubernetes.io/zone"]) for n in kj("main", "get", "nodes")["items"]]
+    zs = pod_zones("main")
+    show(sc, f"aws eks update-nodegroup-config --nodegroup-name <each node group of us-east-1a> --scaling-config desiredSize=0   # every node of one zone goes away, under a steady stream of calls",
+         f"calls: {nreq}, failed: {nfail}" + (f", failures spread over {span} seconds" if nfail else "") + f"\nnodes left: {', '.join(sorted(set(nodes)))}\nweb pods by zone: " + ", ".join(f"{z}: {list(zs.values()).count(z)}" for z in sorted(set(zs.values()))))
+    sc.expect("a few calls failed while the load balancer noticed, and none after; the six pods are running again in the two zones left", 0 <= nfail < 0.02 * nreq and span < 90 and len(set(zs.values())) == 2 and len(zs) == 6 and "us-east-1a" not in set(zs.values()),
+              "The load balancer's health check (two failures, five seconds apart) removes the lost zone's pods. Kubernetes reschedules the pods into the zones that still have nodes. No one acted.")
+    for g in groups_1a:
+        awsj("eks", "update-nodegroup-config", "--cluster-name", f"{PROJECT}-main", "--nodegroup-name", g, "--scaling-config", "minSize=0,maxSize=3,desiredSize=1", region=MAIN)
+    wait_for(lambda: len([n for n in kj("main", "get", "nodes", "-l", "eniconfig=us-east-1a")["items"] if any(c["type"] == "Ready" and c["status"] == "True" for c in n["status"]["conditions"])]) == 1, 600, 10)
+    kube("main", "-n", "shop", "rollout", "restart", "deployment/web")
+    wait_for(lambda: kj("main", "-n", "shop", "get", "deployment", "web")["status"].get("readyReplicas") == 6, 300, 5)
+    # ---- 3. the node-local DNS cache stops
+    probe = kj("main", "-n", "shop", "get", "pods", "-l", "app=probe")["items"][0]
+    node = probe["spec"]["nodeName"]
+    cachepod = next(p["metadata"]["name"] for p in kj("main", "-n", "kube-system", "get", "pods", "-l", "k8s-app=node-local-dns")["items"] if p["spec"]["nodeName"] == node)
+    loop = subprocess.Popen([KUBECTL, "--context", "main", "-n", "shop", "exec", "deploy/probe", "--", "sh", "-c",
+                             "ok=0; bad=0; end=$(( $(date +%s) + 40 )); while [ $(date +%s) -lt $end ]; do if getent hosts app.ds05.internal >/dev/null 2>&1; then ok=$((ok+1)); else bad=$((bad+1)); fi; sleep 0.1; done; echo \"ok $ok failed $bad\""],
+                            stdout=subprocess.PIPE, text=True, env=ENV)
+    time.sleep(8)
+    kube("main", "-n", "kube-system", "delete", "pod", cachepod, "--grace-period=0", "--force")
+    lo, _ = loop.communicate(timeout=120)
+    m = re.search(r"ok (\d+) failed (\d+)", lo or "")
+    ok, bad_n = (int(m.group(1)), int(m.group(2))) if m else (0, 0)
+    show(sc, f"kubectl -n kube-system delete pod {cachepod} --force   # the DNS cache on one node, while a pod on it looks a name up ten times a second", f"lookups: {ok + bad_n}, failed: {bad_n}")
+    sc.expect("lookups carry on through the loss of the node's cache with at most a few failures", ok > 100 and bad_n <= 0.05 * (ok + bad_n),
+              "When the cache pod stops, its rules for the cluster DNS address go with it, and the same address is then answered by CoreDNS. The cache is an optimization, not a dependency.")
+    wait_for(lambda: kj("main", "-n", "kube-system", "get", "daemonset", "node-local-dns")["status"].get("numberReady") == len(kj("main", "get", "nodes")["items"]), 120, 5)
+    # ---- 4. the data center's DNS server goes down
+    host("hybrid-second", "systemctl stop dnsmasq")
+    time.sleep(3)
+    rows = []
+    for label, name in (("a name only the data center knows", "registry.corp.dc.test"), ("a name in the private zone", "registry.ds05.internal"), ("a public name", "checkip.amazonaws.com")):
+        rc, out = pod("main", "shop", f"dig +time=2 +tries=1 +noall +comments {name} | grep -o 'status: [A-Z]*'")
+        rows.append((label, out.strip() or "no answer"))
+    show(sc, "systemctl stop dnsmasq on the data center's DNS server ; dig from a cluster pod   # the status of three lookups", "\n".join(f"{l:36s} {a}" for l, a in rows))
+    host("hybrid-second", "systemctl start dnsmasq")
+    time.sleep(5)
+    rc, after = pod("main", "shop", "dig +short registry.corp.dc.test")
+    sc.expect("only the name the data center answers for fails; the rest of DNS is untouched", rows[0][1] != "status: NOERROR" and rows[1][1] == "status: NOERROR" and rows[2][1] == "status: NOERROR",
+              "The forwarding rule sends corp.dc.test to the data center and nothing else. The failure is confined to that domain, and the answer is an error, not a hang of the cluster's DNS.")
+    sc.expect("when the server is back, the name resolves again without any change in AWS", after.strip() == V["hybrid-second"]["ip"], "The rule still points at the same address.")
+    return sc
+
+
+SCENARIOS = {"S01": s01_address_plan, "S02": s02_core_network, "S03": s03_reachability, "S04": s04_pod_addresses, "S05": s05_address_exhaustion, "S06": s06_lattice, "S07": s07_load_balancing, "S08": s08_isolation, "S09": s09_dns, "S10": s10_traffic_cost, "S11": s11_failures}
 
 
 def main():

@@ -3,7 +3,7 @@
 
     build_writeup.py <evidence-dir> <repo-root>
 
-Writes   <repo-root>/content/appendix/a06-design-05-agent-state.md
+Writes   <repo-root>/content/appendix/a06-design-05-networking.md
 Copies   screenshots to <repo-root>/diagrams/appendix/a06-evidence/ and the diagrams to <repo-root>/diagrams/appendix/
 Every command, output and check result in section 5 comes from the evidence files.
 """
@@ -99,7 +99,7 @@ def main():
         summary.append(f"| {e['id']} | {e['title']} | {sum(c['passed'] for c in e['checks'])} of {len(e['checks'])} |")
     body = "\n".join(scenario_section(e) for e in evs)
     page = head.replace("{{RESULT_SUMMARY}}", f"{passed} of {len(evs)} scenarios passed, {passed_checks} of {total_checks} checks.\n\n" + "\n".join(summary)) + "\n" + body + "\n" + tail
-    out = repo / "content" / "appendix" / "a06-design-05-agent-state.md"
+    out = repo / "content" / "appendix" / "a06-design-05-networking.md"
     out.write_text(page)
     print(f"wrote {out} ({len(page.splitlines())} lines); {passed}/{len(evs)} scenarios, {passed_checks}/{total_checks} checks")
 

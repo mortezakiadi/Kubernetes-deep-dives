@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generates the architecture diagrams for the Design 04 write-up as SVG (same visual language as the design's own pictures).
+"""Generates the architecture diagrams for the Design 05 write-up as SVG (same visual language as the design's own pictures).
 
     make_diagrams.py <output-dir>
 """
@@ -70,69 +70,61 @@ class Svg:
 
 # ------------------------------------------------------------------------------------------------
 def context():
-    s = Svg(1420, 560, "Who starts, steers and fixes a run, and what the platform talks to")
+    s = Svg(1420, 560, "Who uses the network and what it connects")
     s.zone(20, 30, 270, 500, "WHO", GREEN)
-    s.box(40, 70, 230, 110, "Developer", ["files a ticket;", "wants a pull request, not", "a half-finished job"], GREEN)
-    s.box(40, 200, 230, 110, "Reviewer", ["reads the pull request,", "comments, approves; may", "take the whole weekend"], GREEN)
-    s.box(40, 330, 230, 120, "On-call engineer", ["pauses runs during an", "incident, rewinds or forks one,", "ships new agent code"], GREEN)
-    s.zone(320, 30, 760, 500, "THE PLATFORM (EKS)", AMBER)
-    s.box(340, 70, 220, 90, "Session API", ["start, signal, rewind, fork,", "timeline, bulk operations"], BLUE)
-    s.box(590, 70, 470, 90, "Durable execution engine (Temporal) + database", ["one workflow per run; its event history is the source of truth;", "timers, retries, signals; no state in any worker"], AMBER)
-    s.box(340, 190, 220, 110, "Agent workers", ["stateless; any worker can", "continue any run; scale on the", "engine's task backlog"], BLUE)
-    s.box(590, 190, 220, 110, "Model gateway", ["retries, fallback, token", "budget per run, a record of", "every call"], BLUE)
-    s.box(840, 190, 220, 110, "Tool gateway + ledger", ["classes, idempotency keys,", "look-before-you-leap,", "undo (compensation)"], BLUE)
-    s.box(340, 330, 220, 110, "Sandbox manager", ["one sandbox pod per run,", "started from the last", "snapshot"], BLUE)
-    s.box(590, 330, 470, 110, "State stores", ["session database: context log, summaries, snapshots index, ledger", "object storage: workspace snapshots (content-addressed)", "engine database: histories"], GREY)
-    s.box(340, 460, 720, 55, "Every component above is stateless except the three stores", [], GREY, dash=True)
-    s.zone(1110, 30, 290, 500, "OUTSIDE THE PLATFORM", RED)
-    s.box(1130, 70, 250, 110, "Model provider", ["primary and fallback;", "fails for minutes at a time", "(stand-in, scripted)"], RED)
-    s.box(1130, 210, 250, 130, "Git host", ["branches, pull requests,", "comments; can lose its", "answer after acting", "(stand-in)"], RED)
-    s.box(1130, 370, 250, 100, "Object storage (S3)", ["snapshots, one bucket"], GREY)
-    s.arrow([(270, 125), (340, 115)], "flow")
-    s.arrow([(270, 255), (320, 255), (320, 175), (340, 120)], "flow")
-    s.arrow([(270, 390), (320, 390), (320, 130), (340, 105)], "flow")
-    s.arrow([(560, 115), (590, 115)], "flow")
-    s.arrow([(450, 160), (450, 190)], "flow")
-    s.arrow([(560, 245), (590, 245)], "flow")
-    s.arrow([(810, 245), (840, 245)], "flow")
-    s.arrow([(700, 190), (700, 175), (1100, 175), (1130, 130)], "muted")
-    s.arrow([(1060, 245), (1130, 270)], "flow")
-    s.arrow([(450, 300), (450, 330)], "flow")
-    s.arrow([(560, 385), (590, 385)], "muted")
-    s.arrow([(1060, 400), (1130, 410)], "muted")
+    s.box(40, 70, 230, 110, "Network team", ["owns addresses, the core", "network and the policy that", "says who may talk to whom"], GREEN)
+    s.box(40, 200, 230, 110, "Platform team", ["owns the clusters, the pod", "network, DNS and the load", "balancers"], GREEN)
+    s.box(40, 330, 230, 120, "Application teams", ["publish a service, name it,", "say who may call it; never", "write an IP address"], GREEN)
+    s.zone(320, 30, 700, 500, "WHAT THE NETWORK CONNECTS (ONE POLICY, TWO REGIONS)", AMBER)
+    s.box(340, 70, 320, 100, "Production clusters", ["EKS in us-east-1 and eu-west-1", "pods on their own range,", "internal load balancers"], BLUE)
+    s.box(680, 70, 320, 100, "Shared services", ["registry and DNS endpoints", "reachable from prod, non-prod", "and the data center"], BLUE)
+    s.box(340, 190, 320, 100, "Non-production", ["development and test VPCs", "can reach shared services,", "never production"], BLUE)
+    s.box(680, 190, 320, 100, "Data center (stand-in)", ["a VPC with its own DNS", "server: the on-premises racks", "of the design"], BLUE)
+    s.box(340, 310, 320, 100, "Sandbox", ["can reach nothing and be", "reached by nothing"], RED)
+    s.box(680, 310, 320, 100, "Legacy VPC", ["reuses an address range of", "production; not on the core", "network at all"], RED)
+    s.box(340, 430, 660, 80, "The core network, IPAM and the policy are code in Git", ["a change is a pull request, a preview and an apply; a rollback is a revert"], GREY)
+    s.zone(1050, 30, 350, 500, "WHAT IT IS NOT", GREY)
+    s.box(1070, 70, 310, 130, "Not built here", ["a second cloud and its private", "interconnect, Direct Connect,", "hybrid nodes, a service mesh,", "firewall inspection"], GREY, dash=True)
+    s.box(1070, 230, 310, 120, "Built as stand-ins", ["the data center is a VPC with", "an EC2 host that runs a DNS", "server", "the legacy VPC is a plain VPC"], AMBER)
+    s.arrow([(270, 125), (320, 125)], "flow")
+    s.arrow([(270, 255), (320, 255)], "flow")
+    s.arrow([(270, 390), (320, 390)], "flow")
     return s.render()
 
 
 def topology():
-    s = Svg(1420, 720, "One EKS cluster in three zones, a Multi-AZ database, and object storage")
-    s.zone(20, 20, 1380, 680, "AWS ACCOUNT, us-east-1, ONE VPC 10.32.0.0/16", GREY)
-    s.box(50, 70, 330, 140, "EKS Auto Mode cluster", ["ds04-agentstate, Kubernetes 1.37", "API private in the VPC; public only to", "the administrator's /32", "audit logs 3 days"], BLUE)
-    s.box(50, 230, 330, 130, "Managed data services", ["RDS PostgreSQL 16, db.t4g.small, Multi-AZ", "(stands in for Aurora PostgreSQL)", "S3 bucket: workspace snapshots", "ECR repository: the one agent image"], GREY)
-    s.box(50, 380, 330, 150, "Namespaces", ["temporal: the engine (frontend, history,", "matching, worker, web)", "agent-platform: session API, gateways,", "workers, sandbox manager, tester", "sandboxes | external (git host) | monitoring | keda"], AMBER)
-    s.box(50, 550, 330, 130, "Terraform (two layers, local state)", ["10-cluster: VPC, NAT, IAM, cluster, RDS, ECR", "20-platform: namespaces, S3, identities, Helm", "releases, deployments", "account guard; down.sh then verify-clean.sh"], GREY)
-    for i, z in enumerate(["1a", "1b", "1c"]):
-        x = 410 + i * 330
-        s.zone(x, 60, 320, 400, f"us-east-1{z[-1]}", GREY)
-        s.box(x + 10, 100, 300, 60, "Private subnet /20", ["Auto Mode nodes, on demand"], GREEN)
-        s.box(x + 10, 180, 300, 110, "Engine pods", ["frontend, history, matching:", "two replicas each, spread over zones"] if i < 2 else ["(spread over zones when scheduled)"], AMBER)
-        s.box(x + 10, 310, 300, 130, "Workers and gateways", ["workers (2 to 8, KEDA), gateways,", "session API, sandbox manager,", "one sandbox pod per run"] if i < 2 else ["(same, as the scheduler places them)"], BLUE)
-    s.box(410, 480, 320, 90, "RDS primary", ["us-east-1a or 1b at any time; a synchronous", "standby in the other"], RED)
-    s.box(740, 480, 320, 90, "RDS standby", ["takes over on failover (S10 forces it)", "the endpoint name does not change"], RED)
-    s.box(1070, 480, 310, 90, "NAT gateway", ["one; image pulls, public APIs"], GREY)
-    s.text(410, 610, "Why Multi-AZ RDS and not Aurora: the same shape for what the tests need (a synchronous standby in another zone,", 12, INK, "700")
-    s.text(410, 630, "one endpoint name that follows the primary), created in about ten minutes. Aurora's cluster storage is not built.", 12, INK)
-    s.text(410, 660, "Auto Mode nodes are not listed by EC2 to the account; the cluster and its pods are the view that counts.", 12, INK)
+    s = Svg(1420, 760, "Two regions, one core network, seven VPCs")
+    s.zone(20, 20, 1380, 720, "AWS ACCOUNT", GREY)
+    s.box(560, 60, 300, 120, "Core network (Cloud WAN)", ["one policy, an edge in each region", "segments: prod, nonprod, shared,", "hybrid, sandbox"], AMBER)
+    s.zone(40, 215, 650, 500, "us-east-1 (main)", BLUE)
+    s.box(60, 260, 300, 120, "prod-main", ["EKS cluster, 4 nodes in 3 zones", "10.60.0.0/16 from IPAM", "pods on 100.64.0.0/16, NAT"], GREEN)
+    s.box(380, 260, 290, 120, "shared-main", ["test host, private DNS zone", "DNS resolver endpoints", "10.61.1.0/24 from IPAM"], GREEN)
+    s.box(60, 400, 300, 100, "nonprod-main", ["test host, 10.61.0.0/24"], GREEN)
+    s.box(380, 400, 290, 100, "legacy-main", ["test host, 10.60.0.0/16 by hand", "not on the core network"], RED)
+    s.box(60, 520, 610, 90, "Also in this region", ["VPC Lattice service network with the Gateway API controller", "internal application load balancer, S3 gateway endpoint, NAT gateway"], GREY)
+    s.zone(730, 215, 650, 500, "eu-west-1 (second)", BLUE)
+    s.box(750, 260, 300, 120, "prod-second", ["EKS cluster, 3 nodes in 3 zones", "10.62.0.0/16 from IPAM", "Cilium chained behind the VPC CNI"], GREEN)
+    s.box(1070, 260, 290, 120, "hybrid-second", ["stand-in for the data center", "a DNS server (dnsmasq)", "10.63.0.0/24 from IPAM"], GREEN)
+    s.box(750, 400, 300, 100, "sandbox-second", ["test host, 10.63.1.0/24"], GREEN)
+    s.box(1070, 400, 290, 100, "Also in this region", ["internal load balancer,", "outbound DNS resolver endpoint"], GREY)
+    s.arrow([(210, 260), (590, 180)], "blue")
+    s.arrow([(525, 260), (680, 180)], "blue")
+    s.arrow([(900, 260), (790, 180)], "blue")
+    s.arrow([(1215, 260), (840, 180)], "blue")
+    s.text(60, 630, "nonprod-main and sandbox-second are attached the same way (an attachment tagged with its segment). legacy-main is not attached.", 12, INK)
+    s.text(60, 650, "Why eu-west-1 and not us-west-2: the account already had eight VPCs in us-west-2 (limit ten); this region had room.", 12, INK)
+    s.text(60, 672, "The two cluster VPCs both use 100.64.0.0/16 for pods. The legacy VPC copies production's range on purpose.", 12, INK)
     return s.render()
 
 
 def architecture():
-    s = Svg(1420, 800, "Design 04 on EKS: the five layers")
+    s = Svg(1420, 800, "Design 05 as layers: what runs in each")
     layers = [
-        ("CLIENTS", GREEN, [("Session API", ["start, signal, fork, timeline,", "pause-all, resume-all"]), ("Tester pod", ["the test scenarios' own shell"]), ("Reviewer and Git host", ["the external system an agent", "changes (stand-in)"]), ("Operator", ["queue switch, bulk pause", "replay tests"])]),
-        ("DURABLE EXECUTION", AMBER, [("Temporal 1.32 (Helm 1.8)", ["frontend, history, matching,", "worker; two replicas each"]), ("Workflow: CodingAgentRun", ["the agent loop; pause, budgets,", "loop detection, waiting"]), ("Workers v1 and v2", ["queues agent-v1, agent-v2", "graceful stop, 6 slots each"]), ("KEDA 2.21", ["scales workers on the", "queue's backlog"])]),
-        ("GATEWAYS AND SANDBOXES", BLUE, [("Model gateway", ["fallback, token budget,", "a record of every call"]), ("Tool gateway", ["classes, ledger, keys,", "compensation"]), ("Sandbox manager", ["pod per run, restore", "from a snapshot"]), ("Sandboxes", ["executor: run, write, list,", "snapshot, restore"])]),
-        ("STATE", GREY, [("Engine database", ["temporal, temporal_visibility", "RDS Multi-AZ"]), ("Session database", ["context_log, summaries, snapshots,", "ledger, model_calls (same RDS)"]), ("S3", ["snapshots/objects/<hash>", "snapshots/manifests/<id>"]), ("Stand-in model", ["scripted, a pure function of", "the prompt"])]),
-        ("OBSERVABILITY", RED, [("Prometheus", ["worker metrics from pod", "annotations"]), ("Run timeline", ["built from the history,", "plus cost from the gateway"]), ("Ledger counts", ["attempts, deduplicated"]), ("Replay tests", ["recorded histories through", "new code"])]),
+        ("TRANSPORT", AMBER, [("Cloud WAN", ["one policy, segments,", "tag-based attachments"]), ("VPC route tables", ["one route to the plan's", "range, nothing else"]), ("S3 gateway endpoint", ["keeps S3 off the NAT"]), ("NAT gateways", ["one per cluster VPC"])]),
+        ("ADDRESSES AND DNS", GREY, [("IPAM, advanced tier", ["9 pools: region, then", "environment"]), ("Private zone ds05.internal", ["shared with 4 VPCs", "latency-routed app name"]), ("Resolver endpoints", ["1 inbound, 2 outbound,", "forwarding rules"]), ("Data center DNS", ["dnsmasq: corp.dc.test"])]),
+        ("CLUSTER AND HOST", BLUE, [("VPC CNI", ["custom networking, prefix", "delegation, policy agent"]), ("Cilium 1.20 (chained)", ["names in policy, flow", "visibility"]), ("NodeLocal DNSCache", ["on every node"]), ("Managed node groups", ["one per zone, 110 pods", "per node"])]),
+        ("SERVICE CONNECTIVITY AND EDGE", GREEN, [("VPC Lattice", ["service network, IAM auth", "by the service's owner"]), ("Gateway API controller", ["HTTPRoute -> Lattice", "service"]), ("Load Balancer Controller", ["internal ALB, IP targets,", "readiness gates"]), ("Services", ["PreferClose keeps calls", "in the zone"])]),
+        ("POLICY PLANE", RED, [("Segments", ["who shares routes"]), ("Security groups", ["the pods' group admits", "the cluster only"]), ("ClusterNetworkPolicy", ["Admin and Baseline tiers"]), ("NetworkPolicy", ["each team, inside the", "guardrails"])]),
     ]
     for r, (title, c, boxes) in enumerate(layers):
         y = 20 + r * 155
@@ -142,101 +134,84 @@ def architecture():
     return s.render()
 
 
-def replay_flow():
-    s = Svg(1420, 700, "One step, a worker that dies, and the replay that follows")
-    xs = [110, 360, 610, 860, 1110]
-    names = [("Worker A", BLUE), ("Engine + history", AMBER), ("Worker B", BLUE), ("Model gateway", GREY), ("Tool gateway", GREY)]
-    for x, (n, c) in zip(xs, names):
-        s.box(x - 80, 20, 160, 50, n, [], c)
-        s.parts.append(f'<line x1="{x}" y1="70" x2="{x}" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>')
-    steps = [
-        (1, 0, 105, "1  task: run the workflow", "flow"),
-        (0, 1, 140, "2  schedule call_model (step 4)", "flow"),
-        (0, 3, 178, "3  call, prompt rebuilt from the log", "blue"),
-        (3, 0, 214, "4  answer; call recorded", "ok"),
-        (0, 1, 250, "5  result goes into the history", "ok"),
-        (0, 1, 290, "6  schedule run_tool (step 4): tests, 40 s", "flow"),
-        (0, 4, 326, "7  heartbeat while the tool runs", "muted"),
-        (0, 0, 372, "worker A is killed, no warning", "bad"),
-        (1, 1, 408, "8  no heartbeat: the attempt times out", "bad"),
-        (1, 2, 446, "9  new task for any worker", "flow"),
-        (2, 1, 484, "10 replay: earlier steps return recorded results", "ok"),
-        (2, 3, 520, "no model call is made again for any of them", "ok"),
-        (2, 1, 560, "11 run_tool (step 4) has no result: run it", "flow"),
-        (2, 4, 598, "12 same step, same idempotency key", "blue"),
-        (2, 1, 636, "13 result recorded, attempt 2", "ok"),
-    ]
-    for a, b, y, label, kind in steps:
-        if a == b:
-            s.text(xs[a] + 14, y, label, 11.5, COLORS[kind], "700")
-        elif label.startswith("no model call"):
-            s.text(xs[2] + 14, y, label, 11.5, COLORS[kind], "700")
-        else:
-            s.arrow([(xs[a], y), (xs[b], y)], kind, label, (xs[a] + xs[b]) / 2, y - 7)
-    s.x_mark(xs[0], 372)
+def address_plan():
+    s = Svg(1420, 620, "The address plan: one top range, a pool per region and environment")
+    s.box(560, 30, 300, 80, "all routed addresses", ["10.60.0.0/14"], AMBER)
+    s.box(230, 150, 300, 80, "us-east-1  10.60.0.0/15", ["pool, locale us-east-1"], AMBER)
+    s.box(890, 150, 300, 80, "eu-west-1  10.62.0.0/15", ["pool, locale eu-west-1"], AMBER)
+    s.arrow([(640, 110), (380, 150)], "flow")
+    s.arrow([(780, 110), (1040, 150)], "flow")
+    boxes = [(20, "main-prod 10.60.0.0/16", ["VPC prod-main"]), (235, "main-nonprod 10.61.0.0/24", ["VPC nonprod-main"]), (450, "main-shared 10.61.1.0/24", ["VPC shared-main"]),
+             (740, "second-prod 10.62.0.0/16", ["VPC prod-second"]), (955, "second-hybrid 10.63.0.0/24", ["VPC hybrid-second"]), (1170, "second-sandbox 10.63.1.0/24", ["VPC sandbox-second"])]
+    for x, t, lines in boxes:
+        s.box(x, 290, 205, 80, t, lines, GREEN)
+    for x, _, _ in boxes[:3]:
+        s.arrow([(380, 230), (x + 102, 290)], "flow")
+    for x, _, _ in boxes[3:]:
+        s.arrow([(1040, 230), (x + 102, 290)], "flow")
+    s.box(40, 400, 520, 110, "Outside the plan, on purpose", ["pods: 100.64.0.0/16 in both cluster VPCs (never routed for pods' own traffic)", "legacy-main: 10.60.0.0/16 typed by hand, the same range as prod-main", "IPAM finds both and reports them as unmanaged and overlapping"], RED)
+    s.box(600, 400, 440, 110, "What the plan refuses", ["a request for a range inside a block that a VPC holds", "(S01), and a VPC whose range would overlap another", "routed VPC: it cannot be given one"], GREY)
+    s.text(40, 560, "A pool cannot hand out what its parent did not give it, and an allocation is held until the VPC is deleted.", 12, INK, "700")
     return s.render()
 
 
-def side_effects():
-    s = Svg(1420, 640, "Every tool has a class, and the class decides what a retry may do")
-    s.box(20, 40, 250, 120, "A step calls a tool", ["key = session + step", "(the same for every retry,", "never the attempt)"], BLUE)
-    s.box(310, 40, 270, 120, "Tool gateway", ["writes the ledger row first:", "status 'started', attempts + 1", "then acts, then marks 'done'"], AMBER)
-    s.arrow([(270, 100), (310, 100)], "flow")
-    s.box(620, 40, 250, 120, "External system", ["acts, then the answer", "is lost on the way back", "(S05 makes this happen)"], RED)
-    s.arrow([(580, 100), (620, 100)], "flow")
-    s.arrow([(750, 160), (750, 190), (445, 190), (445, 160)], "bad", "retry: attempts = 2", 600, 183)
-    rows = [
-        ("local, read-only", GREEN, ["run again, harmless;", "local steps also redo if the", "sandbox was lost"]),
-        ("idempotent", GREEN, ["send the same Idempotency-Key;", "the Git host recognises it and", "returns the first result"]),
-        ("checkable", BLUE, ["on a retry, look first:", "'is there already a pull request", "from this branch?' Use it if so"]),
-        ("unsafe", RED, ["cannot be keyed or looked up:", "the second attempt is refused,", "the run asks a person"]),
-        ("naive (control)", AMBER, ["no protection, only in the tests:", "the retry acts again and a", "second pull request exists"]),
-    ]
-    for i, (t, c, lines) in enumerate(rows):
-        x = 20 + i * 280
-        s.box(x, 250, 265, 120, t, lines, c)
-    s.box(20, 400, 1360, 90, "After a failure that cannot be retried: compensation", ["Cancel and rewind walk the ledger newest first and undo what can be undone (close the pull request, delete the branch).", "A comment cannot be unsent and is left. Every compensated row is marked in the ledger."], GREY)
-    s.box(20, 510, 1360, 100, "What the ledger gives an operator", ["attempts and deduplicated per tool: a rising 'deduplicated' count means flaky tools or workers.", "Nothing is repeated silently: a retry that finds the effect already done returns the stored result."], AMBER)
+def request_path():
+    s = Svg(1420, 600, "A request, layer by layer: the name, the load balancer, the pod, and the exported service")
+    s.box(20, 60, 180, 80, "Caller", ["a pod or a host"], GREEN)
+    s.box(250, 60, 240, 80, "DNS: app.ds05.internal", ["two latency records,", "alias to each load balancer"], AMBER)
+    s.box(540, 60, 240, 80, "Internal load balancer", ["IP targets, health check", "every 5 s, drains 30 s"], BLUE)
+    s.box(830, 60, 240, 80, "Service: web", ["PreferClose: same zone first", "falls back if none ready"], BLUE)
+    s.box(1120, 60, 260, 80, "Pod", ["traefik/whoami, 100.64.x.x", "readiness gate from the ALB"], GREEN)
+    for x1, x2 in ((200, 250), (490, 540), (780, 830), (1070, 1120)):
+        s.arrow([(x1, 100), (x2, 100)], "flow")
+    s.text(250, 170, "A region whose load balancer has no healthy target is dropped from the answer (S07).", 12, INK)
+    s.box(20, 230, 240, 90, "Caller in another VPC", ["no route to prod, or an", "overlapping address (legacy)"], RED)
+    s.box(310, 230, 260, 90, "VPC Lattice service", ["web-shop-...vpc-lattice-svcs", "service network, regional"], AMBER)
+    s.box(620, 230, 250, 90, "Auth policy of the service", ["names the roles that may call", "(owned by the team)"], AMBER)
+    s.box(920, 230, 220, 90, "Target group", ["the web pods"], BLUE)
+    s.box(1190, 230, 190, 90, "Pod", ["sees the caller's identity", "in a header"], GREEN)
+    for x1, x2 in ((260, 310), (570, 620), (870, 920), (1140, 1190)):
+        s.arrow([(x1, 275), (x2, 275)], "flow")
+    s.text(310, 350, "Both policies must allow: the caller's own, and the service's. The caller's team cannot grant itself access (S06).", 12, INK)
+    s.box(20, 400, 1360, 160, "What the two paths have in common", ["Neither asks the caller for an address: the first uses a name and DNS, the second a name and a service network.", "The first needs a route, so it is limited by the core network's segments. The second needs no route, so it works across overlapping ranges and across segments,", "and what limits it is the service's own policy.", "Bulk data between clusters takes neither: it is plain routed traffic over the core network."], GREY)
     return s.render()
 
 
-def workspace():
-    s = Svg(1420, 560, "Working state: snapshot after each file change, restore into a new sandbox")
-    steps = [
-        ("1  A step changes files", GREEN, ["the agent writes src/ and tests/", "in the sandbox pod", "(the container's own disk, lost with the pod)"]),
-        ("2  Snapshot", BLUE, ["hash every file; upload only", "the hashes S3 lacks; write", "a manifest of path to hash"]),
-        ("3  The sandbox is lost", RED, ["pod deleted while tests run;", "its disk is gone;", "the tool step fails"]),
-        ("4  Retry in a new sandbox", AMBER, ["manager starts a pod,", "restores the last manifest,", "the step runs again"]),
-        ("5  Wait for a person", GREY, ["snapshot, then delete", "the sandbox: no pod, no", "worker, nothing held"]),
-    ]
-    for i, (t, c, lines) in enumerate(steps):
-        x = 20 + i * 280
-        s.box(x, 60, 265, 130, t, lines, c)
-        if i < 4:
-            s.arrow([(x + 265, 125), (x + 280, 125)], "flow")
-    s.box(20, 230, 1360, 120, "Content-addressed snapshots", ["snapshots/objects/<sha256 of the file>: each file is stored once, however many snapshots name it.", "snapshots/manifests/<id>.json: the manifest is the snapshot; its id is a hash of its contents.", "A snapshot after a step that changed one file uploads one file."], GREY)
-    s.box(20, 380, 1360, 150, "Why the order matters", ["The workflow snapshots only if the sandbox that ran the tool is still there. A fresh empty sandbox's snapshot would be a lie.", "If the sandbox vanished between the tool and the snapshot, the tool step is run again, in a restored sandbox.", "Process memory (a running test) is not saved: the test starts over. Pod-level checkpoint and restore is not built."], AMBER)
+def isolation():
+    s = Svg(1420, 620, "Isolation in layers: a path is open only if no layer denies it")
+    layers = [("Segments", "the core network has no route between prod and nonprod", "S02, S03", AMBER), ("VPC route tables", "a VPC sends only the plan's range to the core network", "S04", AMBER),
+              ("Security groups", "the pods' group admits the cluster, not other VPCs", "S04", BLUE), ("ClusterNetworkPolicy, Admin tier", "guardrails: no instance metadata, payments only from named namespaces", "S08", RED),
+              ("NetworkPolicy", "each team opens what it needs, inside the guardrails", "S08", GREEN), ("ClusterNetworkPolicy, Baseline tier", "defaults a team can override", "S08", GREEN), ("Workload identity", "Lattice auth: the service names who may call it", "S06", GREY),
+              ("Egress by name", "Cilium: a pod may reach one domain and no other", "S08", BLUE)]
+    for i, (t, d, ref, c) in enumerate(layers):
+        x = 20 + (i % 2) * 700
+        y = 30 + (i // 2) * 135
+        s.box(x, y, 680, 115, f"{i + 1}  {t}   ({ref})", [d], c)
+    s.text(20, 590, "A path is open only if no layer on it denies it. S04 opens two of them, one at a time, and shows that neither alone is enough.", 12, INK, "700")
     return s.render()
 
 
-def versioning():
-    s = Svg(1420, 560, "New agent code: replay first, then new runs on new workers, old runs finish on old ones")
-    s.box(20, 50, 300, 130, "1  Replay test (CI)", ["recorded histories go through", "the new workflow code", "no worker, no side effect", "a break is found before deploy"], AMBER)
-    s.box(360, 50, 300, 130, "2  Deploy workers v2", ["new Deployment on queue agent-v2", "alongside workers v1", "the running ones are untouched"], BLUE)
-    s.box(700, 50, 300, 130, "3  Point new runs at v2", ["the session API's current queue", "runs started earlier keep the", "queue they started on"], GREEN)
-    s.box(1040, 50, 340, 130, "4  Retire v1 when its queue is empty", ["no running run on agent-v1:", "scale the v1 workers to zero", "(or fix and roll back)"], GREY)
-    for x in (320, 660, 1000):
-        s.arrow([(x, 115), (x + 40, 115)], "flow")
-    s.box(20, 230, 660, 140, "What breaks without a patch marker", ["The recorded history says: snapshot, then run the next tool.", "Version 2 says: snapshot, then lint. The engine cannot match them,", "and every run that is waiting fails to continue (nondeterminism).", "S09 replays a waiting run through the three versions."], RED)
-    s.box(720, 230, 660, 140, "What a patch marker does", ["workflow.patched('lint-after-snapshot') returns False for a history", "recorded before the change and True for a new run.", "Old histories take the old path; new runs take the new one.", "The same code can be deployed as one version safely."], GREEN)
-    s.box(20, 400, 1360, 130, "Worker stops", ["A kill (SIGKILL) leaves the engine to notice a missing heartbeat, and the step runs again on another worker (S03).", "A rolling update sends SIGTERM: the worker stops taking tasks, lets its activities finish (up to 50 s) and exits.", "The step's attempt count stays at 1 (S09)."], AMBER)
+def dns_diagram():
+    s = Svg(1420, 560, "DNS: two zones, two directions")
+    s.zone(20, 30, 760, 500, "AWS", AMBER)
+    s.box(40, 70, 330, 90, "Private zone ds05.internal", ["registry.ds05.internal, app.ds05.internal", "associated with four VPCs"], GREEN)
+    s.box(40, 190, 330, 90, "Cluster pods", ["cluster DNS, answered by the cache", "on the node; the rest to the VPC resolver"], BLUE)
+    s.box(400, 70, 360, 90, "Inbound resolver endpoint", ["two addresses in shared-main", "answers the data center's questions"], BLUE)
+    s.box(400, 190, 360, 90, "Outbound resolver endpoints", ["one per region; the rule for", "corp.dc.test forwards to the data center"], BLUE)
+    s.box(40, 310, 720, 90, "Resolver rules are regional", ["the rule in us-east-1 serves prod-main and shared-main; the one in eu-west-1 serves prod-second", "a VPC without an association does not resolve the data center's names (S09)"], GREY)
+    s.zone(830, 30, 560, 500, "DATA CENTER (STAND-IN)", RED)
+    s.box(850, 70, 520, 110, "DNS server (dnsmasq on an EC2 host)", ["answers for corp.dc.test", "forwards ds05.internal to the inbound endpoint", "its log shows who asked"], RED)
+    s.box(850, 220, 520, 90, "Clients in the data center", ["use the server above and never the VPC resolver", "(the zone is not associated with that VPC)"], RED)
+    s.arrow([(760, 235), (805, 235), (805, 150), (850, 150)], "flow", "corp.dc.test", 806, 200)
+    s.arrow([(850, 100), (760, 100)], "flow", "ds05.internal", 805, 92)
+    s.arrow([(370, 115), (400, 115)], "muted")
     return s.render()
 
 
 def main():
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
-    for name, fn in (("a05-1", context), ("a05-2", topology), ("a05-3", architecture), ("a05-4", replay_flow), ("a05-5", side_effects), ("a05-6", workspace), ("a05-7", versioning)):
+    for name, fn in (("a06-1", context), ("a06-2", topology), ("a06-3", architecture), ("a06-4", address_plan), ("a06-5", request_path), ("a06-6", isolation), ("a06-7", dns_diagram)):
         (out / f"{name}.svg").write_text(fn())
 
 
