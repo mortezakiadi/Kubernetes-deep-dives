@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 614" width="1180" height="614" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Ring and tree: two orders for the same sum</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >All-reduce of one value over 4 GPUs (ranks 0 to 3). Number on an arrow = order in time. A simplified order, drawn as an example for 4 ranks.</text>
+<rect x="24" y="76" width="560" height="420" rx="14" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="44" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2933" text-anchor="start" >Ring</text>
+<text x="44" y="124" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Add along the ring, then pass the result round it.</text>
+<rect x="102.0" y="182.0" width="96" height="46" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="150" y="203" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 0</text>
+<text x="150" y="218" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 0</text>
+<rect x="410.0" y="182.0" width="96" height="46" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="458" y="203" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 1</text>
+<text x="458" y="218" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 1</text>
+<rect x="410.0" y="372.0" width="96" height="46" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="458" y="393" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 2</text>
+<text x="458" y="408" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 2</text>
+<rect x="102.0" y="372.0" width="96" height="46" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="150" y="393" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 3</text>
+<text x="150" y="408" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 3</text>
+<path d="M200.0,192.0 L408.0,192.0" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
+<rect x="294.0" y="182.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="304.0" y="196.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >1</text>
+<path d="M445.0,245.0 L445.0,355.0" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
+<rect x="435.0" y="290.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="445.0" y="304.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >2</text>
+<path d="M408.0,382.0 L200.0,382.0" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
+<rect x="294.0" y="372.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="304.0" y="386.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >3</text>
+<path d="M163.0,355.0 L163.0,245.0" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
+<rect x="153.0" y="290.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="163.0" y="304.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >4</text>
+<path d="M200.0,218.0 L408.0,218.0" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
+<rect x="294.0" y="208.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="304.0" y="222.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >5</text>
+<path d="M471.0,245.0 L471.0,355.0" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
+<rect x="461.0" y="290.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="471.0" y="304.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >6</text>
+<rect x="596" y="76" width="560" height="420" rx="14" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="616" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2933" text-anchor="start" >Tree</text>
+<text x="616" y="124" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Add level by level up to GPU 0, then fan the result out.</text>
+<rect x="828.0" y="157.0" width="96" height="46" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="876" y="178" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 0</text>
+<text x="876" y="193" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 0</text>
+<rect x="678.0" y="287.0" width="96" height="46" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="726" y="308" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 1</text>
+<text x="726" y="323" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 1</text>
+<rect x="978.0" y="287.0" width="96" height="46" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="1026" y="308" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 2</text>
+<text x="1026" y="323" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 2</text>
+<rect x="978.0" y="417.0" width="96" height="46" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="1026" y="438" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 3</text>
+<text x="1026" y="453" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 3</text>
+<path d="M753.7589789744793,268.739376079676 L831.2128270266569,201.6127077677888" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
+<rect x="782.4859030005681" y="225.17604192373238" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="792.4859030005681" y="239.67604192373238" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >1</text>
+<path d="M1013.0,404.0 L1013.0,346.0" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
+<rect x="1003.0" y="365.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="1013.0" y="379.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >1</text>
+<path d="M981.2128270266569,288.3872922322112 L903.7589789744793,221.26062392032404" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
+<rect x="932.4859030005681" y="244.82395807626762" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="942.4859030005681" y="259.3239580762676" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >2</text>
+<path d="M848.2410210255207,221.26062392032404 L770.7871729733431,288.3872922322112" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
+<rect x="799.5140969994319" y="244.82395807626762" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="809.5140969994319" y="259.3239580762676" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >3</text>
+<path d="M920.7871729733431,201.6127077677888 L998.2410210255207,268.739376079676" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
+<rect x="949.5140969994319" y="225.17604192373238" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="959.5140969994319" y="239.67604192373238" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >3</text>
+<path d="M1039.0,346.0 L1039.0,404.0" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
+<rect x="1029.0" y="365.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="1039.0" y="379.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >4</text>
+<path d="M44,520 L94,520" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
+<text x="104" y="525" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >add: a GPU sends its value and the receiver adds it</text>
+<path d="M520,520 L570,520" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
+<text x="580" y="525" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >pass the result (ring) or fan out the result (tree)</text>
+<text x="24" y="556" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Same data moved either way: 2(n-1) transfers per element (nccl-tests). For n = 4 that is 6 (derived). Count the numbered arrows: 6 in each panel.</text>
+<text x="24" y="578" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Simplified: NCCL splits the data into chunks, this draws one value. Source for the two orders: nccl-tests, PERFORMANCE.md. Same-number arrows in the</text>
+<text x="24" y="596" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >tree happen at the same time.</text>
+</svg>

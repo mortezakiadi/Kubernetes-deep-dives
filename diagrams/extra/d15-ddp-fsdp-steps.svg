@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 754" width="1180" height="754" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >What one training step sends, on 4 GPUs (ranks 0 to 3)</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >SCHEMATIC, NOT TO SCALE: bar lengths are not measured times. Time runs left to right.</text>
+<rect x="24" y="70" width="1132" height="314" rx="14" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="44" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2933" text-anchor="start" >DDP</text>
+<text x="86.5" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >each GPU keeps a full copy of the model and syncs gradients with an all-reduce</text>
+<path d="M150,116 L1130,116" stroke="#9aa5b1" stroke-width="1.4" fill="none" marker-end="url(#ar)"/>
+<text x="1130" y="110" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="end" >time</text>
+<text x="40" y="171" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 0</text>
+<rect x="150" y="156" width="200" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="250.0" y="171.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >forward</text>
+<rect x="151" y="157" width="26" height="20" rx="4" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2" />
+<rect x="354" y="156" width="366" height="22" rx="5" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.5" />
+<rect x="356" y="158" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="416" y="173" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket 1</text>
+<rect x="477" y="158" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="537" y="173" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket 2</text>
+<rect x="598" y="158" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="658" y="173" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket 3</text>
+<text x="150" y="130" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Purple strip = buffer broadcast at the start of forward, if the model has buffers (PyTorch DDP docs). No gradient traffic.</text>
+<text x="537" y="149" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >backward: gradients come out in buckets (bucket count illustrative)</text>
+<rect x="844" y="156" width="130" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="909.0" y="171.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >optimizer step</text>
+<text x="40" y="199" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 1</text>
+<rect x="150" y="184" width="200" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="250.0" y="199.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >forward</text>
+<rect x="151" y="185" width="26" height="20" rx="4" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2" />
+<rect x="354" y="184" width="366" height="22" rx="5" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.5" />
+<rect x="356" y="186" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="416" y="201" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket</text>
+<rect x="477" y="186" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="537" y="201" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket</text>
+<rect x="598" y="186" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="658" y="201" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket</text>
+<rect x="844" y="184" width="130" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="909.0" y="199.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >optimizer step</text>
+<text x="40" y="227" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 2</text>
+<rect x="150" y="212" width="200" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="250.0" y="227.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >forward</text>
+<rect x="151" y="213" width="26" height="20" rx="4" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2" />
+<rect x="354" y="212" width="366" height="22" rx="5" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.5" />
+<rect x="356" y="214" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="416" y="229" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket</text>
+<rect x="477" y="214" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="537" y="229" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket</text>
+<rect x="598" y="214" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="658" y="229" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket</text>
+<rect x="844" y="212" width="130" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="909.0" y="227.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >optimizer step</text>
+<text x="40" y="255" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 3</text>
+<rect x="150" y="240" width="200" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="250.0" y="255.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >forward</text>
+<rect x="151" y="241" width="26" height="20" rx="4" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.2" />
+<rect x="354" y="240" width="366" height="22" rx="5" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.5" />
+<rect x="356" y="242" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="416" y="257" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket</text>
+<rect x="477" y="242" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="537" y="257" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket</text>
+<rect x="598" y="242" width="120" height="18" rx="3" fill="#eef3fd" stroke="#3b6fd8" stroke-width="0.8" />
+<text x="658" y="257" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2933" text-anchor="middle" >bucket</text>
+<rect x="844" y="240" width="130" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="909.0" y="255.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >optimizer step</text>
+<text x="782" y="172" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" font-style="italic">GPUs may wait</text>
+<text x="782.0" y="270" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="1" font-weight="400" fill="#1f2933" text-anchor="start" ></text>
+<text x="40" y="299" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#7a4fc4" text-anchor="start" >all-reduce</text>
+<text x="40" y="314" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >(all 4 GPUs)</text>
+<rect x="477" y="282" width="120" height="26" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="537.0" y="299.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-reduce 1</text>
+<path d="M477,278 L477,270" stroke="#7a4fc4" stroke-width="1.2" fill="none" stroke-dasharray="2 3"/>
+<rect x="598" y="282" width="120" height="26" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="658.0" y="299.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-reduce 2</text>
+<path d="M598,278 L598,270" stroke="#7a4fc4" stroke-width="1.2" fill="none" stroke-dasharray="2 3"/>
+<rect x="719" y="282" width="120" height="26" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="779.0" y="299.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-reduce 3</text>
+<path d="M719,278 L719,270" stroke="#7a4fc4" stroke-width="1.2" fill="none" stroke-dasharray="2 3"/>
+<path d="M477,262 L477,282" stroke="#7a4fc4" stroke-width="1.4" fill="none" stroke-dasharray="3 3"/>
+<path d="M598,262 L598,282" stroke="#7a4fc4" stroke-width="1.4" fill="none" stroke-dasharray="3 3"/>
+<path d="M719,262 L719,282" stroke="#7a4fc4" stroke-width="1.4" fill="none" stroke-dasharray="3 3"/>
+<text x="782" y="272" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="1" font-weight="400" fill="#1f2933" text-anchor="start" ></text>
+<text x="40" y="346" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >PyTorch: gradient reduction of each bucket can overlap with backward computation. All-reduce 1 and 2 run while the backward pass goes on.</text>
+<text x="40" y="366" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >The optimizer step starts after the last all-reduce, so the GPUs may wait there. bucket_cap_mb default is 25 MiB (PyTorch).</text>
+<rect x="24" y="400" width="1132" height="276" rx="14" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="44" y="428" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2933" text-anchor="start" >FSDP</text>
+<text x="96.0" y="428" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >each GPU keeps only a shard of parameters, gradients and optimizer states</text>
+<path d="M150,446 L1130,446" stroke="#9aa5b1" stroke-width="1.4" fill="none" marker-end="url(#ar)"/>
+<text x="1130" y="440" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="end" >time</text>
+<text x="40" y="473" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 0</text>
+<rect x="150" y="458" width="100" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="200.0" y="473.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-gather</text>
+<rect x="254" y="458" width="150" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="329.0" y="473.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >forward</text>
+<rect x="408" y="458" width="100" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="458.0" y="473.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-gather</text>
+<rect x="512" y="458" width="170" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="597.0" y="473.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >backward</text>
+<rect x="686" y="458" width="120" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="746.0" y="473.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >reduce-scatter</text>
+<rect x="810" y="458" width="130" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="875.0" y="473.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >optimizer step</text>
+<text x="40" y="501" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 1</text>
+<rect x="150" y="486" width="100" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="200.0" y="501.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-gather</text>
+<rect x="254" y="486" width="150" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="329.0" y="501.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >forward</text>
+<rect x="408" y="486" width="100" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="458.0" y="501.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-gather</text>
+<rect x="512" y="486" width="170" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="597.0" y="501.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >backward</text>
+<rect x="686" y="486" width="120" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="746.0" y="501.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >reduce-scatter</text>
+<rect x="810" y="486" width="130" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="875.0" y="501.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >optimizer step</text>
+<text x="40" y="529" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 2</text>
+<rect x="150" y="514" width="100" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="200.0" y="529.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-gather</text>
+<rect x="254" y="514" width="150" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="329.0" y="529.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >forward</text>
+<rect x="408" y="514" width="100" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="458.0" y="529.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-gather</text>
+<rect x="512" y="514" width="170" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="597.0" y="529.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >backward</text>
+<rect x="686" y="514" width="120" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="746.0" y="529.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >reduce-scatter</text>
+<rect x="810" y="514" width="130" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="875.0" y="529.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >optimizer step</text>
+<text x="40" y="557" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 3</text>
+<rect x="150" y="542" width="100" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="200.0" y="557.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-gather</text>
+<rect x="254" y="542" width="150" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="329.0" y="557.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >forward</text>
+<rect x="408" y="542" width="100" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="458.0" y="557.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >all-gather</text>
+<rect x="512" y="542" width="170" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="597.0" y="557.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >backward</text>
+<rect x="686" y="542" width="120" height="22" rx="5" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="746.0" y="557.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >reduce-scatter</text>
+<rect x="810" y="542" width="130" height="22" rx="5" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="875.0" y="557.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="middle" >optimizer step</text>
+<text x="40" y="590" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >FSDP = reduce-scatter + all-gather, a decomposition of DDP's all-reduce (PyTorch). All-gather: collect the parameter shards before forward and</text>
+<text x="40" y="608" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >before backward.</text>
+<text x="40" y="626" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Reduce-scatter: add the gradients and keep one shard each. Drawn once for the whole model; no overlap is drawn. The PyTorch tutorial also</text>
+<text x="40" y="644" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >describes prefetching that can overlap all-gathers with compute.</text>
+<rect x="44" y="698" width="22" height="16" rx="4" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.5" />
+<text x="74" y="711" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="start" >compute</text>
+<rect x="160" y="698" width="22" height="16" rx="4" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.5" />
+<text x="190" y="711" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2933" text-anchor="start" >collective (one operation that all ranks do together)</text>
+<text x="44" y="738" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Collectives run on NVLink or PCIe inside a server, and on the NIC between servers.</text>
+</svg>

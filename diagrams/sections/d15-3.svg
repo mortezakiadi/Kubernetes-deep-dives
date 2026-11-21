@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 953" width="1180" height="953" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="34" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Inside the server: one generic 8-GPU server</text>
+<rect x="24" y="44" width="770" height="28" rx="8" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.4" />
+<text x="38" y="63" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#8a4f00" text-anchor="start" >ILLUSTRATIVE LAYOUT: real servers differ, run nvidia-smi topo -m on yours</text>
+<g transform="translate(40,0)">
+<rect x="90" y="90" width="660" height="24" rx="6" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="110" y="107" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="start" >Network</text>
+<rect x="90" y="736" width="660" height="24" rx="6" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="110" y="753" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="start" >Network (the same network, drawn at both ends)</text>
+<rect x="14" y="128" width="756" height="588" rx="16" fill="#fbfcfe" stroke="#7b8794" stroke-width="1.6" stroke-dasharray="8 5" />
+<text x="420" y="160" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >ONE SERVER</text>
+<text x="420" y="177" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >(illustrative layout)</text>
+<rect x="340" y="196" width="160" height="94" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<text x="420" y="218" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >CPU 0</text>
+<text x="420" y="235" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >NUMA node 0</text>
+<rect x="340" y="550" width="160" height="112" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<text x="420" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >CPU 1</text>
+<text x="420" y="653" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >NUMA node 1</text>
+<path d="M145,186 L145,240" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M145,284 L145,322" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M145,358 L145,410" stroke="#2f9e5b" stroke-width="3" fill="none"/>
+<path d="M145,150 L145,114" stroke="#0f766e" stroke-width="2.5" fill="none"/>
+<path d="M255,186 L255,240" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M255,284 L255,322" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M255,358 L255,410" stroke="#2f9e5b" stroke-width="3" fill="none"/>
+<path d="M255,150 L255,114" stroke="#0f766e" stroke-width="2.5" fill="none"/>
+<path d="M585,186 L585,240" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M585,284 L585,322" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M585,358 L585,410" stroke="#2f9e5b" stroke-width="3" fill="none"/>
+<path d="M585,150 L585,114" stroke="#0f766e" stroke-width="2.5" fill="none"/>
+<path d="M695,186 L695,240" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M695,284 L695,322" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M695,358 L695,410" stroke="#2f9e5b" stroke-width="3" fill="none"/>
+<path d="M695,150 L695,114" stroke="#0f766e" stroke-width="2.5" fill="none"/>
+<path d="M145,446 L145,494" stroke="#2f9e5b" stroke-width="3" fill="none"/>
+<path d="M145,530 L145,570" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M145,614 L145,658" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M145,694 L145,736" stroke="#0f766e" stroke-width="2.5" fill="none"/>
+<path d="M255,446 L255,494" stroke="#2f9e5b" stroke-width="3" fill="none"/>
+<path d="M255,530 L255,570" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M255,614 L255,658" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M255,694 L255,736" stroke="#0f766e" stroke-width="2.5" fill="none"/>
+<path d="M585,446 L585,494" stroke="#2f9e5b" stroke-width="3" fill="none"/>
+<path d="M585,530 L585,570" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M585,614 L585,658" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M585,694 L585,736" stroke="#0f766e" stroke-width="2.5" fill="none"/>
+<path d="M695,446 L695,494" stroke="#2f9e5b" stroke-width="3" fill="none"/>
+<path d="M695,530 L695,570" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M695,614 L695,658" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M695,694 L695,736" stroke="#0f766e" stroke-width="2.5" fill="none"/>
+<path d="M310,262.0 L352,262.0" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M488,262.0 L530,262.0" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M310,592.0 L352,592.0" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M488,592.0 L530,592.0" stroke="#e9a24a" stroke-width="2.5" fill="none"/>
+<path d="M412,290 L412,550" stroke="#7a4fc4" stroke-width="8" fill="none" stroke-linejoin="round"/>
+<path d="M122,322 L122,186" stroke="#7cb518" stroke-width="5" fill="none" stroke-dasharray="9 5" stroke-linejoin="round"/>
+<path d="M164,322 L164,256 L600,256 L600,186" stroke="#3b6fd8" stroke-width="5" fill="none" stroke-dasharray="9 5" stroke-linejoin="round"/>
+<path d="M180,322 L180,268 L432,268 L432,598 L180,598 L180,658" stroke="#c0392b" stroke-width="4" fill="none" stroke-dasharray="8 5" stroke-linejoin="round"/>
+<rect x="90" y="240" width="220" height="44" rx="8" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<text x="200.0" y="254" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >PCIe switch A</text>
+<rect x="530" y="240" width="220" height="44" rx="8" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<text x="640.0" y="254" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >PCIe switch B</text>
+<rect x="90" y="570" width="220" height="44" rx="8" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<text x="200.0" y="584" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >PCIe switch C</text>
+<rect x="530" y="570" width="220" height="44" rx="8" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<text x="640.0" y="584" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >PCIe switch D</text>
+<rect x="352" y="244" width="136" height="36" rx="6" fill="#ffe9c7" stroke="#e08a1e" stroke-width="1.4" />
+<text x="420" y="266" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >host bridge</text>
+<rect x="352" y="574" width="136" height="36" rx="6" fill="#ffe9c7" stroke="#e08a1e" stroke-width="1.4" />
+<text x="420" y="596" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >host bridge</text>
+<rect x="100.0" y="322" width="90" height="36" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="145" y="345.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 0</text>
+<rect x="100.0" y="150" width="90" height="36" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="145" y="173.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 0</text>
+<rect x="210.0" y="322" width="90" height="36" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="255" y="345.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 1</text>
+<rect x="210.0" y="150" width="90" height="36" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="255" y="173.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 1</text>
+<rect x="540.0" y="322" width="90" height="36" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="585" y="345.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 2</text>
+<rect x="540.0" y="150" width="90" height="36" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="585" y="173.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 2</text>
+<rect x="650.0" y="322" width="90" height="36" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="695" y="345.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 3</text>
+<rect x="650.0" y="150" width="90" height="36" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="695" y="173.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 3</text>
+<rect x="100.0" y="494" width="90" height="36" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="145" y="517.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 4</text>
+<rect x="100.0" y="658" width="90" height="36" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="145" y="681.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 4</text>
+<rect x="210.0" y="494" width="90" height="36" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="255" y="517.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 5</text>
+<rect x="210.0" y="658" width="90" height="36" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="255" y="681.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 5</text>
+<rect x="540.0" y="494" width="90" height="36" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="585" y="517.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 6</text>
+<rect x="540.0" y="658" width="90" height="36" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="585" y="681.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 6</text>
+<rect x="650.0" y="494" width="90" height="36" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="695" y="517.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 7</text>
+<rect x="650.0" y="658" width="90" height="36" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="695" y="681.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 7</text>
+<rect x="100" y="410" width="640" height="36" rx="8" fill="#2f9e5b" stroke="#ffffff" stroke-width="3" />
+<text x="330" y="433" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="start" >NVSwitch</text>
+<text x="410" y="433" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="start" >every GPU reaches every other GPU through it</text>
+<text x="266" y="399" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >NVLink</text>
+<path d="M145,358 L145,428 L255,428 L255,358" stroke="#1b7a43" stroke-width="5" fill="none" stroke-dasharray="9 5" stroke-linejoin="round"/>
+<rect x="76" y="292" width="40" height="22" rx="11.0" fill="#7cb518" stroke="#7cb518" stroke-width="0" />
+<text x="96.0" y="307.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >PIX</text>
+<rect x="608" y="200" width="40" height="22" rx="11.0" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="0" />
+<text x="628.0" y="215.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >PHB</text>
+<rect x="444" y="500" width="40" height="22" rx="11.0" fill="#c0392b" stroke="#c0392b" stroke-width="0" />
+<text x="464.0" y="515.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >SYS</text>
+<rect x="190" y="626" width="40" height="22" rx="11.0" fill="#c0392b" stroke="#c0392b" stroke-width="0" />
+<text x="210.0" y="641.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >SYS</text>
+<rect x="178" y="382" width="44" height="22" rx="11.0" fill="#1b7a43" stroke="#1b7a43" stroke-width="0" />
+<text x="200.0" y="397.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >NV#</text>
+<text x="400" y="322" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b3a99" text-anchor="end" >Link between</text>
+<text x="400" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b3a99" text-anchor="end" >the CPU sockets</text>
+<text x="400" y="354" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b3a99" text-anchor="end" >(QPI or UPI)</text>
+</g>
+<text x="830" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#1f2933" text-anchor="start" >Four paths from GPU 0</text>
+<rect x="830" y="124" width="326" height="86" rx="10" fill="#ffffff" stroke="#7cb518" stroke-width="1.6" />
+<rect x="840" y="134" width="44" height="22" rx="11.0" fill="#7cb518" stroke="#7cb518" stroke-width="0" />
+<text x="862.0" y="149.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >PIX</text>
+<text x="894" y="150" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 0 to NIC 0</text>
+<text x="842" y="176" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Both sit under PCIe switch A. The path</text>
+<text x="842" y="193" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >has at most one PCIe bridge.</text>
+<rect x="830" y="220" width="326" height="86" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6" />
+<rect x="840" y="230" width="44" height="22" rx="11.0" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="0" />
+<text x="862.0" y="245.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >PHB</text>
+<text x="894" y="246" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 0 to NIC 2</text>
+<text x="842" y="272" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Up through the host bridge of CPU 0,</text>
+<text x="842" y="289" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >then down to PCIe switch B.</text>
+<rect x="830" y="316" width="326" height="103" rx="10" fill="#ffffff" stroke="#c0392b" stroke-width="1.6" />
+<rect x="840" y="326" width="44" height="22" rx="11.0" fill="#c0392b" stroke="#c0392b" stroke-width="0" />
+<text x="862.0" y="341.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >SYS</text>
+<text x="894" y="342" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 0 to NIC 4</text>
+<text x="994" y="342" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >(the pair the pod got)</text>
+<text x="842" y="368" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Across the link between the CPU sockets</text>
+<text x="842" y="385" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >(QPI or UPI), because NIC 4 sits under</text>
+<text x="842" y="402" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >CPU 1. NVIDIA: avoid SYS.</text>
+<rect x="830" y="429" width="326" height="86" rx="10" fill="#ffffff" stroke="#1b7a43" stroke-width="1.6" />
+<rect x="840" y="439" width="44" height="22" rx="11.0" fill="#1b7a43" stroke="#1b7a43" stroke-width="0" />
+<text x="862.0" y="454.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >NV#</text>
+<text x="894" y="455" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPU 0 to GPU 1</text>
+<text x="842" y="481" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Over NVLink through NVSwitch, not over</text>
+<text x="842" y="498" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >PCIe.</text>
+<text x="830" y="537" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Thin solid lines: the layout</text>
+<path d="M830,555 L866,555" stroke="#e9a24a" stroke-width="3" fill="none"/>
+<text x="876" y="560" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >PCIe</text>
+<path d="M930,555 L966,555" stroke="#2f9e5b" stroke-width="3" fill="none"/>
+<text x="976" y="560" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >NVLink</text>
+<path d="M1056,555 L1092,555" stroke="#0f766e" stroke-width="3" fill="none"/>
+<text x="1102" y="560" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >network</text>
+<text x="830" y="585" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Thick dashed lines: the four paths</text>
+<path d="M830,603 L874,603" stroke="#3b6fd8" stroke-width="5" fill="none" stroke-dasharray="9 5"/>
+<text x="884" y="608" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >same colour as their code</text>
+<text x="830" y="629" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >A path is hidden where it passes inside a</text>
+<text x="830" y="646" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >box: it goes in on one link and comes out</text>
+<text x="830" y="663" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >on the next.</text>
+<path d="M830,684 L874,684" stroke="#7a4fc4" stroke-width="7" fill="none"/>
+<text x="884" y="689" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Link between the CPU sockets</text>
+<text x="830" y="710" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NVIDIA's legend calls it QPI or UPI. The</text>
+<text x="830" y="727" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >SYS path (red) runs beside it.</text>
+<text x="830" y="754" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NUMA node: a group of CPU cores with the</text>
+<text x="830" y="771" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >memory closest to them. Here, each CPU is</text>
+<text x="830" y="788" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >one NUMA node.</text>
+<text x="830" y="815" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PXB and NODE need a different layout and</text>
+<text x="830" y="832" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >are not drawn.</text>
+<text x="830" y="859" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NVSwitch is drawn as one bar. The link</text>
+<text x="830" y="876" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >between the CPU sockets runs behind it and</text>
+<text x="830" y="893" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >does not connect to it.</text>
+<rect x="24" y="784" width="770" height="153" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="38" y="810" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#7a4fc4" text-anchor="start" >On Kubernetes</text>
+<text x="38" y="834" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >•</text>
+<text x="52" y="834" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Topology Manager in the kubelet lines up a pod's CPUs and devices by NUMA node, when its policy is</text>
+<text x="52" y="851" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >not none.</text>
+<text x="38" y="876" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >•</text>
+<text x="52" y="876" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A NUMA node can hold several PCIe switches, so NUMA alone does not pair a GPU with the NIC next to</text>
+<text x="52" y="893" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >it (this page's reading).</text>
+<text x="38" y="918" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >•</text>
+<text x="52" y="918" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A DRA claim with matchAttribute on pcieRoot places devices under one PCIe root.</text>
+</svg>

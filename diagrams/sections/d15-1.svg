@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 1231" width="1180" height="1231" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >The distance ladder, drawn for one H100 server (AWS P5, p5.48xlarge)</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >Nearest rung at the top. Bars show speed per GPU on a log scale: each tick on the axis is 10 times the one before. The right column shows what Kubernetes sees or sets.</text>
+<text x="380" y="96" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >Speed in GB/s, log scale</text>
+<text x="392.0" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >10</text>
+<text x="495.3333333333333" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >100</text>
+<text x="598.6666666666666" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >1,000</text>
+<text x="702.0" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >10,000</text>
+<text x="740" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#7a4fc4" text-anchor="start" >What Kubernetes sees or sets</text>
+<rect x="24" y="124" width="1132" height="122" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.4" />
+<rect x="36" y="136" width="28" height="28" rx="14.0" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="0" />
+<text x="50.0" y="154.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >1</text>
+<text x="76" y="150" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Inside the GPU: HBM</text>
+<text x="76" y="170" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >HBM (high-bandwidth memory) is the</text>
+<text x="76" y="187" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >memory on the GPU chip.</text>
+<path d="M392.0,128 L392.0,164" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M495.3333333333333,128 L495.3333333333333,164" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M598.6666666666666,128 L598.6666666666666,164" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M702.0,128 L702.0,164" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<rect x="392" y="136" width="260.92129672714066" height="24" rx="4" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="0" />
+<text x="392" y="186" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >3,350 GB/s</text>
+<text x="392" y="204" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >= 3.35 TB/s (NVIDIA H100).</text>
+<rect x="740" y="132" width="406" height="106" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.2" />
+<text x="752" y="152" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sees</text>
+<text x="798" y="152" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >GPU count. A label with the GPU model, from</text>
+<text x="798" y="169" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >GPU Feature Discovery (an NVIDIA add-on).</text>
+<text x="752" y="194" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sets</text>
+<text x="798" y="194" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >You ask for whole GPUs or, with MIG</text>
+<text x="798" y="211" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >(Multi-Instance GPU), slices of a GPU.</text>
+<rect x="24" y="258" width="1132" height="108" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4" />
+<rect x="36" y="270" width="28" height="28" rx="14.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="50.0" y="288.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >2</text>
+<text x="76" y="284" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >GPU to GPU in one server:</text>
+<text x="76" y="301" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >NVLink and NVSwitch</text>
+<text x="76" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NVLink links GPUs. NVSwitch is a switch</text>
+<text x="76" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >chip that joins them.</text>
+<path d="M392.0,262 L392.0,298" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M495.3333333333333,262 L495.3333333333333,298" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M598.6666666666666,262 L598.6666666666666,298" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M702.0,262 L702.0,298" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<rect x="392" y="270" width="201.9383926420636" height="24" rx="4" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="392" y="320" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >900 GB/s per GPU</text>
+<text x="392" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Both directions added (NVIDIA:</text>
+<text x="392" y="355" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >"bidirectional").</text>
+<rect x="740" y="266" width="406" height="92" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.2" />
+<text x="752" y="286" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sees</text>
+<text x="798" y="286" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Only the GPU count. It does not see the</text>
+<text x="798" y="303" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >links.</text>
+<text x="752" y="328" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sets</text>
+<text x="798" y="328" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Keep chatty pods on one node.</text>
+<rect x="24" y="378" width="1132" height="122" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.4" />
+<rect x="36" y="390" width="28" height="28" rx="14.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="50.0" y="408.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >3</text>
+<text x="76" y="404" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >GPU to CPU: PCIe Gen5</text>
+<text x="76" y="424" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PCIe is the general bus from the CPU to</text>
+<text x="76" y="441" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >GPUs, NICs and drives.</text>
+<path d="M392.0,382 L392.0,418" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M495.3333333333333,382 L495.3333333333333,418" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M598.6666666666666,382 L598.6666666666666,418" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M702.0,382 L702.0,418" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<rect x="392" y="390" width="114.41169686361309" height="24" rx="4" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="392" y="440" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >128 GB/s</text>
+<text x="392" y="458" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NVIDIA gives no direction. Both directions</text>
+<text x="392" y="475" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >added is a derived reading.</text>
+<rect x="740" y="386" width="406" height="106" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.2" />
+<text x="752" y="406" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sees</text>
+<text x="798" y="406" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The NUMA node of each device, from a device</text>
+<text x="798" y="423" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >plugin. Its PCIe root, from a DRA driver.</text>
+<text x="752" y="448" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sets</text>
+<text x="798" y="448" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The Topology Manager in the kubelet, and a</text>
+<text x="798" y="465" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >DRA claim on pcieRoot.</text>
+<rect x="24" y="512" width="1132" height="156" rx="10" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.4" />
+<rect x="36" y="524" width="28" height="28" rx="14.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="50.0" y="542.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >4</text>
+<text x="76" y="538" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Server to server: the NIC</text>
+<text x="76" y="558" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NIC = network interface card. It</text>
+<text x="76" y="575" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >connects the server to the network.</text>
+<path d="M392.0,516 L392.0,552" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M495.3333333333333,516 L495.3333333333333,552" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M598.6666666666666,516 L598.6666666666666,552" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<path d="M702.0,516 L702.0,552" stroke="#aab4c0" stroke-width="1" fill="none" stroke-dasharray="3 4"/>
+<rect x="392" y="524" width="72.22690044805529" height="24" rx="4" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="392" y="574" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >50 GB/s per GPU (d)</text>
+<text x="392" y="592" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >= 400 Gbps per GPU (d). Derived: 3,200 Gbps /</text>
+<text x="392" y="609" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >8 GPUs / 8 bits per byte.</text>
+<text x="392" y="626" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >AWS lists 3,200 Gbps for a p5.48xlarge and</text>
+<text x="392" y="643" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >gives no direction.</text>
+<rect x="740" y="520" width="406" height="140" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.2" />
+<text x="752" y="540" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sees</text>
+<text x="798" y="540" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >An EFA count (device plugin) or the EFA</text>
+<text x="798" y="557" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >location (DRA driver). A named pool of RDMA</text>
+<text x="798" y="574" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >devices.</text>
+<text x="752" y="599" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sets</text>
+<text x="798" y="599" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Ask for vpc.amazonaws.com/efa and</text>
+<text x="798" y="616" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >hugepages-2Mi, or for one unit of an RDMA</text>
+<text x="798" y="633" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >pool.</text>
+<rect x="24" y="680" width="1132" height="122" rx="10" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.4" stroke-dasharray="6 4" />
+<rect x="36" y="692" width="28" height="28" rx="14.0" fill="#7b8794" stroke="#7b8794" stroke-width="0" />
+<text x="50.0" y="710.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >5</text>
+<text x="76" y="706" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Same rack or network block</text>
+<text x="392" y="706" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#7b8794" text-anchor="start" >No speed figure found.</text>
+<text x="392" y="726" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >A cluster placement group stays in one</text>
+<text x="392" y="743" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Availability Zone. It does not isolate</text>
+<text x="392" y="760" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >instances to one rack (AWS).</text>
+<rect x="740" y="688" width="406" height="106" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.2" />
+<text x="752" y="708" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sees</text>
+<text x="798" y="708" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >EKS node labels report each node's network</text>
+<text x="798" y="725" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >position.</text>
+<text x="752" y="750" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sets</text>
+<text x="798" y="750" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Affinity rules on those labels (rules that</text>
+<text x="798" y="767" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >keep pods together).</text>
+<rect x="24" y="814" width="1132" height="111" rx="10" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.4" stroke-dasharray="6 4" />
+<rect x="36" y="826" width="28" height="28" rx="14.0" fill="#7b8794" stroke="#7b8794" stroke-width="0" />
+<text x="50.0" y="844.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >6</text>
+<text x="76" y="840" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Other zone, same region</text>
+<text x="392" y="840" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#7b8794" text-anchor="start" >No speed figure found.</text>
+<text x="392" y="860" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Data between zones costs $0.01/GB in each</text>
+<text x="392" y="877" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >direction (AWS). EFA traffic cannot cross</text>
+<text x="392" y="894" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Availability Zones (AWS).</text>
+<rect x="740" y="822" width="406" height="95" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.2" />
+<text x="752" y="842" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sees</text>
+<text x="798" y="842" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The label topology.kubernetes.io/zone on</text>
+<text x="798" y="859" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >every node.</text>
+<text x="752" y="884" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sets</text>
+<text x="798" y="884" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Keep a job's nodes in one zone.</text>
+<rect x="24" y="937" width="1132" height="122" rx="10" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.4" stroke-dasharray="6 4" />
+<rect x="36" y="949" width="28" height="28" rx="14.0" fill="#7b8794" stroke="#7b8794" stroke-width="0" />
+<text x="50.0" y="967.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >7</text>
+<text x="76" y="963" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Other region, over the WAN</text>
+<text x="392" y="963" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#7b8794" text-anchor="start" >No figure found for this page.</text>
+<text x="392" y="983" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >WAN = wide-area network that links regions.</text>
+<rect x="740" y="945" width="406" height="106" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.2" />
+<text x="752" y="965" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sees</text>
+<text x="798" y="965" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The label topology.kubernetes.io/region on</text>
+<text x="798" y="982" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >nodes.</text>
+<text x="752" y="1007" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sets</text>
+<text x="798" y="1007" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Which cluster, and so which region, runs the</text>
+<text x="798" y="1024" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >job (Design 18 covers sites).</text>
+<text x="24" y="1081" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Words in the right column. Kubelet = the agent on each node that starts pods. Device plugin = a program on a node that tells the kubelet which devices</text>
+<text x="24" y="1099" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >it has. DRA (Dynamic Resource Allocation) = a way to ask for devices by their properties. NUMA node = a group of CPU cores with the memory closest to</text>
+<text x="24" y="1117" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >them. PCIe root = the top of one PCIe tree, where the CPU and memory meet the devices. Topology Manager = the kubelet part that keeps a pod's CPUs and</text>
+<text x="24" y="1135" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >devices on one NUMA node. EFA = AWS's NIC for AI work. RDMA = Remote Direct Memory Access, which moves data straight into another machine's memory.</text>
+<text x="24" y="1153" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Units: TB/s and GB/s are bytes per second. Gbps is bits per second (8 bits = 1 byte). (d) = derived: arithmetic on sourced numbers.</text>
+<text x="24" y="1171" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sources: NVIDIA H100 page (rungs 1 to 3), AWS instance table (rung 4), AWS placement, EFA and pricing pages (rungs 5 and 6), Kubernetes and AWS EKS</text>
+<text x="24" y="1189" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >pages (right column).</text>
+<text x="24" y="1207" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >Latency: not measured here.</text>
+</svg>

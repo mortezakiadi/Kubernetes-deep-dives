@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 1062" width="1180" height="1062" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="34" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Leaving the server: four ways data can go from Server A to Server B</text>
+<text x="24" y="56" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Purple arrows = software calls. Orange = PCIe. Teal = network. GPU 0 and NIC 0 are an example pairing; the other GPUs and NICs are left out.</text>
+<rect x="24" y="78" width="592" height="836" rx="14" fill="#fbfcfe" stroke="#7b8794" stroke-width="1.6" stroke-dasharray="8 5" />
+<text x="40" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#5b6675" text-anchor="start" >Server A (sender)</text>
+<rect x="780" y="78" width="110" height="836" rx="14" fill="#fbfcfe" stroke="#7b8794" stroke-width="1.6" stroke-dasharray="8 5" />
+<text x="794" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#5b6675" text-anchor="start" >Server B</text>
+<text x="698.0" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f766e" text-anchor="middle" >Network</text>
+<text x="910" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#7a4fc4" text-anchor="start" >The pod asks for</text>
+<text x="40" y="128" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >1  EFA on AWS</text>
+<rect x="40" y="144" width="92" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="86.0" y="168.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NCCL</text>
+<rect x="154" y="144" width="122" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="215.0" y="168.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >aws-ofi-nccl</text>
+<path d="M132,164 L152,164" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<rect x="298" y="144" width="100" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="348.0" y="168.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >Libfabric</text>
+<path d="M276,164 L296,164" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<rect x="434" y="144" width="166" height="40" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="517.0" y="160.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 0</text>
+<text x="517.0" y="176.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >EFA device</text>
+<path d="M398,164 L432,164" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<text x="40" y="202" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NCCL talks to the EFA device directly, not through the OS network stack</text>
+<rect x="40" y="218" width="100" height="42" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="90.0" y="235.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 0</text>
+<text x="90.0" y="251.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >with HBM</text>
+<path d="M142,239 L578,239 L578,184" stroke="#e08a1e" stroke-width="3" fill="none" marker-end="url(#arO)" stroke-linejoin="round"/>
+<text x="156" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#8a4f00" text-anchor="start" >GPUDirect RDMA: GPU memory to NIC over PCIe</text>
+<text x="156" y="254" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Best when only PCIe switches lie between the two.</text>
+<text x="156" y="274" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >The node must be set up for it (DMA-BUF or nvidia-peermem, IOMMU).</text>
+<rect x="636" y="140" width="124" height="48" rx="24" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="698.0" y="168" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="middle" >EFA network</text>
+<text x="698.0" y="210" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >EFA traffic stays in one</text>
+<text x="698.0" y="226" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >Availability Zone and</text>
+<text x="698.0" y="242" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >one VPC (AWS)</text>
+<path d="M600,164 L634,164" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<path d="M762,164 L794,164" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<rect x="794" y="144" width="82" height="40" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="835.0" y="168.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 0</text>
+<text x="835.0" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >The same steps</text>
+<text x="835.0" y="222" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >in reverse</text>
+<text x="835.0" y="238" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >(not drawn).</text>
+<rect x="910" y="140" width="246" height="104" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="922" y="164" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >vpc.amazonaws.com/efa</text>
+<text x="922" y="184" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >hugepages-2Mi</text>
+<text x="922" y="204" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >or a DRA claim for the EFA device</text>
+<path d="M30,298 L1150,298" stroke="#cbd2da" stroke-width="1.2" fill="none" stroke-dasharray="4 4"/>
+<text x="40" y="328" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >2  InfiniBand</text>
+<rect x="40" y="344" width="92" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="86.0" y="368.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NCCL</text>
+<rect x="154" y="344" width="244" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="276.0" y="368.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NCCL InfiniBand Verbs transport</text>
+<path d="M132,364 L152,364" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<rect x="434" y="344" width="166" height="40" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="517.0" y="360.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 0</text>
+<text x="517.0" y="376.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >InfiniBand NIC (HCA)</text>
+<path d="M398,364 L432,364" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<text x="40" y="402" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NIC chosen with NCCL_IB_HCA</text>
+<rect x="40" y="418" width="100" height="42" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="90.0" y="435.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 0</text>
+<text x="90.0" y="451.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >with HBM</text>
+<path d="M142,439 L578,439 L578,384" stroke="#e08a1e" stroke-width="3" fill="none" marker-end="url(#arO)" stroke-linejoin="round"/>
+<text x="156" y="432" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#8a4f00" text-anchor="start" >GPUDirect RDMA: GPU memory to NIC over PCIe</text>
+<text x="156" y="454" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Best when only PCIe switches lie between the two.</text>
+<text x="156" y="474" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >The node must be set up for it (DMA-BUF or nvidia-peermem, IOMMU).</text>
+<rect x="636" y="340" width="124" height="48" rx="24" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="698.0" y="363" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="middle" >InfiniBand</text>
+<text x="698.0" y="379" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="middle" >network</text>
+<path d="M600,364 L634,364" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<path d="M762,364 L794,364" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<rect x="794" y="344" width="82" height="40" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="835.0" y="368.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 0</text>
+<text x="835.0" y="406" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >The same steps</text>
+<text x="835.0" y="422" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >in reverse</text>
+<text x="835.0" y="438" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >(not drawn).</text>
+<rect x="910" y="340" width="246" height="104" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="922" y="364" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >an RDMA pool, for example</text>
+<text x="922" y="384" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >rdma/rdma_shared_device_a</text>
+<text x="922" y="404" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >IPC_LOCK in NVIDIA's example pod</text>
+<path d="M30,498 L1150,498" stroke="#cbd2da" stroke-width="1.2" fill="none" stroke-dasharray="4 4"/>
+<text x="40" y="528" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >3  RoCE (RDMA over Ethernet)</text>
+<rect x="40" y="544" width="92" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="86.0" y="568.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NCCL</text>
+<rect x="154" y="544" width="244" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="276.0" y="568.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NCCL InfiniBand Verbs transport</text>
+<path d="M132,564 L152,564" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<rect x="434" y="544" width="166" height="40" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="517.0" y="560.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 0</text>
+<text x="517.0" y="576.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >RDMA NIC (HCA)</text>
+<path d="M398,564 L432,564" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<text x="40" y="602" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >same NCCL transport and variable (NCCL_IB_HCA)</text>
+<rect x="40" y="618" width="100" height="42" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="90.0" y="635.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 0</text>
+<text x="90.0" y="651.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >with HBM</text>
+<path d="M142,639 L578,639 L578,584" stroke="#e08a1e" stroke-width="3" fill="none" marker-end="url(#arO)" stroke-linejoin="round"/>
+<text x="156" y="632" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#8a4f00" text-anchor="start" >GPUDirect RDMA: GPU memory to NIC over PCIe</text>
+<text x="156" y="654" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Best when only PCIe switches lie between the two.</text>
+<text x="156" y="674" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >The node must be set up for it (DMA-BUF or nvidia-peermem, IOMMU).</text>
+<rect x="636" y="540" width="124" height="48" rx="24" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="698.0" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="middle" >RoCE network</text>
+<path d="M600,564 L634,564" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<path d="M762,564 L794,564" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<rect x="794" y="544" width="82" height="40" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="835.0" y="568.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 0</text>
+<text x="835.0" y="606" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >The same steps</text>
+<text x="835.0" y="622" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >in reverse</text>
+<text x="835.0" y="638" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >(not drawn).</text>
+<rect x="910" y="540" width="246" height="104" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="922" y="564" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >an RDMA pool, as for InfiniBand</text>
+<text x="922" y="584" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >No RoCE pod example was read</text>
+<path d="M30,698 L1150,698" stroke="#cbd2da" stroke-width="1.2" fill="none" stroke-dasharray="4 4"/>
+<text x="40" y="728" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >4  Fallback: IP sockets</text>
+<rect x="40" y="744" width="92" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="86.0" y="768.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NCCL</text>
+<rect x="154" y="744" width="100" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="204.0" y="768.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >IP sockets</text>
+<path d="M132,764 L152,764" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<rect x="276" y="744" width="122" height="40" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.8" />
+<text x="337.0" y="768.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >OS TCP/IP stack</text>
+<path d="M254,764 L274,764" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<rect x="434" y="744" width="166" height="40" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="517.0" y="760.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 0</text>
+<text x="517.0" y="776.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >ordinary network interface</text>
+<path d="M398,764 L432,764" stroke="#7a4fc4" stroke-width="2.2" fill="none" marker-end="url(#arP)"/>
+<text x="40" y="802" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NIC chosen with NCCL_SOCKET_IFNAME; NCCL_IB_DISABLE forces this path</text>
+<rect x="40" y="818" width="100" height="42" rx="8" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="90.0" y="835.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 0</text>
+<text x="90.0" y="851.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >with HBM</text>
+<text x="156" y="835" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >No GPUDirect RDMA line here: the data goes through</text>
+<text x="156" y="854" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >the OS TCP/IP stack and an ordinary network interface.</text>
+<rect x="636" y="740" width="124" height="48" rx="24" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="698.0" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="middle" >Network</text>
+<path d="M600,764 L634,764" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<path d="M762,764 L794,764" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<rect x="794" y="744" width="82" height="40" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="835.0" y="768.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NIC 0</text>
+<text x="835.0" y="806" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >The same steps</text>
+<text x="835.0" y="822" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >in reverse</text>
+<text x="835.0" y="838" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >(not drawn).</text>
+<rect x="910" y="740" width="246" height="104" rx="8" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
+<text x="922" y="764" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >No fast device.</text>
+<text x="922" y="784" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NCCL_SOCKET_IFNAME picks the</text>
+<text x="922" y="804" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >interface.</text>
+<text x="24" y="930" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >GPU = graphics processing unit. HBM = high-bandwidth memory on the GPU. NIC = network interface card. HCA = Host Channel Adapter (NCCL's word for an</text>
+<text x="24" y="948" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >RDMA NIC). RDMA = Remote Direct Memory Access.</text>
+<text x="24" y="966" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >OS = operating system. IOMMU = the unit that translates the memory addresses that devices use. SRD = Scalable Reliable Datagram, the AWS network</text>
+<text x="24" y="984" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >protocol that EFA uses. IPC_LOCK = a Linux permission that lets a container lock memory. RDMA pool = a named set of RDMA devices that a pod asks for by</text>
+<text x="24" y="1002" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >count.</text>
+<text x="24" y="1020" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >DMA-BUF = a Linux feature that lets devices share a memory buffer. nvidia-peermem = the older NVIDIA kernel module for the same job. The picture does</text>
+<text x="24" y="1038" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >not show the switches between the servers. Pod values are from the pages cited in the text next to this picture.</text>
+</svg>
