@@ -146,6 +146,11 @@ parameters:
 
 **Going deeper.** Local NVMe also speeds up model servers. A node-local model cache on NVMe (KServe has one, keyed by the model's storage URI) makes downloads from Hugging Face or S3 behave like a local volume after the first pull, and GPUDirect Storage can feed weights from NVMe straight into GPU memory.
 
+Kubernetes ignores instance-store disks until something sets them up. There are two ways to do that:
+
+- **As the node's ephemeral storage:** with Karpenter, `instanceStorePolicy: RAID0` in the EC2NodeClass stripes the disks together and makes them the filesystem for the kubelet and containerd. Every emptyDir then lands on NVMe, including the scratch directories Spark creates by default ([Karpenter NodeClasses](https://karpenter.sh/docs/concepts/nodeclasses/)). This is the simplest way to get fast scratch space, and the data goes away with the pod.
+- **As local persistent volumes:** a StorageClass with `provisioner: kubernetes.io/no-provisioner` and `volumeBindingMode: WaitForFirstConsumer`. Local volumes have no dynamic provisioning, so a PersistentVolume must already exist for every disk before a pod can claim it ([Storage classes](https://kubernetes.io/docs/concepts/storage/storage-classes/)). Each volume belongs to one node, so many pods can't share one claim.
+
 ### Spreading across AZs and nodes
 
 **Scenario.** A Cassandra cluster's three replicas all end up in the same Availability Zone because that AZ had the most free capacity. When that AZ has an outage, the whole database goes down, even though the cluster spans three AZs.
