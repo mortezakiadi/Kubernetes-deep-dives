@@ -157,6 +157,7 @@ spec:
 
 - **Throughput, not capacity, is the limit of shared volumes.** Twenty replicas each reading 15 GB at startup is 300 GB through one file system. Use a file system with enough provisioned throughput (FSx for Lustre for large fleets), or stagger rollouts.
 - **The init-container pattern pays the download on every restart.** Add a node-local cache (a `hostPath` or local PV per node) only if you accept the operational cost of managing it.
+- **KServe's node-local cache does that management for you, with limits.** It is off until an admin enables it. A node group names the nodes and their local disk, and a LocalModelCache names the model, which KServe then downloads to every node in the group ahead of time. An InferenceService uses the copy only when its storage URI matches the cache's source URI exactly. The cache removes the download, not the time to load weights into the GPU ([KServe model cache](https://kserve.github.io/website/docs/model-serving/generative-inference/modelcache/localmodel)). For LLMInferenceService, KServe 0.21 added cached LoRA adapters ([0.21 release](https://kserve.github.io/website/blog/kserve-0.21-release)).
 
 ### Pattern 3 and 4: models as OCI images
 

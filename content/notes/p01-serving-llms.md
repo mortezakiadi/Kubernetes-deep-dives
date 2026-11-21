@@ -219,6 +219,7 @@ spec:
 **Going deeper.**
 
 - **The LLMInferenceService API is still alpha** and changing between KServe releases, so pin your KServe version and re-check the fields on upgrade.
+- **GPUs through DRA:** since KServe 0.21 a serving runtime can carry DRA resource claims, merged with each InferenceService's own settings ([0.21 release](https://kserve.github.io/website/blog/kserve-0.21-release)). Give each replica its own claim from a ResourceClaimTemplate. A single named ResourceClaim is shared, so every replica that points at it gets the same device ([Kubernetes DRA task](https://kubernetes.io/docs/tasks/configure-pod-container/assign-resources/allocate-devices-dra/)). See [Dynamic Resource Allocation](#d06-4).
 - **Runtime upgrades become a rollout, not a migration:** change the ClusterServingRuntime image, and each InferenceService rolls its pods. Test a new runtime by pointing one InferenceService at a second runtime first.
 - See [Workloads and node tiers](#d03-1) and [Placement, autoscaling and cost](#d03-3) for where these pods run and how they scale.
 
