@@ -126,6 +126,32 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose table { border-collapse: collapse; margin: 10px 0 14px; font-size: 14.5px; max-width: 100%; }
 .prose th, .prose td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
 .prose thead th { background: var(--accent-soft); font-weight: 600; }
+/* colour-coded plugin tables: a row has the colour of the pod-spec field that triggers it */
+.prose table.plugmap td:first-child { padding-left: 16px; }
+.prose table.plugmap tr.g1 td { background: hsla(2, 80%, 55%, 0.18); }
+.prose table.plugmap tr.g1 td:first-child { box-shadow: inset 6px 0 0 hsl(2, 70%, 43%); padding-left: 16px; }
+.prose table.plugmap tr.g2 td { background: hsla(28, 90%, 55%, 0.2); }
+.prose table.plugmap tr.g2 td:first-child { box-shadow: inset 6px 0 0 hsl(28, 80%, 43%); padding-left: 16px; }
+.prose table.plugmap tr.g3 td { background: hsla(52, 95%, 50%, 0.24); }
+.prose table.plugmap tr.g3 td:first-child { box-shadow: inset 6px 0 0 hsl(52, 85%, 38%); padding-left: 16px; }
+.prose table.plugmap tr.g4 td { background: hsla(85, 70%, 50%, 0.22); }
+.prose table.plugmap tr.g4 td:first-child { box-shadow: inset 6px 0 0 hsl(85, 60%, 38%); padding-left: 16px; }
+.prose table.plugmap tr.g5 td { background: hsla(140, 60%, 45%, 0.2); }
+.prose table.plugmap tr.g5 td:first-child { box-shadow: inset 6px 0 0 hsl(140, 50%, 33%); padding-left: 16px; }
+.prose table.plugmap tr.g6 td { background: hsla(172, 70%, 42%, 0.2); }
+.prose table.plugmap tr.g6 td:first-child { box-shadow: inset 6px 0 0 hsl(172, 60%, 30%); padding-left: 16px; }
+.prose table.plugmap tr.g7 td { background: hsla(195, 85%, 50%, 0.2); }
+.prose table.plugmap tr.g7 td:first-child { box-shadow: inset 6px 0 0 hsl(195, 75%, 38%); padding-left: 16px; }
+.prose table.plugmap tr.g8 td { background: hsla(220, 80%, 58%, 0.2); }
+.prose table.plugmap tr.g8 td:first-child { box-shadow: inset 6px 0 0 hsl(220, 70%, 46%); padding-left: 16px; }
+.prose table.plugmap tr.g9 td { background: hsla(258, 65%, 62%, 0.2); }
+.prose table.plugmap tr.g9 td:first-child { box-shadow: inset 6px 0 0 hsl(258, 55%, 50%); padding-left: 16px; }
+.prose table.plugmap tr.g10 td { background: hsla(295, 65%, 58%, 0.2); }
+.prose table.plugmap tr.g10 td:first-child { box-shadow: inset 6px 0 0 hsl(295, 55%, 46%); padding-left: 16px; }
+.prose table.plugmap tr.g11 td { background: hsla(328, 85%, 58%, 0.2); }
+.prose table.plugmap tr.g11 td:first-child { box-shadow: inset 6px 0 0 hsl(328, 75%, 46%); padding-left: 16px; }
+.prose table.plugmap tr.g12 td { background: hsla(210, 12%, 50%, 0.24); }
+.prose table.plugmap tr.g12 td:first-child { box-shadow: inset 6px 0 0 hsl(210, 10%, 38%); padding-left: 16px; }
 .prose table.mini td:not(:first-child), .prose table.mini th:not(:first-child) { text-align: center; }
 .prose table.mini tr.sum td { font-weight: 600; background: rgba(127,127,127,.06); }
 .prose table.mini td.no { color: #b91c1c; font-weight: 600; }
@@ -1148,189 +1174,48 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li><strong>Reserve / Permit:</strong> holds the chosen node's volumes and devices while the decision is finalized.</li>
 <li><strong>Bind:</strong> writes the chosen node into the pod (<code>spec.nodeName</code>).</li>
 </ul>
-</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Blue lane, default-scheduler</span></summary><div class="acc-body">the built-in <mark class="kw-tool">kube-scheduler</mark>. On EKS it runs on the AWS-managed control plane, and every plugin shown is built in and on by default. The Score box lists the default weights (×1, ×2, ×3).</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Amber lane, a second kube-scheduler with your own profile</span></summary><div class="acc-body">the same program and the same plugins, run as your own Deployment (the full example is in <a href="#appendix-second-scheduler">Appendix A</a>). Only the highlighted Score box differs: <mark class="kw">InterPodAffinity</mark> weighted ×100, and <mark class="kw">NodeResourcesFit</mark> switched to <mark class="kw">MostAllocated</mark> (<mark class="kw-act">bin-packing</mark>).</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Teal lane, a replacement scheduler (Volcano, KAI, YuniKorn)</span></summary><div class="acc-body">a different program that works in sessions, with its own actions (steps such as allocate or <mark class="kw-act">reclaim</mark>) and plugins: queues and <mark class="kw">PodGroups</mark> for <mark class="kw">gang scheduling</mark>, queue-based reclaim instead of plain preemption, GPU and network topology <mark class="kw-act">scoring</mark>, and <mark class="kw-act">binding</mark> a whole job together. It reuses kube-scheduler's <mark class="kw-act">filter</mark> checks (through its predicates plugin), so <mark class="kw">taints</mark> and <mark class="kw">affinity</mark> still mean the same thing, but the scoring plugins and weights above don't apply to its pods.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Grey bar, shared by all three</span></summary><div class="acc-body">the same nodes and the same API server. The schedulers don't coordinate with each other.</div></details><p><strong>The built-in plugins</strong> (all on by default; "–" means the plugin doesn't take part in that stage):</p><table>
-<thead>
-<tr>
-<th>Plugin</th>
-<th>What it does</th>
-<th>Filter</th>
-<th>Score weight</th>
-</tr>
-</thead>
+</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Blue lane, default-scheduler</span></summary><div class="acc-body">the built-in <mark class="kw-tool">kube-scheduler</mark>. On EKS it runs on the AWS-managed control plane, and every plugin shown is built in and on by default. The Score box lists the default weights (×1, ×2, ×3).</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Amber lane, a second kube-scheduler with your own profile</span></summary><div class="acc-body">the same program and the same plugins, run as your own Deployment (the full example is in <a href="#appendix-second-scheduler">Appendix A</a>). Only the highlighted Score box differs: <mark class="kw">InterPodAffinity</mark> weighted ×100, and <mark class="kw">NodeResourcesFit</mark> switched to <mark class="kw">MostAllocated</mark> (<mark class="kw-act">bin-packing</mark>).</div></details><details class="acc"><summary><span class="acc-num">5</span><span class="acc-title">Teal lane, a replacement scheduler (Volcano, KAI, YuniKorn)</span></summary><div class="acc-body">a different program that works in sessions, with its own actions (steps such as allocate or <mark class="kw-act">reclaim</mark>) and plugins: queues and <mark class="kw">PodGroups</mark> for <mark class="kw">gang scheduling</mark>, queue-based reclaim instead of plain preemption, GPU and network topology <mark class="kw-act">scoring</mark>, and <mark class="kw-act">binding</mark> a whole job together. It reuses kube-scheduler's <mark class="kw-act">filter</mark> checks (through its predicates plugin), so <mark class="kw">taints</mark> and <mark class="kw">affinity</mark> still mean the same thing, but the scoring plugins and weights above don't apply to its pods.</div></details><details class="acc"><summary><span class="acc-num">6</span><span class="acc-title">Grey bar, shared by all three</span></summary><div class="acc-body">the same nodes and the same API server. The schedulers don't coordinate with each other.</div></details><p><strong>The built-in plugins</strong> (all on by default; "–" means the plugin doesn't take part in that stage):</p><p>The colours match the "From pod spec to plugin" table: a row has the colour of the pod-spec field that triggers it. Rows with no colour have no pod-spec field. <mark class="kw">NodeUnschedulable</mark> reads the node's <mark class="kw-act">cordon</mark>, and <mark class="kw">DefaultBinder</mark> only writes the result.</p><table class="plugmap by-plugin">
+<thead><tr><th>Plugin</th><th>What it does</th><th>Filter</th><th>Score weight</th></tr></thead>
 <tbody>
-<tr>
-<td>PrioritySort</td>
-<td>Orders the queue: higher-priority pods are scheduled first</td>
-<td>–</td>
-<td>–</td>
-</tr>
-<tr>
-<td>SchedulingGates</td>
-<td>Holds back pods that still have <code>schedulingGates</code> set</td>
-<td>–</td>
-<td>–</td>
-</tr>
-<tr>
-<td>NodeUnschedulable</td>
-<td>Skips cordoned nodes (<code>spec.unschedulable</code>)</td>
-<td>✓</td>
-<td>–</td>
-</tr>
-<tr>
-<td>NodeName</td>
-<td>Honours a pod that already names its node</td>
-<td>✓</td>
-<td>–</td>
-</tr>
-<tr>
-<td>NodeResourcesFit</td>
-<td>CPU, memory, GPU and other resources: does it fit? Then LeastAllocated scoring</td>
-<td>✓</td>
-<td>1</td>
-</tr>
-<tr>
-<td>BalancedResourceAllocation</td>
-<td>Prefers nodes where CPU and memory use stay balanced</td>
-<td>–</td>
-<td>1</td>
-</tr>
-<tr>
-<td>ImageLocality</td>
-<td>Prefers nodes that already have the pod's images</td>
-<td>–</td>
-<td>1</td>
-</tr>
-<tr>
-<td>NodeAffinity</td>
-<td><code>nodeSelector</code> and required node affinity (filter); preferred node affinity (score)</td>
-<td>✓</td>
-<td>2</td>
-</tr>
-<tr>
-<td>InterPodAffinity</td>
-<td>Required pod affinity / anti-affinity (filter); preferred (score)</td>
-<td>✓</td>
-<td>2</td>
-</tr>
-<tr>
-<td>PodTopologySpread</td>
-<td><code>DoNotSchedule</code> spread constraints (filter); <code>ScheduleAnyway</code> (score)</td>
-<td>✓</td>
-<td>2</td>
-</tr>
-<tr>
-<td>TaintToleration</td>
-<td><code>NoSchedule</code> taints (filter); prefers fewer untolerated <code>PreferNoSchedule</code> taints (score)</td>
-<td>✓</td>
-<td>3</td>
-</tr>
-<tr>
-<td>NodePorts</td>
-<td>Rejects nodes where the pod's <code>hostPort</code> is taken</td>
-<td>✓</td>
-<td>–</td>
-</tr>
-<tr>
-<td>VolumeRestrictions</td>
-<td>Volume conflicts, such as a <code>ReadWriteOncePod</code> volume already in use</td>
-<td>✓</td>
-<td>–</td>
-</tr>
-<tr>
-<td>NodeVolumeLimits</td>
-<td>The node's limit on attached volumes (for example EBS)</td>
-<td>✓</td>
-<td>–</td>
-</tr>
-<tr>
-<td>VolumeZone</td>
-<td>The volume's zone must match the node's zone</td>
-<td>✓</td>
-<td>–</td>
-</tr>
-<tr>
-<td>VolumeBinding</td>
-<td>PVCs can be bound or provisioned on this node; reserves them</td>
-<td>✓</td>
-<td>–</td>
-</tr>
-<tr>
-<td>DynamicResources</td>
-<td>DRA device claims (GPUs and other devices) can be satisfied; reserves them</td>
-<td>✓</td>
-<td>–</td>
-</tr>
-<tr>
-<td>DefaultPreemption</td>
-<td>PostFilter: evicts lower-priority pods when nothing fits</td>
-<td>–</td>
-<td>–</td>
-</tr>
-<tr>
-<td>DefaultBinder</td>
-<td>Bind: writes <code>spec.nodeName</code></td>
-<td>–</td>
-<td>–</td>
-</tr>
+<tr class="g8"><td>PrioritySort</td><td>Orders the queue: higher-priority pods are scheduled first</td><td>–</td><td>–</td></tr>
+<tr class="g12"><td>SchedulingGates</td><td>Holds back pods that still have <code>schedulingGates</code> set</td><td>–</td><td>–</td></tr>
+<tr><td>NodeUnschedulable</td><td>Skips cordoned nodes (<code>spec.unschedulable</code>)</td><td>✓</td><td>–</td></tr>
+<tr class="g6"><td>NodeName</td><td>Honours a pod that already names its node</td><td>✓</td><td>–</td></tr>
+<tr class="g1"><td>NodeResourcesFit</td><td>CPU, memory, GPU and other resources: does it fit? Then LeastAllocated scoring</td><td>✓</td><td>1</td></tr>
+<tr class="g1"><td>BalancedResourceAllocation</td><td>Prefers nodes where CPU and memory use stay balanced</td><td>–</td><td>1</td></tr>
+<tr class="g11"><td>ImageLocality</td><td>Prefers nodes that already have the pod's images</td><td>–</td><td>1</td></tr>
+<tr class="g2"><td>NodeAffinity</td><td><code>nodeSelector</code> and required node affinity (filter); preferred node affinity (score)</td><td>✓</td><td>2</td></tr>
+<tr class="g3"><td>InterPodAffinity</td><td>Required pod affinity / anti-affinity (filter); preferred (score)</td><td>✓</td><td>2</td></tr>
+<tr class="g4"><td>PodTopologySpread</td><td><code>DoNotSchedule</code> spread constraints (filter); <code>ScheduleAnyway</code> (score)</td><td>✓</td><td>2</td></tr>
+<tr class="g5"><td>TaintToleration</td><td><code>NoSchedule</code> taints (filter); prefers fewer untolerated <code>PreferNoSchedule</code> taints (score)</td><td>✓</td><td>3</td></tr>
+<tr class="g7"><td>NodePorts</td><td>Rejects nodes where the pod's <code>hostPort</code> is taken</td><td>✓</td><td>–</td></tr>
+<tr class="g9"><td>VolumeRestrictions</td><td>Volume conflicts, such as a <code>ReadWriteOncePod</code> volume already in use</td><td>✓</td><td>–</td></tr>
+<tr class="g9"><td>NodeVolumeLimits</td><td>The node's limit on attached volumes (for example EBS)</td><td>✓</td><td>–</td></tr>
+<tr class="g9"><td>VolumeZone</td><td>The volume's zone must match the node's zone</td><td>✓</td><td>–</td></tr>
+<tr class="g9"><td>VolumeBinding</td><td>PVCs can be bound or provisioned on this node; reserves them</td><td>✓</td><td>–</td></tr>
+<tr class="g10"><td>DynamicResources</td><td>DRA device claims (GPUs and other devices) can be satisfied; reserves them</td><td>✓</td><td>–</td></tr>
+<tr class="g8"><td>DefaultPreemption</td><td>PostFilter: evicts lower-priority pods when nothing fits</td><td>–</td><td>–</td></tr>
+<tr><td>DefaultBinder</td><td>Bind: writes <code>spec.nodeName</code></td><td>–</td><td>–</td></tr>
 </tbody>
-</table><p><strong>From pod spec to plugin:</strong> you never write a plugin's name in a pod. You write a field, and the plugin that reads it does the work. The diagram and the table above use plugin names; this is how they map to what you write:</p><table>
-<thead>
-<tr>
-<th>You write in the pod spec</th>
-<th>The plugin that reads it</th>
-</tr>
-</thead>
+</table><p><strong>From pod spec to plugin:</strong> you never write a plugin's name in a pod. You write a field, and the plugin that reads it does the work. The diagram and the table above use plugin names; this is how they map to what you write:</p><p>The colours match the rows of the built-in plugins table.</p><table class="plugmap by-field">
+<thead><tr><th>You write in the pod spec</th><th>The plugin that reads it</th></tr></thead>
 <tbody>
-<tr>
-<td><code>resources.requests</code></td>
-<td>NodeResourcesFit, BalancedResourceAllocation</td>
-</tr>
-<tr>
-<td><code>nodeSelector</code>, <code>affinity.nodeAffinity</code></td>
-<td>NodeAffinity</td>
-</tr>
-<tr>
-<td><code>affinity.podAffinity</code> / <code>podAntiAffinity</code></td>
-<td>InterPodAffinity</td>
-</tr>
-<tr>
-<td><code>topologySpreadConstraints</code></td>
-<td>PodTopologySpread</td>
-</tr>
-<tr>
-<td><code>tolerations</code></td>
-<td>TaintToleration</td>
-</tr>
-<tr>
-<td><code>nodeName</code></td>
-<td>NodeName</td>
-</tr>
-<tr>
-<td><code>ports[].hostPort</code></td>
-<td>NodePorts</td>
-</tr>
-<tr>
-<td><code>priorityClassName</code></td>
-<td>PrioritySort, DefaultPreemption</td>
-</tr>
-<tr>
-<td><code>volumes</code> (PVCs)</td>
-<td>VolumeBinding, VolumeZone, VolumeRestrictions, NodeVolumeLimits</td>
-</tr>
-<tr>
-<td><code>resourceClaims</code> (DRA)</td>
-<td>DynamicResources</td>
-</tr>
-<tr>
-<td>the image in <code>containers[].image</code></td>
-<td>ImageLocality</td>
-</tr>
-<tr>
-<td><code>schedulingGates</code></td>
-<td>SchedulingGates</td>
-</tr>
+<tr class="g1"><td><code>resources.requests</code></td><td>NodeResourcesFit, BalancedResourceAllocation</td></tr>
+<tr class="g2"><td><code>nodeSelector</code>, <code>affinity.nodeAffinity</code></td><td>NodeAffinity</td></tr>
+<tr class="g3"><td><code>affinity.podAffinity</code> / <code>podAntiAffinity</code></td><td>InterPodAffinity</td></tr>
+<tr class="g4"><td><code>topologySpreadConstraints</code></td><td>PodTopologySpread</td></tr>
+<tr class="g5"><td><code>tolerations</code></td><td>TaintToleration</td></tr>
+<tr class="g6"><td><code>nodeName</code></td><td>NodeName</td></tr>
+<tr class="g7"><td><code>ports[].hostPort</code></td><td>NodePorts</td></tr>
+<tr class="g8"><td><code>priorityClassName</code></td><td>PrioritySort, DefaultPreemption</td></tr>
+<tr class="g9"><td><code>volumes</code> (PVCs)</td><td>VolumeBinding, VolumeZone, VolumeRestrictions, NodeVolumeLimits</td></tr>
+<tr class="g10"><td><code>resourceClaims</code> (DRA)</td><td>DynamicResources</td></tr>
+<tr class="g11"><td>the image in <code>containers[].image</code></td><td>ImageLocality</td></tr>
+<tr class="g12"><td><code>schedulingGates</code></td><td>SchedulingGates</td></tr>
 </tbody>
 </table><p><strong>What a second scheduler changes:</strong></p><details class="acc"><summary><span class="acc-num">7</span><span class="acc-title">One pod, one scheduler</span></summary><div class="acc-body">a pod is handled only by the scheduler named in its <code>schedulerName</code>. The other schedulers' plugins never see it.</div></details><details class="acc"><summary><span class="acc-num">8</span><span class="acc-title">Same program, different profile (amber lane)</span></summary><div class="acc-body">you can change weights, switch the scoring strategy, or disable plugins (for example turn off <mark class="kw">ImageLocality</mark>). One kube-scheduler process can even serve several profiles, each under its own <code>schedulerName</code>.</div></details><details class="acc"><summary><span class="acc-num">9</span><span class="acc-title">Different program (teal lane)</span></summary><div class="acc-body">you get features the built-in plugins don't have, such as gang scheduling, queues and GPU topology. In return, its pods follow its rules, not the table above.</div></details><details class="acc"><summary><span class="acc-num">10</span><span class="acc-title">No coordination</span></summary><div class="acc-body">two schedulers can pick the same free space at the same moment, because each one only sees its own decisions in flight. The <mark class="kw-tool">kubelet</mark> then rejects the pod that arrives second (<code>OutOfcpu</code> / <code>OutOfmemory</code>) and its controller creates a new one. The usual fix is to give each scheduler its own nodes, with taints and node labels, or to send all pods of one kind (for example all GPU pods) to a single scheduler.</div></details><details class="acc"><summary><span class="acc-num">11</span><span class="acc-title">Preemption crosses the boundary</span></summary><div class="acc-body">the default scheduler's <mark class="kw">DefaultPreemption</mark> can <mark class="kw-act">evict</mark> pods placed by your scheduler if they have lower priority, and the other way round. Use <mark class="kw">PriorityClasses</mark> consistently across both.</div></details><details class="acc"><summary><span class="acc-num">12</span><span class="acc-title">Autoscalers</span></summary><div class="acc-body"><mark class="kw-tool">Cluster Autoscaler</mark> and <mark class="kw-tool">Karpenter</mark> decide whether to add nodes by simulating the <em>default</em> scheduler's rules. Check whether yours acts on pods with a custom <code>schedulerName</code> at all, and remember that custom filters it doesn't know about can lead to nodes being added that your scheduler then won't use.</div></details></div>
+
+
 
 
 

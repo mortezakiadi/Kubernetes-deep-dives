@@ -126,6 +126,32 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 .prose table { border-collapse: collapse; margin: 10px 0 14px; font-size: 14.5px; max-width: 100%; }
 .prose th, .prose td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
 .prose thead th { background: var(--accent-soft); font-weight: 600; }
+/* colour-coded plugin tables: a row has the colour of the pod-spec field that triggers it */
+.prose table.plugmap td:first-child { padding-left: 16px; }
+.prose table.plugmap tr.g1 td { background: hsla(2, 80%, 55%, 0.18); }
+.prose table.plugmap tr.g1 td:first-child { box-shadow: inset 6px 0 0 hsl(2, 70%, 43%); padding-left: 16px; }
+.prose table.plugmap tr.g2 td { background: hsla(28, 90%, 55%, 0.2); }
+.prose table.plugmap tr.g2 td:first-child { box-shadow: inset 6px 0 0 hsl(28, 80%, 43%); padding-left: 16px; }
+.prose table.plugmap tr.g3 td { background: hsla(52, 95%, 50%, 0.24); }
+.prose table.plugmap tr.g3 td:first-child { box-shadow: inset 6px 0 0 hsl(52, 85%, 38%); padding-left: 16px; }
+.prose table.plugmap tr.g4 td { background: hsla(85, 70%, 50%, 0.22); }
+.prose table.plugmap tr.g4 td:first-child { box-shadow: inset 6px 0 0 hsl(85, 60%, 38%); padding-left: 16px; }
+.prose table.plugmap tr.g5 td { background: hsla(140, 60%, 45%, 0.2); }
+.prose table.plugmap tr.g5 td:first-child { box-shadow: inset 6px 0 0 hsl(140, 50%, 33%); padding-left: 16px; }
+.prose table.plugmap tr.g6 td { background: hsla(172, 70%, 42%, 0.2); }
+.prose table.plugmap tr.g6 td:first-child { box-shadow: inset 6px 0 0 hsl(172, 60%, 30%); padding-left: 16px; }
+.prose table.plugmap tr.g7 td { background: hsla(195, 85%, 50%, 0.2); }
+.prose table.plugmap tr.g7 td:first-child { box-shadow: inset 6px 0 0 hsl(195, 75%, 38%); padding-left: 16px; }
+.prose table.plugmap tr.g8 td { background: hsla(220, 80%, 58%, 0.2); }
+.prose table.plugmap tr.g8 td:first-child { box-shadow: inset 6px 0 0 hsl(220, 70%, 46%); padding-left: 16px; }
+.prose table.plugmap tr.g9 td { background: hsla(258, 65%, 62%, 0.2); }
+.prose table.plugmap tr.g9 td:first-child { box-shadow: inset 6px 0 0 hsl(258, 55%, 50%); padding-left: 16px; }
+.prose table.plugmap tr.g10 td { background: hsla(295, 65%, 58%, 0.2); }
+.prose table.plugmap tr.g10 td:first-child { box-shadow: inset 6px 0 0 hsl(295, 55%, 46%); padding-left: 16px; }
+.prose table.plugmap tr.g11 td { background: hsla(328, 85%, 58%, 0.2); }
+.prose table.plugmap tr.g11 td:first-child { box-shadow: inset 6px 0 0 hsl(328, 75%, 46%); padding-left: 16px; }
+.prose table.plugmap tr.g12 td { background: hsla(210, 12%, 50%, 0.24); }
+.prose table.plugmap tr.g12 td:first-child { box-shadow: inset 6px 0 0 hsl(210, 10%, 38%); padding-left: 16px; }
 .prose table.mini td:not(:first-child), .prose table.mini th:not(:first-child) { text-align: center; }
 .prose table.mini tr.sum td { font-weight: 600; background: rgba(127,127,127,.06); }
 .prose table.mini td.no { color: #b91c1c; font-weight: 600; }

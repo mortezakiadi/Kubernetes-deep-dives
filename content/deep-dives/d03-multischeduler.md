@@ -28,44 +28,54 @@ The default scheduler places pods one at a time and knows nothing about jobs, te
 
 **The built-in plugins** (all on by default; "–" means the plugin doesn't take part in that stage):
 
-| Plugin | What it does | Filter | Score weight |
-|---|---|---|---|
-| PrioritySort | Orders the queue: higher-priority pods are scheduled first | – | – |
-| SchedulingGates | Holds back pods that still have `schedulingGates` set | – | – |
-| NodeUnschedulable | Skips cordoned nodes (`spec.unschedulable`) | ✓ | – |
-| NodeName | Honours a pod that already names its node | ✓ | – |
-| NodeResourcesFit | CPU, memory, GPU and other resources: does it fit? Then LeastAllocated scoring | ✓ | 1 |
-| BalancedResourceAllocation | Prefers nodes where CPU and memory use stay balanced | – | 1 |
-| ImageLocality | Prefers nodes that already have the pod's images | – | 1 |
-| NodeAffinity | `nodeSelector` and required node affinity (filter); preferred node affinity (score) | ✓ | 2 |
-| InterPodAffinity | Required pod affinity / anti-affinity (filter); preferred (score) | ✓ | 2 |
-| PodTopologySpread | `DoNotSchedule` spread constraints (filter); `ScheduleAnyway` (score) | ✓ | 2 |
-| TaintToleration | `NoSchedule` taints (filter); prefers fewer untolerated `PreferNoSchedule` taints (score) | ✓ | 3 |
-| NodePorts | Rejects nodes where the pod's `hostPort` is taken | ✓ | – |
-| VolumeRestrictions | Volume conflicts, such as a `ReadWriteOncePod` volume already in use | ✓ | – |
-| NodeVolumeLimits | The node's limit on attached volumes (for example EBS) | ✓ | – |
-| VolumeZone | The volume's zone must match the node's zone | ✓ | – |
-| VolumeBinding | PVCs can be bound or provisioned on this node; reserves them | ✓ | – |
-| DynamicResources | DRA device claims (GPUs and other devices) can be satisfied; reserves them | ✓ | – |
-| DefaultPreemption | PostFilter: evicts lower-priority pods when nothing fits | – | – |
-| DefaultBinder | Bind: writes `spec.nodeName` | – | – |
+The colours match the "From pod spec to plugin" table: a row has the colour of the pod-spec field that triggers it. Rows with no colour have no pod-spec field. NodeUnschedulable reads the node's cordon, and DefaultBinder only writes the result.
+
+<table class="plugmap by-plugin">
+<thead><tr><th>Plugin</th><th>What it does</th><th>Filter</th><th>Score weight</th></tr></thead>
+<tbody>
+<tr class="g8"><td>PrioritySort</td><td>Orders the queue: higher-priority pods are scheduled first</td><td>–</td><td>–</td></tr>
+<tr class="g12"><td>SchedulingGates</td><td>Holds back pods that still have <code>schedulingGates</code> set</td><td>–</td><td>–</td></tr>
+<tr><td>NodeUnschedulable</td><td>Skips cordoned nodes (<code>spec.unschedulable</code>)</td><td>✓</td><td>–</td></tr>
+<tr class="g6"><td>NodeName</td><td>Honours a pod that already names its node</td><td>✓</td><td>–</td></tr>
+<tr class="g1"><td>NodeResourcesFit</td><td>CPU, memory, GPU and other resources: does it fit? Then LeastAllocated scoring</td><td>✓</td><td>1</td></tr>
+<tr class="g1"><td>BalancedResourceAllocation</td><td>Prefers nodes where CPU and memory use stay balanced</td><td>–</td><td>1</td></tr>
+<tr class="g11"><td>ImageLocality</td><td>Prefers nodes that already have the pod's images</td><td>–</td><td>1</td></tr>
+<tr class="g2"><td>NodeAffinity</td><td><code>nodeSelector</code> and required node affinity (filter); preferred node affinity (score)</td><td>✓</td><td>2</td></tr>
+<tr class="g3"><td>InterPodAffinity</td><td>Required pod affinity / anti-affinity (filter); preferred (score)</td><td>✓</td><td>2</td></tr>
+<tr class="g4"><td>PodTopologySpread</td><td><code>DoNotSchedule</code> spread constraints (filter); <code>ScheduleAnyway</code> (score)</td><td>✓</td><td>2</td></tr>
+<tr class="g5"><td>TaintToleration</td><td><code>NoSchedule</code> taints (filter); prefers fewer untolerated <code>PreferNoSchedule</code> taints (score)</td><td>✓</td><td>3</td></tr>
+<tr class="g7"><td>NodePorts</td><td>Rejects nodes where the pod's <code>hostPort</code> is taken</td><td>✓</td><td>–</td></tr>
+<tr class="g9"><td>VolumeRestrictions</td><td>Volume conflicts, such as a <code>ReadWriteOncePod</code> volume already in use</td><td>✓</td><td>–</td></tr>
+<tr class="g9"><td>NodeVolumeLimits</td><td>The node's limit on attached volumes (for example EBS)</td><td>✓</td><td>–</td></tr>
+<tr class="g9"><td>VolumeZone</td><td>The volume's zone must match the node's zone</td><td>✓</td><td>–</td></tr>
+<tr class="g9"><td>VolumeBinding</td><td>PVCs can be bound or provisioned on this node; reserves them</td><td>✓</td><td>–</td></tr>
+<tr class="g10"><td>DynamicResources</td><td>DRA device claims (GPUs and other devices) can be satisfied; reserves them</td><td>✓</td><td>–</td></tr>
+<tr class="g8"><td>DefaultPreemption</td><td>PostFilter: evicts lower-priority pods when nothing fits</td><td>–</td><td>–</td></tr>
+<tr><td>DefaultBinder</td><td>Bind: writes <code>spec.nodeName</code></td><td>–</td><td>–</td></tr>
+</tbody>
+</table>
 
 **From pod spec to plugin:** you never write a plugin's name in a pod. You write a field, and the plugin that reads it does the work. The diagram and the table above use plugin names; this is how they map to what you write:
 
-| You write in the pod spec | The plugin that reads it |
-|---|---|
-| `resources.requests` | NodeResourcesFit, BalancedResourceAllocation |
-| `nodeSelector`, `affinity.nodeAffinity` | NodeAffinity |
-| `affinity.podAffinity` / `podAntiAffinity` | InterPodAffinity |
-| `topologySpreadConstraints` | PodTopologySpread |
-| `tolerations` | TaintToleration |
-| `nodeName` | NodeName |
-| `ports[].hostPort` | NodePorts |
-| `priorityClassName` | PrioritySort, DefaultPreemption |
-| `volumes` (PVCs) | VolumeBinding, VolumeZone, VolumeRestrictions, NodeVolumeLimits |
-| `resourceClaims` (DRA) | DynamicResources |
-| the image in `containers[].image` | ImageLocality |
-| `schedulingGates` | SchedulingGates |
+The colours match the rows of the built-in plugins table.
+
+<table class="plugmap by-field">
+<thead><tr><th>You write in the pod spec</th><th>The plugin that reads it</th></tr></thead>
+<tbody>
+<tr class="g1"><td><code>resources.requests</code></td><td>NodeResourcesFit, BalancedResourceAllocation</td></tr>
+<tr class="g2"><td><code>nodeSelector</code>, <code>affinity.nodeAffinity</code></td><td>NodeAffinity</td></tr>
+<tr class="g3"><td><code>affinity.podAffinity</code> / <code>podAntiAffinity</code></td><td>InterPodAffinity</td></tr>
+<tr class="g4"><td><code>topologySpreadConstraints</code></td><td>PodTopologySpread</td></tr>
+<tr class="g5"><td><code>tolerations</code></td><td>TaintToleration</td></tr>
+<tr class="g6"><td><code>nodeName</code></td><td>NodeName</td></tr>
+<tr class="g7"><td><code>ports[].hostPort</code></td><td>NodePorts</td></tr>
+<tr class="g8"><td><code>priorityClassName</code></td><td>PrioritySort, DefaultPreemption</td></tr>
+<tr class="g9"><td><code>volumes</code> (PVCs)</td><td>VolumeBinding, VolumeZone, VolumeRestrictions, NodeVolumeLimits</td></tr>
+<tr class="g10"><td><code>resourceClaims</code> (DRA)</td><td>DynamicResources</td></tr>
+<tr class="g11"><td>the image in <code>containers[].image</code></td><td>ImageLocality</td></tr>
+<tr class="g12"><td><code>schedulingGates</code></td><td>SchedulingGates</td></tr>
+</tbody>
+</table>
 
 **What a second scheduler changes:**
 
