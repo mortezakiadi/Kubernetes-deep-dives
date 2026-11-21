@@ -1051,13 +1051,27 @@ spec:
         matchAttribute: resource.kubernetes.io/pcieRoot   # ...must share a PCIe root #!
 ```
 
+- **RDMA, GDR and EFA in plain words:** Normally, data sent from one server to another passes through the operating system's network stack, and the CPU handles it. On AWS, NCCL (the library that moves data between GPUs) normally uses that stack and the ENA network driver ([AWS docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html)). RDMA (Remote Direct Memory Access) skips this: the network card reads and writes the memory of the other server directly, without the other server's operating system or CPU in the middle ([NVIDIA guide](https://networking-docs.nvidia.com/doca/archive/3-5-0/rdma-aware-networks-programming-guide)).
+
+    GDR (GPU Direct RDMA) takes the same idea to the GPU. The network card reads and writes GPU memory directly, so the data does not pass through CPU memory ([NVIDIA docs](https://docs.nvidia.com/ai-enterprise/release-9/latest/infra-software/vgpu/features/gpudirect.html)). NVIDIA says the main limit is that the GPU and the card must share the same upstream PCIe root ([NVIDIA overview](https://docs.nvidia.com/cuda/gpudirect-rdma/)). That is why the PCIe root matters for network cards.
+
+    EFA (Elastic Fabric Adapter) is AWS's network card for this. Applications talk to it through libfabric, which skips the operating system's network stack, and NCCL reaches libfabric through the aws-ofi-nccl plugin ([AWS docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html), [aws-ofi-nccl](https://github.com/aws/aws-ofi-nccl)). The picture shows the traditional path, the EFA path, the software steps inside the pod, and what Kubernetes adds.
+
+    ![How RDMA, GDR and EFA fit together](diagrams/extra/dra-rdma-gdr-efa.svg)
+
+    On Kubernetes, the pod must be given an EFA card. EKS offers two ways: the EFA device plugin, which hands out a count of cards, and the EFA DRA driver. Each card goes to one pod only. EFA also needs 2 MiB hugepages, so the pod requests them next to the card ([EKS docs](https://docs.aws.amazon.com/eks/latest/userguide/node-efa.html)). The Kubernetes Networking deep dive shows a full pod that does this. GDR then needs the GPU and the card under one PCIe root, which is what the claim in the point "When several devices must fit together" asks for.
+
 - **What the same root is worth:** Someone ran the same network speed test twice on AWS machines. The first time, the GPU and the network card sat on the same PCIe root. The second time, they sat on different roots.
 
     On the same root, data went straight between the card and the GPU, at about 11.35 GB/s. On different roots, the data had to detour through the CPU, and the speed dropped to about 6.04 GB/s, roughly half.
 
     ![The same test on the same root and on different roots](diagrams/extra/dra-same-root-test.svg)
 
-    The test comes from the dranet project's EKS example. It used p4d.24xlarge machines, which have 8 GPUs and 4 EFA cards spread over 4 PCIe roots. Two machines took part, each with one GPU. The test was the NCCL all-reduce test, which measures how fast GPUs exchange data. In both runs the machines had the same GPU and the same number of EFA cards.
+    The test comes from the dranet project's EKS example. It used p4d.24xlarge machines, which have 8 GPUs and 4 EFA cards spread over 4 PCIe roots. Two machines took part, each with one GPU.
+
+    ![The two machines in the test](diagrams/extra/dra-p4d-test-machines.svg)
+
+    The test was the NCCL all-reduce test, which measures how fast GPUs exchange data. In both runs the machines had the same GPU and the same number of EFA cards.
 
     The detour also switches off GDR (GPU Direct RDMA), the direct path between the network card and the GPU's memory. This is one test on one machine type, so don't read it as a general rule ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)). The table has the exact roots and speeds:
 
