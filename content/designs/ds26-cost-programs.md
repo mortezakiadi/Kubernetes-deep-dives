@@ -197,6 +197,7 @@ spec:
       - { key: node.kubernetes.io/instance-type, operator: In, values: ["p5.48xlarge", "g6e.12xlarge", "g6e.48xlarge"] }
       taints: [{ key: nvidia.com/gpu, effect: NoSchedule }]
       expireAfter: 720h
+      terminationGracePeriod: 24h                        # upper bound on a drain, so do-not-disrupt pods can't hold a node forever #!
   limits:
     nvidia.com/gpu: "256"                                # spend cap for the pool #!
   disruption:
@@ -213,6 +214,8 @@ spec:
 
 - **Prefer the base first:** a scheduling preference (or Kueue flavor order, [Design 17](#design-gpu-scheduling)) places work on committed and on-premises capacity before on-demand. Otherwise autoscaling adds expensive nodes while cheap ones sit idle.
 - **Watch for churn:** nodes that are added and removed within an hour cost startup time and money. A consolidation delay of minutes, not seconds, avoids it.
+- **What do-not-disrupt doesn't stop:** the annotation keeps consolidation away from the node, and drift too unless the NodePool sets `terminationGracePeriod`. It does not stop expiration (`expireAfter`), Spot interruptions, node auto repair or a manual delete, so long jobs still need checkpoints. Karpenter's docs warn against combining it with `expireAfter` unless `terminationGracePeriod` is set as well: without it, an expiring node can sit half-drained, still billed, until someone removes the pods. That is why the NodePool above sets both. A duration such as `karpenter.sh/do-not-disrupt: "30m"` protects a pod only for that long after it starts ([Karpenter disruption](https://karpenter.sh/docs/concepts/disruption/)).
+- **Balanced consolidation:** besides `WhenEmpty` and `WhenEmptyOrUnderutilized`, Karpenter now has a `Balanced` policy. It still removes empty and clearly underused nodes, but skips moves where the saving is smaller than the disruption. The `karpenter.sh/disruption-cost` annotation tells it which pods are expensive to move, such as a model server with a warm cache, so their nodes are consolidated last.
 
 ### Batch and development: provision for the queue, scale to zero
 
