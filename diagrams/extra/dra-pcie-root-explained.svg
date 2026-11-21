@@ -1,18 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 600" width="1180" height="600" style="color-scheme: light">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 640" width="1180" height="640" style="color-scheme: light">
 <rect width="100%" height="100%" fill="#ffffff"/>
 <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker></defs>
 <text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start">What a PCIe root is</text>
 <rect x="24" y="50" width="48" height="22" rx="11" fill="#0f766e" stroke="#0f766e" stroke-width="1.6"/>
 <text x="48" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">PCIe</text>
-<text x="84" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start">A PCIe root (formally the Root Complex) connects the CPU and memory to the PCIe devices under it. One machine can have several.</text>
-<rect x="24" y="92" width="210" height="380" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
-<text x="129" y="122" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle">CPU and memory</text>
-<rect x="44" y="152" width="170" height="56" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6"/>
-<text x="129" y="186" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle">CPU</text>
-<rect x="44" y="226" width="170" height="56" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6"/>
-<text x="129" y="260" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle">Memory</text>
-<text x="129" y="330" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">Both roots start here:</text>
-<text x="129" y="348" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">the CPU side of the machine</text>
+<text x="84" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start">A PCIe root (formally the Root Complex) connects the CPU and memory to the PCIe devices under it. This machine has two CPUs, and each has one root.</text>
+<rect x="24" y="92" width="210" height="170" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="129" y="118" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle">CPU 0 and its memory</text>
+<rect x="44" y="134" width="170" height="52" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="129" y="166" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle">CPU 0</text>
+<rect x="44" y="198" width="170" height="48" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="129" y="228" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle">Memory</text>
+<rect x="24" y="302" width="210" height="170" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="129" y="328" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle">CPU 1 and its memory</text>
+<rect x="44" y="344" width="170" height="52" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="129" y="376" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle">CPU 1</text>
+<rect x="44" y="408" width="170" height="48" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6"/>
+<text x="129" y="438" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle">Memory</text>
+<path d="M70,264 L70,300" stroke="#5b6675" stroke-width="2" fill="none" marker-start="url(#ar)" marker-end="url(#ar)"/>
+<text x="82" y="286" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">link between the two CPUs</text>
 <rect x="300" y="120" width="230" height="124" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6"/>
 <text x="415" y="154" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#1f2933" text-anchor="middle">PCIe root</text>
 <text x="415" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="middle">(the Root Complex)</text>
@@ -68,7 +74,8 @@
 <rect x="968" y="406" width="150" height="38" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.4"/>
 <text x="1043" y="430" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="700" fill="#1f2933" text-anchor="middle">pcieRoot = pci0000:b8</text>
 <text x="24" y="510" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#1f2933" text-anchor="start">Each orange box is a PCIe root. The purple tags are the pcieRoot attribute: the name of the root a device sits under, in the format pci&lt;domain&gt;:&lt;bus&gt;.</text>
-<text x="24" y="534" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">Devices with the same value share a root: gpu-0, gpu-1 and efa-0 share pci0000:17, and gpu-2, gpu-3 and efa-1 share pci0000:b8.</text>
-<text x="24" y="556" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">A claim with matchAttribute on pcieRoot only accepts devices with the same value. Kubernetes' docs say this gives the lowest-latency communication.</text>
-<text x="24" y="578" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">Names and values are illustrative.</text>
+<text x="24" y="534" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">The tag is a name, not a counter. Devices with the same tag share a root: gpu-0, gpu-1 and efa-0 share pci0000:17, and gpu-2, gpu-3 and efa-1 share pci0000:b8.</text>
+<text x="24" y="556" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">gpu-0 and gpu-2 have different tags, so a claim that needs the same pcieRoot never pairs them, even though they are in one machine.</text>
+<text x="24" y="578" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">A claim with matchAttribute on pcieRoot only accepts devices with the same value. Kubernetes' docs say this gives the lowest-latency communication.</text>
+<text x="24" y="600" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start">Names, values and which root sits on which CPU are illustrative. Real machines differ.</text>
 </svg>
