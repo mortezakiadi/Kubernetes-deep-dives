@@ -1097,7 +1097,11 @@ spec:
       - name: gpu
 ```
 
-- **When you want a fallback:** `firstAvailable` lists options in order of preference, and the scheduler uses the first one it can satisfy. The application has to cope with either result (one GPU or two), for example by reading how many GPUs it was given at startup. Here is one Hopper GPU, or else two Ampere GPUs:
+- **When you want a fallback:** Say a job runs best on one Hopper GPU (such as an H100) but also works on two Ampere GPUs (such as A100s). A plain request can name only one of these. If it asks for Hopper and none is free, the pod waits in `Pending`, even while two Ampere GPUs sit idle. The API had no way to say which devices are acceptable and in what order of preference ([KEP-4816](https://www.kubernetes.dev/resources/keps/4816/)).
+
+    The fix is to give a ranked list of acceptable options instead of one request. The list is called `firstAvailable`, and Kubernetes calls the feature the prioritized list ([Kubernetes v1.36 post](https://kubernetes.io/blog/2026/05/07/kubernetes-v1-36-dra-136-updates/)). The scheduler tries the first option. If it can't be satisfied, it tries the next, and it uses the first option it can satisfy. It works like ordering at a restaurant: "the fish, or else the chicken" (our comparison).
+
+    The catch is that the pod may get one GPU or two, so the application has to cope with either, for example by reading how many GPUs it was given at startup. Here is one Hopper GPU, or else two Ampere GPUs:
 
 ```yaml
 apiVersion: resource.k8s.io/v1
