@@ -1051,12 +1051,16 @@ spec:
         matchAttribute: resource.kubernetes.io/pcieRoot   # ...must share a PCIe root #!
 ```
 
-- **What the same root is worth:** The dranet project measured it on p4d.24xlarge nodes, which have 8 A100 GPUs and 4 EFA cards spread across 4 PCIe roots. The test ran the NCCL all-reduce test on 2 nodes with 1 GPU per worker, over EFA through aws-ofi-nccl. One template asked for a GPU and an EFA card on the same root. The other asked for the same devices without the constraint. GDR means GPU Direct RDMA: the network card moves data to and from GPU memory over a direct PCIe path. Without a shared root, GDR is off and the data crosses the CPU and PCIe switch fabric. The dranet docs call the result roughly 1.9 times slower, and this is one run on one instance type from the project's example, not a general figure ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)).
+- **What the same root is worth:** The dranet project ran the same speed test twice. It used AWS machines of type p4d.24xlarge, which have 8 GPUs and 4 EFA cards spread over 4 PCIe roots. Two machines took part, each with one GPU, and the test was the NCCL all-reduce test, which measures how fast GPUs exchange data.
 
-| Template | GPU root | EFA root | GDR | Average bus bandwidth |
+    In the first run, each GPU and its EFA card sat on the same PCIe root. Data went straight between the card and the GPU. In the second run, they sat on different roots, so the data had to detour through the CPU. The detour also switches off GDR (GPU Direct RDMA), the direct path between the network card and the GPU's memory.
+
+    The detour made the test about 1.9 times slower, as the table shows. This is one test on one machine type, so don't read it as a general rule ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)).
+
+| Run | GPU root | EFA root | Direct path (GDR) | Speed the test reported |
 |---|---|---|---|---|
-| gpu-efa-aligned | pci0000:10 | pci0000:10 | Yes | about 11.35 GB/s |
-| gpu-efa-unaligned | pci0000:10 | pci0000:a0 | No | about 6.04 GB/s |
+| Same root | pci0000:10 | pci0000:10 | Yes | about 11.35 GB/s |
+| Different roots | pci0000:10 | pci0000:a0 | No | about 6.04 GB/s |
 
 - **When pods share a GPU:** create one `ResourceClaim` by name (not a template) and point several pods at it, so they all get the same GPU. How they share it is a driver setting; here NVIDIA's time-slicing (it may need to be turned on in the driver). Time-slicing means the pods take turns on the GPU. There is no memory or compute isolation between them ([AWS docs](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)); MIG is what isolates. A claim made from a *template* is a separate claim for every pod, so template replicas share a GPU only when the driver's **consumable shares** are on. That is an alpha feature in NVIDIA's driver, and the Kubernetes side is on by default from 1.36 ([NVIDIA docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/dra-intro-install.html)). Without it, each replica gets a whole GPU. Here is one claim and one of the pods that share it:
 
