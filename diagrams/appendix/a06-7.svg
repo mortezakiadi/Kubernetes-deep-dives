@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="560px" viewBox="0 0 1420 560" style="background:#ffffff"><title>DNS: two zones, two directions</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="560" fill="#ffffff"/><rect x="20" y="30" width="760" height="500" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">AWS</text>
+<rect x="40" y="70" width="330" height="90" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="70" width="330" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="88" width="328" height="12" fill="#ecfdf5"/>
+<text x="52" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Private zone ds05.internal</text>
+<text x="52" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">registry.ds05.internal, app.ds05.internal</text>
+<text x="52" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">associated with four VPCs</text>
+<rect x="40" y="190" width="330" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="40" y="190" width="330" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="41" y="208" width="328" height="12" fill="#eff6ff"/>
+<text x="52" y="210" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Cluster pods</text>
+<text x="52" y="238" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">cluster DNS, answered by the cache</text>
+<text x="52" y="255" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">on the node; the rest to the VPC resolver</text>
+<rect x="400" y="70" width="360" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="400" y="70" width="360" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="401" y="88" width="358" height="12" fill="#eff6ff"/>
+<text x="412" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Inbound resolver endpoint</text>
+<text x="412" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">two addresses in shared-main</text>
+<text x="412" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">answers the data center's questions</text>
+<rect x="400" y="190" width="360" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="400" y="190" width="360" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="401" y="208" width="358" height="12" fill="#eff6ff"/>
+<text x="412" y="210" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Outbound resolver endpoints</text>
+<text x="412" y="238" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one per region; the rule for</text>
+<text x="412" y="255" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">corp.dc.test forwards to the data center</text>
+<rect x="40" y="310" width="720" height="90" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="310" width="720" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="41" y="328" width="718" height="12" fill="#f8fafc"/>
+<text x="52" y="330" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Resolver rules are regional</text>
+<text x="52" y="358" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the rule in us-east-1 serves prod-main and shared-main; the one in eu-west-1 serves prod-second</text>
+<text x="52" y="375" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a VPC without an association does not resolve the data center's names (S09)</text>
+<rect x="830" y="30" width="560" height="500" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="844" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">DATA CENTER (STAND-IN)</text>
+<rect x="850" y="70" width="520" height="110" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="850" y="70" width="520" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="851" y="88" width="518" height="12" fill="#fef2f2"/>
+<text x="862" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">DNS server (dnsmasq on an EC2 host)</text>
+<text x="862" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">answers for corp.dc.test</text>
+<text x="862" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">forwards ds05.internal to the inbound endpoint</text>
+<text x="862" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">its log shows who asked</text>
+<rect x="850" y="220" width="520" height="90" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="850" y="220" width="520" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="851" y="238" width="518" height="12" fill="#fef2f2"/>
+<text x="862" y="240" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Clients in the data center</text>
+<text x="862" y="268" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">use the server above and never the VPC resolver</text>
+<text x="862" y="285" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">(the zone is not associated with that VPC)</text>
+<path d="M760 235 L805 235 L805 150 L850 150" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="764.8" y="189" width="82.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="806" y="201" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">corp.dc.test</text>
+<path d="M850 100 L760 100" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="760.7" y="81" width="88.60000000000001" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="805" y="93" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">ds05.internal</text>
+<path d="M370 115 L400 115" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/></svg>

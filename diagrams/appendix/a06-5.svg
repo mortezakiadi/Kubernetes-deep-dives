@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="600px" viewBox="0 0 1420 600" style="background:#ffffff"><title>A request, layer by layer: the name, the load balancer, the pod, and the exported service</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="600" fill="#ffffff"/><rect x="20" y="60" width="180" height="80" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="20" y="60" width="180" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="21" y="78" width="178" height="12" fill="#ecfdf5"/>
+<text x="32" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Caller</text>
+<text x="32" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a pod or a host</text>
+<rect x="250" y="60" width="240" height="80" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="250" y="60" width="240" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="251" y="78" width="238" height="12" fill="#fffbeb"/>
+<text x="262" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">DNS: app.ds05.internal</text>
+<text x="262" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">two latency records,</text>
+<text x="262" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">alias to each load balancer</text>
+<rect x="540" y="60" width="240" height="80" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="540" y="60" width="240" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="541" y="78" width="238" height="12" fill="#eff6ff"/>
+<text x="552" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Internal load balancer</text>
+<text x="552" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">IP targets, health check</text>
+<text x="552" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">every 5 s, drains 30 s</text>
+<rect x="830" y="60" width="240" height="80" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="830" y="60" width="240" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="831" y="78" width="238" height="12" fill="#eff6ff"/>
+<text x="842" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Service: web</text>
+<text x="842" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">PreferClose: same zone first</text>
+<text x="842" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">falls back if none ready</text>
+<rect x="1120" y="60" width="260" height="80" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="1120" y="60" width="260" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="1121" y="78" width="258" height="12" fill="#ecfdf5"/>
+<text x="1132" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Pod</text>
+<text x="1132" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">traefik/whoami, 100.64.x.x</text>
+<text x="1132" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">readiness gate from the ALB</text>
+<path d="M200 100 L250 100" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M490 100 L540 100" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M780 100 L830 100" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1070 100 L1120 100" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="250" y="170" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">A region whose load balancer has no healthy target is dropped from the answer (S07).</text>
+<rect x="20" y="230" width="240" height="90" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="20" y="230" width="240" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="21" y="248" width="238" height="12" fill="#fef2f2"/>
+<text x="32" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Caller in another VPC</text>
+<text x="32" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no route to prod, or an</text>
+<text x="32" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">overlapping address (legacy)</text>
+<rect x="310" y="230" width="260" height="90" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="310" y="230" width="260" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="311" y="248" width="258" height="12" fill="#fffbeb"/>
+<text x="322" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">VPC Lattice service</text>
+<text x="322" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">web-shop-...vpc-lattice-svcs</text>
+<text x="322" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">service network, regional</text>
+<rect x="620" y="230" width="250" height="90" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="620" y="230" width="250" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="621" y="248" width="248" height="12" fill="#fffbeb"/>
+<text x="632" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Auth policy of the service</text>
+<text x="632" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">names the roles that may call</text>
+<text x="632" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">(owned by the team)</text>
+<rect x="920" y="230" width="220" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="920" y="230" width="220" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="921" y="248" width="218" height="12" fill="#eff6ff"/>
+<text x="932" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Target group</text>
+<text x="932" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the web pods</text>
+<rect x="1190" y="230" width="190" height="90" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="1190" y="230" width="190" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="1191" y="248" width="188" height="12" fill="#ecfdf5"/>
+<text x="1202" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Pod</text>
+<text x="1202" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">sees the caller's identity</text>
+<text x="1202" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">in a header</text>
+<path d="M260 275 L310 275" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M570 275 L620 275" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M870 275 L920 275" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1140 275 L1190 275" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="310" y="350" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Both policies must allow: the caller's own, and the service's. The caller's team cannot grant itself access (S06).</text>
+<rect x="20" y="400" width="1360" height="160" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="20" y="400" width="1360" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="21" y="418" width="1358" height="12" fill="#f8fafc"/>
+<text x="32" y="420" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">What the two paths have in common</text>
+<text x="32" y="448" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Neither asks the caller for an address: the first uses a name and DNS, the second a name and a service network.</text>
+<text x="32" y="465" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">The first needs a route, so it is limited by the core network's segments. The second needs no route, so it works across overlapping ranges and across segments,</text>
+<text x="32" y="482" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">and what limits it is the service's own policy.</text>
+<text x="32" y="499" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Bulk data between clusters takes neither: it is plain routed traffic over the core network.</text></svg>

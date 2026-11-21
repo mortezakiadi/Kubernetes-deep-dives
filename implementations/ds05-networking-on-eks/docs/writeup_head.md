@@ -76,7 +76,7 @@ Six terms are used throughout.
 | 13 | **Test applications** | A web service of six replicas spread over zones, a sensitive service in its own namespace, and a shell with network tools in four namespaces. | Clusters | Written (manifests) |
 | 14 | **Scenario runner and screenshot renderer** | Runs the tests, records commands and output, redacts private values and draws terminal-style screenshots. | `tests/` | Written |
 
-The Terraform is about 1,850 lines, the node-local DNS cache's manifest 165 lines, and the test code (runner, helpers, harness and screenshot renderer) about 1,450 lines. The runner is still growing as the scenarios do; the numbers are from the last commit.
+The Terraform is about 1,850 lines, the node-local DNS cache's manifest 165 lines, and the test code (runner, helpers, harness and screenshot renderer) about 1,450 lines.
 
 **Going deeper.**
 
@@ -149,12 +149,16 @@ The Terraform is about 1,850 lines, the node-local DNS cache's manifest 165 line
 - **A subnet can report free addresses and have no block to give.** After the `/26` was full, EC2 still reported 26 free addresses. None of the four blocks was free. An alert on free addresses per subnet, as the design suggests, would not have fired. The pods' failed-sandbox events show it.
 - **The core network carries the pod range.** It learns every range of an attached VPC, including a secondary one. Both clusters use `100.64.0.0/16`, and the table keeps one entry for it, from the main cluster's VPC. What keeps pods unreachable is the callers' route tables and the pods' security group. S04 shows that opening both lets a host in another VPC reach a pod.
 - **A share action needs a `mode`.** The policy was refused until each `share` had `mode: attachment-route`. The error was a list in the response, and the command line printed only "Incorrect policy".
-- **Everything on the core network is slow to apply.** The first policy took about twelve minutes and each VPC attachment five to ten. A policy change that I made later, to test a rollback, is timed in S11.
+- **The first apply of the core network is slow; later changes are not.** The first policy took about twelve minutes and each VPC attachment five to ten. A change to the policy afterwards, to cut one path or to restore it, took between two and three minutes until a request showed it (S11: 140 seconds to close the path, 194 to reopen it).
 - **IPAM refuses many pool changes at once.** Creating five pools together returned `ConcurrentMutationLimitExceeded`. A second apply finished the job. `up.sh` runs it twice.
 - **The Lattice controller v2.2.0 needs Gateway API 1.5.0.** With 1.3.0 it crash-looped, naming `TLSRoute` at version `v1`, which only newer releases have.
 - **Two policies must both allow a Lattice call.** The caller's own role needs `vpc-lattice-svcs:Invoke`, and the service's auth policy has to name the role. With only the second, the call was refused with an error that blames the first.
 - **The packaged DNS server configuration conflicts with `bind-dynamic`.** The package's own file turns on `bind-interfaces`, and a reboot started the server before the host had its address. The fix is to comment out the packaged line and use `bind-dynamic`. I found it because my edit of the host's launch script stopped and started the instance, and the DNS server did not come back.
 - **I could not remove the errors at pod removal.** With a drain delay shorter than the grace period, a pre-stop pause longer than the delay, and readiness gates, removing two pods still made a few requests fail in the first seconds. Adding pods never did. A client retry removed them. S07 records this as a finding, not as a pass.
+- **A VPC that took its range from IPAM takes a long time to delete in Terraform.** The VPC was gone from the EC2 API within a minute, and Terraform kept waiting for IPAM to release the allocation for more than twenty-five minutes. The whole teardown took about an hour and a half, nearly all of it this wait.
+- **The Lattice controller leaves an association behind.** It associates the cluster's own VPC with the service network, and Terraform does not know about it. The association blocks the deletion of the service network and of the VPC, so `down.sh` removes it, retrying because the Lattice API throttles deletions.
+- **In a VPC flow log, the source of outgoing traffic is the interface's primary address.** A pod's address is in `pkt-srcaddr`. My first analysis of S10 read `srcaddr` and found no pod at all. A flow log also starts recording a minute or two after it is created, and records nothing for two pods on the same node, whose traffic never reaches a network interface. The flow log also showed less than the bytes the probe fetched (122 MB of the 500 MB in the last run), so S10 compares the bytes that left the probe's zone and treats the figure as a lower bound.
+- **The NAT gateway's counters are per minute and arrive late.** A 315 MB download that crossed a minute boundary showed up as two readings, 106 MB and 212 MB, and my first window counted only the first. S10 now sums the minute and a half after each download and waits up to twenty-five minutes for the counter to show it.
 - **A security group description cannot contain an apostrophe.** The API refuses it. It cost one run.
 
 ### 5. The scenarios I tested

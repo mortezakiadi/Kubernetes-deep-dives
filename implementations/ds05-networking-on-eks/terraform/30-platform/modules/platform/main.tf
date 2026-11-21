@@ -88,7 +88,7 @@ resource "helm_release" "lbc" {
     replicaCount   = 2
     serviceAccount = { create = true, name = "aws-load-balancer-controller" }
   })]
-  depends_on = [aws_eks_pod_identity_association.lbc]
+  depends_on = [aws_eks_pod_identity_association.lbc, helm_release.cilium]
 }
 
 # ---- NodeLocal DNSCache --------------------------------------------------------------------------------------------------
@@ -113,7 +113,7 @@ resource "kubectl_manifest" "ns" {
     metadata = {
       name = each.key
       labels = merge({ "pod-security.kubernetes.io/enforce" = "baseline" },
-      # In shop, a pod is Ready only once the load balancer reports its address healthy (a pod readiness gate).
+        # In shop, a pod is Ready only once the load balancer reports its address healthy (a pod readiness gate).
       each.key == "shop" ? { "elbv2.k8s.aws/pod-readiness-gate-inject" = "enabled" } : {})
     }
   })
@@ -147,7 +147,7 @@ resource "kubectl_manifest" "web" {
       }
     }
   })
-  depends_on = [kubectl_manifest.ns, helm_release.cilium]
+  depends_on = [kubectl_manifest.ns, helm_release.cilium, helm_release.lbc]
 }
 resource "kubectl_manifest" "web_svc" {
   yaml_body = yamlencode({
@@ -156,7 +156,7 @@ resource "kubectl_manifest" "web_svc" {
     metadata   = { name = "web", namespace = "shop" }
     spec       = { selector = { app = "web" }, ports = [{ port = 80, targetPort = 80 }] }
   })
-  depends_on = [kubectl_manifest.ns]
+  depends_on = [kubectl_manifest.ns, helm_release.lbc]
 }
 resource "kubectl_manifest" "web_ingress" {
   yaml_body = yamlencode({
@@ -203,7 +203,7 @@ resource "kubectl_manifest" "ledger" {
       }
     }
   })
-  depends_on = [kubectl_manifest.ns, helm_release.cilium]
+  depends_on = [kubectl_manifest.ns, helm_release.cilium, helm_release.lbc]
 }
 resource "kubectl_manifest" "ledger_svc" {
   yaml_body = yamlencode({
@@ -212,7 +212,7 @@ resource "kubectl_manifest" "ledger_svc" {
     metadata   = { name = "ledger", namespace = "payments" }
     spec       = { selector = { app = "ledger" }, ports = [{ port = 80, targetPort = 80 }] }
   })
-  depends_on = [kubectl_manifest.ns]
+  depends_on = [kubectl_manifest.ns, helm_release.lbc]
 }
 
 # A shell with the usual network tools, in several namespaces, for the tests to run commands from.
@@ -233,7 +233,7 @@ resource "kubectl_manifest" "probe" {
       }
     }
   })
-  depends_on = [kubectl_manifest.ns, helm_release.cilium]
+  depends_on = [kubectl_manifest.ns, helm_release.cilium, helm_release.lbc]
 }
 
 # ---- Cilium, chained behind the VPC CNI (only where asked) ------------------------------------------------------------------

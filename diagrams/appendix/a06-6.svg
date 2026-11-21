@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="620px" viewBox="0 0 1420 620" style="background:#ffffff"><title>Isolation in layers: a path is open only if no layer denies it</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="620" fill="#ffffff"/><rect x="20" y="30" width="680" height="115" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="20" y="30" width="680" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="21" y="48" width="678" height="12" fill="#fffbeb"/>
+<text x="32" y="50" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">1  Segments   (S02, S03)</text>
+<text x="32" y="78" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the core network has no route between prod and nonprod</text>
+<rect x="720" y="30" width="680" height="115" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="720" y="30" width="680" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="721" y="48" width="678" height="12" fill="#fffbeb"/>
+<text x="732" y="50" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">2  VPC route tables   (S04)</text>
+<text x="732" y="78" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a VPC sends only the plan's range to the core network</text>
+<rect x="20" y="165" width="680" height="115" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="20" y="165" width="680" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="21" y="183" width="678" height="12" fill="#eff6ff"/>
+<text x="32" y="185" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">3  Security groups   (S04)</text>
+<text x="32" y="213" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the pods' group admits the cluster, not other VPCs</text>
+<rect x="720" y="165" width="680" height="115" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="720" y="165" width="680" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="721" y="183" width="678" height="12" fill="#fef2f2"/>
+<text x="732" y="185" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">4  ClusterNetworkPolicy, Admin tier   (S08)</text>
+<text x="732" y="213" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">guardrails: no instance metadata, payments only from named namespaces</text>
+<rect x="20" y="300" width="680" height="115" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="20" y="300" width="680" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="21" y="318" width="678" height="12" fill="#ecfdf5"/>
+<text x="32" y="320" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">5  NetworkPolicy   (S08)</text>
+<text x="32" y="348" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each team opens what it needs, inside the guardrails</text>
+<rect x="720" y="300" width="680" height="115" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="720" y="300" width="680" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="721" y="318" width="678" height="12" fill="#ecfdf5"/>
+<text x="732" y="320" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">6  ClusterNetworkPolicy, Baseline tier   (S08)</text>
+<text x="732" y="348" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">defaults a team can override</text>
+<rect x="20" y="435" width="680" height="115" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="20" y="435" width="680" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="21" y="453" width="678" height="12" fill="#f8fafc"/>
+<text x="32" y="455" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">7  Workload identity   (S06)</text>
+<text x="32" y="483" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Lattice auth: the service names who may call it</text>
+<rect x="720" y="435" width="680" height="115" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="720" y="435" width="680" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="721" y="453" width="678" height="12" fill="#eff6ff"/>
+<text x="732" y="455" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">8  Egress by name   (S08)</text>
+<text x="732" y="483" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Cilium: a pod may reach one domain and no other</text>
+<text x="20" y="590" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">A path is open only if no layer on it denies it. S04 opens two of them, one at a time, and shows that neither alone is enough.</text></svg>

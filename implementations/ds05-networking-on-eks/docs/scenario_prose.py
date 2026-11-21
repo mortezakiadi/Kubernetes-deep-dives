@@ -140,8 +140,8 @@ PROSE = {
     "S10": {
         "intro": "The monthly bill is made of data transfer. I measure two of its parts: what a NAT gateway carries when a pod reads from S3, with and without the free gateway endpoint, and how many bytes between pods cross a zone boundary, with and without a Service that prefers the caller's zone.",
         "trust": [
-            "The NAT gateway's bytes are CloudWatch's own counter for that gateway, summed over the minutes of each download, which the test waits for.",
-            "The bytes between pods are the sums of the VPC flow log's records written on the sending pods' side, by the zone of the sender. The zone is found from the pod's node.",
+            "The NAT gateway's bytes are CloudWatch's own counter for that gateway, summed over the minutes of each download and the minute and a half after it, because the counter is per minute and a download that crosses a minute boundary is split over two readings. The test waits, up to 25 minutes, until the counter shows the download. The two downloads are more than two minutes apart, so neither window holds the other's bytes.",
+            "The bytes between pods are the sums of the VPC flow log's records written on the sending pods' side, by the zone of the sender. The zone is found from the pod's node. The figure is a lower bound: the flow log shows less than the 500 MB the probe fetched, and nothing at all for a pod on the probe's own node. That is why the check compares bytes that left the probe's zone, and why it also requires that the log has records for the PreferClose window, so that zero means no cross-zone traffic and not a missing log file.",
             "The test creates the bucket and the flow log, and deletes them at the end whether it passed or not.",
         ],
         "why": [

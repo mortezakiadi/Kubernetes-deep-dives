@@ -825,8 +825,8 @@ def s10_traffic_cost():
         def nat_bytes(t0, t1):
             lo = int(t0 // 60) * 60
             r = cw.get_metric_statistics(Namespace="AWS/NATGateway", MetricName="BytesInFromDestination", Dimensions=[{"Name": "NatGatewayId", "Value": nat}],
-                                         StartTime=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(lo - 60)), EndTime=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t1 + 60)), Period=60, Statistics=["Sum"])
-            return sum(d["Sum"] for d in r["Datapoints"] if lo <= d["Timestamp"].timestamp() <= t1)
+                                         StartTime=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(lo - 60)), EndTime=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t1 + 150)), Period=60, Statistics=["Sum"])
+            return sum(d["Sum"] for d in r["Datapoints"] if lo <= d["Timestamp"].timestamp() <= t1 + 90)
         # ---- part 2: bytes between pods, by zone (flow logs of the cluster VPC)
         flow = awsj("ec2", "create-flow-logs", "--resource-type", "VPC", "--resource-ids", V["prod-main"]["id"], "--traffic-type", "ALL", "--log-destination-type", "s3",
                     "--log-destination", f"arn:aws:s3:::{bucket}/flow/", "--max-aggregation-interval", "60",
@@ -843,16 +843,17 @@ def s10_traffic_cost():
 
         def bulk():
             t0 = time.time()
-            pod("main", "shop", "for i in $(seq 30); do curl -s -o /dev/null 'http://web.shop.svc/data?size=5&unit=MB'; done", timeout=300)
+            pod("main", "shop", "for i in $(seq 100); do curl -s -o /dev/null 'http://web.shop.svc/data?size=5&unit=MB'; done", timeout=300)
             return t0, time.time()
         p0, p1 = bulk()
         kube("main", "-n", "shop", "patch", "service", "web", "--type", "merge", "-p", '{"spec":{"trafficDistribution":"PreferClose"}}')
         time.sleep(150)  # flow logs are written in one-minute bins: keep the two experiments out of the same bin
         q0, q1 = bulk()
         kube("main", "-n", "shop", "patch", "service", "web", "--type", "merge", "-p", '{"spec":{"trafficDistribution":null}}')
-        show(sc, f"[main/shop probe in {mine}] fetch 30 x 5 MB from the web service, with a plain Service, then with PreferClose", f"150 MB each time; windows {p1 - p0:.0f} s and {q1 - q0:.0f} s")
+        show(sc, f"[main/shop probe in {mine}] fetch 100 x 5 MB from the web service, with a plain Service, then with PreferClose", f"500 MB each time; windows {p1 - p0:.0f} s and {q1 - q0:.0f} s")
 
         seen = {"files": 0, "records": 0}
+        cover = {"records": 0}
 
         def flow_bytes(t0, t1):
             """Bytes sent by web pods on other nodes to the probe, by the zone of the sending pod, from the flow-log records written at the sender (traffic between two pods on one node never reaches a network interface, so no flow log sees it)."""
@@ -865,38 +866,42 @@ def s10_traffic_cost():
                     for line in body:
                         f = line.split()
                         seen["records"] += 1
-                        if len(f) < 8 or f[5] != "egress" or f[7] != probe or f[6] not in ips:
+                        if len(f) < 8 or not (t0 - 65 <= int(f[3]) <= t1 + 5):
                             continue
-                        if t0 - 65 <= int(f[3]) <= t1 + 5:
-                            got[ips[f[6]]] = got.get(ips[f[6]], 0) + int(f[2])
+                        cover["records"] += 1  # any record in the window: proves the log has been delivered for it
+                        if f[5] != "egress" or f[7] != probe or f[6] not in ips:
+                            continue
+                        got[ips[f[6]]] = got.get(ips[f[6]], 0) + int(f[2])
             return got
         # wait for the logs
         def ready():
+            cover["records"] = 0
             a, b = flow_bytes(p0, p1), flow_bytes(q0, q1)
-            return (a, b) if sum(a.values()) > 40e6 and sum(b.values()) > 40e6 else None
+            return (a, b) if sum(a.values()) > 20e6 and cover["records"] > 0 else None
         wait_for(ready, 900, 30)
-        time.sleep(90)
-        a, b = flow_bytes(p0, p1), flow_bytes(q0, q1)
+        time.sleep(240)  # the second window was written minutes after the first: let its log files arrive too
+        a = flow_bytes(p0, p1)
+        cover["records"] = 0
+        b = flow_bytes(q0, q1)
+        covered_b = cover["records"]
         # the NAT gateway's own counters take a few minutes more to appear
         def nat_ready():
             x, y = nat_bytes(a0, a1), nat_bytes(b0, b1)
             return (x, y) if y > 0.5 * bbytes else None
-        nb = wait_for(nat_ready, 600, 30) or (nat_bytes(a0, a1), nat_bytes(b0, b1))
+        nb = wait_for(nat_ready, 1500, 30) or (nat_bytes(a0, a1), nat_bytes(b0, b1))
         show(sc, "CloudWatch AWS/NATGateway BytesInFromDestination   # bytes the NAT gateway received from the internet, in each download window",
              f"with the S3 endpoint route:    {nb[0] / 1e6:8.1f} MB   (the pod downloaded {abytes / 1e6:.0f} MB)\nwithout the S3 endpoint route: {nb[1] / 1e6:8.1f} MB   (the pod downloaded {bbytes / 1e6:.0f} MB)")
         sc.expect("with the endpoint's route, S3 traffic stays off the NAT gateway; without it, nearly all of it goes through", nb[0] < 0.1 * abytes and nb[1] > 0.8 * bbytes and abytes > 250e6 and bbytes > 250e6,
                   "A gateway endpoint adds a more specific route (the S3 prefix list) to the route table, so the traffic leaves the VPC through the endpoint, which has no hourly or per-gigabyte charge. Without that route, the same bytes take the default route to the NAT gateway, which charges for every gigabyte it processes.")
 
-        def share(d):
-            tot = sum(d.values()) or 1
-            return {z: 100 * v / tot for z, v in d.items()}, 100 * (tot - d.get(mine, 0)) / tot
-        sa, ca = share(a)
-        sb, cb = share(b)
+        def cross(d):
+            return sum(v for z, v in d.items() if z != mine)
+        xa, xb = cross(a), cross(b)
         show(sc, "VPC flow logs: bytes the web pods on other nodes sent to the probe, by the zone of the sending pod",
-             f"({seen['files']} log files, {seen['records']} records read)\n" +
-             f"plain Service:   " + ", ".join(f"{z}: {v / 1e6:.0f} MB" for z, v in sorted(a.items())) + f"   -> {ca:.0f}% crossed a zone boundary\nPreferClose:     " + ", ".join(f"{z}: {v / 1e6:.0f} MB" for z, v in sorted(b.items())) + f"   -> {cb:.0f}% crossed a zone boundary")
-        sc.expect("with a plain Service most of the bytes cross a zone boundary; with PreferClose almost none do", sum(a.values()) > 40e6 and sum(b.values()) > 40e6 and ca > 40 and cb < 10,
-                  "Cross-zone traffic is billed in both directions. The probe asked for 150 MB twice. Only the bytes that left the node are in a flow log: answers from a pod on the probe's own node never reach a network interface. Of those, a plain Service sent most to other zones; PreferClose kept them in the caller's zone.")
+             f"({seen['files']} log files read; {covered_b} records fall in the second window)\n" +
+             f"plain Service:   " + (", ".join(f"{z}: {v / 1e6:.0f} MB" for z, v in sorted(a.items())) or "none") + f"   -> {xa / 1e6:.0f} MB left the probe's zone ({mine})\nPreferClose:     " + (", ".join(f"{z}: {v / 1e6:.0f} MB" for z, v in sorted(b.items())) or "none") + f"   -> {xb / 1e6:.0f} MB left the probe's zone ({mine})")
+        sc.expect("with a plain Service a large share of the bytes crosses a zone boundary; with PreferClose almost none does", xa > 100e6 and covered_b > 0 and xb < 0.05 * xa,
+                  "Cross-zone traffic is billed in both directions. The probe asked for 500 MB twice. Only the bytes that left the node are in a flow log: answers from a pod on the probe's own node never reach a network interface. A plain Service sent a large part of the 500 MB to other zones; PreferClose sent next to none, and the log files for that window were delivered (they hold other records), so the absence is a measurement, not a gap.")
         sc.expect("the flow log is the evidence for the monthly review: its records carry the sender, receiver and bytes of every flow", sum(a.values()) > 0, "A review of data transfer by source, destination and zone is a query over these records, labelled with the owning team from the pod addresses.")
     finally:
         if flow_id:
@@ -1023,7 +1028,7 @@ def s11_failures():
     time.sleep(3)
     rows = []
     for label, name in (("a name only the data center knows", "registry.corp.dc.test"), ("a name in the private zone", "registry.ds05.internal"), ("a public name", "checkip.amazonaws.com")):
-        rc, out = pod("main", "shop", f"dig +time=2 +tries=1 +noall +comments {name} | grep -o 'status: [A-Z]*'")
+        rc, out = pod("main", "shop", f"dig +time=2 +tries=1 +noall +comments {name} | grep -o 'status: [A-Z]*' || echo 'no answer (timed out)'")
         rows.append((label, out.strip() or "no answer"))
     show(sc, "systemctl stop dnsmasq on the data center's DNS server ; dig from a cluster pod   # the status of three lookups", "\n".join(f"{l:36s} {a}" for l, a in rows))
     host("hybrid-second", "systemctl start dnsmasq")

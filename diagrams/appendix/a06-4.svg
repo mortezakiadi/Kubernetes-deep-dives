@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="620px" viewBox="0 0 1420 620" style="background:#ffffff"><title>The address plan: one top range, a pool per region and environment</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="620" fill="#ffffff"/><rect x="560" y="30" width="300" height="80" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="560" y="30" width="300" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="561" y="48" width="298" height="12" fill="#fffbeb"/>
+<text x="572" y="50" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">all routed addresses</text>
+<text x="572" y="78" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">10.60.0.0/14</text>
+<rect x="230" y="150" width="300" height="80" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="230" y="150" width="300" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="231" y="168" width="298" height="12" fill="#fffbeb"/>
+<text x="242" y="170" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">us-east-1  10.60.0.0/15</text>
+<text x="242" y="198" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pool, locale us-east-1</text>
+<rect x="890" y="150" width="300" height="80" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="890" y="150" width="300" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="891" y="168" width="298" height="12" fill="#fffbeb"/>
+<text x="902" y="170" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">eu-west-1  10.62.0.0/15</text>
+<text x="902" y="198" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pool, locale eu-west-1</text>
+<path d="M640 110 L380 150" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M780 110 L1040 150" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="20" y="290" width="205" height="80" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="20" y="290" width="205" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="21" y="308" width="203" height="12" fill="#ecfdf5"/>
+<text x="32" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">main-prod 10.60.0.0/16</text>
+<text x="32" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">VPC prod-main</text>
+<rect x="235" y="290" width="205" height="80" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="235" y="290" width="205" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="236" y="308" width="203" height="12" fill="#ecfdf5"/>
+<text x="247" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">main-nonprod 10.61.0.0/24</text>
+<text x="247" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">VPC nonprod-main</text>
+<rect x="450" y="290" width="205" height="80" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="450" y="290" width="205" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="451" y="308" width="203" height="12" fill="#ecfdf5"/>
+<text x="462" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">main-shared 10.61.1.0/24</text>
+<text x="462" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">VPC shared-main</text>
+<rect x="740" y="290" width="205" height="80" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="740" y="290" width="205" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="741" y="308" width="203" height="12" fill="#ecfdf5"/>
+<text x="752" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">second-prod 10.62.0.0/16</text>
+<text x="752" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">VPC prod-second</text>
+<rect x="955" y="290" width="205" height="80" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="955" y="290" width="205" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="956" y="308" width="203" height="12" fill="#ecfdf5"/>
+<text x="967" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">second-hybrid 10.63.0.0/24</text>
+<text x="967" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">VPC hybrid-second</text>
+<rect x="1170" y="290" width="205" height="80" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="1170" y="290" width="205" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="1171" y="308" width="203" height="12" fill="#ecfdf5"/>
+<text x="1182" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">second-sandbox 10.63.1.0/24</text>
+<text x="1182" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">VPC sandbox-second</text>
+<path d="M380 230 L122 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M380 230 L337 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M380 230 L552 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1040 230 L842 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1040 230 L1057 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1040 230 L1272 290" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="40" y="400" width="520" height="110" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="40" y="400" width="520" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="41" y="418" width="518" height="12" fill="#fef2f2"/>
+<text x="52" y="420" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Outside the plan, on purpose</text>
+<text x="52" y="448" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pods: 100.64.0.0/16 in both cluster VPCs (never routed for pods' own traffic)</text>
+<text x="52" y="465" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">legacy-main: 10.60.0.0/16 typed by hand, the same range as prod-main</text>
+<text x="52" y="482" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">IPAM finds both and reports them as unmanaged and overlapping</text>
+<rect x="600" y="400" width="440" height="110" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="600" y="400" width="440" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="601" y="418" width="438" height="12" fill="#f8fafc"/>
+<text x="612" y="420" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">What the plan refuses</text>
+<text x="612" y="448" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a request for a range inside a block that a VPC holds</text>
+<text x="612" y="465" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">(S01), and a VPC whose range would overlap another</text>
+<text x="612" y="482" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">routed VPC: it cannot be given one</text>
+<text x="40" y="560" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">A pool cannot hand out what its parent did not give it, and an allocation is held until the VPC is deleted.</text></svg>

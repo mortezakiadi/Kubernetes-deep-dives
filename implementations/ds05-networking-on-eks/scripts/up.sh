@@ -29,5 +29,7 @@ echo "== layer 3: platform"
 cd "$ROOT/terraform/30-platform"
 printf 'account_id = "%s"\n' "$ACCOUNT_ID" > local.auto.tfvars
 terraform init -input=false
-terraform apply -input=false -auto-approve
+# The load balancers are created by the controller while this runs, and Terraform reads them to make the DNS records, so a second pass
+# finishes whatever the first could not.
+terraform apply -input=false -auto-approve || terraform apply -input=false -auto-approve
 echo "Ready. Run: python3 tests/run_scenarios.py all"

@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="800px" viewBox="0 0 1420 800" style="background:#ffffff"><title>Design 05 as layers: what runs in each</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="800" fill="#ffffff"/><rect x="20" y="20" width="1380" height="140" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="44" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">TRANSPORT</text>
+<rect x="40" y="55" width="320" height="95" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="40" y="55" width="320" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="41" y="73" width="318" height="12" fill="#fffbeb"/>
+<text x="52" y="75" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Cloud WAN</text>
+<text x="52" y="103" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one policy, segments,</text>
+<text x="52" y="120" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tag-based attachments</text>
+<rect x="380" y="55" width="320" height="95" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="380" y="55" width="320" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="381" y="73" width="318" height="12" fill="#fffbeb"/>
+<text x="392" y="75" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">VPC route tables</text>
+<text x="392" y="103" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one route to the plan's</text>
+<text x="392" y="120" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">range, nothing else</text>
+<rect x="720" y="55" width="320" height="95" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="720" y="55" width="320" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="721" y="73" width="318" height="12" fill="#fffbeb"/>
+<text x="732" y="75" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">S3 gateway endpoint</text>
+<text x="732" y="103" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">keeps S3 off the NAT</text>
+<rect x="1060" y="55" width="320" height="95" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1060" y="55" width="320" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1061" y="73" width="318" height="12" fill="#fffbeb"/>
+<text x="1072" y="75" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">NAT gateways</text>
+<text x="1072" y="103" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one per cluster VPC</text>
+<rect x="20" y="175" width="1380" height="140" rx="14" fill="#f8fafc" fill-opacity=".55" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="199" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#334155">ADDRESSES AND DNS</text>
+<rect x="40" y="210" width="320" height="95" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="210" width="320" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="41" y="228" width="318" height="12" fill="#f8fafc"/>
+<text x="52" y="230" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">IPAM, advanced tier</text>
+<text x="52" y="258" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">9 pools: region, then</text>
+<text x="52" y="275" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">environment</text>
+<rect x="380" y="210" width="320" height="95" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="380" y="210" width="320" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="381" y="228" width="318" height="12" fill="#f8fafc"/>
+<text x="392" y="230" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Private zone ds05.internal</text>
+<text x="392" y="258" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">shared with 4 VPCs</text>
+<text x="392" y="275" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">latency-routed app name</text>
+<rect x="720" y="210" width="320" height="95" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="720" y="210" width="320" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="721" y="228" width="318" height="12" fill="#f8fafc"/>
+<text x="732" y="230" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Resolver endpoints</text>
+<text x="732" y="258" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">1 inbound, 2 outbound,</text>
+<text x="732" y="275" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">forwarding rules</text>
+<rect x="1060" y="210" width="320" height="95" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1060" y="210" width="320" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1061" y="228" width="318" height="12" fill="#f8fafc"/>
+<text x="1072" y="230" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Data center DNS</text>
+<text x="1072" y="258" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">dnsmasq: corp.dc.test</text>
+<rect x="20" y="330" width="1380" height="140" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="354" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">CLUSTER AND HOST</text>
+<rect x="40" y="365" width="320" height="95" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="40" y="365" width="320" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="41" y="383" width="318" height="12" fill="#eff6ff"/>
+<text x="52" y="385" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">VPC CNI</text>
+<text x="52" y="413" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">custom networking, prefix</text>
+<text x="52" y="430" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">delegation, policy agent</text>
+<rect x="380" y="365" width="320" height="95" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="380" y="365" width="320" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="381" y="383" width="318" height="12" fill="#eff6ff"/>
+<text x="392" y="385" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Cilium 1.20 (chained)</text>
+<text x="392" y="413" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">names in policy, flow</text>
+<text x="392" y="430" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">visibility</text>
+<rect x="720" y="365" width="320" height="95" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="720" y="365" width="320" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="721" y="383" width="318" height="12" fill="#eff6ff"/>
+<text x="732" y="385" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">NodeLocal DNSCache</text>
+<text x="732" y="413" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">on every node</text>
+<rect x="1060" y="365" width="320" height="95" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1060" y="365" width="320" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1061" y="383" width="318" height="12" fill="#eff6ff"/>
+<text x="1072" y="385" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Managed node groups</text>
+<text x="1072" y="413" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one per zone, 110 pods</text>
+<text x="1072" y="430" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">per node</text>
+<rect x="20" y="485" width="1380" height="140" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="509" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">SERVICE CONNECTIVITY AND EDGE</text>
+<rect x="40" y="520" width="320" height="95" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="520" width="320" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="538" width="318" height="12" fill="#ecfdf5"/>
+<text x="52" y="540" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">VPC Lattice</text>
+<text x="52" y="568" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">service network, IAM auth</text>
+<text x="52" y="585" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">by the service's owner</text>
+<rect x="380" y="520" width="320" height="95" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="380" y="520" width="320" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="381" y="538" width="318" height="12" fill="#ecfdf5"/>
+<text x="392" y="540" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Gateway API controller</text>
+<text x="392" y="568" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">HTTPRoute -&gt; Lattice</text>
+<text x="392" y="585" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">service</text>
+<rect x="720" y="520" width="320" height="95" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="720" y="520" width="320" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="721" y="538" width="318" height="12" fill="#ecfdf5"/>
+<text x="732" y="540" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Load Balancer Controller</text>
+<text x="732" y="568" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">internal ALB, IP targets,</text>
+<text x="732" y="585" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">readiness gates</text>
+<rect x="1060" y="520" width="320" height="95" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="1060" y="520" width="320" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="1061" y="538" width="318" height="12" fill="#ecfdf5"/>
+<text x="1072" y="540" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Services</text>
+<text x="1072" y="568" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">PreferClose keeps calls</text>
+<text x="1072" y="585" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">in the zone</text>
+<rect x="20" y="640" width="1380" height="140" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="664" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">POLICY PLANE</text>
+<rect x="40" y="675" width="320" height="95" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="40" y="675" width="320" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="41" y="693" width="318" height="12" fill="#fef2f2"/>
+<text x="52" y="695" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Segments</text>
+<text x="52" y="723" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">who shares routes</text>
+<rect x="380" y="675" width="320" height="95" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="380" y="675" width="320" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="381" y="693" width="318" height="12" fill="#fef2f2"/>
+<text x="392" y="695" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Security groups</text>
+<text x="392" y="723" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the pods' group admits</text>
+<text x="392" y="740" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the cluster only</text>
+<rect x="720" y="675" width="320" height="95" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="720" y="675" width="320" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="721" y="693" width="318" height="12" fill="#fef2f2"/>
+<text x="732" y="695" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">ClusterNetworkPolicy</text>
+<text x="732" y="723" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Admin and Baseline tiers</text>
+<rect x="1060" y="675" width="320" height="95" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1060" y="675" width="320" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1061" y="693" width="318" height="12" fill="#fef2f2"/>
+<text x="1072" y="695" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">NetworkPolicy</text>
+<text x="1072" y="723" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each team, inside the</text>
+<text x="1072" y="740" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">guardrails</text></svg>
