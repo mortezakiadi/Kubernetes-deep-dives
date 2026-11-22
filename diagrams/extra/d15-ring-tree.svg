@@ -20,22 +20,22 @@
 <text x="150" y="408" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 3</text>
 <path d="M200.0,192.0 L408.0,192.0" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
 <rect x="294.0" y="182.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
-<text x="304.0" y="196.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >1</text>
+<text x="304.0" y="196.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >1</text>
 <path d="M445.0,245.0 L445.0,355.0" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
 <rect x="435.0" y="290.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
-<text x="445.0" y="304.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >2</text>
+<text x="445.0" y="304.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >2</text>
 <path d="M408.0,382.0 L200.0,382.0" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
 <rect x="294.0" y="372.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
-<text x="304.0" y="386.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >3</text>
+<text x="304.0" y="386.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >3</text>
 <path d="M163.0,355.0 L163.0,245.0" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
 <rect x="153.0" y="290.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
-<text x="163.0" y="304.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >4</text>
+<text x="163.0" y="304.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="middle" >4</text>
 <path d="M200.0,218.0 L408.0,218.0" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
 <rect x="294.0" y="208.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
-<text x="304.0" y="222.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >5</text>
+<text x="304.0" y="222.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="middle" >5</text>
 <path d="M471.0,245.0 L471.0,355.0" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
 <rect x="461.0" y="290.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
-<text x="471.0" y="304.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >6</text>
+<text x="471.0" y="304.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="middle" >6</text>
 <rect x="596" y="76" width="560" height="420" rx="14" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
 <text x="616" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2933" text-anchor="start" >Tree</text>
 <text x="616" y="124" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Add level by level up to GPU 0, then fan the result out.</text>
@@ -51,24 +51,24 @@
 <rect x="978.0" y="417.0" width="96" height="46" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
 <text x="1026" y="438" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU 3</text>
 <text x="1026" y="453" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >rank 3</text>
-<path d="M753.7589789744793,268.739376079676 L831.2128270266569,201.6127077677888" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
+<path d="M746.2020881465812,275.2886814638544 L838.769717854555,195.06340238361037" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
 <rect x="782.4859030005681" y="225.17604192373238" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
-<text x="792.4859030005681" y="239.67604192373238" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >1</text>
+<text x="792.4859030005681" y="239.67604192373238" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >1</text>
 <path d="M1013.0,404.0 L1013.0,346.0" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
 <rect x="1003.0" y="365.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
-<text x="1013.0" y="379.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >1</text>
-<path d="M981.2128270266569,288.3872922322112 L903.7589789744793,221.26062392032404" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
+<text x="1013.0" y="379.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >1</text>
+<path d="M988.769717854555,294.93659761638963 L896.2020881465812,214.7113185361456" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
 <rect x="932.4859030005681" y="244.82395807626762" width="20" height="20" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
-<text x="942.4859030005681" y="259.3239580762676" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#3b6fd8" text-anchor="middle" >2</text>
-<path d="M848.2410210255207,221.26062392032404 L770.7871729733431,288.3872922322112" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
+<text x="942.4859030005681" y="259.3239580762676" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >2</text>
+<path d="M855.7979118534188,214.7113185361456 L763.230282145445,294.93659761638963" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
 <rect x="799.5140969994319" y="244.82395807626762" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
-<text x="809.5140969994319" y="259.3239580762676" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >3</text>
-<path d="M920.7871729733431,201.6127077677888 L998.2410210255207,268.739376079676" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
+<text x="809.5140969994319" y="259.3239580762676" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="middle" >3</text>
+<path d="M913.230282145445,195.06340238361037 L1005.7979118534188,275.2886814638544" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
 <rect x="949.5140969994319" y="225.17604192373238" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
-<text x="959.5140969994319" y="239.67604192373238" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >3</text>
+<text x="959.5140969994319" y="239.67604192373238" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="middle" >3</text>
 <path d="M1039.0,346.0 L1039.0,404.0" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>
 <rect x="1029.0" y="365.0" width="20" height="20" rx="10" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.4" />
-<text x="1039.0" y="379.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7a4fc4" text-anchor="middle" >4</text>
+<text x="1039.0" y="379.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="middle" >4</text>
 <path d="M44,520 L94,520" stroke="#3b6fd8" stroke-width="3" fill="none" marker-end="url(#arB)"/>
 <text x="104" y="525" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >add: a GPU sends its value and the receiver adds it</text>
 <path d="M520,520 L570,520" stroke="#7a4fc4" stroke-width="3" fill="none" stroke-dasharray="7 5" marker-end="url(#arP)"/>

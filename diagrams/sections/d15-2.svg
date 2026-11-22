@@ -1,191 +1,201 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 1045" width="1180" height="1045" style="color-scheme: light">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 1097" width="1180" height="1097" style="color-scheme: light">
 <rect width="100%" height="100%" fill="#ffffff"/>
 <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
 <text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >What a training job asks of the cluster: where its pods must sit</text>
 <text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >One row for each way to split the work. Each cell is marked: sourced (with the source), this page's reading, or not stated.</text>
-<rect x="176" y="80" width="210" height="92" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.6" />
-<text x="281.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >What it sends</text>
-<rect x="390" y="80" width="186" height="92" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.6" />
-<text x="483.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >How often</text>
-<rect x="580" y="80" width="184" height="92" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
-<text x="672.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >Needs NVLink speed</text>
-<text x="672.0" y="126" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >Same server (rung 2)</text>
-<rect x="768" y="80" width="184" height="92" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.6" />
-<text x="860.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >Needs the fast</text>
-<text x="860.0" y="122" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >network</text>
-<text x="860.0" y="144" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >Same network block</text>
-<text x="860.0" y="160" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >(rungs 4, 5)</text>
-<rect x="956" y="80" width="198" height="92" rx="8" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.6" stroke-dasharray="6 4" />
-<text x="1055.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >Can its pods sit</text>
-<text x="1055.0" y="122" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >farther apart?</text>
-<text x="1055.0" y="144" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >Beyond the network block</text>
+<rect x="196" y="80" width="200" height="92" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.6" />
+<text x="296.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >What it sends</text>
+<text x="296.0" y="126" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >the data that moves</text>
+<text x="296.0" y="142" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >between ranks</text>
+<rect x="400" y="80" width="180" height="92" rx="8" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.6" />
+<text x="490.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >How often</text>
+<text x="490.0" y="126" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >how many times per</text>
+<text x="490.0" y="142" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >training step</text>
+<rect x="584" y="80" width="180" height="92" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="674.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >Needs NVLink speed</text>
+<text x="674.0" y="126" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >Same server (rung 2)</text>
+<rect x="768" y="80" width="180" height="92" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.6" />
+<text x="858.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >Needs the fast</text>
+<text x="858.0" y="122" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >network</text>
+<text x="858.0" y="144" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >Same network block</text>
+<text x="858.0" y="160" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >(rungs 4, 5)</text>
+<rect x="952" y="80" width="198" height="92" rx="8" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.6" stroke-dasharray="6 4" />
+<text x="1051.0" y="104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >Can its pods sit</text>
+<text x="1051.0" y="122" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >farther apart?</text>
+<text x="1051.0" y="144" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >Beyond the network block</text>
 <rect x="24" y="182" width="1132" height="107" rx="10" fill="#ffffff" stroke="#cbd2da" stroke-width="1.2" />
 <text x="36" y="210" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >DDP</text>
-<text x="36" y="230" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >each rank holds</text>
-<text x="36" y="246" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >the whole model</text>
-<text x="186" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The gradients, in one</text>
-<text x="186" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >all-reduce.</text>
-<rect x="186" y="240" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="219.9" y="254.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="186" y="275" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PyTorch FSDP tutorial</text>
-<text x="400" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Once per step (once</text>
-<text x="400" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >per batch).</text>
-<rect x="400" y="240" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="433.9" y="254.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="400" y="275" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
-<rect x="581" y="186" width="182" height="99" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
-<text x="590" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Not required. Ranks on</text>
-<text x="590" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >other servers take</text>
-<text x="590" y="240" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >part too.</text>
-<rect x="590" y="259" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="668.3" y="273.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
-<rect x="769" y="186" width="182" height="99" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.2" />
+<text x="36" y="230" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >DistributedDataParallel:</text>
+<text x="36" y="246" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >each rank holds the</text>
+<text x="36" y="262" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >whole model</text>
+<text x="206" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The gradients, in one</text>
+<text x="206" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >all-reduce.</text>
+<rect x="206" y="240" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="238.5" y="254.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="206" y="275" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PyTorch FSDP tutorial</text>
+<text x="410" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Once per step (once</text>
+<text x="410" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >per batch).</text>
+<rect x="410" y="240" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="442.5" y="254.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="410" y="275" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
+<rect x="585" y="186" width="178" height="99" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="594" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Not required. Ranks</text>
+<text x="594" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >on other servers take</text>
+<text x="594" y="240" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >part too.</text>
+<rect x="594" y="259" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="668.5" y="273.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<rect x="769" y="186" width="178" height="99" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.2" />
 <text x="778" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes. All pods of the</text>
 <text x="778" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >job.</text>
-<rect x="778" y="259" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="856.3" y="273.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
-<rect x="957" y="186" width="196" height="99" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
-<text x="966" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. No pod can sit</text>
-<text x="966" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >farther away than the</text>
-<text x="966" y="240" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >others.</text>
-<rect x="966" y="259" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="1044.3" y="273.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<rect x="778" y="259" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="852.5" y="273.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<rect x="953" y="186" width="196" height="99" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="962" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. No pod can sit</text>
+<text x="962" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >farther away than the</text>
+<text x="962" y="240" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >others.</text>
+<rect x="962" y="259" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="1036.5" y="273.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
 <rect x="24" y="297" width="1132" height="158" rx="10" fill="#ffffff" stroke="#cbd2da" stroke-width="1.2" />
 <text x="36" y="325" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >FSDP</text>
-<text x="36" y="345" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >each rank holds a</text>
-<text x="36" y="361" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >shard</text>
-<text x="186" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Parameter pieces and</text>
-<text x="186" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >gradient pieces.</text>
-<rect x="186" y="406" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="219.9" y="420.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="186" y="441" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PyTorch FSDP tutorial</text>
-<text x="400" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Many times per step:</text>
-<text x="400" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >before the forward and</text>
-<text x="400" y="355" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >backward pass of each</text>
-<text x="400" y="372" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >layer, and in</text>
-<text x="400" y="389" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >backward.</text>
-<rect x="400" y="406" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="433.9" y="420.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="400" y="441" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PyTorch FSDP tutorial</text>
-<rect x="581" y="301" width="182" height="150" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
-<text x="590" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Not required. Same</text>
-<text x="590" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >group as DDP.</text>
-<rect x="590" y="425" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="668.3" y="439.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
-<rect x="769" y="301" width="182" height="150" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.2" />
+<text x="36" y="345" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Fully Sharded Data</text>
+<text x="36" y="361" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Parallel: each rank</text>
+<text x="36" y="377" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >holds a shard</text>
+<text x="206" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Parameter pieces and</text>
+<text x="206" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >gradient pieces.</text>
+<rect x="206" y="406" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="238.5" y="420.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="206" y="441" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PyTorch FSDP tutorial</text>
+<text x="410" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Many times per step:</text>
+<text x="410" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >before the forward</text>
+<text x="410" y="355" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >and backward pass of</text>
+<text x="410" y="372" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >each layer, and in</text>
+<text x="410" y="389" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >backward.</text>
+<rect x="410" y="406" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="442.5" y="420.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="410" y="441" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PyTorch FSDP tutorial</text>
+<rect x="585" y="301" width="178" height="150" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="594" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Not required. Same</text>
+<text x="594" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >group as DDP.</text>
+<rect x="594" y="425" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="668.5" y="439.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<rect x="769" y="301" width="178" height="150" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.2" />
 <text x="778" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes. All pods of the</text>
 <text x="778" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >job.</text>
-<rect x="778" y="425" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="856.3" y="439.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
-<rect x="957" y="301" width="196" height="150" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
-<text x="966" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. A slow link shows up</text>
-<text x="966" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >sooner than in DDP.</text>
-<rect x="966" y="425" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="1044.3" y="439.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
-<rect x="24" y="463" width="1132" height="124" rx="10" fill="#ffffff" stroke="#cbd2da" stroke-width="1.2" />
+<rect x="778" y="425" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="852.5" y="439.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<rect x="953" y="301" width="196" height="150" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="962" y="321" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. A slow link shows up</text>
+<text x="962" y="338" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >sooner than in DDP.</text>
+<rect x="962" y="425" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="1036.5" y="439.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<rect x="24" y="463" width="1132" height="141" rx="10" fill="#ffffff" stroke="#cbd2da" stroke-width="1.2" />
 <text x="36" y="491" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Hybrid sharding</text>
-<text x="36" y="511" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >FSDP in a host,</text>
+<text x="36" y="511" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >FSDP inside a host,</text>
 <text x="36" y="527" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >DDP across hosts</text>
-<text x="186" y="487" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >FSDP pieces inside a</text>
-<text x="186" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >host. DDP gradients</text>
-<text x="186" y="521" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >across hosts.</text>
-<rect x="186" y="538" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="219.9" y="552.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="186" y="573" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PyTorch DeviceMesh recipe</text>
-<text x="400" y="487" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >FSDP part: many times</text>
-<text x="400" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >per step. DDP part:</text>
-<text x="400" y="521" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >once per step.</text>
-<rect x="400" y="557" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="478.3" y="571.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
-<rect x="581" y="467" width="182" height="116" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.2" />
-<text x="590" y="487" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes, for each shard</text>
-<text x="590" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >group (the ranks that</text>
-<text x="590" y="521" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >hold the pieces of one</text>
-<text x="590" y="538" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >copy of the model).</text>
-<rect x="590" y="557" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="668.3" y="571.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<text x="206" y="487" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >FSDP pieces inside a</text>
+<text x="206" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >host. DDP gradients</text>
+<text x="206" y="521" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >across hosts.</text>
+<rect x="206" y="538" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="238.5" y="552.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="206" y="573" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PyTorch DeviceMesh</text>
+<text x="206" y="590" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >recipe</text>
+<text x="410" y="487" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >FSDP part: many times</text>
+<text x="410" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >per step. DDP part:</text>
+<text x="410" y="521" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >once per step.</text>
+<rect x="410" y="574" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="484.5" y="588.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<rect x="585" y="467" width="178" height="133" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.2" />
+<text x="594" y="487" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes, for each shard</text>
+<text x="594" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >group (the ranks that</text>
+<text x="594" y="521" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >hold the pieces of</text>
+<text x="594" y="538" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >one copy of the</text>
+<text x="594" y="555" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >model).</text>
+<rect x="594" y="574" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="668.5" y="588.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
 <text x="778" y="487" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Only the traffic</text>
 <text x="778" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >between copies of the</text>
 <text x="778" y="521" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >model.</text>
-<rect x="778" y="557" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="856.3" y="571.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
-<text x="966" y="487" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Not stated on this page.</text>
-<rect x="966" y="557" width="90.0" height="20" rx="10.0" fill="#7b8794" stroke="#7b8794" stroke-width="0" />
-<text x="1011.0" y="571.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >not stated</text>
-<rect x="24" y="595" width="1132" height="107" rx="10" fill="#ffffff" stroke="#cbd2da" stroke-width="1.2" />
-<text x="36" y="623" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Tensor parallelism</text>
-<text x="36" y="643" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >each layer split</text>
-<text x="36" y="659" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >across GPUs</text>
-<text x="186" y="619" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The results of each split</text>
-<text x="186" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >layer, in an all-reduce.</text>
-<rect x="186" y="653" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="219.9" y="667.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="186" y="688" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
-<text x="400" y="619" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >For every microbatch.</text>
-<rect x="400" y="653" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="433.9" y="667.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="400" y="688" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
-<rect x="581" y="599" width="182" height="99" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.2" />
-<text x="590" y="619" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes. Keep it inside</text>
-<text x="590" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >one server.</text>
-<rect x="590" y="653" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="623.9" y="667.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="590" y="688" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
-<rect x="769" y="599" width="182" height="99" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
-<text x="778" y="619" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No, while it stays in</text>
-<text x="778" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >one server.</text>
-<rect x="778" y="672" width="156.6" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
-<text x="856.3" y="686.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
-<rect x="957" y="599" width="196" height="99" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
-<text x="966" y="619" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. It can be expensive</text>
-<text x="966" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >across servers.</text>
-<rect x="966" y="653" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="999.9" y="667.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="966" y="688" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
-<rect x="24" y="710" width="1132" height="139" rx="10" fill="#ffffff" stroke="#cbd2da" stroke-width="1.2" />
-<text x="36" y="738" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Pipeline parallelism</text>
-<text x="36" y="758" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >model cut into</text>
-<text x="36" y="774" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >stages</text>
-<text x="186" y="734" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Tensors from stage to</text>
-<text x="186" y="751" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >stage, point to point.</text>
-<rect x="186" y="800" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="219.9" y="814.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="186" y="835" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
-<text x="400" y="734" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >For every microbatch,</text>
-<text x="400" y="751" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >in the forward and the</text>
-<text x="400" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >backward pass.</text>
-<rect x="400" y="800" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="433.9" y="814.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="400" y="835" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
-<rect x="581" y="714" width="182" height="131" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
-<text x="590" y="734" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. Stages sit on</text>
-<text x="590" y="751" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >different servers.</text>
-<rect x="590" y="800" width="67.80000000000001" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
-<text x="623.9" y="814.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
-<text x="590" y="835" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
-<rect x="769" y="714" width="182" height="131" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.2" />
-<text x="778" y="734" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes, ideally within</text>
-<text x="778" y="751" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >one rack. Design 20 on</text>
-<text x="778" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >this site says so and</text>
-<text x="778" y="785" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >cites no source.</text>
-<rect x="778" y="819" width="164.0" height="20" rx="10.0" fill="#7a4fc4" stroke="#7a4fc4" stroke-width="0" />
-<text x="860.0" y="833.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >site page, no source</text>
-<text x="966" y="734" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Deep dive 3 on this site</text>
-<text x="966" y="751" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >says it tolerates the</text>
-<text x="966" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >slower links between</text>
-<text x="966" y="785" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >nodes, and cites no</text>
-<text x="966" y="802" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >source.</text>
-<rect x="966" y="819" width="164.0" height="20" rx="10.0" fill="#7a4fc4" stroke="#7a4fc4" stroke-width="0" />
-<text x="1048.0" y="833.375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle" >site page, no source</text>
-<rect x="24" y="873" width="22" height="16" rx="4" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4" />
-<text x="54" y="886" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >needed: the pods must sit like this</text>
-<rect x="330" y="873" width="22" height="16" rx="4" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.4" />
-<text x="360" y="886" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >not needed, or no</text>
-<text x="24" y="913" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Rank = one GPU taking part in the job. Same server = NVLink between the GPUs. Same network block = servers that sit close together on the data-center</text>
-<text x="24" y="931" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >network (this page's plain word). No source read says how far apart any split may sit.</text>
-<text x="24" y="949" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >A collective is one operation that all ranks do together. All-reduce adds the values of all ranks and gives every rank the sum. All-gather gives every</text>
-<text x="24" y="967" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >rank the pieces of all ranks. Reduce-scatter adds the values and each rank keeps one piece of the sum.</text>
-<text x="24" y="985" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Forward pass = the model computes its output for a batch. Backward pass = it computes the gradients. Gradient = a number that says how to change one</text>
-<text x="24" y="1003" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >parameter. Microbatch = one of the smaller pieces a batch is split into (Megatron-LM paper).</text>
-<text x="24" y="1021" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sources: PyTorch FSDP tutorial, PyTorch DeviceMesh recipe, Megatron-LM paper (arXiv 2104.04473). The step by step of DDP and FSDP is in Appendix B.</text>
+<rect x="778" y="574" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="852.5" y="588.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<text x="962" y="487" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Not stated on this page.</text>
+<rect x="962" y="574" width="86.0" height="20" rx="10.0" fill="#7b8794" stroke="#7b8794" stroke-width="0" />
+<text x="1005.0" y="588.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >not stated</text>
+<rect x="24" y="612" width="1132" height="124" rx="10" fill="#ffffff" stroke="#cbd2da" stroke-width="1.2" />
+<text x="36" y="640" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Tensor parallelism</text>
+<text x="36" y="660" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >each layer split</text>
+<text x="36" y="676" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >across GPUs</text>
+<text x="206" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The results of each</text>
+<text x="206" y="653" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >split layer, in an</text>
+<text x="206" y="670" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >all-reduce.</text>
+<rect x="206" y="687" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="238.5" y="701.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="206" y="722" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
+<text x="410" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >For every microbatch.</text>
+<rect x="410" y="687" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="442.5" y="701.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="410" y="722" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
+<rect x="585" y="616" width="178" height="116" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.2" />
+<text x="594" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes. Keep it inside</text>
+<text x="594" y="653" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >one server.</text>
+<rect x="594" y="687" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="626.5" y="701.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="594" y="722" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
+<rect x="769" y="616" width="178" height="116" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="778" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No, while it stays in</text>
+<text x="778" y="653" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >one server.</text>
+<rect x="778" y="706" width="149.0" height="20" rx="10.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="852.5" y="720.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >this page's reading</text>
+<rect x="953" y="616" width="196" height="116" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="962" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. It can be expensive</text>
+<text x="962" y="653" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >across servers.</text>
+<rect x="962" y="687" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="994.5" y="701.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="962" y="722" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
+<rect x="24" y="744" width="1132" height="139" rx="10" fill="#ffffff" stroke="#cbd2da" stroke-width="1.2" />
+<text x="36" y="772" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Pipeline parallelism</text>
+<text x="36" y="792" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >model cut into</text>
+<text x="36" y="808" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >stages</text>
+<text x="206" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Tensors from stage to</text>
+<text x="206" y="785" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >stage, point to point.</text>
+<rect x="206" y="834" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="238.5" y="848.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="206" y="869" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
+<text x="410" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >For every microbatch,</text>
+<text x="410" y="785" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >in the forward and</text>
+<text x="410" y="802" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >the backward pass.</text>
+<rect x="410" y="834" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="442.5" y="848.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="410" y="869" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
+<rect x="585" y="748" width="178" height="131" rx="8" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.2" />
+<text x="594" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. Stages sit on</text>
+<text x="594" y="785" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >different servers.</text>
+<rect x="594" y="834" width="65.0" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="626.5" y="848.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >sourced</text>
+<text x="594" y="869" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Megatron-LM paper</text>
+<rect x="769" y="748" width="178" height="131" rx="8" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.2" />
+<text x="778" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes, ideally within</text>
+<text x="778" y="785" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >one rack. Design 20</text>
+<text x="778" y="802" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >on this site says so</text>
+<text x="778" y="819" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >and cites no source.</text>
+<rect x="778" y="853" width="156.0" height="20" rx="10.0" fill="#7a4fc4" stroke="#7a4fc4" stroke-width="0" />
+<text x="856.0" y="867.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >site page, no source</text>
+<text x="962" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Deep dive 3 on this site</text>
+<text x="962" y="785" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >says it tolerates the</text>
+<text x="962" y="802" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >slower links between</text>
+<text x="962" y="819" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >nodes, and cites no</text>
+<text x="962" y="836" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >source.</text>
+<rect x="962" y="853" width="156.0" height="20" rx="10.0" fill="#7a4fc4" stroke="#7a4fc4" stroke-width="0" />
+<text x="1040.0" y="867.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >site page, no source</text>
+<rect x="24" y="907" width="22" height="16" rx="4" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="54" y="920" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >needed: the pods must sit like this</text>
+<rect x="330" y="907" width="22" height="16" rx="4" fill="#f6f8fb" stroke="#cbd2da" stroke-width="1.4" />
+<text x="360" y="920" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >not needed, or no</text>
+<text x="24" y="947" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Rank = one GPU taking part in the job. Same server = NVLink between the GPUs. Same network block = servers that sit close together on the data-center</text>
+<text x="24" y="965" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >network (this page's plain word). Design 20 says 'rack'; this page does not claim a rack and a network block are the same. No source read says how far</text>
+<text x="24" y="983" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >apart any split may sit.</text>
+<text x="24" y="1001" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >A collective is one operation that all ranks do together. All-reduce adds the values of all ranks and gives every rank the sum. All-gather gives every</text>
+<text x="24" y="1019" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >rank the pieces of all ranks. Reduce-scatter adds the values and each rank keeps one piece of the sum.</text>
+<text x="24" y="1037" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Forward pass = the model computes its output for a batch. Backward pass = it computes the gradients. Gradient = a number that says how to change one</text>
+<text x="24" y="1055" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >parameter. Microbatch = one of the smaller pieces a batch is split into (Megatron-LM paper).</text>
+<text x="24" y="1073" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sources: PyTorch FSDP tutorial, PyTorch DeviceMesh recipe, Megatron-LM paper (arXiv 2104.04473). The step by step of DDP and FSDP is in Appendix B.</text>
 </svg>
