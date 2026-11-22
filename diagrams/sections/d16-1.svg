@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 1273" width="1180" height="1273" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Training data and checkpoints: four storage paths from the pod to the bytes</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >AWS is the worked example. "Reading" means this page's reading. Every number is sourced in the points on the page.</text>
+<rect x="24" y="84" width="1132" height="263" rx="12" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<rect x="38" y="94" width="26" height="26" rx="13.0" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="0" />
+<text x="51.0" y="111.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >1</text>
+<text x="74" y="113" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#3b6fd8" text-anchor="start" >Object storage: S3 through the Mountpoint CSI driver</text>
+<rect x="40" y="168" width="96" height="72" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="88" y="198" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >Training</text>
+<text x="88" y="216" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >pod</text>
+<rect x="166" y="168" width="180" height="72" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="256" y="198" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >Static PersistentVolume</text>
+<text x="256" y="216" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >and claim</text>
+<rect x="376" y="168" width="170" height="72" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="461" y="198" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >Mountpoint CSI driver</text>
+<text x="461" y="216" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >static provisioning only</text>
+<rect x="576" y="168" width="196" height="72" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="2.2" />
+<text x="674" y="192" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >S3 bucket, over the</text>
+<text x="674" y="209" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >network. Variant: S3 Express</text>
+<text x="674" y="226" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >One Zone, one zone you pick</text>
+<path d="M136,204.0 L164,204.0" stroke="#3b6fd8" stroke-width="2.4" fill="none" marker-end="url(#arB)"/>
+<path d="M346,204.0 L374,204.0" stroke="#3b6fd8" stroke-width="2.4" fill="none" marker-end="url(#arB)"/>
+<path d="M546,204.0 L574,204.0" stroke="#3b6fd8" stroke-width="2.4" fill="none" marker-end="url(#arB)"/>
+<text x="790" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >Survives losing the node?</text>
+<text x="790" y="150" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes (reading): the data is not on the node.</text>
+<text x="790" y="173" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >Many writers?</text>
+<text x="790" y="189" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Different files yes. One writer for each file,</text>
+<text x="790" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >writes in order.</text>
+<text x="790" y="229" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >Numbers:</text>
+<text x="790" y="245" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >S3 limits requests for each prefix. The limits</text>
+<text x="790" y="262" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >are in the decision table on the page.</text>
+<text x="790" y="279" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Mountpoint speed on a GPU node: none found.</text>
+<text x="790" y="302" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >Price:</text>
+<text x="790" y="318" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >not read. The S3 price table loads by script.</text>
+<rect x="24" y="359" width="1132" height="331" rx="12" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<rect x="38" y="369" width="26" height="26" rx="13.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="51.0" y="386.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >2</text>
+<text x="74" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f766e" text-anchor="start" >Parallel file system: FSx for Lustre through the FSx CSI driver</text>
+<rect x="40" y="460" width="96" height="72" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.4" />
+<text x="88" y="490" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >Training</text>
+<text x="88" y="508" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >pod</text>
+<rect x="166" y="460" width="180" height="72" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.4" />
+<text x="256" y="490" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >StorageClass and claim,</text>
+<text x="256" y="508" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >or a static volume</text>
+<rect x="376" y="460" width="170" height="72" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.4" />
+<text x="461" y="490" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >FSx CSI driver</text>
+<text x="461" y="508" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >dynamic or static</text>
+<rect x="576" y="460" width="196" height="72" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="2.2" />
+<text x="674" y="484" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >File servers of FSx for</text>
+<text x="674" y="501" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >Lustre, in the zone of</text>
+<text x="674" y="518" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >its subnet (reading)</text>
+<path d="M136,496.0 L164,496.0" stroke="#0f766e" stroke-width="2.4" fill="none" marker-end="url(#arT)"/>
+<path d="M346,496.0 L374,496.0" stroke="#0f766e" stroke-width="2.4" fill="none" marker-end="url(#arT)"/>
+<path d="M546,496.0 L574,496.0" stroke="#0f766e" stroke-width="2.4" fill="none" marker-end="url(#arT)"/>
+<text x="790" y="409" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="start" >Survives losing the node?</text>
+<text x="790" y="425" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes (reading). A persistent file system replaces</text>
+<text x="790" y="442" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >a failed server in minutes. Scratch is not</text>
+<text x="790" y="459" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >replicated.</text>
+<text x="790" y="482" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="start" >Many writers?</text>
+<text x="790" y="498" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Yes. Thousands of clients on one file or</text>
+<text x="790" y="515" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >directory.</text>
+<text x="790" y="538" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="start" >Numbers:</text>
+<text x="790" y="554" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >up to 100 Gbps for each client, 700 Gbps with</text>
+<text x="790" y="571" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >EFA. One client to one storage server: 5 Gbps.</text>
+<text x="790" y="594" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="start" >Price:</text>
+<text x="790" y="610" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >AWS's example, US East (N. Virginia), read</text>
+<text x="790" y="627" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >2026-11-22: $0.145 per GB-month for 1,200 GB</text>
+<text x="790" y="644" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >persistent at 125 MB/s per TiB. $0.01/GB from</text>
+<text x="790" y="661" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >another zone.</text>
+<rect x="24" y="702" width="1132" height="246" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8" />
+<rect x="38" y="712" width="26" height="26" rx="13.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="51.0" y="729.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >3</text>
+<text x="74" y="731" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#2f9e5b" text-anchor="start" >Node-local NVMe: a local volume</text>
+<rect x="40" y="782" width="96" height="72" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="88" y="812" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >Training</text>
+<text x="88" y="830" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >pod</text>
+<rect x="166" y="782" width="180" height="72" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="256" y="812" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >Local PersistentVolume</text>
+<text x="256" y="830" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >with a node affinity</text>
+<rect x="376" y="782" width="170" height="72" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="461" y="812" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >Local static provisioner</text>
+<text x="461" y="830" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >no dynamic provisioning</text>
+<rect x="576" y="782" width="196" height="72" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2.2" />
+<text x="674" y="806" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >NVMe SSDs inside the</text>
+<text x="674" y="823" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >same node. The bytes</text>
+<text x="674" y="840" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >never leave the node</text>
+<path d="M136,818.0 L164,818.0" stroke="#2f9e5b" stroke-width="2.4" fill="none" marker-end="url(#arG)"/>
+<path d="M346,818.0 L374,818.0" stroke="#2f9e5b" stroke-width="2.4" fill="none" marker-end="url(#arG)"/>
+<path d="M546,818.0 L574,818.0" stroke="#2f9e5b" stroke-width="2.4" fill="none" marker-end="url(#arG)"/>
+<text x="790" y="752" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >Survives losing the node?</text>
+<text x="790" y="768" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. Gone if the instance stops or terminates. A</text>
+<text x="790" y="785" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >reboot keeps it.</text>
+<text x="790" y="808" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >Many writers?</text>
+<text x="790" y="824" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Only the pods on that node (reading).</text>
+<text x="790" y="847" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >Numbers:</text>
+<text x="790" y="863" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >p5.48xlarge lists 8 x 3.84 TB. P4d: 8 TB with 16</text>
+<text x="790" y="880" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >GB/s read.</text>
+<text x="790" y="903" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >Price:</text>
+<text x="790" y="919" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >the instance store costs nothing extra.</text>
+<rect x="24" y="960" width="1132" height="229" rx="12" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<rect x="38" y="970" width="26" height="26" rx="13.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="51.0" y="987.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >4</text>
+<text x="74" y="989" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#e08a1e" text-anchor="start" >Scratch space: emptyDir</text>
+<rect x="40" y="1035" width="96" height="72" rx="8" fill="#ffffff" stroke="#e08a1e" stroke-width="1.4" />
+<text x="88" y="1065" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >Training</text>
+<text x="88" y="1083" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >pod</text>
+<rect x="166" y="1035" width="180" height="72" rx="8" fill="#ffffff" stroke="#e08a1e" stroke-width="1.4" />
+<text x="256" y="1065" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >emptyDir in the pod spec,</text>
+<text x="256" y="1083" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >optional sizeLimit</text>
+<rect x="376" y="1035" width="170" height="72" rx="8" fill="#ffffff" stroke="#e08a1e" stroke-width="1.4" />
+<text x="461" y="1065" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >The kubelet</text>
+<text x="461" y="1083" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >no driver</text>
+<rect x="576" y="1035" width="196" height="72" rx="8" fill="#ffffff" stroke="#e08a1e" stroke-width="2.2" />
+<text x="674" y="1059" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >The disk that holds the</text>
+<text x="674" y="1076" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >kubelet root directory,</text>
+<text x="674" y="1093" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >or RAM</text>
+<path d="M136,1071.0 L164,1071.0" stroke="#e08a1e" stroke-width="2.4" fill="none" marker-end="url(#arO)"/>
+<path d="M346,1071.0 L374,1071.0" stroke="#e08a1e" stroke-width="2.4" fill="none" marker-end="url(#arO)"/>
+<path d="M546,1071.0 L574,1071.0" stroke="#e08a1e" stroke-width="2.4" fill="none" marker-end="url(#arO)"/>
+<text x="790" y="1010" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#e08a1e" text-anchor="start" >Survives losing the node?</text>
+<text x="790" y="1026" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No. Deleted when the pod leaves the node.</text>
+<text x="790" y="1049" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#e08a1e" text-anchor="start" >Many writers?</text>
+<text x="790" y="1065" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >One pod (reading).</text>
+<text x="790" y="1088" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#e08a1e" text-anchor="start" >Numbers:</text>
+<text x="790" y="1104" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >no limit unless sizeLimit is set. No speed</text>
+<text x="790" y="1121" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >figure was found.</text>
+<text x="790" y="1144" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#e08a1e" text-anchor="start" >Price:</text>
+<text x="790" y="1160" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >not read.</text>
+<text x="24" y="1215" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >What each box is: the pod mounts a Kubernetes object, a CSI driver or the kubelet connects it to storage, and the bytes live in the last box. S3 Express</text>
+<text x="24" y="1233" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >One Zone is a variant of lane 1. A rank writes its own checkpoint shard, so lanes 1 and 2 take many writers and lane 3 needs a durable copy. None of the</text>
+<text x="24" y="1251" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >pages read compares the four with one measurement.</text>
+</svg>

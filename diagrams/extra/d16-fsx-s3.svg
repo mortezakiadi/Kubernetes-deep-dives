@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 753" width="1180" height="753" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >FSx for Lustre linked to S3: how data moves</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >AWS is the worked example. The numbers are the steps in the order a file goes through them.</text>
+<rect x="24" y="92" width="210" height="372" rx="12" fill="#eef3fd" stroke="#3b6fd8" stroke-width="2" />
+<text x="129" y="120" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#3b6fd8" text-anchor="middle" >S3 bucket</text>
+<text x="129" y="142" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >the durable copy</text>
+<rect x="500" y="92" width="250" height="372" rx="12" fill="#e6f4f2" stroke="#0f766e" stroke-width="2" />
+<text x="625" y="120" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#0f766e" text-anchor="middle" >FSx for Lustre</text>
+<text x="625" y="142" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >file system</text>
+<text x="512" y="172" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >In one zone (reading: the</text>
+<text x="512" y="189" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >zone of its subnet).</text>
+<text x="512" y="218" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Up to 8 data repository</text>
+<text x="512" y="235" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >associations for one file</text>
+<text x="512" y="252" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >system.</text>
+<rect x="970" y="92" width="186" height="372" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="2" />
+<text x="1063" y="120" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#2f9e5b" text-anchor="middle" >Training pods</text>
+<text x="1063" y="142" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="middle" >mount the file system</text>
+<path d="M236,184 L498,184" stroke="#3b6fd8" stroke-width="2.6" fill="none" marker-end="url(#arB)"/>
+<text x="280" y="106" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Link, with the</text>
+<text x="280" y="123" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >import-metadata option:</text>
+<text x="280" y="140" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >owner, permissions and</text>
+<text x="280" y="157" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >timestamps of the objects</text>
+<text x="280" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >come in first</text>
+<rect x="248" y="90" width="22" height="22" rx="11.0" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="0" />
+<text x="259.0" y="105.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >1</text>
+<path d="M236,252 L498,252" stroke="#3b6fd8" stroke-width="2.6" fill="none" marker-end="url(#arB)"/>
+<text x="280" y="225" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >First access of a file: its</text>
+<text x="280" y="242" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >content is copied from S3</text>
+<rect x="248" y="209" width="22" height="22" rx="11.0" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="0" />
+<text x="259.0" y="224.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >2</text>
+<path d="M498,444 L236,444" stroke="#0f766e" stroke-width="2.6" fill="none" marker-end="url(#arT)"/>
+<text x="280" y="315" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Back to S3: automatic export</text>
+<text x="280" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >(console default: on. CLI and</text>
+<text x="280" y="349" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >API default: off), after the</text>
+<text x="280" y="366" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >application finishes</text>
+<text x="280" y="383" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >modifying a file. Or an</text>
+<text x="280" y="400" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >export data repository task.</text>
+<text x="280" y="417" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The two cannot be used</text>
+<text x="280" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >together.</text>
+<rect x="248" y="299" width="22" height="22" rx="11.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="259.0" y="314.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >5</text>
+<path d="M752,212 L968,212" stroke="#0f766e" stroke-width="2.6" fill="none" marker-end="url(#arT)"/>
+<text x="796" y="185" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Later reads come from</text>
+<text x="796" y="202" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >the file system</text>
+<rect x="766" y="169" width="22" height="22" rx="11.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="777.0" y="184.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >3</text>
+<path d="M968,322 L752,322" stroke="#2f9e5b" stroke-width="2.6" fill="none" marker-end="url(#arG)"/>
+<text x="796" y="278" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Pods write files, for</text>
+<text x="796" y="295" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >example checkpoint</text>
+<text x="796" y="312" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >shards</text>
+<rect x="766" y="262" width="22" height="22" rx="11.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="777.0" y="277.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >4</text>
+<rect x="24" y="484" width="1132" height="64" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" stroke-dasharray="6 4" />
+<text x="38" y="508" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e08a1e" text-anchor="start" >Release (optional): frees space in the file system.</text>
+<text x="38" y="530" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Only files already exported to S3 are released. A released file keeps its name and metadata, and loads back from S3 when it is accessed.</text>
+<rect x="24" y="568" width="1132" height="149" rx="10" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.4" />
+<text x="38" y="592" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Limits to know</text>
+<text x="48" y="614" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >-</text>
+<text x="62" y="614" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >At most 8 data repository associations for one file system.</text>
+<text x="48" y="633" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >-</text>
+<text x="62" y="633" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Automatic import needs the file system and the bucket in the same Region. Automatic export can cross Regions.</text>
+<text x="48" y="652" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >-</text>
+<text x="62" y="652" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Intelligent-Tiering file systems cannot link to S3. Backups are not supported on a linked file system.</text>
+<text x="48" y="671" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >-</text>
+<text x="62" y="671" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >FSx does not prevent conflicting writes in two places. The application must coordinate.</text>
+<text x="48" y="690" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >-</text>
+<text x="62" y="690" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >FSx CSI driver S3 example: new files are not synced to S3 automatically. Syncing by hand needs a privileged container.</text>
+<text x="24" y="737" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Source: AWS FSx for Lustre pages on importing files, data repository associations, file release and the FSx CSI driver S3 example.</text>
+</svg>
