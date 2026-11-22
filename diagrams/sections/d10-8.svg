@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 864" width="1180" height="864" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker><marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Crossing a Region: what moves, which tool moves it, and what it costs</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >AWS is the worked example. N. Virginia to Oregon is one example pair. The sizes are illustrative. The prices are AWS's (price list of 2026-11-19).</text>
+<rect x="24" y="88" width="280" height="474" rx="14" fill="#eef3fd" stroke="#3b6fd8" stroke-width="2" />
+<text x="38" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#3b6fd8" text-anchor="start" >Region 1: N. Virginia</text>
+<text x="38" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >the home of the data (example)</text>
+<rect x="38" y="158" width="252" height="74" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="50" y="182" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >S3 bucket</text>
+<text x="50" y="202" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >weights, datasets, checkpoints</text>
+<rect x="38" y="246" width="252" height="74" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="50" y="270" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >ECR registry</text>
+<text x="50" y="290" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >container images</text>
+<rect x="876" y="88" width="280" height="474" rx="14" fill="#e6f4f2" stroke="#0f766e" stroke-width="2" />
+<text x="890" y="114" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0f766e" text-anchor="start" >Region 2: Oregon</text>
+<text x="890" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >where the GPUs are (example)</text>
+<rect x="890" y="158" width="252" height="74" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.4" />
+<text x="902" y="182" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >EKS cluster</text>
+<text x="902" y="202" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >GPU nodes run the pods</text>
+<rect x="890" y="246" width="252" height="74" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.4" />
+<text x="902" y="270" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >S3 bucket, a copy</text>
+<text x="902" y="290" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >filled by S3 replication</text>
+<rect x="890" y="334" width="252" height="74" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.4" />
+<text x="902" y="358" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >ECR registry, a copy</text>
+<text x="902" y="378" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >filled by ECR replication</text>
+<text x="322" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Images</text>
+<text x="322" y="131" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The kubelet pulls the image when a pod starts. ECR replication copies</text>
+<text x="322" y="148" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >new images ahead of time: copy once, then read locally.</text>
+<path d="M322,170 L858,170" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<rect x="523.5" y="158" width="133.0" height="24" rx="12.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="590.0" y="174.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >ECR replication</text>
+<text x="322" y="204" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Model weights</text>
+<text x="322" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >An init container or a volume mount reads them. S3 replication copies</text>
+<text x="322" y="240" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >the bucket ahead of time: copy once, then read locally.</text>
+<path d="M322,262 L858,262" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<rect x="527.2" y="250" width="125.60000000000001" height="24" rx="12.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="590.0" y="266.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >S3 replication</text>
+<text x="322" y="296" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Datasets</text>
+<text x="322" y="315" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A volume mount reads them. S3 replication copies new objects, and Batch</text>
+<text x="322" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Replication copies the objects that already exist.</text>
+<path d="M322,354 L858,354" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<rect x="527.2" y="342" width="125.60000000000001" height="24" rx="12.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="590.0" y="358.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >S3 replication</text>
+<text x="322" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Checkpoints</text>
+<text x="322" y="407" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The job writes them where it runs. S3 replication copies them to the</text>
+<text x="322" y="424" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >other Region. The copy is asynchronous.</text>
+<path d="M858,446 L322,446" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
+<rect x="527.2" y="434" width="125.60000000000001" height="24" rx="12.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="590.0" y="450.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >S3 replication</text>
+<text x="322" y="480" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Traffic</text>
+<text x="322" y="499" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >User requests for a model server. Route 53 records or Global</text>
+<text x="322" y="516" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Accelerator pick the Region. They move no weights and no checkpoints.</text>
+<path d="M330,538 L850,538" stroke="#7a4fc4" stroke-width="3" fill="none" marker-end="url(#arP)"/>
+<path d="M850,538 L330,538" stroke="#7a4fc4" stroke-width="3" fill="none" marker-end="url(#arP)"/>
+<rect x="475.4" y="526" width="229.20000000000002" height="24" rx="12.0" fill="#7a4fc4" stroke="#7a4fc4" stroke-width="0" />
+<text x="590.0" y="542.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >Route 53, Global Accelerator</text>
+<rect x="24" y="580" width="1132" height="66" rx="10" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.4" />
+<text x="38" y="604" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >What carries the bytes between two Regions on AWS</text>
+<text x="38" y="626" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A private link between Regions: VPC peering, Transit Gateway peering or Cloud WAN. From your own data center or another cloud: Direct Connect or Site-to-Site VPN.</text>
+<rect x="24" y="662" width="366" height="120" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="36" y="686" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="start" >Price per GB</text>
+<text x="36" y="708" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >$0.02 for each GB sent out of N. Virginia to</text>
+<text x="36" y="725" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Oregon, and $0.01 to Ohio (AWS price list,</text>
+<text x="36" y="742" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >2026-11-19). Data coming in is free (AWS</text>
+<text x="36" y="759" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Transit Gateway pricing page).</text>
+<rect x="407" y="662" width="366" height="120" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8" />
+<text x="419" y="686" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f9e5b" text-anchor="start" >Weights, illustrative</text>
+<text x="419" y="708" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >70 billion parameters x 2 bytes = 140 GB</text>
+<text x="419" y="725" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >(derived). Copy once: 140 x $0.02 = $2.80.</text>
+<text x="419" y="742" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Read across the link by 20 nodes: 2,800 GB,</text>
+<text x="419" y="759" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >$56 (derived).</text>
+<rect x="790" y="662" width="366" height="120" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<text x="802" y="686" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e08a1e" text-anchor="start" >Time, derived</text>
+<text x="802" y="708" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >One flow outside a cluster placement group is</text>
+<text x="802" y="725" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >limited to 5 Gbps. 140 GB = 1,120 Gb, so 224</text>
+<text x="802" y="742" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >seconds. That is a quota, not a measured WAN</text>
+<text x="802" y="759" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >speed.</text>
+<text x="24" y="806" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Illustrative: the Region pair, the 70 billion parameters and the 20 nodes. Sourced: the five arrows are this page's reading of what each kind of data</text>
+<text x="24" y="824" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >needs; the tools and prices come from the AWS pages named in the text and in the appendix. No source read gives the real speed or latency of any link</text>
+<text x="24" y="842" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >between two Regions.</text>
+</svg>

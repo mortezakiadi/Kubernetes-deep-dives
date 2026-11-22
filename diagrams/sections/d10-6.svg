@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 676" width="1180" height="676" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Racks and network blocks: which servers are close, and which rule keeps a job together</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >Illustrative tree with three layers and eight GPU nodes. The label names are from AWS (EKS). The values are opaque codes.</text>
+<text x="24" y="106" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Layer 1: top, the broadest group</text>
+<text x="24" y="126" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >topology.k8s.aws/network-node-layer-1</text>
+<text x="24" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Layer 2: middle</text>
+<text x="24" y="194" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >topology.k8s.aws/network-node-layer-2</text>
+<text x="24" y="242" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Layer 3: bottom, the closest group</text>
+<text x="24" y="262" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >topology.k8s.aws/network-node-layer-3</text>
+<text x="24" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >GPU nodes (servers)</text>
+<text x="24" y="352" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >one pod of the job on four of them</text>
+<path d="M758.0,130 L559.0,160" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M758.0,130 L957.0,160" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M559.0,198 L559.0,228" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M957.0,198 L957.0,228" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M559.0,266 L409.75,310" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M559.0,266 L509.25,310" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M559.0,266 L608.75,310" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M559.0,266 L708.25,310" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M957.0,266 L807.75,310" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M957.0,266 L907.25,310" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M957.0,266 L1006.75,310" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M957.0,266 L1106.25,310" stroke="#5b6675" stroke-width="2.0" fill="none"/>
+<path d="M807.75,310 L957.0,266" stroke="#c0392b" stroke-width="4.5" fill="none" stroke-opacity="0.9"/>
+<path d="M957.0,228 L957.0,198" stroke="#c0392b" stroke-width="4.5" fill="none" stroke-opacity="0.9"/>
+<path d="M957.0,160 L758.0,130" stroke="#c0392b" stroke-width="4.5" fill="none" stroke-opacity="0.9"/>
+<path d="M758.0,130 L559.0,160" stroke="#c0392b" stroke-width="4.5" fill="none" stroke-opacity="0.9"/>
+<path d="M559.0,198 L559.0,228" stroke="#c0392b" stroke-width="4.5" fill="none" stroke-opacity="0.9"/>
+<path d="M559.0,266 L608.75,310" stroke="#c0392b" stroke-width="4.5" fill="none" stroke-opacity="0.9"/>
+<rect x="698.0" y="92" width="120" height="38" rx="8" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.8" />
+<text x="758.0" y="116" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >layer-1 value</text>
+<rect x="499.0" y="160" width="120" height="38" rx="8" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.8" />
+<text x="559.0" y="184" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >layer-2 value a</text>
+<rect x="897.0" y="160" width="120" height="38" rx="8" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.8" />
+<text x="957.0" y="184" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >layer-2 value b</text>
+<rect x="499.0" y="228" width="120" height="38" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8" />
+<text x="559.0" y="252" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >layer-3 value A</text>
+<rect x="897.0" y="228" width="120" height="38" rx="8" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.8" />
+<text x="957.0" y="252" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle" >layer-3 value B</text>
+<rect x="367.75" y="310" width="84" height="58" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="409.75" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU node 1</text>
+<rect x="381.75" y="342" width="56" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="409.75" y="356.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >pod 1</text>
+<rect x="467.25" y="310" width="84" height="58" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="509.25" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU node 2</text>
+<rect x="481.25" y="342" width="56" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="509.25" y="356.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >pod 2</text>
+<rect x="566.75" y="310" width="84" height="58" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="608.75" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU node 3</text>
+<rect x="580.75" y="342" width="56" height="20" rx="10.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="608.75" y="356.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >pod 3</text>
+<rect x="666.25" y="310" width="84" height="58" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="708.25" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU node 4</text>
+<rect x="765.75" y="310" width="84" height="58" rx="8" fill="#f6f8fb" stroke="#c0392b" stroke-width="2.4" />
+<text x="807.75" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU node 5</text>
+<rect x="779.75" y="342" width="56" height="20" rx="10.0" fill="#c0392b" stroke="#c0392b" stroke-width="0" />
+<text x="807.75" y="356.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >pod 4</text>
+<rect x="865.25" y="310" width="84" height="58" rx="8" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.6" />
+<text x="907.25" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU node 6</text>
+<rect x="964.75" y="310" width="84" height="58" rx="8" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.6" />
+<text x="1006.75" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU node 7</text>
+<rect x="1064.25" y="310" width="84" height="58" rx="8" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.6" />
+<text x="1106.25" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle" >GPU node 8</text>
+<text x="559.0" y="390" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >Group A: same layer-3 value. Pod 1 to pod 3 is</text>
+<text x="559.0" y="408" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >2 hops (illustrative count).</text>
+<text x="957.0" y="390" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle" >Group B: another layer-3 value. Pod 4 to pod 3 is</text>
+<text x="957.0" y="408" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="middle" >6 hops (illustrative count), the red path.</text>
+<text x="24" y="440" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Rules that keep the pods of one job inside one group (details in the text)</text>
+<rect x="24.0" y="454" width="214" height="138" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8" />
+<text x="36.0" y="478" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f9e5b" text-anchor="start" >Pod affinity</text>
+<text x="36.0" y="500" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The topology key is the</text>
+<text x="36.0" y="517" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >layer-3 label. The first</text>
+<text x="36.0" y="534" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >pod lands anywhere and</text>
+<text x="36.0" y="551" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >the rest follow it. Pods</text>
+<text x="36.0" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >that do not fit stay</text>
+<text x="36.0" y="585" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Pending.</text>
+<rect x="253.5" y="454" width="214" height="138" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.8" />
+<text x="265.5" y="478" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="start" >Node affinity</text>
+<text x="265.5" y="500" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Pin the job to one</text>
+<text x="265.5" y="517" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >layer-3 value that you</text>
+<text x="265.5" y="534" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >read from your own nodes.</text>
+<text x="265.5" y="551" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Do not copy a value from</text>
+<text x="265.5" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >another account.</text>
+<rect x="483.0" y="454" width="214" height="138" rx="10" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.8" />
+<text x="495.0" y="478" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f766e" text-anchor="start" >A queue</text>
+<text x="495.0" y="500" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Kueue: a required or</text>
+<text x="495.0" y="517" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >preferred topology level.</text>
+<text x="495.0" y="534" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >JobSet: one child job for</text>
+<text x="495.0" y="551" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >each domain (alpha).</text>
+<rect x="712.5" y="454" width="214" height="138" rx="10" fill="#fdecea" stroke="#c0392b" stroke-width="1.8" />
+<text x="724.5" y="478" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#c0392b" text-anchor="start" >Not this</text>
+<text x="724.5" y="500" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Topology spread</text>
+<text x="724.5" y="517" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >constraints. They spread</text>
+<text x="724.5" y="534" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >pods over groups, the</text>
+<text x="724.5" y="551" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >opposite of keeping them</text>
+<text x="724.5" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >together.</text>
+<rect x="942.0" y="454" width="214" height="138" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<text x="954.0" y="478" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e08a1e" text-anchor="start" >A guarantee</text>
+<text x="954.0" y="500" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Labels are best effort. A</text>
+<text x="954.0" y="517" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Capacity Block or a</text>
+<text x="954.0" y="534" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >cluster placement group</text>
+<text x="954.0" y="551" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >is the way to reserve</text>
+<text x="954.0" y="568" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >instances together.</text>
+<text x="24" y="618" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Illustrative: the shape of the tree, the number of nodes and the hop counts. Sourced: the label names, the rule that nodes with the same layer-3 value</text>
+<text x="24" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >are physically closest, and the rules in the five boxes (AWS EKS, Kueue and JobSet pages). Hop = one step between two network nodes. No speed or latency</text>
+<text x="24" y="654" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >figure was found for any layer. AWS says the labels do not express link capacity.</text>
+</svg>

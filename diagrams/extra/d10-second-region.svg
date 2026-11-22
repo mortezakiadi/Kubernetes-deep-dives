@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 585" width="1180" height="585" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >What must already be in the second Region before a job or a service can start there</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >Seven things. The colour says how each one gets there. The colours are this page's reading of the AWS pages named in the text.</text>
+<rect x="24.0" y="90" width="272" height="198" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="2" />
+<text x="38.0" y="116" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Checkpoints</text>
+<text x="38.0" y="140" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >How it gets there</text>
+<text x="38.0" y="157" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >S3 replication copies them.</text>
+<text x="38.0" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >PyTorch's Distributed Checkpoint</text>
+<text x="38.0" y="191" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >can load a checkpoint saved at</text>
+<text x="38.0" y="208" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >one cluster size into another.</text>
+<text x="38.0" y="236" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
+<text x="38.0" y="253" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The job restarts from an older</text>
+<text x="38.0" y="270" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >checkpoint or from scratch.</text>
+<rect x="310.67" y="90" width="272" height="198" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="2" />
+<text x="324.67" y="116" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Model weights</text>
+<text x="324.67" y="140" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >How it gets there</text>
+<text x="324.67" y="157" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >S3 replication of the weights</text>
+<text x="324.67" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >bucket, or a container image</text>
+<text x="324.67" y="191" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >copied by ECR replication.</text>
+<text x="324.67" y="219" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
+<text x="324.67" y="236" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A cold start pulls the weights</text>
+<text x="324.67" y="253" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >across the WAN, with the cost</text>
+<text x="324.67" y="270" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >and time of one copy.</text>
+<rect x="597.34" y="90" width="272" height="198" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="2" />
+<text x="611.34" y="116" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Training data</text>
+<text x="611.34" y="140" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >How it gets there</text>
+<text x="611.34" y="157" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >S3 replication: live for new</text>
+<text x="611.34" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >objects, Batch Replication for</text>
+<text x="611.34" y="191" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >objects that already exist.</text>
+<text x="611.34" y="219" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
+<text x="611.34" y="236" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The job cannot start, or it</text>
+<text x="611.34" y="253" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >reads across the link.</text>
+<rect x="884.01" y="90" width="272" height="198" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="2" />
+<text x="898.01" y="116" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Container images</text>
+<text x="898.01" y="140" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >How it gets there</text>
+<text x="898.01" y="157" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >An ECR replication rule copies</text>
+<text x="898.01" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >images pushed after the rule</text>
+<text x="898.01" y="191" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >exists. A pull-through cache</text>
+<text x="898.01" y="208" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >holds public images.</text>
+<text x="898.01" y="236" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
+<text x="898.01" y="253" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Pods wait for the image.</text>
+<rect x="24.0" y="304" width="272" height="215" rx="12" fill="#ffffff" stroke="#7a4fc4" stroke-width="2" stroke-dasharray="6 4" />
+<text x="38.0" y="330" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Cluster config and manifests</text>
+<text x="38.0" y="354" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >How it gets there</text>
+<text x="38.0" y="371" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No page read for this deep dive</text>
+<text x="38.0" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >covers how a second cluster gets</text>
+<text x="38.0" y="405" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >its manifests, custom resource</text>
+<text x="38.0" y="422" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >definitions and secrets.</text>
+<text x="38.0" y="450" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
+<text x="38.0" y="467" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Not known from sources.</text>
+<rect x="310.67" y="304" width="272" height="215" rx="12" fill="#fff7ec" stroke="#e08a1e" stroke-width="2" />
+<text x="324.67" y="330" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >GPU capacity</text>
+<text x="324.67" y="354" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#e08a1e" text-anchor="start" >How it gets there</text>
+<text x="324.67" y="371" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A Capacity Block reserved up to</text>
+<text x="324.67" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >8 weeks ahead, with no</text>
+<text x="324.67" y="405" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >cancellation. Or on-demand GPUs,</text>
+<text x="324.67" y="422" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >if there are any.</text>
+<text x="324.67" y="450" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
+<text x="324.67" y="467" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Nothing to run on. No source</text>
+<text x="324.67" y="484" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >read promises on-demand GPUs</text>
+<text x="324.67" y="501" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >during a failover.</text>
+<rect x="597.34" y="304" width="272" height="215" rx="12" fill="#f6f8fb" stroke="#7b8794" stroke-width="2" />
+<text x="611.34" y="330" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Fast storage</text>
+<text x="611.34" y="354" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >How it gets there</text>
+<text x="611.34" y="371" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Rebuilt, not copied: FSx for</text>
+<text x="611.34" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Lustre or node-local NVMe. S3</text>
+<text x="611.34" y="405" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >holds the durable copy.</text>
+<text x="611.34" y="433" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
+<text x="611.34" y="450" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The first minutes are slower.</text>
+<text x="611.34" y="467" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Nothing is lost if the S3 copy</text>
+<text x="611.34" y="484" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >is current.</text>
+<rect x="884.01" y="304" width="272" height="215" rx="12" fill="#ffffff" stroke="#cbd2da" stroke-width="1.4" />
+<text x="898.01" y="330" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Colours</text>
+<rect x="898.01" y="350" width="28" height="18" rx="4" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8" />
+<text x="938.01" y="364" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >copied ahead of time</text>
+<rect x="898.01" y="378" width="28" height="18" rx="4" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8" />
+<text x="938.01" y="392" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >reserved ahead of time</text>
+<rect x="898.01" y="406" width="28" height="18" rx="4" fill="#f6f8fb" stroke="#7b8794" stroke-width="1.8" />
+<text x="938.01" y="420" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >rebuilt on the day</text>
+<rect x="898.01" y="434" width="28" height="18" rx="4" fill="#ffffff" stroke="#7a4fc4" stroke-width="1.8" stroke-dasharray="6 4" />
+<text x="938.01" y="448" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >no source read covers it</text>
+<text x="24" y="545" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sources: AWS S3 replication, ECR replication and pull-through cache pages; AWS EC2 Capacity Blocks page; AWS FSx for Lustre and EC2 instance store</text>
+<text x="24" y="563" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >pages; PyTorch Distributed Checkpoint page; AWS disaster recovery options page. A Region here is one place the cluster runs; AWS is the worked example.</text>
+</svg>
