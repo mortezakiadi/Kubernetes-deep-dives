@@ -128,7 +128,7 @@ The colours match the rows of the built-in plugins table.
 - **plugins:** per stage, which plugins are enabled or disabled, and under `score`, each plugin's weight.
 - **pluginConfig:** per plugin, its own settings (`args`), which change how it calculates rather than whether it runs.
 
-**Going deeper.**
+**Going deeper, by topic.**
 
 - **Reading a real configuration:** in this example, `plugins` says BalancedResourceAllocation's score counts double, and `pluginConfig` says which resources it compares when it measures balance. BalancedResourceAllocation is already on by default, so listing it under `enabled` only changes its weight; it doesn't add a second copy.
 
