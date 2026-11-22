@@ -1,0 +1,14 @@
+# Rung 2: length. Same model and recipe; answers several times longer. One axis changes.
+extends: rung1-recipe.yaml
+ladder:
+  rung: 2
+  axis: length
+  previous: rung1-recipe
+  budget_gpu_hours: 1.0
+  exit_criteria:
+    curve_fit_ceiling_ci: 0.03
+    unexplained_wait_fraction_max: 0.10
+    restart_from_checkpoint_tested: true
+settings:
+  MAX_COMPLETION: 3072
+  THINKING: 1

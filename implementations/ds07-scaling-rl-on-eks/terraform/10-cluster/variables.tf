@@ -26,7 +26,7 @@ variable "trainer_instance_type" {
 }
 variable "rollout_instance_type" {
   type    = string
-  default = "g6.xlarge"
+  default = "g5.2xlarge"
 }
 variable "rollout_nodes" {
   type    = number

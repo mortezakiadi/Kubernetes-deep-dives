@@ -1,0 +1,10 @@
+# Rung 3: model size. Same answers and recipe; a model three times larger. Not trained here (the trainer GPU holds 24 GB); S05 measures what
+# this rung would expose first, the weight push.
+extends: rung2-length.yaml
+ladder:
+  rung: 3
+  axis: model_size
+  previous: rung2-length
+  budget_gpu_hours: 3.0
+settings:
+  MODEL: Qwen/Qwen3-1.7B

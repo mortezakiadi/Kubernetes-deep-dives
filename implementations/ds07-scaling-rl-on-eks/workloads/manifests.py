@@ -6,8 +6,6 @@ recipe, which rollout layout. Nothing here talks to the cluster.
 import json
 import pathlib
 
-import yaml
-
 HERE = pathlib.Path(__file__).resolve().parent
 NS = "rl-scale"
 VLLM_IMAGE = "vllm/vllm-openai:v0.33.0"
@@ -25,7 +23,8 @@ GPU_TOLERATION = [{"key": "nvidia.com/gpu", "operator": "Exists", "effect": "NoS
 
 
 def dump(*docs) -> str:
-    return "---\n".join(yaml.safe_dump(d, sort_keys=False) for d in docs)
+    """JSON is valid YAML and keeps every string a string (a bare 3e-6 would be read as a number)."""
+    return "\n---\n".join(json.dumps(d, indent=1) for d in docs)
 
 
 def rollout_lws(model="Qwen/Qwen3-0.6B", engines=2, max_model_len=4096, gpu_util=0.7, extra_args=None, kv_cache_dtype=None,
@@ -63,7 +62,7 @@ def rollout_lws(model="Qwen/Qwen3-0.6B", engines=2, max_model_len=4096, gpu_util
         **common, "name": "vllm", "command": ["vllm", "serve", model],
         "args": args + dp,
         "ports": [{"containerPort": 8000}],
-        "readinessProbe": {"httpGet": {"path": "/health", "port": 8000}, "periodSeconds": 5, "failureThreshold": 3},
+        "readinessProbe": {"httpGet": {"path": "/health", "port": 8000}, "periodSeconds": 10, "timeoutSeconds": 10, "failureThreshold": 6},
     }]}}
     worker = {"spec": {**pod, "containers": [{
         **common, "name": "vllm-worker", "command": ["vllm", "serve", model],
@@ -80,7 +79,9 @@ def rollout_lws(model="Qwen/Qwen3-0.6B", engines=2, max_model_len=4096, gpu_util
     }
     svc = {"apiVersion": "v1", "kind": "Service", "metadata": {"name": f"{name}-api", "namespace": NS},
            "spec": {"selector": {"leaderworkerset.sigs.k8s.io/name": name, "role": "rollout-leader"},
-                    "ports": [{"port": 8000, "targetPort": 8000}]}}
+                    "ports": [{"port": 8000, "targetPort": 8000}],
+                    # The trainer must keep its connection to the one API server even while a busy engine misses a health probe.
+                    "publishNotReadyAddresses": True}}
     if engines == 1:
         # A single engine does not need the data-parallel flags, and its worker template is unused.
         lws["spec"]["leaderWorkerTemplate"]["size"] = 1
@@ -147,3 +148,38 @@ def sandbox_pool(workers_min=2, workers_max=60, threshold=8, latency_ms=0, scale
                      "triggers": [{"type": "redis", "metadata": {"address": "redis.rl-scale.svc:6379", "listName": "sandbox:queue",
                                                                   "listLength": str(threshold)}}]}})
     return dump(*docs)
+
+
+def tool_job(name, script, env, nccl_version="2.31.2", gpu=True):
+    """A one-off job on the trainer node (a benchmark or a probe) with the same software as the trainer."""
+    setup = TRAINER_SETUP.replace("{NCCL}", nccl_version)
+    env_list = [{"name": k, "value": str(v)} for k, v in env.items()]
+    env_list += [{"name": "NCCL_SOCKET_IFNAME", "value": "eth0"}, {"name": "NCCL_DEBUG", "value": "WARN"}, {"name": "HF_HOME", "value": "/work/hf"},
+                 {"name": "PYTHONUNBUFFERED", "value": "1"}]
+    container = {"name": "tool", "image": VLLM_IMAGE, "command": ["/bin/bash", "-c"], "args": [setup + f"\nexec python3 /app/{script}\n"], "env": env_list,
+                 "resources": {"limits": {"nvidia.com/gpu": 1}, "requests": {"cpu": "6", "memory": "24Gi"}},
+                 "volumeMounts": [{"name": "shm", "mountPath": "/dev/shm"}, {"name": "app", "mountPath": "/app"}, {"name": "work", "mountPath": "/work"}]}
+    job = {"apiVersion": "batch/v1", "kind": "Job", "metadata": {"name": name, "namespace": NS},
+           "spec": {"backoffLimit": 0, "ttlSecondsAfterFinished": 3600, "template": {"metadata": {"labels": {"tool": name}}, "spec": {
+               "restartPolicy": "Never", "serviceAccountName": "tools", "nodeSelector": {"pool": "trainer"}, "tolerations": GPU_TOLERATION,
+               "containers": [container],
+               "volumes": [{"name": "shm", "emptyDir": {"medium": "Memory", "sizeLimit": "8Gi"}}, {"name": "work", "emptyDir": {}},
+                           {"name": "app", "configMap": {"name": "trainer-app"}}]}}}}
+    return dump(job)
+
+
+def reference_cronjob(env, bucket, schedule="0 3 * * *", nccl_version="2.31.2"):
+    """The reference rung: a small, fixed run that is repeated on a schedule against the current code and images, so that a regression in the
+    framework shows up here before it reaches a big run."""
+    setup = TRAINER_SETUP.replace("{NCCL}", nccl_version)
+    env_list = [{"name": k, "value": str(v)} for k, v in {**env, "STATE_BUCKET": bucket}.items()]
+    env_list += [{"name": "NCCL_SOCKET_IFNAME", "value": "eth0"}, {"name": "HF_HOME", "value": "/work/hf"}, {"name": "PYTHONUNBUFFERED", "value": "1"}]
+    container = {"name": "trainer", "image": VLLM_IMAGE, "command": ["/bin/bash", "-c"],
+                 "args": [setup + "\nexport RUN_ID=reference-$(date +%m%d-%H%M)\nexec python3 /app/train.py\n"], "env": env_list,
+                 "resources": {"limits": {"nvidia.com/gpu": 1}, "requests": {"cpu": "6", "memory": "24Gi"}},
+                 "volumeMounts": [{"name": "shm", "mountPath": "/dev/shm"}, {"name": "app", "mountPath": "/app"}, {"name": "work", "mountPath": "/work"}]}
+    cj = {"apiVersion": "batch/v1", "kind": "CronJob", "metadata": {"name": "reference-rung", "namespace": NS},
+          "spec": {"schedule": schedule, "concurrencyPolicy": "Forbid", "jobTemplate": {"spec": {"backoffLimit": 0, "template": {"metadata": {"labels": {"app": "trainer", "run": "reference"}}, "spec": {
+              "restartPolicy": "Never", "serviceAccountName": "trainer", "nodeSelector": {"pool": "trainer"}, "tolerations": GPU_TOLERATION, "containers": [container],
+              "volumes": [{"name": "shm", "emptyDir": {"medium": "Memory", "sizeLimit": "8Gi"}}, {"name": "work", "emptyDir": {}}, {"name": "app", "configMap": {"name": "trainer-app"}}]}}}}}}
+    return dump(cj)

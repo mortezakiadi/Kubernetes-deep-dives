@@ -1,0 +1,19 @@
+# Rung 1: recipe search. Small model, short answers, many cheap runs. Everything the later rungs inherit.
+ladder:
+  rung: 1
+  axis: recipe
+  previous: null
+  budget_gpu_hours: 2.0
+  exit_criteria:
+    curve_fit_ceiling_ci: 0.03          # two standard errors of the fitted ceiling
+    unexplained_wait_fraction_max: 0.10 # of step time
+    restart_from_checkpoint_tested: true
+settings:
+  MODEL: Qwen/Qwen3-0.6B
+  TASK: gsm8k
+  MAX_STEPS: 80
+  LEARNING_RATE: "3e-6"
+  SCORE_CENTERING: 1
+  MAX_CONCURRENT: 64
+  MAX_COMPLETION: 1024
+  THINKING: 0

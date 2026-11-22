@@ -71,13 +71,17 @@ def show(sc, display, output):
 # What runs in the cluster
 # ---------------------------------------------------------------------------------------------------------------
 def apply_yaml(text):
-    return kube("apply", "-f", "-", stdin=text)
+    rc, out = kube("apply", "-f", "-", stdin=text)
+    if rc:
+        raise RuntimeError(out)
+    return rc, out
 
 
 def ensure_configs():
     """The trainer's and the sandbox worker's code live in ConfigMaps, so a change to them is one apply away."""
-    for name, f in (("trainer-app", "train.py"), ("sandbox-app", "sandbox_worker.py")):
-        p = subprocess.run([KUBECTL, "-n", NS, "create", "configmap", name, f"--from-file={ROOT / 'workloads' / f}", "--dry-run=client", "-o", "yaml"],
+    w = ROOT / "workloads"
+    for name, files in (("trainer-app", ["train.py", "sync_bench.py", "mismatch_probe.py"]), ("sandbox-app", ["sandbox_worker.py"])):
+        p = subprocess.run([KUBECTL, "-n", NS, "create", "configmap", name, *[f"--from-file={w / f}" for f in files], "--dry-run=client", "-o", "yaml"],
                            capture_output=True, text=True, env=ENV)
         kube("apply", "-f", "-", stdin=p.stdout)
 
@@ -106,8 +110,14 @@ def stop_runs():
     kube("-n", NS, "delete", "jobset", "--all", "--ignore-not-found", "--wait=true", timeout=300)
 
 
-def start_run(run_id, env, max_restarts=0, **kw):
+def purge_run(run_id):
+    subprocess.run(["aws", "s3", "rm", f"s3://{bucket()}/runs/{run_id}/", "--recursive", "--region", REGION], capture_output=True, env=ENV)
+
+
+def start_run(run_id, env, max_restarts=0, fresh=True, **kw):
     ensure_configs()
+    if fresh:
+        purge_run(run_id)
     kube("-n", NS, "delete", "jobset", f"trainer-{run_id}", "--ignore-not-found", "--wait=true", timeout=300)
     return apply_yaml(manifests.trainer_jobset(run_id, env, bucket=bucket(), max_restarts=max_restarts, **kw))
 
@@ -186,3 +196,98 @@ def fit_sigmoid(hours, rate, skip=0.0):
     f = lambda C, A, B, C_mid: sigmoid(C, A, B, C_mid, R0)  # noqa: E731
     (A, B, C_mid), cov = curve_fit(f, h[keep], r[keep], p0=[max(r) + 0.05, 1.0, max(h) / 4], bounds=([R0, 0.1, 1e-4], [1.0, 6.0, 1e3]), maxfev=20000)
     return {"A": float(A), "B": float(B), "C_mid": float(C_mid), "R0": R0, "A_std": float(np.sqrt(abs(cov[0, 0])))}
+
+
+def run_tool(name, script, env, timeout=1800):
+    """Run a one-off job on the trainer's GPU and return (succeeded, log text)."""
+    ensure_configs()
+    kube("-n", NS, "delete", "job", name, "--ignore-not-found", "--wait=true", timeout=300)
+    apply_yaml(manifests.tool_job(name, script, env))
+
+    def done():
+        j = kj("-n", NS, "get", "job", name).get("status", {})
+        return (j.get("succeeded") or j.get("failed")) and True
+    wait_for(done, timeout, 10)
+    j = kj("-n", NS, "get", "job", name).get("status", {})
+    log = kube("-n", NS, "logs", f"job/{name}", "--tail", "2000")[1]
+    return bool(j.get("succeeded")), log
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Charts, drawn from the run data (never from numbers typed in by hand)
+# ---------------------------------------------------------------------------------------------------------------
+PALETTE = ["#1f77b4", "#d62728", "#2ca02c", "#9467bd", "#ff7f0e", "#8c564b"]
+
+
+def _plt():
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False, "figure.facecolor": "white"})
+    return plt
+
+
+def chart_curves(path, series, fits=None, title="", xlabel="GPU hours (trainer and rollout GPUs, evaluation excluded)", ylabel="held-out pass rate"):
+    """series: name -> (hours, rates); fits: name -> params dict (A, B, C_mid, R0)."""
+    plt = _plt()
+    fig, ax = plt.subplots(figsize=(7.5, 4.2))
+    import numpy as np
+    for i, (name, (h, r)) in enumerate(series.items()):
+        c = PALETTE[i % len(PALETTE)]
+        ax.plot(h, r, "o", color=c, label=name)
+        if fits and name in fits and fits[name]:
+            p = fits[name]
+            xs = np.linspace(max(min(h), 1e-3), max(h) * 1.0, 100)
+            ax.plot(xs, sigmoid(xs, p["A"], p["B"], p["C_mid"], p["R0"]), "-", color=c, alpha=0.8)
+            ax.axhline(p["A"], color=c, ls=":", alpha=0.5)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend(frameon=False)
+    ax.grid(alpha=0.2)
+    fig.tight_layout()
+    fig.savefig(path, dpi=140)
+    plt.close(fig)
+
+
+def chart_stack(path, bars, title="", ylabel="seconds per step"):
+    """bars: label -> {segment: value}; segments are drawn bottom to top in the order of the first bar."""
+    plt = _plt()
+    fig, ax = plt.subplots(figsize=(7.5, 4.2))
+    labels = list(bars)
+    segs = list(next(iter(bars.values())))
+    bottom = [0.0] * len(labels)
+    for i, s in enumerate(segs):
+        vals = [bars[l].get(s, 0.0) for l in labels]
+        ax.bar(labels, vals, bottom=bottom, label=s, color=PALETTE[i % len(PALETTE)])
+        bottom = [b + v for b, v in zip(bottom, vals)]
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend(frameon=False, fontsize=8)
+    fig.tight_layout()
+    fig.savefig(path, dpi=140)
+    plt.close(fig)
+
+
+def chart_lines(path, lines, title="", xlabel="step", ylabel="", hlines=None, vlines=None, logy=False):
+    """lines: name -> (xs, ys)."""
+    plt = _plt()
+    fig, ax = plt.subplots(figsize=(7.5, 4.2))
+    for i, (name, (x, y)) in enumerate(lines.items()):
+        ax.plot(x, y, "-", color=PALETTE[i % len(PALETTE)], label=name, lw=1.5)
+    for label, v in (hlines or {}).items():
+        ax.axhline(v, color="gray", ls="--", lw=1)
+        ax.text(ax.get_xlim()[0], v, " " + label, fontsize=8, va="bottom", color="gray")
+    for label, v in (vlines or {}).items():
+        ax.axvline(v, color="#d62728", ls="--", lw=1)
+        ax.text(v, ax.get_ylim()[1], " " + label, fontsize=8, va="top", color="#d62728")
+    if logy:
+        ax.set_yscale("log")
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend(frameon=False, fontsize=8)
+    ax.grid(alpha=0.2)
+    fig.tight_layout()
+    fig.savefig(path, dpi=140)
+    plt.close(fig)

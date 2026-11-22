@@ -1,0 +1,9 @@
+# A deliberately wrong overlay, used by the tests: it changes the length and the model size in one rung.
+extends: rung1-recipe.yaml
+ladder:
+  rung: 2
+  axis: length
+  previous: rung1-recipe
+settings:
+  MAX_COMPLETION: 3072
+  MODEL: Qwen/Qwen3-1.7B

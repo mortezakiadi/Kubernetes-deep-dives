@@ -50,6 +50,8 @@ class Recipe:
     eval_problems: int = _e("EVAL_PROBLEMS", 200, int)
     eval_samples: int = _e("EVAL_SAMPLES", 4, int)
     ckpt_every: int = _e("CKPT_EVERY", 25, int)
+    ckpt_keep: int = _e("CKPT_KEEP", 2, int)
+    watchdog_s: int = _e("WATCHDOG_S", 420, int)           # no new step for this long: the trainer exits so that JobSet restarts it
     gpus: int = _e("GPUS_HELD", 3, int)                    # GPUs the run holds: the trainer's and every rollout engine's
     lora: bool = _bool(_e("LORA", "0"))
     tool_calls: int = _e("TOOL_CALLS", 1, int)             # environment calls per answer (pyexec)
@@ -175,21 +177,23 @@ class SandboxReward:
             self.client = redis.Redis(host="redis.rl-scale.svc", port=6379, decode_responses=True)
         return self.client
 
-    def __call__(self, completions, tests, **kwargs):
+    def _score_one(self, text, t):
         import uuid
-        r, out = self._redis(), []
-        for comp, t in zip(completions, tests):
-            text = comp[-1]["content"] if isinstance(comp, list) else comp
-            m = re.search(r"```python\n(.*?)```", text, re.S) or re.search(r"```\n(.*?)```", text, re.S)
-            code = m.group(1) if m else ""
-            score, t_env = 0.0, time.time()
-            for _ in range(self.calls):
-                jid = uuid.uuid4().hex
-                r.lpush("sandbox:queue", json.dumps({"id": jid, "code": code, "tests": json.loads(t), "ts": time.time()}))
-                res = r.blpop(f"sandbox:result:{jid}", timeout=120)
-                score = json.loads(res[1])["passed"] if res else 0.0
-            out.append(float(score))
-        return out
+        r = self._redis()
+        m = re.search(r"```python\n(.*?)```", text, re.S) or re.search(r"```\n(.*?)```", text, re.S)
+        code = m.group(1) if m else ""
+        score = 0.0
+        for _ in range(self.calls):  # a chain of calls, one after the other, like the turns of an agent
+            jid = uuid.uuid4().hex
+            r.lpush("sandbox:queue", json.dumps({"id": jid, "code": code, "tests": json.loads(t), "ts": time.time()}))
+            res = r.blpop(f"sandbox:result:{jid}", timeout=300)
+            score = json.loads(res[1])["passed"] if res else 0.0
+        return float(score)
+
+    def __call__(self, completions, tests, **kwargs):
+        texts = [(c[-1]["content"] if isinstance(c, list) else c) for c in completions]
+        with ThreadPoolExecutor(max(len(texts), 1)) as ex:  # the answers of a group are scored side by side
+            return list(ex.map(self._score_one, texts, tests))
 
 
 # ------------------------------------------------------------------------------------------------------------
@@ -210,7 +214,7 @@ def evaluate(held):
                                            "max_tokens": R.max_completion, "chat_template_kwargs": {"enable_thinking": R.thinking}})
         return [ch["message"]["content"] or "" for ch in r["choices"]], r["usage"]["completion_tokens"] / max(len(r["choices"]), 1)
     # The requests run in threads; math-verify's timeouts need the main thread, so the grading happens here.
-    with ThreadPoolExecutor(32) as ex:
+    with ThreadPoolExecutor(16) as ex:
         got = list(ex.map(one, held))
     scores, lengths = [], []
     for row, (texts, n_tok) in zip(held, got):
@@ -231,20 +235,16 @@ def main():
 
     stop = threading.Event()
     resume = None
+    model_path = [R.model]
     if BUCKET:
         resume = restore_from_bucket()
-        if resume is None and R.resume_from:
-            # A rollback with a change: start a new run from another run's checkpoint.
-            src = pathlib.Path("/work") / R.resume_from
-            src.mkdir(parents=True, exist_ok=True)
-            all_ck = restore_from_bucket(prefix=f"runs/{R.resume_from}/", dest=src)
-            want = src / f"checkpoint-{R.resume_step}" if R.resume_step else all_ck
-            if want and want.exists():
-                import shutil
-                shutil.copytree(want, WORK / want.name, dirs_exist_ok=True)
-                (WORK / want.name / "COMPLETE").unlink(missing_ok=True)
-                resume = WORK / want.name
-                print(f"rollback: starting from {R.resume_from}/{want.name}", flush=True)
+        if resume is None and R.resume_from and R.resume_step:
+            # A rollback with a change: a new run starts from the weights of another run's checkpoint, with a fresh optimizer and its own settings.
+            src = pathlib.Path("/work") / R.resume_from / f"checkpoint-{R.resume_step}"
+            restore_from_bucket(prefix=f"runs/{R.resume_from}/checkpoint-{R.resume_step}/", dest=src)
+            if (src / "config.json").exists():
+                model_path[0] = str(src)
+                print(f"rollback: starting from the weights of {R.resume_from}/checkpoint-{R.resume_step}", flush=True)
         threading.Thread(target=sync_loop, args=(stop,), daemon=True).start()
     restarts = int((WORK / "restarts").read_text()) + 1 if (WORK / "restarts").exists() else 0
     (WORK / "restarts").write_text(str(restarts))
@@ -260,6 +260,17 @@ def main():
     def log_line(rec):
         with METRICS.open("a") as f:
             f.write(json.dumps(rec) + "\n")
+
+    def watchdog():
+        """NCCL has no timeout: a peer that died leaves the collective blocked forever. A process that has stopped making progress is
+        worse than one that has failed, because nothing restarts it. This thread turns the first into the second."""
+        while True:
+            time.sleep(15)
+            if "t_train0" in STATE and time.time() - STATE.get("t_progress", STATE["t_train0"]) > R.watchdog_s:
+                print(f"WATCHDOG: no training step for {R.watchdog_s} s; exiting so that the restart policy takes over", flush=True)
+                os._exit(3)
+
+    threading.Thread(target=watchdog, daemon=True).start()
 
     class RunLog(TrainerCallback):
         def __init__(self):
@@ -288,6 +299,7 @@ def main():
                 log_line({**self._stamp(state), "kind": "train", **{k: v for k, v in logs.items()}})
 
         def on_step_end(self, args, state, control, **kw):
+            STATE["t_progress"] = time.time()
             if held and R.eval_every and state.global_step % R.eval_every == 0 and state.global_step > 0:
                 try:
                     log_line({**self._stamp(state), "kind": "eval", **evaluate(held)})
@@ -298,7 +310,7 @@ def main():
             log_line({**self._stamp(state), "kind": "checkpoint"})
 
     cfg = dict(
-        output_dir=str(WORK), save_strategy="steps", save_steps=R.ckpt_every, save_total_limit=2, max_steps=R.max_steps,
+        output_dir=str(WORK), save_strategy="steps", save_steps=R.ckpt_every, save_total_limit=R.ckpt_keep, max_steps=R.max_steps,
         per_device_train_batch_size=R.batch_rows, gradient_accumulation_steps=R.grad_accum, num_generations=R.num_generations,
         max_completion_length=R.max_completion, chat_template_kwargs={"enable_thinking": R.thinking}, learning_rate=R.learning_rate,
         lr_scheduler_type=R.lr_schedule, report_to="none", vllm_server_base_url=R.vllm_url, logging_steps=1, seed=R.seed, bf16=True,
@@ -308,7 +320,7 @@ def main():
     if R.epsilon_high:
         cfg["epsilon_high"] = R.epsilon_high
     config = AsyncGRPOConfig(**cfg)
-    trainer = AsyncGRPOTrainer(model=R.model, args=config, train_dataset=train, reward_funcs=rewards, callbacks=[RunLog()])
+    trainer = AsyncGRPOTrainer(model=model_path[0], args=config, train_dataset=train, reward_funcs=rewards, callbacks=[RunLog()])
     print(f"run {R.run_id}: starting (restart {restarts}); resume={resume}", flush=True)
     try:
         trainer.train(resume_from_checkpoint=str(resume) if resume else None)

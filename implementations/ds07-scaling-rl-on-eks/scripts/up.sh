@@ -20,5 +20,7 @@ aws eks update-kubeconfig --name ds07-scaling-rl --region us-east-1 --alias rl -
 echo "== layer 2: platform"
 cd "$ROOT/terraform/20-platform"
 terraform init -input=false
-terraform apply -input=false -auto-approve
+# The LeaderWorkerSet manifest holds its own namespace and the objects that live in it; the first pass can reach an object before its namespace
+# exists, and a second pass finishes whatever the first could not.
+terraform apply -input=false -auto-approve || terraform apply -input=false -auto-approve
 echo "Ready. Run: python3 tests/run_scenarios.py all"
