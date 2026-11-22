@@ -167,6 +167,8 @@ spec:
     image: my-company/tenant-app:1.0
 ```
 
+**What user namespaces need.** They are stable since Kubernetes 1.36. The node needs containerd 2.0+ (or CRI-O 1.25+) and Linux 6.3+, because every filesystem the pod mounts must support idmap mounts. Pod Security relaxes some of its checks for pods with `hostUsers: false` ([User namespaces](https://kubernetes.io/docs/concepts/workloads/pods/user-namespaces/)).
+
 ### Control plane security
 
 **Scenario.** An internal pentest finds that the production cluster's Kubernetes API endpoint is reachable from the internet, any team can deploy images from any registry, and nobody can tell which tenant made a given API call. The control plane is managed by AWS, but access to it still needs hardening.
@@ -195,3 +197,9 @@ spec:
   - **Even better on Nitro:** AWS encrypts traffic in transit automatically, in hardware, between certain Nitro instance types.
 - **Egress control:** use VPC endpoints for AWS services and a NAT gateway with security group rules, or a transparent egress proxy with tenant-aware filtering.
 - **Tenant-aware filtering:** the problem in the scenario is that the proxy doesn't know which tenant sent a packet, and pod IPs keep changing. Tenant-aware filtering bridges that identity gap: the proxy first works out who sent the packet, then applies that tenant's rules.
+
+**Going deeper: three Cilium caveats.**
+
+- **L7 rules need plaintext:** Cilium's HTTP rules (method, path) are applied by a node-local Envoy proxy ([Layer 7 policy](https://github.com/cilium/cilium/blob/v1.20.5/Documentation/security/policy/layer7.rst)). On TLS traffic, such as port 443, they can't see the request unless [TLS inspection](https://docs.cilium.io/en/stable/security/tls-visibility/) is set up.
+- **The `cluster` entity is the whole cluster:** an egress rule to `toEntities: [cluster]` allows every pod in the cluster, so it isn't a lockdown. A pod in egress default deny also needs an explicit DNS allow, or it can't resolve names.
+- **Encryption is not authentication:** WireGuard or IPsec is set at install (`encryption.enabled`, `encryption.type`) and encrypts node-to-node traffic, but it proves no workload's identity. Traffic between pods on the same node isn't encrypted ([WireGuard](https://docs.cilium.io/en/stable/security/network/encryption-wireguard/)). Cilium's SPIFFE-based [mutual authentication](https://docs.cilium.io/en/stable/network/servicemesh/mutual-authentication/mutual-authentication/) is a separate feature, still beta.

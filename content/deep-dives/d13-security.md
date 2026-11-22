@@ -67,6 +67,8 @@ spec:
   securityContext:
     runAsNonRoot: true #!
     runAsUser: 10001
+    seccompProfile:
+      type: RuntimeDefault           # required by the restricted level #!
   containers:
   - name: api
     image: my-company/api:1.4
@@ -78,7 +80,7 @@ spec:
         drop: ["ALL"] #!
 ```
 
-- **Follow the Pod Security Standards:** enforce them with Pod Security Admission, and isolate workloads in namespaces with different levels (privileged, baseline, restricted).
+- **Follow the Pod Security Standards:** enforce them with Pod Security Admission, and give namespaces different levels (privileged, baseline, restricted). `restricted` requires a non-root user, `allowPrivilegeEscalation: false`, dropping ALL capabilities and an explicit seccomp profile (`RuntimeDefault` or `Localhost`); a pod that leaves seccomp out is rejected ([Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)). `readOnlyRootFilesystem` is not part of any level, only a good extra. Driver components such as the NVIDIA GPU Operator need their own namespace labelled `privileged` ([GPU Operator install](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html)). A safe way to tighten a namespace is `enforce: baseline` with `warn` and `audit` at `restricted`, which reports violations before it blocks them.
 - **Monitor the runtime:** the goal is to detect and prevent malicious activity inside containers and on worker nodes. Tools include Falco (deployed as a DaemonSet to watch containers) and Prisma Cloud container security.
 
 ### Network security
@@ -144,7 +146,12 @@ spec:
     image: my-company/model-server:1.0
 ```
 
-- **EKS Pod Identity:** the evolution of IRSA that makes setting up IAM permissions for pods simpler. It requires the `eks-pod-identity-agent` DaemonSet.
+- **EKS Pod Identity:** the newer way to do the same job ([how it works](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-how-it-works.html)).
+  - **One role for every cluster:** the role trusts the `pods.eks.amazonaws.com` service principal (allowing `sts:AssumeRole` and `sts:TagSession`), so there is no OIDC provider per cluster.
+  - **No annotation:** a *pod identity association* maps a namespace and ServiceAccount to the role, so the ServiceAccount stays plain.
+  - **How the pod gets credentials:** EKS adds two environment variables to the pod, and the AWS SDK fetches credentials from the `eks-pod-identity-agent` on the node (at `169.254.170.23`). That needs an SDK version that supports Pod Identity.
+  - **Session tags:** every session carries tags such as `eks-cluster-name` and `kubernetes-namespace`, so one policy can say "only objects tagged with your own cluster" ([ABAC with Pod Identity](https://docs.aws.amazon.com/eks/latest/userguide/pod-id-abac.html)).
+  - **Keep the permissions as narrow as the trust:** the managed `AmazonS3ReadOnlyAccess` policy reads **every** bucket in the account (`"Resource": "*"`), not just the model bucket. Write a policy for the one bucket or prefix instead.
 - **Secure model endpoints:**
   - **Enforce TLS everywhere:** encrypt all traffic in transit and authenticate both clients and services.
   - **Certificates from ACM:** deploy them on the ALB, the NLB or the Ingress resource.
