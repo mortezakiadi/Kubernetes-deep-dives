@@ -368,11 +368,79 @@ spec:
   - **Bucket A (`default-scheduler`):** the standard kube-scheduler on the control plane places these on EC2 nodes.
   - **Bucket B (`fargate-scheduler`):** the Fargate scheduler takes only these, ignores bucket A, and starts a dedicated micro-VM for each pod.
 
-**Going deeper.**
+**Going deeper, by topic.**
 
-- Ray (through KubeRay) is another two-scheduler setup.
-- Kubernetes places and restarts the Ray head and worker pods, and Ray's own scheduler places tasks and actors inside them.
-- That suits Python teams well, but capacity accounting and debugging now span two layers.
+- **A second scheduler inside the pods:** Ray, run on Kubernetes through the KubeRay operator, is a two-level setup. Kubernetes places the Ray pods on nodes, as for any pod. Inside those pods, Ray's own scheduler places the *tasks* (function calls) and *actors* (long-lived Python objects, such as a trainer) that your program creates. Each Ray worker pod tells Ray what it has, taken from its container limits (CPU 8, GPU 1 below), and Ray hands those slots out to the code that asks for them ([RayCluster configuration](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/config.html)).
+
+![KubeRay: two schedulers, two levels](diagrams/extra/d03-kuberay-two-levels.svg)
+
+- **How it's set up in YAML:** you never write a `KubeSchedulerConfiguration` for Ray's scheduler. It is set up by three things: the pods' resources, a few `rayStartParams`, and what the Python code asks for. The pods are described in a `RayCluster` (or a `RayJob`, which creates one per run):
+
+```yaml
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: rl-cluster
+spec:
+  rayVersion: "2.56.1"
+  enableInTreeAutoscaling: true        # Ray's autoscaler runs as a sidecar in the head pod #!
+  headGroupSpec:
+    rayStartParams:
+      num-cpus: "0"                    # Ray places no work on the head pod #!
+    template:
+      spec:
+        containers:
+        - name: ray-head
+          image: rayproject/ray:2.56.1
+          resources:
+            requests: {cpu: "4", memory: 16Gi}
+            limits:   {cpu: "4", memory: 16Gi}
+  workerGroupSpecs:
+  - groupName: gpu-group
+    replicas: 2
+    minReplicas: 0                     # the autoscaler moves replicas between these #!
+    maxReplicas: 8 #!
+    rayStartParams: {}
+    template:
+      spec:
+        tolerations:                   # Kubernetes level: which nodes these pods may use
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+        containers:
+        - name: ray-worker
+          image: rayproject/ray:2.56.1
+          resources:                   # Ray level: these limits become the pod's Ray slots #!
+            requests: {cpu: "8", memory: 64Gi, nvidia.com/gpu: 1}
+            limits:   {cpu: "8", memory: 64Gi, nvidia.com/gpu: 1}
+```
+
+```python
+import ray
+
+@ray.remote(num_gpus=1)               # Ray places this actor in a pod with a free GPU slot
+class Trainer:
+    ...
+
+@ray.remote(num_cpus=1)               # and these tasks wherever a CPU slot is free
+def tokenize(batch):
+    ...
+```
+
+- **Which scheduler places the pods:** this is chosen for the whole operator, not per cluster. By default it is kube-scheduler. To place each Ray cluster's pods as one gang, install the operator with a batch scheduler, for example the Helm value `batchScheduler.name: volcano`, and put the cluster in a Volcano queue with the label `volcano.sh/queue-name` ([KubeRay with Volcano](https://docs.ray.io/en/latest/cluster/kubernetes/k8s-ecosystem/volcano.html)). KubeRay also has integrations for YuniKorn and the scheduler-plugins coscheduling plugin.
+- **Requests and limits:** KubeRay uses the CPU request when there is no limit, rounds CPU up to whole numbers, and ignores memory and GPU *requests*. So set memory and GPU requests equal to their limits.
+
+- **What is specific about KubeRay:** the other schedulers on this page, Volcano, YuniKorn, KAI and Fargate, all do the same job as kube-scheduler: they put **pods** on **nodes**. Ray's scheduler doesn't touch pods. It works one level down:
+  - **It schedules your code, not pods.** It places tasks and actors from the resources requested in Python (`num_gpus=1`), inside pods that already exist. Kubernetes never sees a task or an actor.
+  - **It is part of the application.** It runs inside the Ray cluster, starts and stops with it, and is configured by the program rather than by the platform team.
+  - **It brings its own autoscaler.** The autoscaler watches Ray work that can't be placed and raises a worker group's `replicas` in the RayCluster. KubeRay then creates the pod. It scales on the resources Ray work *asks for*, not on CPU use ([Ray autoscaling on Kubernetes](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/configuring-autoscaling.html)).
+  - **It doesn't replace a pod scheduler; it sits on top of one.** A Ray cluster can run its pods through kube-scheduler, Volcano or YuniKorn, and Kueue can admit a RayJob as a whole, as in [Ray Train on KubeRay](#ds20-3) in Design 20.
+  - **It gangs work only when asked.** By default Ray places each task and actor on its own. A *placement group* reserves several slots together, all or nothing ([Ray scheduling](https://docs.ray.io/en/latest/ray-core/scheduling/index.html)). That is a gang inside the Ray cluster; a gang of *pods* still needs Volcano, YuniKorn, coscheduling or Kueue.
+- **The cost of two layers:**
+  - **Waiting happens in two places:** a pod can be Pending in Kubernetes (`kubectl describe pod`), or a task can be waiting inside Ray for a free slot (`ray status`). Check both.
+  - **Quotas see only the pods:** a ResourceQuota or Kueue counts the pods' requests. A long-lived Ray cluster shared by a team holds its GPUs whether or not its tasks use them. Design 20 uses one short-lived RayJob per run for that reason.
+  - **Two autoscalers:** Ray's adds pods, and Karpenter adds the nodes those pods need.
+  - **Good fit:** Python programs with many distributed parts, such as RL with rollout workers, reward models and a trainer. For serving, see [Ray Serve and KubeRay](#p01-5).
 
 ### Gang scheduling
 
@@ -389,13 +457,15 @@ spec:
   - **The failure point:** in a shared cluster, a coworker's 1-GPU pod submitted one second before yours can take a slot. Your job starts with 7 workers, hangs, and wastes money. Standard Kubernetes can't say "hold these 7 slots until the 8th is free."
 - **Best at this:** Volcano and KAI are built specifically for this kind of atomic scheduling.
 
-**Going deeper.** The reason is the **rendezvous barrier**: distributed PyTorch workers wait until every rank has joined, so 7 of 8 workers will sit on their GPUs forever. The options sit at different layers:
+**Going deeper, by topic.**
 
-- the **coscheduling plugin**: a PodGroup with `minMember` and a timeout, inside kube-scheduler;
-- **Kueue**: decides at the job level whether a job may start;
-- **KAI** or **Volcano**: replace the scheduler.
-
-Upstream Kubernetes now has a native **Workload API** with gang scheduling: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default (see the note below). Model-parallel *inference* has the same property: if one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
+- **Why a partial start never recovers:** the reason is the **rendezvous barrier**. Distributed PyTorch workers wait until every rank has joined, so 7 of 8 workers will sit on their GPUs forever.
+- **The options sit at different layers:**
+  - the **coscheduling plugin**: a PodGroup with `minMember` and a timeout, inside kube-scheduler;
+  - **Kueue**: decides at the job level whether a job may start;
+  - **KAI** or **Volcano**: replace the scheduler.
+- **Kubernetes' own gang scheduling:** upstream Kubernetes now has a native **Workload API** with gang scheduling: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default (see the note below).
+- **Inference needs it too:** model-parallel *inference* has the same property. If one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
 
 > **Note: Kubernetes' own gang scheduling, and where EKS stands**
 >
@@ -451,13 +521,13 @@ spec:
 - **Newer Kubernetes (alpha):** since 1.36 you can put a topology rule on a PodGroup, such as "all these pods in one rack", and the scheduler keeps the whole group inside one such domain. If no domain can hold the whole group, none of the pods start. It is still alpha in 1.37 and off by default (the `TopologyAwareWorkloadScheduling` feature gate). A separate 1.37 alpha adds several levels, for example one zone for the whole job and one rack for each part. It builds on PodGroups, so the EKS caveat in the [gang scheduling note](#d02-2) applies here too.
 - **Best at this:** the KAI Scheduler, NVIDIA's open-source scheduler with topology-aware placement for GPU fabrics.
 
-**Going deeper.** Placement depends on how the model is split:
+**Going deeper, by topic.**
 
-- **Tensor parallelism** splits every layer and exchanges results constantly. Keep it inside one node on NVLink/NVSwitch.
-- **Pipeline parallelism** splits by layers and only hands activations across once per stage, so it tolerates the slower links between nodes.
-- **Hybrid:** tensor parallelism inside nodes and pipeline parallelism between them is the common setup.
-
-Even inside one server, not every GPU pair may share the same NVLink group. `nvidia-smi topo -m` shows it, and a job may rightly wait in the queue rather than start on badly connected GPUs.
+- **Placement depends on how the model is split:**
+  - **Tensor parallelism** splits every layer and exchanges results constantly. Keep it inside one node on NVLink/NVSwitch.
+  - **Pipeline parallelism** splits by layers and only hands activations across once per stage, so it tolerates the slower links between nodes.
+  - **Hybrid:** tensor parallelism inside nodes and pipeline parallelism between them is the common setup.
+- **Inside one server too:** not every GPU pair may share the same NVLink group. `nvidia-smi topo -m` shows it, and a job may rightly wait in the queue rather than start on badly connected GPUs.
 
 ### Queueing and fair sharing
 
@@ -488,13 +558,13 @@ spec:
   - **The failure point:** these quotas are static. If marketing isn't using its 10 GPUs, no one else can borrow them. And a team that hits its limit gets an immediate error; the pod doesn't queue and start later when space opens up.
 - **Best at this:** Apache YuniKorn and Run:ai (via KAI), and Kueue, covered below.
 
-**Going deeper.** In Kueue terms:
+**Going deeper, by topic.**
 
-- **ClusterQueues** hold each team's nominal quota and borrowing limit.
-- Teams submit to **LocalQueues**.
-- A **cohort** lends idle quota between teams and takes it back by preemption when its owner needs it.
-
-WorkloadPriorityClasses decide admission order, and fair sharing favors teams that have used less recently. Hard namespace ResourceQuotas can't do any of this: idle GPUs in one namespace never help another team's queue.
+- **ClusterQueues:** hold each team's nominal quota and borrowing limit.
+- **LocalQueues:** what teams submit to.
+- **Cohorts:** lend idle quota between teams and take it back by preemption when its owner needs it.
+- **Order and fairness:** WorkloadPriorityClasses decide admission order, and fair sharing favors teams that have used less recently.
+- **Why not ResourceQuotas:** hard namespace ResourceQuotas can't do any of this. Idle GPUs in one namespace never help another team's queue.
 
 Three defaults decide how this behaves:
 
@@ -551,11 +621,11 @@ spec:
   - **The failure point:** this actually works well, and it's how most teams start. A custom scheduler only becomes necessary with thousands of nodes, when hand-managing labels for every hardware variation (FP8, HBM3, NVLink v4 and so on) becomes impractical.
 - **Leading example:** NVIDIA's KAI Scheduler, aimed at rack-scale NVLink systems (GB200 NVL72 today, Vera Rubin racks next), where a whole rack behaves like one giant GPU.
 
-**Going deeper.**
+**Going deeper, by topic.**
 
-- NVIDIA's GPU Feature Discovery labels every node with the GPU product (e.g. `A100-SXM4-40GB`), memory, architecture family, driver and CUDA versions, MIG capability, and the number of shared replicas.
-- Kueue turns these labels into **ResourceFlavors**: the premium flavor (NVLink + InfiniBand) is listed first, with a fallback flavor and `TryNextFlavor`.
-- Which hardware a job gets (flavor) and who goes first (priority) stay separate decisions.
+- **Labels from GPU Feature Discovery:** NVIDIA's GPU Feature Discovery labels every node with the GPU product (e.g. `A100-SXM4-40GB`), memory, architecture family, driver and CUDA versions, MIG capability, and the number of shared replicas.
+- **ResourceFlavors in Kueue:** Kueue turns these labels into **ResourceFlavors**: the premium flavor (NVLink + InfiniBand) is listed first, with a fallback flavor and `TryNextFlavor`.
+- **Two separate decisions:** which hardware a job gets (flavor) and who goes first (priority) stay separate.
 
 ### Volcano vs. Kueue
 
@@ -654,15 +724,14 @@ spec:
             nvidia.com/gpu: 4
 ```
 
-**Going deeper.**
+**Going deeper, by topic.**
 
-- The production answer is usually "both layers": Kueue for admission and quota on top of a gang-aware or topology-aware scheduler (kube-scheduler with plugins, KAI or Volcano), with a workload API that groups the pods (PyTorchJob/TrainJob, JobSet, LeaderWorkerSet).
-- Kueue stays vendor-neutral and keeps policy separate from mechanism.
-- A replacement scheduler is worth it when GPU-specific features (fractional GPUs, deep topology awareness) pay for the extra moving part.
-
-- For fine-tuning, **Kubeflow Trainer** shows the same layering.
-- The platform team publishes a `TrainingRuntime` (framework, image, defaults), and data scientists submit a `TrainJob`, often straight from a Python SDK.
-- The controller turns the pair into a **JobSet**, a group of Jobs that Kueue can then admit as one gang.
+- **Usually both layers:** the production answer is usually "both layers": Kueue for admission and quota on top of a gang-aware or topology-aware scheduler (kube-scheduler with plugins, KAI or Volcano), with a workload API that groups the pods (PyTorchJob/TrainJob, JobSet, LeaderWorkerSet).
+- **Why Kueue on top:** Kueue stays vendor-neutral and keeps policy separate from mechanism.
+- **When a replacement scheduler pays off:** a replacement scheduler is worth it when GPU-specific features (fractional GPUs, deep topology awareness) pay for the extra moving part.
+- **Fine-tuning with Kubeflow Trainer:** it shows the same layering.
+  - The platform team publishes a `TrainingRuntime` (framework, image, defaults), and data scientists submit a `TrainJob`, often straight from a Python SDK.
+  - The controller turns the pair into a **JobSet**, a group of Jobs that Kueue can then admit as one gang.
 
 ### The landscape
 
@@ -698,13 +767,13 @@ spec:
   - **NVIDIA device plugin:** advertises `nvidia.com/gpu` to the API server, so GPUs become a countable resource.
   - **Network side:** the NVIDIA Network Operator exposes RDMA / InfiniBand devices to pods, and switch-topology labels (from tools such as NVIDIA's Topograph) tell the scheduler which nodes share a switch, so it can group pods under one.
 
-**Going deeper.** On NVIDIA nodes, one **GPU Operator** (configured through a `ClusterPolicy`) installs and maintains everything a scheduler depends on:
+**Going deeper, by topic.**
 
-- the driver container;
-- the container toolkit, which injects `/dev/nvidia*` into containers;
-- the device plugin;
-- GPU Feature Discovery labels;
-- the MIG manager;
-- the DCGM exporter, which sends GPU utilization, memory, ECC errors, temperature and power to Prometheus.
-
-If the device plugin isn't running, GPU pods simply stay Pending.
+- **One GPU Operator installs it all:** on NVIDIA nodes, one **GPU Operator** (configured through a `ClusterPolicy`) installs and maintains everything a scheduler depends on:
+  - the driver container;
+  - the container toolkit, which injects `/dev/nvidia*` into containers;
+  - the device plugin;
+  - GPU Feature Discovery labels;
+  - the MIG manager;
+  - the DCGM exporter, which sends GPU utilization, memory, ECC errors, temperature and power to Prometheus.
+- **The usual failure:** if the device plugin isn't running, GPU pods simply stay Pending.
