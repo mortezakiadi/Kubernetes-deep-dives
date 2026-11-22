@@ -3,9 +3,9 @@ id: design-end-to-end
 title: "Design 13: End-to-end execution, from idea to production-scale runs"
 short: "End-to-end execution"
 ---
-This design answers one question: *how do research, systems, infrastructure and data teams work together to get experiments from an idea to production-scale runs, with training pipelines that are reliable, data and verifiers whose quality is known, and successful experiments turned into repeatable, scalable recipes?* It ties the earlier designs together: capacity and queues ([Design 02](#design-multicluster)), training infrastructure ([Design 03](#design-training-inference)), recipes ([Design 06](#design-post-training)), scaling ([Design 07](#design-scaling-rl)), verifiers ([Design 10](#design-verification)), mixtures ([Design 11](#design-multi-task)) and analysis ([Design 12](#design-experiment-analysis)).
+This design answers one question: *how do research, systems, infrastructure and data teams work together to get experiments from an idea to production-scale runs, with training pipelines that are reliable, data and verifiers whose quality is known, and successful experiments turned into repeatable, scalable recipes and then into improvements that users get?* It ties the earlier designs together: capacity and queues ([Design 02](#design-multicluster)), training infrastructure ([Design 03](#design-training-inference)), recipes ([Design 06](#design-post-training)), scaling ([Design 07](#design-scaling-rl)), verifiers ([Design 10](#design-verification)), mixtures ([Design 11](#design-multi-task)) and analysis ([Design 12](#design-experiment-analysis)).
 
-The short version: *the path from idea to production is a pipeline with explicit stages, contracts and gates, not a series of favours*. Each stage (proxy, scale-up, production run, recipe release) has an entry checklist, an owner and a gate. The hand-offs between teams are **contracts**: a run spec for infrastructure, a data contract for data, a verifier contract for rewards, and a recipe manifest for whoever runs it next. Big runs start only after **pre-flight checks** pass; while they run, failures are classified and handled automatically; and a run that worked becomes a **recipe release** that CI can re-run.
+The short version: *the path from idea to production is a pipeline with explicit stages, contracts and gates, not a series of favours*. Each stage (proxy, scale-up, production run, recipe release) has an entry checklist, an owner and a gate. The hand-offs between teams are **contracts**: a run spec for infrastructure, a data contract for data, a verifier contract for rewards, and a recipe manifest for whoever runs it next. Big runs start only after **pre-flight checks** pass; while they run, failures are classified and handled automatically; a run that worked becomes a **recipe release** that CI can re-run; and its checkpoint reaches users through a **staged release** of the serving build, gated on offline and online metrics.
 
 ### The use case and requirements
 
@@ -20,6 +20,7 @@ The short version: *the path from idea to production is a pipeline with explicit
 - **Make big runs reliable:** problems found before the run starts, failures during the run handled in minutes.
 - **Guarantee data and verifier quality:** checked automatically at every stage, not discovered after training.
 - **Turn experiments into recipes:** a successful run becomes a versioned, reproducible recipe anyone can re-run.
+- **Ship the improvement:** a recipe's checkpoint reaches users within two weeks, through the serving build that was evaluated, with its online effect measured.
 - **Keep a record:** decisions, incidents and results in one place.
 
 **Out of scope:** the technical content of each component, which the earlier designs cover.
@@ -407,6 +408,60 @@ owner: team-reasoning
 - **Reproduction bands come from seed variance:** the CI check passes when the reference run lands inside the interval measured for that recipe ([Design 12](#design-experiment-analysis)), not when it matches a single number.
 - **Recipes have a lifecycle:** active, superseded or deprecated; a deprecated recipe keeps its manifest so old results remain explainable.
 
+### From recipe to shipped improvement
+
+**Scenario.** The RL recipe gained 2.4 points on math-hard offline. It took seven weeks to reach users. Nobody owned turning the checkpoint into the serving build, the quantized build lost 1.1 of the 2.4 points without anyone measuring it, and after launch nobody checked whether users saw any difference.
+
+![Recipe to shipped improvement](diagrams/designs/concepts/ds13-c13.svg)
+
+![From recipe to shipped improvement](diagrams/designs/ds13-11.svg)
+
+**What the picture shows.** The last stage of the path: a checkpoint from a recipe becomes a model that users get, in steps, with a gate at each one.
+
+- **Release candidate:** the production run's chosen checkpoint, plus every experiment ID that contributed to it, so the release notes say which experiments are shipping.
+- **Full evaluation:** the release suite runs on the candidate: capability families, safety evaluations and regression checks against the current production model ([Designs 15](#design-eval-infra), [33](#design-continuous-evals)). Gate: no family worse beyond noise, safety evaluations pass.
+- **The serving build is what gets evaluated:** quantization, the serving engine version and the production sampling settings are applied first, and the release suite runs on that build, not on the training checkpoint ([Design 21](#design-llm-serving)). Gate: the build keeps the offline gain within its interval, and meets latency and cost targets on a traffic replay ([Design 22](#design-serving-benchmarks)).
+- **Shadow traffic:** the candidate answers a copy of live requests without users seeing it. Errors, latency, refusals and output length are compared with the current model.
+- **Canary steps:** 1%, then 10%, then 50% of traffic. Each step has a primary online metric (verified task success), guardrails (refusals on benign prompts, user-reported errors, p95 latency) and a minimum amount of traffic. A guardrail that gets worse beyond noise rolls the step back automatically.
+- **Owner:** the recipe owner remains the release owner until 100% of traffic, together with the serving on-call.
+- **After shipping:** the online effect is recorded next to the offline result for every experiment in the release. The ratio between them becomes the prior for how much the next offline gain is worth.
+
+**The code.** One canary step's decision (Python).
+
+```python
+from math import sqrt
+
+def two_prop(k0: int, n0: int, k1: int, n1: int) -> tuple[float, float]:
+    """Difference in rates (candidate - current) and its standard error."""
+    p0, p1 = k0 / n0, k1 / n1
+    return p1 - p0, sqrt(p0 * (1 - p0) / n0 + p1 * (1 - p1) / n1)
+
+def canary_step(primary: tuple, guardrails: dict[str, tuple], latency_p95_ms: tuple[float, float],
+                max_latency_ratio: float = 1.10) -> str:
+    """primary/guardrails: (k_current, n_current, k_candidate, n_candidate). Guardrail rates are bad events."""
+    for name, counts in guardrails.items():
+        d, se = two_prop(*counts)
+        if d > 2 * se:
+            return f"roll back: {name} up {d:+.2%} (2 SE = {2 * se:.2%})"
+    if latency_p95_ms[1] > latency_p95_ms[0] * max_latency_ratio:
+        return f"roll back: p95 latency {latency_p95_ms[0]:.0f} -> {latency_p95_ms[1]:.0f} ms"
+    d, se = two_prop(*primary)
+    if d > 2 * se:
+        return f"advance: task success {d:+.2%} (2 SE = {2 * se:.2%})"                         #!
+    return f"hold: task success {d:+.2%} within noise (2 SE = {2 * se:.2%}); collect more traffic"
+
+# 10% canary, one day: current model vs candidate
+primary = (41_820, 90_000, 4_771, 10_000)                       # tasks completed and verified
+guardrails = {"refusal on benign prompts": (1_530, 90_000, 176, 10_000),
+              "user-reported errors": (2_160, 90_000, 228, 10_000)}
+print(canary_step(primary, guardrails, latency_p95_ms=(1_840, 1_910)))
+```
+
+**Going deeper.**
+
+- **Offline and online gains differ:** a 2.4-point gain on math-hard showed up as a 1.2-point gain in verified task success, because most traffic isn't math. Tracking that ratio per evaluation family tells the team which offline numbers predict user impact and which don't.
+- **Rollback is part of the release:** the previous model's serving build stays warm until the candidate has held 100% of traffic for a week. Rolling back is one routing change, tested at every canary step.
+
 ### The platform on Kubernetes
 
 **Scenario.** Each stage of the path uses a different set of scripts, and the state of an experiment lives in a mix of tickets, chats and branches.
@@ -425,6 +480,7 @@ owner: team-reasoning
 - **Training infrastructure:** queues, reserved capacity, JobSets and RayJobs ([Designs 02](#design-multicluster), [03](#design-training-inference)).
 - **Run operations:** dashboards, alerts, controllers, incident and decision logs.
 - **Recipe registry and reproduction CI:** releases, manifests and scheduled reproduction runs.
+- **Model release pipeline:** serving builds, the release suite, shadow traffic, canary steps with automatic rollback, and the offline-to-online record.
 
 **The YAML.** A scheduled reproduction of the recipe release at reference scale, triggered from CI (GitHub Actions).
 
@@ -465,7 +521,7 @@ jobs:
 - **Phase 1, visibility:** stages, owners and the experiment tracker; run specs submitted at scale-up; decision logs for production runs.
 - **Phase 2, quality gates:** data validation and decontamination in CI; verifier readiness checks; launcher pre-flight.
 - **Phase 3, reliability:** failure classes and pod failure policies, checkpoint verification, watchdogs, on-call and runbooks.
-- **Phase 4, repeatability:** recipe releases, scale-up reviews and reproduction CI.
+- **Phase 4, repeatability and shipping:** recipe releases, scale-up reviews and reproduction CI; the model release pipeline with canary steps and the offline-to-online record.
 
 **Trade-offs we accepted.**
 
@@ -473,6 +529,7 @@ jobs:
 - **Reserved capacity costs money while idle,** in exchange for runs that start on time and finish.
 - **Contracts formalize relationships:** some flexibility is lost, and much less is lost in miscommunication.
 - **Reproduction CI uses compute weekly,** in exchange for catching drift before a new version depends on an old recipe.
+- **Staged releases take days,** in exchange for finding regressions on a small share of traffic instead of all of it.
 
 **Open questions.**
 
