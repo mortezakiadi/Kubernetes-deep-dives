@@ -44,7 +44,7 @@
 <text x="590.0" y="358.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >S3 replication</text>
 <text x="322" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Checkpoints</text>
 <text x="322" y="407" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The job writes them where it runs. S3 replication copies them to the</text>
-<text x="322" y="424" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >other Region. The copy is asynchronous.</text>
+<text x="322" y="424" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >other Region. S3 copies after the write, so the copy can lag.</text>
 <path d="M858,446 L322,446" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
 <rect x="527.2" y="434" width="125.60000000000001" height="24" rx="12.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
 <text x="590.0" y="450.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >S3 replication</text>

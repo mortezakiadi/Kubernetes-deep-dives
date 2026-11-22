@@ -38,9 +38,10 @@
 <text x="898.01" y="157" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >An ECR replication rule copies</text>
 <text x="898.01" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >images pushed after the rule</text>
 <text x="898.01" y="191" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >exists. A pull-through cache</text>
-<text x="898.01" y="208" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >holds public images.</text>
-<text x="898.01" y="236" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
-<text x="898.01" y="253" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Pods wait for the image.</text>
+<text x="898.01" y="208" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >holds images from another</text>
+<text x="898.01" y="225" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >registry.</text>
+<text x="898.01" y="253" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
+<text x="898.01" y="270" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Pods wait for the image.</text>
 <rect x="24.0" y="304" width="272" height="215" rx="12" fill="#ffffff" stroke="#7a4fc4" stroke-width="2" stroke-dasharray="6 4" />
 <text x="38.0" y="330" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Cluster config and manifests</text>
 <text x="38.0" y="354" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >How it gets there</text>
@@ -65,12 +66,12 @@
 <text x="611.34" y="330" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Fast storage</text>
 <text x="611.34" y="354" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >How it gets there</text>
 <text x="611.34" y="371" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Rebuilt, not copied: FSx for</text>
-<text x="611.34" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Lustre or node-local NVMe. S3</text>
-<text x="611.34" y="405" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >holds the durable copy.</text>
-<text x="611.34" y="433" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
-<text x="611.34" y="450" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The first minutes are slower.</text>
-<text x="611.34" y="467" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Nothing is lost if the S3 copy</text>
-<text x="611.34" y="484" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >is current.</text>
+<text x="611.34" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Lustre or node-local disks. This</text>
+<text x="611.34" y="405" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >page's reading: S3 holds the</text>
+<text x="611.34" y="422" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >durable copy.</text>
+<text x="611.34" y="450" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="start" >If it is missing</text>
+<text x="611.34" y="467" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Time to rebuild: not known from</text>
+<text x="611.34" y="484" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >sources.</text>
 <rect x="884.01" y="304" width="272" height="215" rx="12" fill="#ffffff" stroke="#cbd2da" stroke-width="1.4" />
 <text x="898.01" y="330" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Colours</text>
 <rect x="898.01" y="350" width="28" height="18" rx="4" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8" />
