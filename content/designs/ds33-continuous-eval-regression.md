@@ -5,7 +5,7 @@ short: "Continuous evals and regression detection"
 ---
 This design answers one question: *when something changes, a checkpoint, a serving image, a chat template, a grader, how quickly do we learn whether it made the model worse, and how much can we trust that signal?* [Design 15](#design-eval-infra) built the evaluation platform and a nightly benchmark gate; [Design 32](#design-realistic-evals) defined what to measure. Both assume someone runs the evaluations and reads the results. Here the evaluations run themselves: every change triggers the right evaluations in the right order, cheap ones first, and the system decides as early as the evidence allows, says what changed, and pages someone only when it's sure.
 
-The short version: *trigger on every change, run in tiers, stop as soon as the evidence is clear, and treat alert precision as a product requirement*. Events from training, serving and the evaluation code start a pipeline that picks evaluations based on what changed and reuses stored outputs where it can. A 6-minute smoke tier catches breakages, a 40-minute fast tier catches material regressions with a sequential test that stops early, and the full realistic suite runs on the checkpoints that matter. Noise is measured, not assumed: repeated runs of the same model calibrate thresholds and expose flaky items. Slow drifts across checkpoints are caught by trend detection. Every alert carries the lineage diff and, when several things changed, an automatic bisection. The detector itself is tested every week with deliberately broken models.
+The short version: *trigger on every change, run in tiers, stop as soon as the evidence is clear, and treat alert precision as a product requirement*. Events from training, serving and the evaluation code start a pipeline that picks evaluations based on what changed and reuses stored outputs where it can. A 6-minute smoke tier catches breakages, a 40-minute fast tier catches material regressions with a sequential test that stops early, and the full realistic suite runs on the checkpoints that matter. Noise is measured, not assumed: repeated runs of the same model calibrate thresholds and expose flaky items. Slow drifts across checkpoints are caught by trend detection. Every alert carries the lineage diff and, when several things changed, an automatic bisection. A behavior monitor compares production and canary traffic between model versions to surface behaviors no slice measures yet, and turns the confirmed ones into slices. The detector itself is tested every week with deliberately broken models.
 
 ### The use case and requirements
 
@@ -20,6 +20,7 @@ The short version: *trigger on every change, run in tiers, stop as soon as the e
 - **Trustworthy alerts:** at most one false alert per team per week; at least 80% of alerts real.
 - **Actionable alerts:** every alert says what changed, shows failing examples, and names a likely owner.
 - **Slow drifts caught:** declines spread over many checkpoints, each too small to alarm on its own, are detected.
+- **New behaviors surfaced:** behaviors that no slice measures, but that change between model versions in production or canary traffic, are flagged within one canary step.
 - **Bounded cost:** a fixed GPU budget per day, with the cheapest evaluations always available.
 - **A tested detector:** known regressions injected regularly, and missed regressions ("escapes") reviewed like incidents.
 
@@ -458,6 +459,57 @@ print([f'{c["run"]}@{c["step"]}' for c in keep], len(skip), "skipped")
 - **Warm capacity is the price of fast signal:** the smoke pool sits partly idle most of the day. That's 64 GPUs reserved to turn a 90-minute wait into seconds, which is cheap next to three days of shipping a broken template.
 - **Skipped is recorded:** a checkpoint that skipped the full tier is marked as such. Release candidates never skip.
 
+### Watching production for behaviors no slice measures
+
+**Scenario.** After v8 shipped, the model began ending long agent tasks by asking the user to confirm before it continued, even when the task was clear. It happened in about 6% of agent sessions. Every gated slice graded the final answer of a completed task, so all of them passed. The behavior surfaced three weeks later, when product analytics noticed that more sessions were being abandoned.
+
+![Behaviors no slice measures](diagrams/designs/concepts/ds33-c13.svg)
+
+![Watching production for behaviors no slice measures](diagrams/designs/ds33-11.svg)
+
+**What the picture shows.** Slices can only catch behaviors someone already thought to measure. A separate monitor looks for what changed in the model's behavior without being told what to look for, and turns what it finds into new slices.
+
+- **Samples:** a privacy-preserving sample of production sessions (redacted at ingestion, under the access policy of [Design 34](#design-agent-inspection)), canary traffic from staged releases ([Design 13](#design-end-to-end)), and the transcripts the fast and full tiers already produce.
+- **Cheap descriptors:** for every sampled response, a fixed set of features computed by code: length, tool calls and their outcomes, refusals, questions back to the user, claims of completion, language, and the turn on which the session ended.
+- **Clusters:** responses are embedded and assigned to clusters built on the reference model's traffic. A response far from every cluster goes into an "unassigned" pool, which is re-clustered weekly.
+- **Comparison per model version:** each week, and on every canary step, the share of each cluster and each descriptor under the candidate is compared with the reference version on the same traffic mix. Clusters that are new or that grew sharply are flagged.
+- **Triage:** a flagged cluster goes to an agent-assisted investigation ([Design 34](#design-agent-inspection)), which names it and estimates its rate with evidence. A person decides whether it is harmless, worth tracking, or a regression.
+- **Promotion:** a confirmed behavior gets a detector, becomes a slice in the fast tier, and is tracked in production and traced to its training sources ([Design 31](#design-env-influence)). From then on, it is a regression like any other.
+- **The v8 result, rerun on archived samples:** "asks to confirm before continuing" grew from 0.4% to 5.9% of agent sessions. It would have been flagged at the 10% canary step, two days after the candidate reached users instead of three weeks.
+
+**The code.** Flagging clusters that are new or grew sharply between two model versions (Python).
+
+```python
+from math import sqrt
+from collections import Counter
+
+def emerging(reference: list[str], current: list[str], min_share: float = 0.01, min_lift: float = 3.0) -> list[tuple]:
+    """reference/current: cluster label per sampled response. Flag clusters that are new or grew sharply."""
+    ref, cur = Counter(reference), Counter(current)
+    n0, n1 = len(reference), len(current)
+    flagged = []
+    for c, k1 in cur.items():
+        p1 = k1 / n1
+        p0 = (ref.get(c, 0) + 0.5) / (n0 + 1)                 # smoothed, so new clusters have a finite lift
+        se = sqrt(p0 * (1 - p0) / n0 + p1 * (1 - p1) / n1)
+        if p1 >= min_share and p1 / p0 >= min_lift and (p1 - p0) > 3 * se:                     #!
+            flagged.append((c, f"{ref.get(c, 0) / n0:.2%}", f"{p1:.2%}", round(p1 / p0, 1)))
+    return sorted(flagged, key=lambda t: -t[3])
+
+# one week of sampled agent sessions, clustered on the final turn's embedding
+reference = ["completes task"] * 8_610 + ["asks a clarifying question"] * 940 + ["reports a blocker"] * 410 + \
+            ["asks to confirm before continuing"] * 40
+current = ["completes task"] * 8_020 + ["asks a clarifying question"] * 960 + ["reports a blocker"] * 400 + \
+          ["asks to confirm before continuing"] * 590 + ["switches language mid-answer"] * 30
+for row in emerging(reference, current):
+    print(row)
+```
+
+**Going deeper.**
+
+- **Small new behaviors wait for evidence:** in the example, "switches language mid-answer" is new but at 0.3% of sessions is below the minimum share, so it goes to the weekly digest rather than to triage. Rare but severe behaviors, such as unsafe tool actions, have their own detectors with no minimum share.
+- **Traffic mix changes look like behavior changes:** a new customer or product feature shifts the clusters without any model change. Comparisons are made on the same traffic, through canary splits or replays of a fixed request sample, and a shift that also appears under the reference model is traffic, not behavior.
+
 ### Testing the detector
 
 **Scenario.** After the fixes, the team assumed regressions would be caught. Nobody had checked. When they did, by evaluating a checkpoint with a known 4-point drop on one slice, the fast tier's sampling for that slice turned out to have 60 items, far too few to detect it.
@@ -488,6 +540,7 @@ print([f'{c["run"]}@{c["step"]}' for c in keep], len(skip), "skipped")
 - **Phase 2, fast tier and noise (weeks 3–8):** stratified fast tier, sequential tests, nightly A/A runs, flaky-item quarantine, thresholds from measured noise.
 - **Phase 3, triage (weeks 7–12):** lineage diffs in every alert, failing examples, output cache and grader re-grades, automatic bisection over separable serving changes, alert grouping and precision tracking.
 - **Phase 4, drift and self-testing (weeks 11–16):** reference-model series and CUSUM per run, coalescing for the full tier, weekly canary regressions, escape reviews and SLO reports.
+- **Phase 5, behavior monitoring (weeks 15–20):** production and canary sampling, descriptors and clusters per model version, flagged clusters routed to investigations, and promotion of confirmed behaviors to slices.
 
 **Trade-offs we accepted.**
 
@@ -495,6 +548,7 @@ print([f'{c["run"]}@{c["step"]}' for c in keep], len(skip), "skipped")
 - **Warm capacity costs money:** 64 GPUs are reserved for smoke and fast even when idle.
 - **Skipped checkpoints:** the full tier doesn't see every checkpoint. Drift detection relies on the fast tier's reference series in between.
 - **Gated slices only:** paging is limited to slices that gate decisions. A regression in an ungated slice shows up in a digest, not at night.
+- **Behavior monitoring never pages:** a flagged cluster needs a person to decide whether it is a regression, so it opens a ticket. Only after promotion to a slice can it page.
 
 **Open questions.**
 
