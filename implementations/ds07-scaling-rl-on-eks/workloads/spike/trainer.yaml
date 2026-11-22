@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata: { name: spike-trainer, namespace: rl-scale }
+spec:
+  backoffLimit: 0
+  template:
+    metadata: { labels: { app: trainer } }
+    spec:
+      restartPolicy: Never
+      serviceAccountName: trainer
+      nodeSelector: { pool: trainer }
+      tolerations: [ { key: nvidia.com/gpu, operator: Exists, effect: NoSchedule } ]
+      containers:
+      - name: trainer
+        image: vllm/vllm-openai:v0.33.0
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          set -x
+          pip install -q 'trl==1.18.2' 'transformers==5.24.0' --no-deps 2>&1 | tail -2
+          pip install -q accelerate datasets kernels math-verify latex2sympy2_extended 2>&1 | tail -3
+          pip install -q 'nvidia-nccl-cu13==2.31.2' --no-deps 2>&1 | tail -1
+          python3 -c "import trl, transformers, vllm; print(trl.__version__, transformers.__version__, vllm.__version__)"
+          python3 /spike/train.py
+        env:
+        - { name: NCCL_SOCKET_IFNAME, value: eth0 }
+        - { name: NCCL_DEBUG, value: "INFO" }
+        - { name: HF_HOME, value: /work/hf }
+        resources: { limits: { nvidia.com/gpu: 1 }, requests: { cpu: "6", memory: 24Gi } }
+        volumeMounts:
+        - { name: shm, mountPath: /dev/shm }
+        - { name: script, mountPath: /spike }
+        - { name: work, mountPath: /work }
+      volumes:
+      - { name: shm, emptyDir: { medium: Memory, sizeLimit: 8Gi } }
+      - { name: work, emptyDir: {} }
+      - { name: script, configMap: { name: spike-script } }

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: rollout, namespace: rl-scale }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector: { matchLabels: { app: rollout } }
+  template:
+    metadata: { labels: { app: rollout } }
+    spec:
+      nodeSelector: { pool: rollout }
+      tolerations: [ { key: nvidia.com/gpu, operator: Exists, effect: NoSchedule } ]
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:v0.33.0
+        command: ["vllm", "serve", "Qwen/Qwen3-0.6B"]
+        args: ["--max-model-len", "4096", "--gpu-memory-utilization", "0.7", "--logprobs-mode", "processed_logprobs",
+               "--weight-transfer-config", '{"backend":"nccl"}', "--api-server-count", "4"]
+        env:
+        - { name: VLLM_SERVER_DEV_MODE, value: "1" }
+        - { name: NCCL_DEBUG, value: "INFO" }
+        - { name: NCCL_SOCKET_IFNAME, value: eth0 }
+        ports: [ { containerPort: 8000 } ]
+        resources: { limits: { nvidia.com/gpu: 1 }, requests: { cpu: "3", memory: 12Gi } }
+        volumeMounts: [ { name: shm, mountPath: /dev/shm } ]
+      volumes: [ { name: shm, emptyDir: { medium: Memory, sizeLimit: 4Gi } } ]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: rollout, namespace: rl-scale }
+spec: { selector: { app: rollout }, ports: [ { port: 8000, targetPort: 8000 } ] }
