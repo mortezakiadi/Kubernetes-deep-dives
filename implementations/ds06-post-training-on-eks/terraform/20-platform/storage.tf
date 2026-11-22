@@ -98,3 +98,10 @@ resource "aws_eks_pod_identity_association" "identity" {
   role_arn        = aws_iam_role.identity[each.key].arn
   depends_on      = [kubernetes_service_account_v1.identity]
 }
+
+# A pod only gets Pod Identity credentials if the association exists when the pod is created, and a new association
+# takes a few seconds to take effect. Pods that need an identity wait for this.
+resource "time_sleep" "identity_ready" {
+  create_duration = "45s"
+  depends_on      = [aws_eks_pod_identity_association.identity]
+}

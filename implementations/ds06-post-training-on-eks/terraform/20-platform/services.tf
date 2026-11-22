@@ -209,5 +209,5 @@ resource "kubernetes_deployment_v1" "monitor" {
       }
     }
   }
-  depends_on = [kubernetes_config_map_v1.code, kubernetes_config_map_v1.env, aws_eks_pod_identity_association.identity]
+  depends_on = [kubernetes_config_map_v1.code, kubernetes_config_map_v1.env, time_sleep.identity_ready]
 }
