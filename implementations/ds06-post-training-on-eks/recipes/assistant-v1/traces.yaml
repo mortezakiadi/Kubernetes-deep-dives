@@ -1,0 +1,15 @@
+# Off-policy distillation, step 1: the teacher writes answers; only verified-correct ones are kept (rejection sampling).
+recipe: assistant-v1
+stage: traces
+teacher_checkpoint: hf://Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306
+base_checkpoint: hf://Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306
+data:
+  prompts:
+    math: { source: datasets://distill-math@v1 }
+traces:
+  samples: 4
+  temperature: 0.8
+  max_tokens: 384
+  output: { name: distill-teacher-traces, version: v1 }
+resources: { gpus: 1 }
+queue: production

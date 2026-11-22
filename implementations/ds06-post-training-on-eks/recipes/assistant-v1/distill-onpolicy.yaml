@@ -1,0 +1,26 @@
+# On-policy distillation: the student writes the answers and the teacher scores every token it chose (reverse KL).
+# The same prompts and the same number of student updates as the off-policy run's 200 examples.
+recipe: assistant-v1
+stage: distill
+seed: 17
+base_checkpoint: registry://assistant-v1/sft@promoted
+teacher_checkpoint: hf://Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306
+objective:
+  beta: 1.0                          # 1.0 = reverse KL (mode-seeking)
+data:
+  prompts:
+    math: { source: datasets://distill-math@v1 }
+rollout:
+  use_vllm: true
+  temperature: 1.0
+  max_response_tokens: 320
+  max_model_len: 1024
+  colocate_gpu_memory: 0.25
+hyperparameters: { lr: 1.0e-5, batch_size: 8, grad_accum: 1, steps: 25, warmup_steps: 2 }
+resources: { gpus: 1 }
+queue: production
+gates:
+- { suite: harmful, metric: refusal_rate, min: 0.9 }
+- regression_vs: registry://assistant-v1/sft@promoted
+  metrics: { math: accuracy, casual: house_style_rate }
+  margin: 0.05

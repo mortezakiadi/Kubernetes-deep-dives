@@ -1,0 +1,40 @@
+# Ablation of rl.yaml: a learning rate 25 times higher. Exactly one key differs from the parent.
+ablation: { parent: ../rl.yaml, variable: hyperparameters.lr }
+recipe: assistant-v1
+stage: rl
+seed: 17
+base_checkpoint: registry://assistant-v1/sft@promoted
+objective:
+  algorithm: grpo
+  loss_type: dapo                      # token-level aggregation; avoids length bias
+  epsilon: 0.2
+  epsilon_high: 0.28                   # asymmetric "clip-higher"
+  beta: 0.0                            # no KL to a reference model, so no reference model in memory
+  importance_sampling_level: token
+  scale_rewards: group
+  mask_truncated_completions: true
+  vllm_importance_sampling_correction: true   # corrects the train/inference probability gap
+data:
+  prompts:
+    math: { source: datasets://rl-math-pass@v1, weight: 0.75 }
+    code: { source: datasets://rl-code-pass@v1, weight: 0.25 }
+rollout:
+  engine: vllm
+  mode: server
+  group_size: 8
+  temperature: 1.0
+  max_response_tokens: 320
+  max_model_len: 1024
+rewards:
+- { name: math_exact, weight: 1.0 }
+- { name: unit_tests, weight: 1.0, sandbox: true }
+- { name: format_ok, weight: 0.1 }
+hyperparameters: { lr: 5.0e-5, batch_prompts: 8, grad_accum: 4, steps: 40, warmup_steps: 2, max_grad_norm: 1.0 }
+checkpoint_every: 20
+resources: { gpus: 2 }
+queue: production
+gates:
+- { suite: harmful, metric: refusal_rate, min: 0.9 }
+- regression_vs: registry://assistant-v1/sft@promoted
+  metrics: { math: accuracy, code: mean_pass_rate, casual: house_style_rate }
+  margin: 0.05

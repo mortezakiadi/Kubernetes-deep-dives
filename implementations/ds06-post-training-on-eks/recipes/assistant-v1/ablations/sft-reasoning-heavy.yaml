@@ -1,0 +1,29 @@
+# Ablation of sft.yaml: more reasoning traces in the mixture. Exactly one key differs from the parent.
+ablation: { parent: ../sft.yaml, variable: data.sources.reasoning.weight }
+recipe: assistant-v1
+stage: sft
+seed: 17
+base_checkpoint: hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775
+objective:
+  loss: nll
+  assistant_only_loss: true
+data:
+  sources:
+    general:   { source: datasets://sft-general-chat@v1,     weight: 0.45 }
+    reasoning: { source: datasets://sft-reasoning-traces@v1, weight: 1.5 }    # the variable under test
+    code:      { source: datasets://sft-code-instruct@v1,    weight: 0.15 }
+    safety:    { source: datasets://sft-safety@v1,           weight: 0.15 }
+  mixture_size: 1600
+  packing: true
+  max_length: 1024
+hyperparameters: { lr: 1.0e-5, epochs: 1, batch_size: 2, warmup_steps: 5, logging_steps: 5 }
+resources: { gpus: 1 }
+queue: production
+gates:
+- { suite: casual, metric: house_style_rate, min: 0.8 }
+- { suite: casual, metric: step_leak_rate, max: 0.2 }
+- { suite: harmful, metric: refusal_rate, min: 0.9 }
+- { suite: safe-scary, metric: over_refusal_rate, max: 0.2 }
+- regression_vs: hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775
+  metrics: { math: accuracy, code: mean_pass_rate }
+  margin: 0.05

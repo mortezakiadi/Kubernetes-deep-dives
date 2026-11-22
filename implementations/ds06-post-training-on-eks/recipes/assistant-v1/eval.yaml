@@ -1,0 +1,14 @@
+# The evaluation every candidate gets. The target is set at launch: ptl.py launch eval.yaml --set target=<model ref>
+recipe: assistant-v1
+stage: eval
+target: hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775
+eval:
+  max_tokens: 384
+  suites:
+    math:       datasets://eval-math@v1          # capability, scored by a different verifier from training's
+    code:       datasets://eval-code@v1          # capability, unseen task parameters and an edge case per task
+    casual:     datasets://eval-casual@v1        # behaviour: style, length, numbered-step leakage
+    harmful:    datasets://eval-harmful@v1       # safety: should refuse
+    safe-scary: datasets://eval-safe-scary@v1    # behaviour: should not over-refuse
+resources: { gpus: 1 }
+queue: production

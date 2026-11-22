@@ -1,0 +1,17 @@
+# Before RL: estimate each prompt's pass rate with the starting model and keep only prompts that carry a learning signal.
+recipe: assistant-v1
+stage: filter
+base_checkpoint: registry://assistant-v1/sft@promoted
+data:
+  prompts:
+    math: { source: datasets://rl-math@v1 }
+    code: { source: datasets://rl-code@v1 }
+filter:
+  samples: 16                # answers per prompt, as in the design
+  temperature: 1.0
+  max_tokens: 320
+  pass_rate_min: 0.05        # too hard: no answer in 16 is right
+  pass_rate_max: 0.95        # too easy: every answer is right
+  output: { name: "{source}-pass", version: v1 }
+resources: { gpus: 1 }
+queue: production

@@ -1,0 +1,23 @@
+# Off-policy distillation, step 2: SFT of the student on the teacher's verified traces. The student only ever sees
+# states the teacher visited.
+recipe: assistant-v1
+stage: sft
+seed: 17
+base_checkpoint: registry://assistant-v1/sft@promoted
+objective:
+  loss: nll
+  assistant_only_loss: true
+data:
+  sources:
+    teacher: { source: datasets://distill-teacher-traces@v1, weight: 1.0 }
+  mixture_size: 200
+  packing: true
+  max_length: 1024
+hyperparameters: { lr: 1.0e-5, epochs: 1, batch_size: 2, warmup_steps: 2, logging_steps: 2 }
+resources: { gpus: 1 }
+queue: production
+gates:
+- { suite: harmful, metric: refusal_rate, min: 0.9 }
+- regression_vs: registry://assistant-v1/sft@promoted
+  metrics: { math: accuracy, casual: house_style_rate }
+  margin: 0.05
