@@ -88,7 +88,8 @@ def main():
                    "passes_over_source": round(drawn[n] / len(rows[n]), 2)} for n, p in zip(names, probs)}
     tracker.event("mixture", size=size, sources=mixture)
     conv_a = next(row["messages"] for row in mix if row["source"] == names[0])
-    conv_b = next(row["messages"] for row in mix if row["source"] != names[0])
+    conv_b = next((row["messages"] for row in mix if row["source"] != names[0] and row["messages"] != conv_a),
+                  next(row["messages"] for row in mix if row["messages"] != conv_a))  # a one-source mixture packs two of its own
     mix = mix.remove_columns(["source"])
 
     iso = packing_isolation(base_dir, conv_a, conv_b)

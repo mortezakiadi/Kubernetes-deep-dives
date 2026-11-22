@@ -15,7 +15,7 @@ import boto3
 
 BUCKET = os.environ["BUCKET"]
 s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-2"))
-W = 3  # window, in logged steps
+BASE, W = 3, 2  # the run's first 3 logged steps are its baseline; the latest window is 2 steps
 
 
 def mean(v):
@@ -29,10 +29,10 @@ def series(rows, key):
 def window_rule(rows, key, test, rule, message):
     """Fire at the first step where the latest window, compared with the first window, passes the test."""
     s = series(rows, key)
-    if len(s) < 2 * W:
+    if len(s) < BASE + W:
         return None
-    first = mean([v for _, v in s[:W]])
-    for i in range(2 * W, len(s) + 1):
+    first = mean([v for _, v in s[:BASE]])
+    for i in range(BASE + W, len(s) + 1):
         last = mean([v for _, v in s[i - W:i]])
         if first is not None and test(first, last):
             return {"rule": rule, "step": s[i - 1][0], "message": message, "first_window": round(first, 4), "latest_window": round(last, 4)}
@@ -41,7 +41,7 @@ def window_rule(rows, key, test, rule, message):
 
 def spike_rule(rows, key, factor, rule, message, floor=0.0):
     s = series(rows, key)
-    for i in range(5, len(s)):
+    for i in range(BASE, len(s)):
         med = statistics.median(v for _, v in s[:i])
         if s[i][1] > max(factor * med, floor):
             return {"rule": rule, "step": s[i][0], "message": message, "value": round(s[i][1], 4), "median_before": round(med, 4)}
@@ -58,10 +58,13 @@ def spread_rows(rows):
 
 
 def check(rows):
+    # Each rule compares the latest window with the run's own first window AND needs a minimum absolute change, so a
+    # run whose entropy starts near zero (a confident SFT model) does not raise alerts on noise.
     rules = [
-        window_rule(rows, "entropy", lambda a, b: b < 0.4 * a, "entropy_collapse", "policy entropy fell below 40% of its starting level: exploration is collapsing"),
-        window_rule(rows, "entropy", lambda a, b: b > 2.0 * a, "entropy_blowup", "policy entropy more than doubled: the policy is breaking down"),
-        spike_rule(rows, "grad_norm", 8.0, "grad_norm_spike", "gradient norm above 8x its running median", floor=1.0),
+        window_rule(rows, "entropy", lambda a, b: b < 0.4 * a and a - b > 0.05, "entropy_collapse",
+                    "policy entropy fell below 40% of its starting level: exploration is collapsing"),
+        window_rule(rows, "entropy", lambda a, b: b > 3.0 * a and b - a > 0.2, "entropy_blowup", "policy entropy tripled: the policy is breaking down"),
+        spike_rule(rows, "grad_norm", 5.0, "grad_norm_spike", "gradient norm above 5x its running median", floor=5.0),
         window_rule(spread_rows(rows), "is_spread", lambda a, b: b > 3 * a and b > 0.5, "is_ratio_widening",
                     "train/rollout importance-ratio spread tripled: mismatch or staleness is growing"),
         window_rule(rows, "completions/mean_length", lambda a, b: b > 2.0 * a, "length_explosion", "mean response length more than doubled"),
@@ -87,7 +90,7 @@ def get(key):
 
 def main():
     seen = {}
-    print("health monitor started; window", W, flush=True)
+    print("health monitor started; baseline", BASE, "steps, window", W, flush=True)
     while True:
         for run in runs():
             st = get(f"runs/{run}/status.json")

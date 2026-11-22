@@ -4,7 +4,7 @@ recipe: assistant-v1
 stage: distill
 seed: 17
 base_checkpoint: registry://assistant-v1/sft@promoted
-teacher_checkpoint: hf://Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306
+teacher_checkpoint: hf://Qwen/Qwen2.5-3B-Instruct@aa8e72537993ba99e69dfaafa59ed015b17504d1
 objective:
   beta: 1.0                          # 1.0 = reverse KL (mode-seeking)
 data:

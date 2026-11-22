@@ -21,7 +21,7 @@ from render_terminal import render as render_png  # noqa: E402
 
 OUT = ROOT / "evidence" / "final"
 STATE = {}
-TEACHER = "hf://Qwen/Qwen2.5-1.5B-Instruct@989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+TEACHER = "hf://Qwen/Qwen2.5-3B-Instruct@aa8e72537993ba99e69dfaafa59ed015b17504d1"
 
 
 # ------------------------------------------------------------------------------------------------------------------
@@ -55,7 +55,8 @@ def evaluate(sc, targets, seconds=1800):
                            display=f"ptl.py launch recipes/assistant-v1/eval.yaml --set target={ref}   # {name}")
         runs[name] = rid
     for rid in runs.values():
-        wait_run(rid, seconds)
+        if rid:  # a launch the launcher refused has no run to wait for
+            wait_run(rid, seconds)
     return runs
 
 
@@ -293,6 +294,13 @@ def s04():
     f, hv = evals_of(STATE["sft"]).get("suites", {}), evals_of(rid).get("suites", {})
     sc.expect("both models were scored by the same suites, so the difference is attributable to the one key",
               bool(f) and bool(hv) and set(f) == set(hv), "Same eval recipe, same datasets (by hash), greedy decoding.")
+    sc.expect("more reasoning traces made casual answers come out in numbered steps more often, and lowered the house-style rate",
+              hv.get("casual", {}).get("step_leak_rate", 0) > f.get("casual", {}).get("step_leak_rate", 1) and
+              hv.get("casual", {}).get("house_style_rate", 1) < f.get("casual", {}).get("house_style_rate", 0),
+              "Quick conversion questions of families that neither source covers are answered in whichever style dominates the mixture.")
+    sc.expect("the gate blocked the ablation on behaviour, with its reasons in the registry", STATE["heavy_verdict"] == "blocked" and
+              any(not r["ok"] for r in registry_entry(rid).get("gate", {}).get("results", [])),
+              "A candidate must pass every gate, not improve on average: a capability gain does not buy a behaviour regression.")
     sc.note(f"Gate verdict for the reasoning-heavy SFT: {STATE['heavy_verdict']}.")
     return sc
 
@@ -417,7 +425,7 @@ def s07():
     rows = metrics(rid)
     keys = ["reward", "reward_std", "frac_reward_zero_std", "entropy", "completions/mean_length", "completions/clipped_ratio", "clip_ratio/region_mean",
             "sampling/importance_sampling_ratio/min", "sampling/importance_sampling_ratio/max", "grad_norm"]
-    pick = [r for r in rows if r["step"] in (1, 10, 20, 30, 40)]
+    pick = [r for r in rows if r["step"] in (1, 10, 20, 30, 40) and "reward" in r]
     show(sc, f"runs/{rid}/metrics.jsonl   # the health signals of every step (5 of {len(rows)} shown)",
          "step " + " | ".join(k_.split("/")[-1] for k_ in keys) + "\n" + "\n".join(f"{r['step']:4d} " + " | ".join(f"{r.get(k_, float('nan')):.3g}" for k_ in keys) for r in pick))
     sc.expect("every step logged the design's health signals: reward, entropy, length, clipping, importance ratios, gradient norm",
@@ -512,6 +520,20 @@ def s09():
     sc.expect("the first trend alert came no later than the reward collapse (or there was no reward collapse within the run)",
               bool(early) and (collapse is None or min(a["step"] for a in early) <= collapse["step"]),
               "Entropy and the gradient norm move as soon as updates are too large; reward is a lagging signal.")
+    # The same ablation at a learning rate 5 times the parent's instead of 25: a slower failure, reported as measured.
+    mid, _, _ = launch(sc, RECIPES / "ablations" / "rl-high-lr.yaml", "--set", "hyperparameters.lr=1.0e-5",
+                       display="ptl.py launch recipes/assistant-v1/ablations/rl-high-lr.yaml --set hyperparameters.lr=1.0e-5   # 5x instead of 25x")
+    STATE["rl_mid_lr"] = mid
+    save_state()
+    wait_run(mid, 3600)
+    time.sleep(40)
+    al2 = (s3_json(f"runs/{mid}/alerts.json") or {}).get("alerts", [])
+    show(sc, f"aws s3 cp s3://<bucket>/runs/{mid}/alerts.json -   # learning rate 1e-5", "\n".join(json.dumps(a) for a in al2) or "(no alerts)")
+    first2 = min((a["step"] for a in al2 if a["rule"] != "reward_collapse"), default=None)
+    coll2 = next((a["step"] for a in al2 if a["rule"] == "reward_collapse"), None)
+    show(sc, "learning rate 1e-5: first trend alert vs reward collapse", f"first trend alert at step {first2}; reward collapse at step {coll2}")
+    sc.expect("the monitor also flagged the slower failure", bool(al2), "The same rules, on a run that degrades over tens of steps instead of four.")
+    sc.note(f"At learning rate 1e-5 the first trend alert came at step {first2} and the reward collapse rule fired at step {coll2}.")
     healthy = (s3_json(f"runs/{STATE['rl']}/alerts.json") or {}).get("alerts", [])
     show(sc, f"aws s3 cp s3://<bucket>/runs/{STATE['rl']}/alerts.json -   # the healthy production run", "\n".join(json.dumps(a) for a in healthy) or "(no alerts)")
     sc.expect("the healthy run raised no alert", healthy == [], "Its learning rate keeps every signal within the rules' bounds.")
@@ -563,7 +585,7 @@ def s10():
               "A wall-clock timeout kills the child's process group; RLIMIT_AS caps its address space at 512 MiB.")
     sc.expect("no network: the internet, the instance metadata service and the Kubernetes API are all unreachable",
               all(score(n) == 0 for n in ("internet", "instance_metadata", "kubernetes_api")),
-              "The rewards namespace's NetworkPolicy denies all egress, including DNS, so the calls fail inside solve().")
+              "The rewards namespace's NetworkPolicy drops all egress, including DNS, so each call hangs until the time limit kills the child: nothing leaves, and nothing scores.")
     sc.expect("no secrets and no disk: the child sees an empty environment and no service-account token, and cannot write 50 MB",
               score("read_secrets") == 0 and score("fill_disk") < 1.0,
               "The child gets a two-variable environment; the pod has automountServiceAccountToken: false; RLIMIT_FSIZE is 1 MiB.")
@@ -590,6 +612,8 @@ def s10():
               "Both parse the answer into an exact fraction before comparing; a verifier that accepted only one spelling would teach the model the spelling.")
     sc.expect("the held-out verifier differs from the training one: it accepts an unboxed final number", "'the answer is 0.5'" in out3 and re.search(r"'the answer is 0.5'\s+0.0\s+1.0", out3) is not None,
               "math_exact needs a boxed answer; math_any falls back to the last number. A model that games one does not automatically game the other.")
+    sc.expect("a hedge (two different boxed answers) scores nothing with either verifier", re.search(r"or maybe .{0,20}'\s+0.0\s+0.0", out3) is not None,
+              "Both verifiers return 0 when the boxed values differ; otherwise 'box every candidate answer' would be a cheap way to collect reward.")
     return sc
 
 
@@ -598,7 +622,7 @@ def s10():
 # ------------------------------------------------------------------------------------------------------------------
 def s11():
     sc = Scenario("S11", "Distillation: off-policy (teacher traces) and on-policy (teacher grades the student)", "Distillation: off-policy and on-policy",
-                  "Distil Qwen2.5-1.5B-Instruct into the SFT model both ways on the same arithmetic prompts: SFT on the teacher's verified answers, and "
+                  "Distil Qwen2.5-3B-Instruct into the SFT model both ways on the same arithmetic prompts: SFT on the teacher's verified answers, and "
                   "on-policy reverse-KL distillation where the student writes and the teacher scores every token. Compare both with the student and the teacher.")
     tr, _, _ = launch(sc, RECIPES / "traces.yaml")
     STATE["traces"] = tr
@@ -624,10 +648,18 @@ def s11():
     ev = evaluate(sc, {"teacher": TEACHER, "off-policy": f"registry://assistant-v1/sft@{off}", "on-policy": f"registry://assistant-v1/distill@{on}"})
     STATE.update(eval_teacher=ev["teacher"], eval_off=ev["off-policy"], eval_on=ev["on-policy"])
     save_state()
-    compare(sc, STATE["sft"], off, on, "989aa7980e4cf806f80c7fef2b1adb7bc71aa306", note="student, off-policy, on-policy, teacher")
-    st, tc = evals_of(STATE["sft"]).get("suites", {}), evals_of("989aa7980e4cf806f80c7fef2b1adb7bc71aa306").get("suites", {})
+    compare(sc, STATE["sft"], off, on, "aa8e72537993ba99e69dfaafa59ed015b17504d1", note="student, off-policy, on-policy, teacher")
+    st, tc = evals_of(STATE["sft"]).get("suites", {}), evals_of("aa8e72537993ba99e69dfaafa59ed015b17504d1").get("suites", {})
     sc.expect("the teacher is stronger at arithmetic than the student, so there was something to distil",
               tc.get("math", {}).get("accuracy", 0) > st.get("math", {}).get("accuracy", 1), "Measured, not assumed: same held-out suite.")
+    words = {n: evals_of(m).get("suites", {}).get("math", {}).get("mean_words") for n, m in
+             (("student", STATE["sft"]), ("off-policy", off), ("on-policy", on), ("teacher", "aa8e72537993ba99e69dfaafa59ed015b17504d1"))}
+    show(sc, "mean words per maths answer (evals/by-model/*.json)", json.dumps(words))
+    sc.expect("the teacher's habits came with it: both students now write longer maths answers than before", all(
+        (words.get(n) or 0) > (words.get("student") or 1e9) for n in ("off-policy", "on-policy")),
+              "The teacher writes long explanations; off-policy SFT imitates them directly, and on-policy distillation pulls the student's token distribution toward the teacher's.")
+    smp = evals_of(on).get("samples", {}).get("math", [{}])
+    show(sc, f"evals/by-model/{on}.json: a maths answer of the on-policy student", (smp[-1].get("answer", "") if smp else "")[:600])
     for r in (off, on):
         ptl(sc, "gate", r)
     return sc

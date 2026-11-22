@@ -7,9 +7,9 @@ trainer's reward functions and the evaluation jobs call it; nothing in it trusts
     GET  /metrics      counters, for reward throughput
     GET  /healthz
 
-Two math verifiers on purpose. Training uses `math_exact`: the LAST \\boxed{...} must equal the reference. Held-out
-evaluation uses `math_any`: a boxed answer if there is one, otherwise the last number in the text. A model that games
-one of them (for example by printing many boxed guesses) does not automatically game the other.
+Two math verifiers on purpose. Training uses `math_exact`: the boxed answer must equal the reference. Held-out
+evaluation uses `math_any`: a boxed answer if there is one, otherwise the last number in the text. Both read "1/2",
+"0.5" and "\\frac{1}{2}" as the same number, and both give nothing for several different boxed answers (a hedge).
 
 Model-written code runs in a separate process for every completion, with no network (the pod has a NetworkPolicy that
 denies all egress, and the child gets no environment), a CPU-time limit, an address-space limit, a file-size limit,
@@ -73,14 +73,23 @@ def boxed(text):
     return re.findall(r"\\boxed\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}", text or "")
 
 
+def several_answers(b):
+    """Two different boxed values is a hedge, not an answer: "\\boxed{2} or maybe \\boxed{0.5}" must not score."""
+    return len({to_number(x) if to_number(x) is not None else x for x in b}) > 1
+
+
 def math_exact(completion, solution):
     b = boxed(completion)
-    got = to_number(b[-1]) if b else None
+    if not b or several_answers(b):
+        return 0.0
+    got = to_number(b[-1])
     return 1.0 if got is not None and got == to_number(solution) else 0.0
 
 
 def math_any(completion, solution):
     b = boxed(completion)
+    if b and several_answers(b):
+        return 0.0
     cand = b[-1] if b else (NUM.findall(completion or "") or [None])[-1]
     got = to_number(cand)
     return 1.0 if got is not None and got == to_number(solution) else 0.0
