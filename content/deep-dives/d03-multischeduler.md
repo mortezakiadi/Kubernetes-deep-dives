@@ -204,7 +204,7 @@ profiles:
   - you only list what you change; everything else keeps its default (on, with its default weight and settings);
   - only about half the plugins have settings at all, for example NodeResourcesFit (`scoringStrategy`), BalancedResourceAllocation (`resources`), InterPodAffinity, PodTopologySpread (default spread rules), NodeAffinity (an extra node filter for every pod), VolumeBinding and DefaultPreemption; others, like TaintToleration or ImageLocality, can only be switched on or off and weighted;
   - there's at most one `pluginConfig` entry per plugin in each profile, and each profile can have its own.
-> **Note: different scoring for different pods**
+> **Note: different scoring and filtering for different pods**
 >
 > A pod can't pick plugins directly: every enabled scoring plugin runs for every pod, and the scores are added up. What a pod *can* pick is the **profile**, through `schedulerName`. So you create two profiles with different scoring, and each pod chooses one. For example, one profile without BalancedResourceAllocation and one without NodeResourcesFit's score:
 >
@@ -249,8 +249,39 @@ profiles:
 > - **The other scoring plugins still run** (ImageLocality, NodeAffinity, TaintToleration and others); you only removed one plugin from the sum. To make one plugin dominate instead of removing another, give it a high `weight` in that profile.
 > - **A pod's own spec already decides some of it:** NodeAffinity and InterPodAffinity only add points when the pod has preferred rules, so a pod without them gets nothing from those plugins anyway.
 > - **On EKS** you can't add profiles to the default scheduler, so you'd run these two profiles in your own kube-scheduler, as in the [second-scheduler appendix](#appendix-second-scheduler). One process can serve both names.
+>
+> **The same works at the filter stage.** Put `disabled` under `filter` instead of `score`, and that plugin stops removing nodes for the profile's pods. Filters have no weights, because they only say yes or no, so switching one off is the only plugin-level change there. For example, a profile whose pods ignore `NoSchedule` taints:
+>
+> ```yaml
+> apiVersion: kubescheduler.config.k8s.io/v1
+> kind: KubeSchedulerConfiguration
+> profiles:
+> - schedulerName: default-scheduler         # normal filtering #!
+> - schedulerName: taint-blind               # profile 2 #!
+>   plugins:
+>     filter:
+>       disabled:
+>       - name: TaintToleration              # turned off at the FILTER stage only #!
+> ---
+> apiVersion: v1
+> kind: Pod
+> metadata:
+>   name: node-debug
+> spec:
+>   schedulerName: taint-blind               # may land on tainted nodes #!
+>   containers:
+>   - name: debug
+>     image: busybox:1.36
+>     command: ["sleep", "3600"]
+> ```
+>
+> - **What changes:** for `taint-blind` pods, a node with a `NoSchedule` taint is no longer removed. Every other filter still runs, so the pod still needs to fit, match its required affinity and find its ports free.
+> - **Scoring is untouched:** TaintToleration still scores, so a node with a `PreferNoSchedule` taint is still ranked lower. Disabling a plugin at one stage leaves its other stages on.
+> - **The kubelet checks some rules again:** when the pod reaches the node, the kubelet re-checks resources, required node affinity, the node name, host ports and `NoExecute` taints, and rejects the pod if one fails ([kubelet admission source](https://github.com/kubernetes/kubernetes/blob/master/pkg/kubelet/lifecycle/predicate.go)). So this profile gets pods past `NoSchedule` taints only; a `NoExecute` taint still turns the pod away.
+> - **Usually a toleration is the better tool:** a pod that should run on tainted nodes can say so itself (`tolerations: [{operator: Exists}]`) on the normal scheduler. A filter-less profile makes sense when you can't edit the pods, and anyone who can set `schedulerName` gets past your taints, so treat it as a privilege.
+> - **Other filter changes don't switch plugins off:** they change a filter plugin's settings in `pluginConfig`, for example NodeAffinity's `addedAffinity` (a node rule every pod of the profile must also meet) or NodeResourcesFit's `ignoredResources` (extended resources the fit check skips) ([configuration reference](https://kubernetes.io/docs/reference/config-api/kube-scheduler-config.v1/)).
 
-- **Turning off a filter is rarely a good idea:** without TaintToleration, for example, pods would ignore every taint. Custom setups usually *add* plugins, such as a gang plugin at `permit`.
+- **Turning off a filter is rarely a good idea:** without TaintToleration, for example, pods would ignore every `NoSchedule` taint, as in the note above. Custom setups usually *add* plugins, such as a gang plugin at `permit`.
 
 > **Note: one file, several schedulers, and other schedulers' formats**
 >
