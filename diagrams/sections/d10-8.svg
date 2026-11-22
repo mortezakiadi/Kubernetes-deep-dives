@@ -25,20 +25,20 @@
 <text x="902" y="358" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >ECR registry, a copy</text>
 <text x="902" y="378" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >filled by ECR replication</text>
 <text x="322" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Images</text>
-<text x="322" y="131" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The kubelet pulls the image when a pod starts. ECR replication copies</text>
-<text x="322" y="148" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >new images ahead of time: copy once, then read locally.</text>
+<text x="322" y="131" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The kubelet may pull it when a container starts. ECR replication copies</text>
+<text x="322" y="148" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >new images ahead: copy once, read locally.</text>
 <path d="M322,170 L858,170" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
 <rect x="523.5" y="158" width="133.0" height="24" rx="12.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
 <text x="590.0" y="174.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >ECR replication</text>
 <text x="322" y="204" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Model weights</text>
-<text x="322" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >An init container or a volume mount reads them. S3 replication copies</text>
-<text x="322" y="240" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >the bucket ahead of time: copy once, then read locally.</text>
+<text x="322" y="223" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >An init container or volume mount can read them (this page's reading).</text>
+<text x="322" y="240" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >S3 replication copies the bucket ahead: copy once, read locally.</text>
 <path d="M322,262 L858,262" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
 <rect x="527.2" y="250" width="125.60000000000001" height="24" rx="12.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
 <text x="590.0" y="266.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >S3 replication</text>
 <text x="322" y="296" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Datasets</text>
-<text x="322" y="315" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A volume mount reads them. S3 replication copies new objects, and Batch</text>
-<text x="322" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Replication copies the objects that already exist.</text>
+<text x="322" y="315" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A volume mount can read them (this page's reading). S3 replication</text>
+<text x="322" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >copies new objects. Batch Replication copies existing ones.</text>
 <path d="M322,354 L858,354" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arT)"/>
 <rect x="527.2" y="342" width="125.60000000000001" height="24" rx="12.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
 <text x="590.0" y="358.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >S3 replication</text>
