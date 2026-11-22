@@ -98,6 +98,18 @@ def main():
     for e in evs:
         summary.append(f"| {e['id']} | {e['title']} | {sum(c['passed'] for c in e['checks'])} of {len(e['checks'])} |")
     body = "\n".join(scenario_section(e) for e in evs)
+    impl = HERE.parent
+    count = lambda pats: sum(len(p.read_text().splitlines()) for pat in pats for p in impl.glob(pat))
+    sizes = (f"The Terraform is about {round(count(['terraform/*/*.tf']), -1)} lines; the platform's code (launcher, stages, verifier, monitor, "
+             f"dataset generator) about {round(count(['launcher/*.py', 'workloads/*.py', 'workloads/*.sh', 'datasets/*.py']), -1)} lines of Python and shell; "
+             f"the recipes {count(['recipes/**/*.yaml'])} lines of YAML; the test code about {round(count(['tests/*.py']), -1)} lines.")
+    teardown = ""
+    td = evidence / "teardown.txt"
+    if td.exists():
+        teardown = ("**The teardown after the final run.** This is the output of `verify-clean.sh` after `down.sh` removed the build that produced "
+                    "the evidence above:\n\n```text\n" + td.read_text().strip() + "\n```")
+    head = head.replace("{{CODE_SIZE}}", sizes)
+    tail = tail.replace("{{TEARDOWN}}", teardown)
     page = head.replace("{{RESULT_SUMMARY}}", f"{passed} of {len(evs)} scenarios passed, {passed_checks} of {total_checks} checks.\n\n" + "\n".join(summary)) + "\n" + body + "\n" + tail
     out = repo / "content" / "appendix" / "a07-design-06-post-training.md"
     out.write_text(page)
