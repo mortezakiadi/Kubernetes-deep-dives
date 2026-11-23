@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="440px" viewBox="0 0 1420 440" style="background:#ffffff"><title>Recovery: what survives each failure</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="440" fill="#ffffff"/><rect x="20" y="30" width="1380" height="380" rx="14" fill="#f8fafc" fill-opacity=".55" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#334155">THE THREE FAILURES OF S09</text>
+<rect x="40" y="80" width="430" height="150" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="40" y="80" width="430" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="41" y="98" width="428" height="12" fill="#fef2f2"/>
+<text x="52" y="100" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Rollout engine lost</text>
+<text x="52" y="128" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the group is rebuilt (all-or-nothing);</text>
+<text x="52" y="145" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the NCCL group is broken, the trainer</text>
+<text x="52" y="162" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">blocks; the watchdog exits it;</text>
+<text x="52" y="179" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">JobSet starts a new trainer</text>
+<rect x="495" y="80" width="430" height="150" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="495" y="80" width="430" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="496" y="98" width="428" height="12" fill="#fef2f2"/>
+<text x="507" y="100" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Trainer pod lost</text>
+<text x="507" y="128" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">JobSet recreates the pod; it installs</text>
+<text x="507" y="145" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">its packages, restores the newest</text>
+<text x="507" y="162" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">complete checkpoint from the bucket,</text>
+<text x="507" y="179" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">re-forms the NCCL group and goes on</text>
+<rect x="950" y="80" width="430" height="150" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="950" y="80" width="430" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="951" y="98" width="428" height="12" fill="#fef2f2"/>
+<text x="962" y="100" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Trainer node lost</text>
+<text x="962" y="128" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the node and its disk are gone; the</text>
+<text x="962" y="145" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">node group launches a node, the image</text>
+<text x="962" y="162" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">is pulled again, the checkpoint comes</text>
+<text x="962" y="179" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">from the bucket</text>
+<rect x="40" y="260" width="1340" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="260" width="1340" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="278" width="1338" height="12" fill="#ecfdf5"/>
+<text x="52" y="280" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">What bounds the loss</text>
+<text x="52" y="308" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Work since the last checkpoint is repeated: the checkpoint interval (every 10 steps here) is the bound on it.</text>
+<text x="52" y="325" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Time to recover is the sum of the pod's start, the packages, the model and the checkpoint, and the NCCL handshake: measured in S09.</text>
+<text x="52" y="342" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Goodput is the share of the reserved GPU time that went into steps that counted.</text></svg>

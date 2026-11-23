@@ -83,27 +83,27 @@ PROSE = {
         ],
     },
     "S07": {
-        "intro": "The design's environment tier is a service of its own, scaled on its queue, so that the rollout GPUs do not wait for sandboxes. I gave every answer a chain of eight calls into a sandbox pool and compared a fixed pool of two workers with a pool that KEDA scales on the length of its queue, measuring what the trainer sees.",
+        "intro": "The design's environment tier is a service of its own, scaled on its queue, so that the rollout GPUs do not wait for sandboxes. I gave every answer four tool calls into a sandbox pool and compared a fixed pool of two workers with a pool that KEDA scales on the length of its queue, measuring what the trainer sees.",
         "trust": [
             "The two runs share everything except the pool: the same recipe, the same code task, the same calls per answer and the same time per call.",
             "The worker count and the queue length are sampled from the cluster every five seconds during each run.",
             "Every call is a message that a worker removes with a blocking pop and answers on its own result list, so the final queue length and the count of calls served are exact.",
         ],
         "why": [
-            "Two workers serve a few calls a second. A group of eight answers with eight calls each is sixty-four calls, and several groups are in flight, so the queue builds and scoring takes as long as the queue.",
+            "Two workers serve about six calls a second. A group of eight answers with four calls each is thirty-two calls, the trainer needs about twenty groups for one step, and the answers are short enough that a step takes that many. Scoring takes as long as the queue.",
             "KEDA reads the list's length every five seconds and sets the replica count to the length divided by the target per worker, up to the maximum; scaling on CPU would react only after the workers were already busy.",
             "The pool shrinks after a cooldown once the list is empty.",
         ],
     },
     "S08": {
-        "intro": "The design says slow drifts only matter on long runs, and that alerts should combine trends. I took a recipe whose step size is ten times too large, watched the signals the design names, fired a combined alert, found the last healthy checkpoint by query, and restarted from it twice: once with the same settings and once with a smaller step.",
+        "intro": "The design says slow drifts only matter on long runs, and that alerts should combine trends. I took a recipe whose step size is about three times too large, watched the signals the design names, fired a combined alert, found the last healthy checkpoint by query, and restarted from it twice: once with the same settings and once with the healthy recipe's step.",
         "trust": [
             "The alert rule's thresholds were set on the healthy run of S02 so that it never fires there, and were then applied unchanged to the unstable run.",
             "Damage is defined from the held-out score alone (more than 0.10 below the best so far) and is measured every five steps, independently of the alert's inputs.",
             "The checkpoint the query returns is checked to be in the bucket, and both restarts load that checkpoint's weights from it.",
         ],
         "why": [
-            "A step size that is too large moves the policy further than the importance ratio's clip can contain. Entropy falls, answers lengthen or collapse, groups stop carrying a gradient and more tokens are masked by the clip: the combined rule fires when two of those hold for three steps in a row.",
+            "A step size about three times too large moves the policy further than the importance ratio's clip can contain. Entropy falls, answers lengthen or collapse, groups stop carrying a gradient and more tokens are masked by the clip: the combined rule fires when two of those hold for three steps in a row.",
             "The held-out score falls later than the alert, because it is measured every five steps and the policy needs time to degrade.",
             "A restart with the same step size meets the same instability. A restart with a smaller step, a fresh optimizer and a different prompt order does not.",
         ],

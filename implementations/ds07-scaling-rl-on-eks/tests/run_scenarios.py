@@ -506,14 +506,14 @@ def redis_cmd(*args):
 
 def s07_environment():
     sc = Scenario("S07", "The environment tier: a sandbox pool that scales on its queue", "Rewards and environments at scale",
-                  "Give every answer a chain of tool calls in a sandbox pool and compare a fixed pool of two workers with a pool that KEDA scales on the length of its queue. Measure what the rollout fleet and the trainer see.")
+                  "Give every answer four tool calls in a sandbox pool and compare a fixed pool of two workers with a pool that KEDA scales on the length of its queue. Measure what the rollout fleet and the trainer see.")
     stop_runs()
     ensure_configs()
     settle_fleet(sc, 2)
-    env = {**SHORT, "TASK": "pyexec", "MAX_STEPS": 25, "TOOL_CALLS": 8, "EVAL_EVERY": 0, "MAX_COMPLETION": 512}
+    env = {**SHORT, "TASK": "pyexec", "MAX_STEPS": 5, "TOOL_CALLS": 4, "EVAL_EVERY": 0, "MAX_COMPLETION": 512, "WATCHDOG_S": 900}
     results = {}
     for label, rid, pool in (("fixed pool, 2 workers", "env-fixed", dict(workers_min=2, scaled=False, replicas=2, latency_ms=250)),
-                             ("pool scaled by queue length, 2 to 40 workers", "env-keda", dict(workers_min=2, workers_max=40, threshold=5, latency_ms=250))):
+                             ("pool scaled by queue length, 2 to 40 workers", "env-keda", dict(workers_min=2, workers_max=40, threshold=2, latency_ms=250))):
         kube("-n", NS, "delete", "scaledobject,deploy", "sandbox-workers", "--ignore-not-found", "--wait=true")
         redis_cmd("flushall")
         apply_yaml(manifests.sandbox_pool(**pool))
@@ -541,7 +541,7 @@ def s07_environment():
                         "done": int(redis_cmd("get", "sandbox:done") or 0)}
     f, k = results["env-fixed"], results["env-keda"]
     wf, wk = statistics.median(wall_steps(f["rows"])), statistics.median(wall_steps(k["rows"]))
-    show(sc, "python compare.py env-fixed env-keda   # 25 steps each, eight tool calls per answer",
+    show(sc, "python compare.py env-fixed env-keda   # 5 steps each, four tool calls per answer",
          f"{'':44s} fixed pool   scaled pool\n"
          f"{'peak sandbox workers':44s} {f['peak_workers']:10d}   {k['peak_workers']:11d}\n"
          f"{'peak queue length (calls waiting)':44s} {f['peak_queue']:10d}   {k['peak_queue']:11d}\n"
@@ -555,11 +555,11 @@ def s07_environment():
                                         "calls waiting (fixed pool)": ([x[0] - f["samples"][0][0] for x in f["samples"]], [max(x[2], 0) for x in f["samples"]])},
                 title="The sandbox pool during a run", xlabel="seconds since the run started", ylabel="count")
     CHARTS.append("S07-pool.png")
-    sc.expect("with two workers the queue builds up and the trainer's step is dominated by waiting for rewards", f["peak_queue"] >= 20 and steady(f["rows"], "rollout/score_s") > 2 * steady(k["rows"], "rollout/score_s"),
-              "Two workers serve about eight calls a second. A group of eight answers with eight calls each is sixty-four calls, and several groups are in flight.")
-    sc.expect("KEDA grows the pool when the queue grows: at least eight times the starting size", k["peak_workers"] >= 16,
-              "KEDA reads the length of the Redis list every five seconds and sets the replica count to the length divided by the target per worker, up to the maximum. Scaling on CPU would react only after the workers were busy.")
-    sc.expect("the scaled pool shortens the step by at least a third", wk < 0.67 * wf,
+    sc.expect("with two workers the queue builds up and the trainer's step is dominated by waiting for rewards", f["peak_queue"] >= 16 and steady(f["rows"], "rollout/score_s") > 2 * steady(k["rows"], "rollout/score_s"),
+              "Two workers serve about eight calls a second. A group of eight answers with four calls each is thirty-two calls, and the trainer needs about twenty groups for one step.")
+    sc.expect("KEDA grows the pool when the queue grows: at least four times the starting size", k["peak_workers"] >= 8,
+              "KEDA reads the length of the Redis list every five seconds and sets the replica count to the length divided by the target per worker (two), up to the maximum. The trainer scores one group at a time, so at most about thirty messages wait, which caps the pool near fifteen. Scaling on CPU would react only after the workers were busy.")
+    sc.expect("the scaled pool at least halves the step", wk < 0.5 * wf,
               "Same recipe, same model, same hardware. Only the number of workers behind the queue differs.")
     time.sleep(1)
     wait_for(lambda: pool_replicas()[1] <= 3, 360, 15)
@@ -582,14 +582,14 @@ def checkpoint_in_bucket(run_id, step):
 
 def s08_stability():
     sc = Scenario("S08", "Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something", "Stability over thousands of steps",
-                  "Take a recipe whose step size is ten times too large, watch the signals the design names, fire a combined alert, find the last healthy checkpoint by query, and restart from it twice: once with the same settings and once with a smaller step.")
+                  "Take a recipe whose step size is about three times too large, watch the signals the design names, fire a combined alert, find the last healthy checkpoint by query, and restart from it twice: once with the same settings and once with a smaller step.")
     stop_runs()
     settle_fleet(sc, 2)
     healthy = read_run(sc, "r1-center", {**BASE}, "the healthy recipe of S02")
     hrows = train_rows(healthy)
     fire_h, _ = drift.alerts(hrows)
-    unstable_env = {**BASE, "MAX_STEPS": 70, "LEARNING_RATE": "3e-5", "EVAL_EVERY": 5, "EVAL_PROBLEMS": 100, "CKPT_EVERY": 10, "CKPT_KEEP": 8}
-    recs = run_or_reuse(sc, "unstable", unstable_env, label="step size 3e-5 (ten times the healthy recipe's)", timeout=3000)
+    unstable_env = {**BASE, "MAX_STEPS": 60, "LEARNING_RATE": "1e-5", "EVAL_EVERY": 5, "EVAL_PROBLEMS": 100, "CKPT_EVERY": 10, "CKPT_KEEP": 8}
+    recs = run_or_reuse(sc, "unstable", unstable_env, label="step size 1e-5 (about three times the healthy recipe's)", timeout=3000)
     rows, ev = train_rows(recs), eval_rows(recs)
     fire, series = drift.alerts(rows)
     best = 0.0
@@ -616,7 +616,7 @@ def s08_stability():
     sc.expect("the combined rule stays silent for the whole healthy run", fire_h is None,
               "The thresholds were set on this run. A rule that fires on a healthy run is worse than none, because it teaches people to ignore it.")
     sc.expect("the unstable run damages the policy: the held-out score falls well below its own best", damage is not None,
-              "A step size ten times too large moves the policy further than the importance ratio's clip can contain.")
+              "A step size about three times too large moves the policy further than the importance ratio's clip can contain.")
     sc.expect("the combined alert fires, and before the damage shows in the held-out score", fire is not None and damage is not None and fire <= damage,
               "The held-out score is measured every five steps and needs time to fall. The training-side signals (entropy, length, informative groups, the share of tokens the importance clip masks) move first.")
     # the last healthy checkpoint is a query
@@ -629,15 +629,15 @@ def s08_stability():
     ev_ck = next((e["eval/pass_rate"] for e in ev if e["step"] == ck), None)
     # restart twice from that checkpoint
     env_common = {**BASE, "MAX_STEPS": 30, "EVAL_EVERY": 5, "EVAL_PROBLEMS": 100, "CKPT_EVERY": 1000, "RESUME_FROM": "unstable", "RESUME_STEP": ck, "SEED": 7}
-    same = run_or_reuse(sc, "restart-same", {**env_common, "LEARNING_RATE": "3e-5"}, label=f"from step {ck} with the same step size", timeout=2400)
-    smaller = run_or_reuse(sc, "restart-smaller", {**env_common, "LEARNING_RATE": "3e-6"}, label=f"from step {ck} with a step size ten times smaller", timeout=2400)
+    same = run_or_reuse(sc, "restart-same", {**env_common, "LEARNING_RATE": "1e-5"}, label=f"from step {ck} with the same step size", timeout=2400)
+    smaller = run_or_reuse(sc, "restart-smaller", {**env_common, "LEARNING_RATE": "3e-6"}, label=f"from step {ck} with the healthy recipe's step size", timeout=2400)
     es, el = eval_rows(same), eval_rows(smaller)
     show(sc, "python compare.py restart-same restart-smaller   # held-out score every five steps after the restart",
          f"checkpoint {ck} scored {ev_ck if ev_ck is None else round(ev_ck, 3)} before it was restored\n"
          f"same step size:   " + ", ".join(f"{e['step']}:{e['eval/pass_rate']:.2f}" for e in es) + "\n"
          f"smaller step:     " + ", ".join(f"{e['step']}:{e['eval/pass_rate']:.2f}" for e in el))
     chart_lines(OUT / "S08-restart.png", {"same step size": ([e["step"] for e in es], [e["eval/pass_rate"] for e in es]),
-                                          "ten times smaller step": ([e["step"] for e in el], [e["eval/pass_rate"] for e in el])},
+                                          "healthy step size (3e-6)": ([e["step"] for e in el], [e["eval/pass_rate"] for e in el])},
                 title=f"Restarting from the last healthy checkpoint (step {ck} of the unstable run)", ylabel="held-out pass rate", xlabel="steps after the restart")
     CHARTS.append("S08-restart.png")
     sc.expect("a restart with the same settings loses the policy again", bool(es) and min(e["eval/pass_rate"] for e in es) < (ev_ck or 0.6) - 0.10,
@@ -658,13 +658,13 @@ def wait_checkpoint_and_step(run_id, ck, step, timeout=1500):
 
 
 def recovery_report(run_id, t_kill):
+    """The old pod keeps logging for a few seconds after it is told to stop, so the first step of the new pod is found by the restart counter
+    the wrapper writes with every record, not by time."""
     recs = metrics(run_id)
     rows = train_rows(recs)
-    before = [r for r in rows if r["t"] <= t_kill]
-    after = [r for r in rows if r["t"] > t_kill]
-    first_after = after[0] if after else None
-    last_before = before[-1] if before else None
-    return recs, rows, last_before, first_after
+    before = [r for r in rows if r.get("restarts", 0) == 0]
+    after = [r for r in rows if r.get("restarts", 0) >= 1]
+    return recs, rows, (before[-1] if before else None), (after[0] if after else None)
 
 
 def goodput(rows, gpus=3):
@@ -775,7 +775,9 @@ def s10_ladder():
     m1 = stage_means(train_rows(center))
     m2 = stage_means(train_rows(think))
     un = lambda m: max(m["wall"] - (m["sync"] + m["train"] + m["wait"]), 0) / m["wall"]  # noqa: E731
-    restart_ok = any(run_status(x).get("completed") and run_status(x).get("restarts", 0) >= 1 for x in ("fail-pod", "fail-node", "fail-engine"))
+    # a restart is tested when a run's own records show a step taken by a restarted trainer, and the run went on to finish
+    restart_ok = any(any(r.get("restarts", 0) >= 1 for r in train_rows(m)) and any(r.get("kind") == "done" for r in m)
+                     for m in (metrics(x) for x in ("fail-pod", "fail-node", "fail-engine")))
     ev1 = {"ceiling_ci": 2 * fit["A_std"], "unexplained_wait": un(m1), "restart_tested": restart_ok}
     ok1, rows1 = ladder.gate(ladder.load("rung1-recipe.yaml")[0]["exit_criteria"], ev1)
     h2, r2, _ = curve(think)
@@ -829,7 +831,7 @@ def s10_ladder():
     sc.expect("the reference run completed and matches its baseline within tolerance", bool(rrows) and not flagged,
               "Same recipe, same code, same images, twenty steps. If a library upgrade changes the training dynamics or the step time, this run moves before a large one does.")
     bad = [dict(r, reward=(r.get("reward", 0) or 0) + 0.3) for r in base]
-    slow = [dict(r, t=r["t"] * 1.0 + i * 3.0) for i, r in enumerate(base)]
+    slow = [dict(r, run_seconds=r["run_seconds"] + i * 3.0) for i, r in enumerate(base)]
     sc.expect("the comparison flags a run whose reward or time per step has moved (made-up perturbations of the baseline)", compare_reference(bad, base)[2] and compare_reference(slow, base)[2] and not compare_reference(base, base)[2],
               "A tolerance that never fires is no check. The same function is applied to the baseline against itself (quiet), to a copy with a reward 0.3 higher (flagged), and to a copy with three more seconds per step (flagged).")
     return sc

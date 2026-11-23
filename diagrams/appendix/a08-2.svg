@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="760px" viewBox="0 0 1420 760" style="background:#ffffff"><title>The cluster: pools, workloads and the paths between them</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="760" fill="#ffffff"/><rect x="20" y="30" width="1380" height="710" rx="14" fill="#f8fafc" fill-opacity=".55" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#334155">EKS 1.37, ONE VPC, GPU NODES IN ONE ZONE (us-east-1a)</text>
+<rect x="40" y="70" width="330" height="300" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="54" y="94" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">SYSTEM POOL: 2 x m5.xlarge</text>
+<rect x="55" y="105" width="300" height="70" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="55" y="105" width="300" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="56" y="123" width="298" height="12" fill="#ecfdf5"/>
+<text x="67" y="125" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Controllers</text>
+<text x="67" y="153" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">JobSet, LeaderWorkerSet, KEDA,</text>
+<text x="67" y="170" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">NVIDIA device plugin</text>
+<rect x="55" y="190" width="300" height="70" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="55" y="190" width="300" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="56" y="208" width="298" height="12" fill="#ecfdf5"/>
+<text x="67" y="210" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Redis</text>
+<text x="67" y="238" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the sandbox queue and its results</text>
+<rect x="55" y="275" width="300" height="70" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="55" y="275" width="300" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="56" y="293" width="298" height="12" fill="#ecfdf5"/>
+<text x="67" y="295" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Experiment tools</text>
+<text x="67" y="323" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">iperf3, probes, one-off jobs</text>
+<rect x="40" y="390" width="330" height="330" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="54" y="414" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">ENV POOL: 2 x c6i.2xlarge</text>
+<rect x="55" y="425" width="300" height="130" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="55" y="425" width="300" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="56" y="443" width="298" height="12" fill="#fffbeb"/>
+<text x="67" y="445" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Sandbox workers</text>
+<text x="67" y="473" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">2 to 40 pods, 250m CPU each</text>
+<text x="67" y="490" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pop a call, run the code with</text>
+<text x="67" y="507" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a time and memory limit, answer</text>
+<text x="67" y="524" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">KEDA scales them on queue length</text>
+<rect x="400" y="70" width="400" height="650" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="414" y="94" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">TRAINER POOL: 1 x g5.2xlarge (A10G, 24 GB)</text>
+<rect x="420" y="110" width="360" height="150" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="420" y="110" width="360" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="421" y="128" width="358" height="12" fill="#eff6ff"/>
+<text x="432" y="130" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Trainer pod (JobSet)</text>
+<text x="432" y="158" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">TRL AsyncGRPOTrainer, bf16 compute,</text>
+<text x="432" y="175" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fp32 master weights</text>
+<text x="432" y="192" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">background rollout worker + queue</text>
+<text x="432" y="209" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">held-out evaluation every N steps</text>
+<rect x="420" y="290" width="360" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="420" y="290" width="360" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="421" y="308" width="358" height="12" fill="#eff6ff"/>
+<text x="432" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Checkpoint writer</text>
+<text x="432" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">node disk first (every N steps),</text>
+<text x="432" y="355" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a thread copies it to the bucket</text>
+<text x="432" y="372" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">and marks it COMPLETE last</text>
+<rect x="420" y="440" width="360" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="420" y="440" width="360" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="421" y="458" width="358" height="12" fill="#eff6ff"/>
+<text x="432" y="460" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Progress watchdog</text>
+<text x="432" y="488" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no new step for 420 s: exit,</text>
+<text x="432" y="505" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">so that the restart policy acts</text>
+<text x="432" y="522" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">(NCCL has no timeout)</text>
+<rect x="830" y="70" width="560" height="650" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="844" y="94" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">ROLLOUT POOL: 2 x g5.2xlarge (A10G, 24 GB)</text>
+<rect x="890" y="110" width="240" height="200" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="890" y="110" width="240" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="891" y="128" width="238" height="12" fill="#eff6ff"/>
+<text x="902" y="130" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">rollout-0 (leader)</text>
+<text x="902" y="158" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">vLLM 0.33, data-parallel</text>
+<text x="902" y="175" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">engine 0 + the API server</text>
+<text x="902" y="192" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">70% of GPU memory</text>
+<text x="902" y="209" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">(2 GiB headroom for</text>
+<text x="902" y="226" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the weight receive)</text>
+<rect x="1150" y="110" width="230" height="200" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1150" y="110" width="230" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1151" y="128" width="228" height="12" fill="#eff6ff"/>
+<text x="1162" y="130" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">rollout-0-1 (worker)</text>
+<text x="1162" y="158" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">vLLM, headless,</text>
+<text x="1162" y="175" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">data-parallel engine 1</text>
+<text x="1162" y="192" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">joins the leader over</text>
+<text x="1162" y="209" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the node network</text>
+<rect x="850" y="340" width="530" height="80" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="850" y="340" width="530" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="851" y="358" width="528" height="12" fill="#f8fafc"/>
+<text x="862" y="360" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">LeaderWorkerSet 'rollout', group size 2</text>
+<text x="862" y="388" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">RecreateGroupOnPodRestart: one engine lost, the group is rebuilt</text>
+<path d="M780 160 L890 160" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)" marker-start="url(#a-blue)"/>
+<rect x="793.8" y="139" width="82.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="835" y="151" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">HTTP control</text>
+<path d="M780 250 L890 250" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="803.1" y="229" width="63.800000000000004" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="835" y="241" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">NCCL data</text>
+<path d="M355 490 L400 250" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="338.8" y="369" width="82.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="380" y="381" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">reward calls</text>
+<rect x="850" y="460" width="530" height="100" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="850" y="460" width="530" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="851" y="478" width="528" height="12" fill="#f8fafc"/>
+<text x="862" y="480" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">State bucket (S3, through the gateway endpoint)</text>
+<text x="862" y="508" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">runs/&lt;run&gt;/metrics.jsonl and checkpoint-N/</text>
+<text x="862" y="525" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">restored by a new trainer pod after any failure</text>
+<path d="M780 350 L815 350 L815 510 L850 510" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="776.9" y="419" width="76.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="815" y="431" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">checkpoints</text>
+<text x="850" y="600" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">The network between the trainer's node and the rollout nodes is the VPC's node network,</text>
+<text x="850" y="618" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">measured with iperf3 in S01. There is no GPU fabric between nodes (no EFA, no NVLink):</text>
+<text x="850" y="636" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">that is why the weight push in S05 takes the time it does.</text></svg>

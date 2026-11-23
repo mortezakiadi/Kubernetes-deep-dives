@@ -145,22 +145,46 @@ def gsm8k():
     return train, held
 
 
+def _digits(x):
+    return [int(c) for c in str(abs(x))]
+
+
+def _collatz(x):
+    n = 0
+    while x != 1:
+        x = x // 2 if x % 2 == 0 else 3 * x + 1
+        n += 1
+    return n
+
+
+def _is_prime(x):
+    return int(x > 1 and all(x % d for d in range(2, int(x ** 0.5) + 1)))
+
+
+# Five kinds of small function. Measured on the base model before choosing (eight answers each): it gets 24% to 69% of the tests right, and no group of
+# eight answers scores the same for all eight. Kinds the model always gets right, or never, were left out: the trainer drops a group whose answers
+# all score the same, and a run made only of such groups never takes a step.
+TASKS = [
+    ("returns how many decimal digits of x are even", lambda x, k: sum(1 for d in _digits(x) if d % 2 == 0), (10, 99999)),
+    ("returns 1 if x is prime and 0 otherwise", lambda x, k: _is_prime(x), (1, 200)),
+    ("returns x with its decimal digits reversed", lambda x, k: int(str(x)[::-1]), (1, 99999)),
+    ("returns the number of positive divisors of x", lambda x, k: sum(1 for d in range(1, x + 1) if x % d == 0), (1, 100)),
+    ("returns the number of steps the Collatz process takes to reach 1 from x (halve if even, otherwise 3x+1)", lambda x, k: _collatz(x), (1, 40)),
+]
+
+
 def pyexec_tasks(n, seed):
-    """Small functions to write. The reward is the share of hidden tests that pass when the answer runs in the sandbox pool."""
+    """Small functions of mixed difficulty to write. The reward is the share of hidden tests that pass when the answer runs in the sandbox pool.
+    The tasks are hard enough that a 0.6B model gets some right and some wrong: a group whose answers all score the same carries no signal and
+    the trainer drops it."""
     rng = random.Random(seed)
     rows = []
     for _ in range(n):
-        a, b, c = rng.randint(2, 9), rng.randint(1, 20), rng.randint(2, 5)
-        kind = rng.choice(["lin", "mod", "poly"])
-        if kind == "lin":
-            spec, fn = f"returns {a} * x + {b}", (lambda x, a=a, b=b: a * x + b)
-        elif kind == "mod":
-            spec, fn = f"returns x modulo {a + 1}, plus {c}", (lambda x, a=a, c=c: x % (a + 1) + c)
-        else:
-            spec, fn = f"returns x squared minus {b}", (lambda x, b=b: x * x - b)
-        xs = [rng.randint(0, 30) for _ in range(5)]
-        rows.append({"prompt": [{"role": "user", "content": f"Write a Python function f(x) that {spec}. Reply with only the code in a ```python block."}],
-                     "tests": json.dumps([[x, fn(x)] for x in xs])})
+        spec, fn, (lo, hi) = rng.choice(TASKS)
+        k = rng.randint(2, 9)
+        xs = [rng.randint(lo, hi) for _ in range(6)]
+        rows.append({"prompt": [{"role": "user", "content": f"Write a Python function f(x) that {spec.format(k=k)}. Reply with only the code in a ```python block."}],
+                     "tests": json.dumps([[x, fn(x, k)] for x in xs])})
     return rows
 
 
@@ -182,18 +206,47 @@ class SandboxReward:
         r = self._redis()
         m = re.search(r"```python\n(.*?)```", text, re.S) or re.search(r"```\n(.*?)```", text, re.S)
         code = m.group(1) if m else ""
-        score = 0.0
-        for _ in range(self.calls):  # a chain of calls, one after the other, like the turns of an agent
+        ids = []
+        for _ in range(self.calls):  # the answer's calls go to the pool together, like the tool calls of one turn of an agent
             jid = uuid.uuid4().hex
+            ids.append(jid)
             r.lpush("sandbox:queue", json.dumps({"id": jid, "code": code, "tests": json.loads(t), "ts": time.time()}))
+        scores = []
+        for jid in ids:
             res = r.blpop(f"sandbox:result:{jid}", timeout=300)
-            score = json.loads(res[1])["passed"] if res else 0.0
-        return float(score)
+            scores.append(json.loads(res[1])["passed"] if res else 0.0)
+        return float(sum(scores) / len(scores))
 
     def __call__(self, completions, tests, **kwargs):
         texts = [(c[-1]["content"] if isinstance(c, list) else c) for c in completions]
+        t0 = time.time()
         with ThreadPoolExecutor(max(len(texts), 1)) as ex:  # the answers of a group are scored side by side
-            return list(ex.map(self._score_one, texts, tests))
+            scores = list(ex.map(self._score_one, texts, tests))
+        print(f"[reward] {len(scores)} answers scored in {time.time() - t0:.1f}s: {[round(x, 2) for x in scores]}", flush=True)
+        return scores
+
+
+class LocalReward:
+    """The same scoring without the queue: each answer's code runs in a child process of the trainer. Used to tell a problem in the queue from a problem in the task."""
+    __name__ = "local_reward"
+
+    def __call__(self, completions, tests, **kwargs):
+        import subprocess
+        import sys
+        harness = "import json,sys\nns={}\nexec(sys.argv[1],ns)\nt=json.loads(sys.argv[2]);ok=0\nfor x,w in t:\n    try: ok+=int(ns['f'](x)==w)\n    except Exception: pass\nprint(ok/len(t))"
+
+        def one(comp, t):
+            text = comp[-1]["content"] if isinstance(comp, list) else comp
+            m = re.search(r"```python\n(.*?)```", text, re.S)
+            if not m:
+                return 0.0
+            try:
+                p = subprocess.run([sys.executable, "-c", harness, m.group(1), t], capture_output=True, text=True, timeout=5)
+                return float(p.stdout.strip().splitlines()[-1])
+            except Exception:
+                return 0.0
+        with ThreadPoolExecutor(len(completions)) as ex:
+            return list(ex.map(one, completions, tests))
 
 
 # ------------------------------------------------------------------------------------------------------------
@@ -252,10 +305,10 @@ def main():
     if R.task == "gsm8k":
         train, held = gsm8k()
         rewards = accuracy_reward
-    else:
+    else:  # pyexec and pyexec-local
         from datasets import Dataset
         train, held = Dataset.from_list(pyexec_tasks(4000, R.seed)), []
-        rewards = SandboxReward(R.tool_calls)
+        rewards = LocalReward() if R.task == "pyexec-local" else SandboxReward(R.tool_calls)
 
     def log_line(rec):
         with METRICS.open("a") as f:

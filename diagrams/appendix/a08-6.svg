@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="420px" viewBox="0 0 1420 420" style="background:#ffffff"><title>Instances</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="420" fill="#ffffff"/><rect x="20" y="20" width="1380" height="380" rx="10" fill="#fff" stroke="#cbd5e1"/>
+<text x="40" y="55" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">instance</text>
+<text x="220" y="55" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">count</text>
+<text x="300" y="55" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">pool</text>
+<text x="430" y="55" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">what runs on it</text>
+<text x="800" y="55" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">size</text>
+<text x="1180" y="55" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">price</text>
+<line x1="30" y1="68" x2="1390" y2="68" stroke="#e2e8f0"/>
+<text x="40" y="90" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">m5.xlarge</text>
+<text x="220" y="90" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">2</text>
+<text x="300" y="90" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">system pool</text>
+<text x="430" y="90" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">controllers, KEDA, Redis, tools</text>
+<text x="800" y="90" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">4 vCPU, 16 GiB</text>
+<text x="1180" y="90" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">$0.19 / h each</text>
+<line x1="30" y1="116" x2="1390" y2="116" stroke="#e2e8f0"/>
+<text x="40" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">c6i.2xlarge</text>
+<text x="220" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">2</text>
+<text x="300" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">env pool</text>
+<text x="430" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">sandbox workers (2 to 40 pods)</text>
+<text x="800" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">8 vCPU, 16 GiB, 110 pods each</text>
+<text x="1180" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">$0.34 / h each</text>
+<line x1="30" y1="164" x2="1390" y2="164" stroke="#e2e8f0"/>
+<text x="40" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">g5.2xlarge</text>
+<text x="220" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">1</text>
+<text x="300" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">trainer pool</text>
+<text x="430" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">trainer pod, one A10G (24 GB)</text>
+<text x="800" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">8 vCPU, 32 GiB, 250 GB disk</text>
+<text x="1180" y="186" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">$1.21 / h</text>
+<line x1="30" y1="212" x2="1390" y2="212" stroke="#e2e8f0"/>
+<text x="40" y="234" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">g5.2xlarge</text>
+<text x="220" y="234" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">2</text>
+<text x="300" y="234" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">rollout pool</text>
+<text x="430" y="234" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">vLLM engines, one A10G each</text>
+<text x="800" y="234" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">8 vCPU, 32 GiB, 250 GB disk</text>
+<text x="1180" y="234" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">$1.21 / h each</text>
+<line x1="30" y1="260" x2="1390" y2="260" stroke="#e2e8f0"/>
+<text x="40" y="282" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">NAT gateway</text>
+<text x="220" y="282" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">1</text>
+<text x="300" y="282" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">network</text>
+<text x="430" y="282" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">image pulls, model downloads</text>
+<text x="800" y="282" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">one zone</text>
+<text x="1180" y="282" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">$0.045 / h + data</text>
+<line x1="30" y1="308" x2="1390" y2="308" stroke="#e2e8f0"/>
+<text x="40" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">S3 bucket</text>
+<text x="220" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">1</text>
+<text x="300" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">state</text>
+<text x="430" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">checkpoints, metrics</text>
+<text x="800" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">through the free gateway endpoint</text>
+<text x="1180" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">storage only</text>
+<text x="40" y="390" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">Total while idle: about $5.8 an hour (prices are the on-demand list prices in us-east-1 when this was built).</text></svg>

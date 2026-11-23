@@ -90,7 +90,7 @@ The Terraform is about 520 lines, the workload code (trainer wrapper, manifests,
 
 **Checkpoints and recovery.** Checkpoints go to the node's disk, and a thread uploads each file and then writes a `COMPLETE` marker last, so a half-copied checkpoint is never used. A new trainer pod restores the newest complete checkpoint from the bucket before it starts, and the library resumes the prompt cursor with it. A watchdog thread exits the process if no step finishes for 420 seconds, because NCCL has no timeout and a hang is not restarted by anything.
 
-**The environment tier.** For the code task each answer triggers a chain of calls: a call is a message on a Redis list, a worker pops it, runs the code in a child process with a time and memory limit, and answers on a result list. KEDA reads the length of the list every five seconds and sets the replica count from it. This is a throwaway pod running a few lines of arithmetic, not a hardened sandbox; Design 01 builds that.
+**The environment tier.** For the code task each answer sends four calls at once: a call is a message on a Redis list, a worker pops it, runs the code in a child process with a time and memory limit, and answers on a result list. KEDA reads the length of the list every five seconds and sets the replica count from it. This is a throwaway pod running a few lines of arithmetic, not a hardened sandbox; Design 01 builds that.
 
 **The ladder.** Rungs are overlay files that extend each other. Each declares one axis and may set only the settings of that axis; a function checks this before anything is scheduled. A gate function takes the overlay's exit criteria and the measured values and returns climb or hold, with every criterion shown.
 
