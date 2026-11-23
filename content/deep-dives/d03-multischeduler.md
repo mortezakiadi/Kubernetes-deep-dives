@@ -768,7 +768,7 @@ for step in range(100):
 > - **On EKS:** like the plugins scheduler, both run as an extra scheduler on your nodes. KAI needs the NVIDIA GPU Operator for GPU workloads, and its docs say to submit work in a namespace other than `kai-scheduler`.
 
 - **Option 4, Kubernetes' own gang scheduling (built into kube-scheduler):** the newest way needs no extra project. Upstream Kubernetes now has a native **Workload API** with gang scheduling in the default scheduler itself: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default. On EKS there is no documented way to switch it on yet, so options 1 to 3 are what you can use today (see the note below).
-  - **When options 1 to 3 still make sense once option 4 is available:** native gang scheduling only places a group all-or-nothing. It needs no extra program, so for that one job it's the simplest choice.
+  - **When options 1 to 3 still make sense once option 4 is available:** option 4 does one thing, placing a group all-or-nothing. Each of the other options is still the right choice when you need more than that:
   - **Option 1, the scheduler-plugins project:** native gang scheduling replaces its coscheduling plugin. The project stays useful when you also want its other plugins, such as hardware-layout-aware or load-aware placement, at the cost of running and upgrading a second scheduler.
   - **Option 2, Kueue:** still needed for team budgets, queues, borrowing and fair sharing, which native gang scheduling doesn't do. The two work together: Kueue decides when a job may start, and the default scheduler places its pods as one group.
   - **Option 3, Volcano or KAI:** still worth it when you need what they add, such as GPU topology placement, sharing parts of a GPU or their own queues, and accept replacing the scheduler for those pods.
@@ -786,7 +786,11 @@ for step in range(100):
 >
 > **On a Job.** The Job controller can create the group for you, but this is a separate alpha feature (since 1.36) with its own gate, `WorkloadWithJob`, on top of `GenericWorkload` ([Workload API docs](https://kubernetes.io/docs/concepts/workloads/workload-api/)). You opt in with `.spec.scheduling.schedulingPolicy.gang` on the Job. If you leave out `minCount`, it defaults to the Job's `parallelism`, so every pod must fit. The `disruptionMode` setting decides whether preemption may take the Job's pods one at a time (`single`) or only as a whole (`all`). After creation the `.spec.scheduling` block cannot change, except `minCount` ([1.37 release post](https://kubernetes.io/blog/2026/09/08/kubernetes-v1-37-advancing-workload-aware-scheduling/)).
 
-- **Inference needs it too:** model-parallel *inference* has the same property. If one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
+- **Inference needs it too:** gang scheduling isn't only a training problem. Serving a very large model has the same all-or-nothing need:
+  - **Model-parallel and shards:** some models are too big for one machine's GPUs, so the model is cut into pieces. Each piece is a shard, and each shard runs in its own pod on its own node. For example, a model split across 2 nodes with 8 GPUs each becomes 2 pods.
+  - **A replica:** those pods together are one working copy of the model that can answer requests. Every request passes through all the shards, because each pod holds only part of the model.
+  - **Why all-or-nothing scheduling:** if only one of the 2 pods gets a node, the replica can't answer a single request. The placed pod sits on its GPUs doing nothing, like the 7 of 8 training workers above.
+  - **Why group restarts:** if one shard's pod dies, the others can't carry on without the part of the model it held. The whole group has to be restarted together, not just the pod that failed.
 
 ### Topology bin-packing
 
