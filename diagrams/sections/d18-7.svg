@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 784" width="1180" height="784" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Who the pod is, and which road it takes</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >On each road, the bold text is the identity step and the grey text is the path. The box on the right is the cost, where a number was read.</text>
+<rect x="24" y="84" width="226" height="584" rx="14" fill="#f7faff" stroke="#3b6fd8" stroke-width="2.2" />
+<text x="40" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#3b6fd8" text-anchor="start" >Your cluster</text>
+<rect x="38" y="128" width="198" height="96" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="48" y="150" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Training pod</text>
+<text x="48" y="168" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >with a Kubernetes</text>
+<text x="48" y="185" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >service account</text>
+<path d="M250,136.0 L560,136.0" stroke="#2f9e5b" stroke-width="2.4" fill="none" marker-end="url(#arG)"/>
+<text x="260" y="108.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >EKS Pod Identity role on the service</text>
+<text x="260" y="124.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >account</text>
+<text x="260" y="156.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >gateway VPC endpoint</text>
+<rect x="560" y="106.0" width="210" height="60" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="570" y="128.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Amazon S3</text>
+<rect x="790" y="100.0" width="366" height="72" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4" />
+<text x="802" y="124.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >No additional charge for the endpoint.</text>
+<path d="M250,232.0 L560,232.0" stroke="#2f9e5b" stroke-width="2.4" fill="none" marker-end="url(#arG)"/>
+<text x="260" y="204.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >EKS Pod Identity role on the service</text>
+<text x="260" y="220.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >account</text>
+<text x="260" y="252.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NAT gateway</text>
+<rect x="380" y="221.0" width="100" height="22" rx="11" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="430" y="237.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >NAT gateway</text>
+<rect x="560" y="202.0" width="210" height="60" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="570" y="224.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Amazon S3</text>
+<rect x="790" y="196.0" width="366" height="72" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4" />
+<text x="802" y="220.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >$0.045 per hour and $0.045 per GB (AWS</text>
+<text x="802" y="237.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >example, US East (Ohio)).</text>
+<path d="M250,328.0 L560,328.0" stroke="#e08a1e" stroke-width="2.4" fill="none" marker-end="url(#arO)"/>
+<text x="260" y="316.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >IAM access control (not Kafka ACLs)</text>
+<text x="260" y="348.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >brokers in one subnet per zone; other</text>
+<text x="260" y="364.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >VPCs use PrivateLink</text>
+<rect x="560" y="298.0" width="210" height="60" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="570" y="320.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Amazon MSK</text>
+<rect x="790" y="292.0" width="366" height="72" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4" />
+<text x="802" y="316.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >This page's reading: $0.01 per GB each way</text>
+<text x="802" y="333.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >between zones (EC2 rate, read 2026-11-20, not</text>
+<text x="802" y="350.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >re-checked). MSK's own prices: not read.</text>
+<path d="M250,424.0 L560,424.0" stroke="#e08a1e" stroke-width="2.4" fill="none" marker-end="url(#arO)"/>
+<text x="260" y="396.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >IAM; on GKE, Workload Identity</text>
+<text x="260" y="412.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Federation</text>
+<text x="260" y="444.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >pull API from a pod, or an export</text>
+<text x="260" y="460.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >subscription with no pod</text>
+<rect x="560" y="394.0" width="210" height="60" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="570" y="416.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Pub/Sub</text>
+<rect x="790" y="388.0" width="366" height="72" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4" />
+<text x="802" y="412.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >$40 per TiB after the first 10 GiB a month. No</text>
+<text x="802" y="429.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >zone data-transfer fees.</text>
+<path d="M250,520.0 L560,520.0" stroke="#e08a1e" stroke-width="2.4" fill="none" marker-end="url(#arO)"/>
+<text x="260" y="492.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Role bigquery.readSessionUser. Steps for</text>
+<text x="260" y="508.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >an EKS pod: not read.</text>
+<text x="260" y="540.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Storage Read API</text>
+<rect x="560" y="490.0" width="210" height="60" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="570" y="512.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >BigQuery</text>
+<rect x="790" y="484.0" width="366" height="72" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4" />
+<text x="802" y="508.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Read in the same location: free. Streaming</text>
+<text x="802" y="525.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >reads: $1.10 per TiB.</text>
+<path d="M250,616.0 L560,616.0" stroke="#e08a1e" stroke-width="2.4" fill="none" marker-end="url(#arO)"/>
+<text x="260" y="588.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >OIDC token, audience</text>
+<text x="260" y="604.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >snowflakecomputing.com</text>
+<text x="260" y="636.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PrivateLink needs the Business Critical</text>
+<text x="260" y="652.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >edition</text>
+<rect x="560" y="586.0" width="210" height="60" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="570" y="608.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Snowflake</text>
+<rect x="790" y="580.0" width="366" height="72" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4" />
+<text x="802" y="604.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >X-Small warehouse (first generation): 1 credit</text>
+<text x="802" y="621.0" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >per hour. Price of a credit: not read.</text>
+<text x="24" y="690" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Prices were read on 2026-11-22, except the EC2 transfer price, which was read on 2026-11-20 and not re-checked.</text>
+<text x="24" y="708" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >NAT gateway = a managed AWS device that lets private subnets reach outside addresses. A gateway VPC endpoint is a route from your VPC to S3 or DynamoDB</text>
+<text x="24" y="726" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >that stays inside AWS.</text>
+<text x="24" y="744" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Colours follow the page rule: green is object storage, orange is a managed service. Sources: EKS Pod Identity, VPC gateway endpoint and pricing pages,</text>
+<text x="24" y="762" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >EC2 pricing, MSK pages, Pub/Sub pages and pricing, BigQuery pricing, Snowflake workload identity, PrivateLink and warehouse pages.</text>
+</svg>

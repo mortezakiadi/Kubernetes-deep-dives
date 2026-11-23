@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" width="1180" height="560" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >What is on the disk: three layers</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >Snapshot and file names are illustrative. The files need no server of their own. The Iceberg spec describes two ways to swap the pointer: a file-system rename, or a metastore or database.</text>
+<text x="24" y="94" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="start" >1. Pods: the engines (your cluster)</text>
+<rect x="24" y="104" width="158" height="30" rx="15.0" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="103.0" y="123.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="middle" >Flink job: writer</text>
+<rect x="214" y="104" width="149" height="30" rx="15.0" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="288.5" y="123.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="middle" >PyIceberg reader</text>
+<rect x="408" y="104" width="206" height="30" rx="15.0" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="511.0" y="123.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="middle" >Spark: reader or writer</text>
+<rect x="764" y="104" width="141" height="30" rx="15.0" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="834.5" y="123.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="middle" >delta-rs reader</text>
+<path d="M100,134 L100,214" stroke="#3b6fd8" stroke-width="2.2" fill="none" marker-end="url(#arB)"/>
+<text x="110" y="190" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >commit = a new snapshot</text>
+<path d="M300,134 L300,214" stroke="#3b6fd8" stroke-width="2.2" fill="none" marker-end="url(#arB)"/>
+<text x="310" y="190" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >reads snapshot N</text>
+<text x="310" y="207" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >while commit N+1 happens</text>
+<path d="M830,134 L830,214" stroke="#3b6fd8" stroke-width="2.2" fill="none" marker-end="url(#arB)"/>
+<text x="840" y="190" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >reads one version</text>
+<path d="M560,134 L560,214" stroke="#3b6fd8" stroke-width="2.2" fill="none" marker-end="url(#arB)"/>
+<text x="570" y="190" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="start" >reads or writes</text>
+<rect x="24" y="216" width="700" height="150" rx="12" fill="#ffffff" stroke="#2f9e5b" stroke-width="2" />
+<text x="40" y="242" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f9e5b" text-anchor="start" >2. Table format: Iceberg, a pointer and snapshots</text>
+<rect x="40" y="260" width="200" height="92" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="50" y="281" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Catalog pointer</text>
+<text x="50" y="298" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >swapped atomically</text>
+<text x="50" y="315" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >(metastore, database or</text>
+<text x="50" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >file-system rename)</text>
+<rect x="264" y="260" width="200" height="92" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="274" y="281" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Snapshot N</text>
+<text x="274" y="298" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >the state at one moment</text>
+<rect x="488" y="260" width="200" height="92" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="498" y="281" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Snapshot N+1</text>
+<text x="498" y="298" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >the new commit</text>
+<path d="M240,306 L264,306" stroke="#2f9e5b" stroke-width="2" fill="none" marker-end="url(#arG)"/>
+<path d="M464,306 L488,306" stroke="#2f9e5b" stroke-width="2" fill="none" marker-end="url(#arG)"/>
+<rect x="744" y="216" width="412" height="150" rx="12" fill="#ffffff" stroke="#2f9e5b" stroke-width="2" />
+<text x="760" y="242" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f9e5b" text-anchor="start" >2. Table format: Delta, a log folder next to the data</text>
+<rect x="760" y="260" width="120" height="92" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="770" y="281" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >A commit</text>
+<text x="770" y="298" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >one entry in</text>
+<text x="770" y="315" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >the log</text>
+<text x="770" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >folder</text>
+<rect x="890" y="260" width="120" height="92" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="900" y="281" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >The next</text>
+<text x="900" y="298" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >commit</text>
+<text x="900" y="315" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >one more</text>
+<text x="900" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >entry</text>
+<rect x="1020" y="260" width="120" height="92" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="1030" y="281" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >A periodic</text>
+<text x="1030" y="298" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >summary</text>
+<text x="1030" y="315" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >of the log</text>
+<path d="M374,366 L374,418" stroke="#2f9e5b" stroke-width="2.2" fill="none" marker-end="url(#arG)"/>
+<path d="M950,366 L950,418" stroke="#2f9e5b" stroke-width="2.2" fill="none" marker-end="url(#arG)"/>
+<text x="24" y="406" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f9e5b" text-anchor="start" >3. Files</text>
+<rect x="24" y="418" width="1132" height="96" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="2" />
+<text x="40" y="444" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Parquet files in object storage (S3 or Cloud Storage)</text>
+<text x="40" y="464" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Each Parquet file stores a table column by column. The table format says which files make up the table.</text>
+<rect x="40" y="476" width="148" height="26" rx="13.0" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="114.0" y="493.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >part-0001.parquet</text>
+<rect x="196" y="476" width="148" height="26" rx="13.0" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="270.0" y="493.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >part-0002.parquet</text>
+<rect x="352" y="476" width="148" height="26" rx="13.0" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="426.0" y="493.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >part-0003.parquet</text>
+<rect x="508" y="476" width="148" height="26" rx="13.0" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="582.0" y="493.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >part-0004.parquet</text>
+<text x="24" y="538" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sources: Iceberg specification, Delta protocol, Parquet format page. Writers and readers: the Iceberg Flink and PyIceberg pages, delta-rs README.</text>
+</svg>

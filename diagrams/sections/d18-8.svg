@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 712" width="1180" height="712" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >From producers to GPUs</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >2 TB, 8 files, 4 training processes and 4 loader workers each are illustrative. Route D belongs to the deep dive on distributed storage and data volume for training.</text>
+<text x="24" y="98" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#5b6675" text-anchor="start" >Producers</text>
+<rect x="24" y="112" width="240" height="60" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="34" y="133" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Spark batch job</text>
+<text x="34" y="150" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >started by Airflow or Dagster</text>
+<rect x="24" y="186" width="240" height="60" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="34" y="207" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Flink stream job</text>
+<text x="34" y="224" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >writes Iceberg tables</text>
+<rect x="24" y="260" width="240" height="60" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="34" y="281" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Kafka (your cluster)</text>
+<text x="34" y="298" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Kafka Connect sink writes</text>
+<text x="34" y="315" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Iceberg</text>
+<rect x="24" y="334" width="240" height="60" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="34" y="355" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Pub/Sub (managed)</text>
+<text x="34" y="372" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >export subscription to</text>
+<text x="34" y="389" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >BigQuery or Cloud Storage</text>
+<rect x="24" y="408" width="240" height="60" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="34" y="429" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Warehouse export</text>
+<text x="34" y="446" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >BigQuery export, Snowflake</text>
+<text x="34" y="463" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >unload</text>
+<path d="M264,142 L292,142" stroke="#5b6675" stroke-width="2" fill="none"/>
+<path d="M264,216 L292,216" stroke="#5b6675" stroke-width="2" fill="none"/>
+<path d="M264,290 L292,290" stroke="#5b6675" stroke-width="2" fill="none"/>
+<path d="M264,364 L292,364" stroke="#5b6675" stroke-width="2" fill="none"/>
+<path d="M264,438 L292,438" stroke="#5b6675" stroke-width="2" fill="none"/>
+<path d="M292,142 L292,438" stroke="#5b6675" stroke-width="2" fill="none"/>
+<path d="M292,162 L330,162" stroke="#5b6675" stroke-width="2.2" fill="none" marker-end="url(#ar)"/>
+<rect x="330" y="112" width="270" height="100" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="2" />
+<text x="340" y="136" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >The lake</text>
+<text x="340" y="156" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Parquet files and an Iceberg or</text>
+<text x="340" y="173" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Delta table in object storage,</text>
+<text x="340" y="190" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >read at one snapshot.</text>
+<rect x="330" y="262" width="270" height="100" rx="10" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 4" />
+<text x="340" y="283" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Staged copy near the GPUs</text>
+<text x="340" y="300" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Owned by the deep dive on</text>
+<text x="340" y="317" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >distributed storage and data</text>
+<text x="340" y="334" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >volume for training.</text>
+<path d="M465.0,212 L465.0,262" stroke="#2f9e5b" stroke-width="2.2" fill="none" marker-end="url(#arG)"/>
+<text x="475.0" y="242" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >copy</text>
+<rect x="330" y="412" width="270" height="80" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="340" y="433" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Warehouse</text>
+<text x="340" y="450" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >BigQuery or Snowflake, queried</text>
+<text x="340" y="467" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >through an API</text>
+<rect x="330" y="532" width="270" height="80" rx="10" fill="#ffffff" stroke="#7b8794" stroke-width="1.6" />
+<text x="340" y="553" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Public dataset hub</text>
+<text x="340" y="570" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >for example Hugging Face</text>
+<rect x="900" y="84" width="256" height="528" rx="14" fill="#f7faff" stroke="#3b6fd8" stroke-width="2.2" />
+<text x="914" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#3b6fd8" text-anchor="start" >Training pods</text>
+<text x="914" y="130" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >your cluster</text>
+<rect x="912" y="148" width="232" height="118" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="922" y="169" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Loader workers</text>
+<text x="922" y="186" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >num_workers for each</text>
+<text x="922" y="203" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >training process (4</text>
+<text x="922" y="220" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >illustrative). Each worker</text>
+<text x="922" y="237" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >needs a share of the shards.</text>
+<rect x="912" y="280" width="232" height="176" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="922" y="301" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Shard rule</text>
+<text x="922" y="318" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >This page's reading: files</text>
+<text x="922" y="335" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >or shards must be at least</text>
+<text x="922" y="352" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >the number of loader workers</text>
+<text x="922" y="369" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >in all processes. Here 4 x 4</text>
+<text x="922" y="386" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >= 16 workers share 8 files,</text>
+<text x="922" y="403" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >so 8 workers have nothing to</text>
+<text x="922" y="420" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >read (illustrative).</text>
+<rect x="912" y="472" width="232" height="60" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="922" y="493" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >GPUs</text>
+<text x="922" y="510" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >kept busy by the loaders</text>
+<path d="M600,162 L900,162" stroke="#2f9e5b" stroke-width="2.6" fill="none" marker-end="url(#arG)"/>
+<rect x="614" y="132" width="24" height="24" rx="12.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="626.0" y="148.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >A</text>
+<text x="646" y="150" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >read files directly</text>
+<path d="M600,312 L900,312" stroke="#9aa5b1" stroke-width="2.6" fill="none" stroke-dasharray="3 4" marker-end="url(#ar)"/>
+<rect x="614" y="282" width="24" height="24" rx="12.0" fill="#7b8794" stroke="#7b8794" stroke-width="0" />
+<text x="626.0" y="298.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >D</text>
+<text x="646" y="300" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="start" >staged copy</text>
+<path d="M600,452 L900,452" stroke="#e08a1e" stroke-width="2.6" fill="none" marker-end="url(#arO)"/>
+<rect x="614" y="422" width="24" height="24" rx="12.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="626.0" y="438.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >B</text>
+<text x="646" y="440" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#e08a1e" text-anchor="start" >warehouse API</text>
+<path d="M600,572 L900,572" stroke="#7b8794" stroke-width="2.6" fill="none" stroke-dasharray="7 5" marker-end="url(#ar)"/>
+<rect x="614" y="542" width="24" height="24" rx="12.0" fill="#7b8794" stroke="#7b8794" stroke-width="0" />
+<text x="626.0" y="558.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle" >C</text>
+<text x="646" y="560" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7b8794" text-anchor="start" >hub streaming</text>
+<text x="24" y="636" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Colours: blue runs on your cluster, orange is a managed service, green is files, grey is owned by another page or a public hub. Arrow colour follows its</text>
+<text x="24" y="654" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >source: route C is grey because the hub is grey. Routes: A reads lake files directly. B asks a warehouse through an API, which suits small, selective</text>
+<text x="24" y="672" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >reads. C streams a public dataset while the loader iterates. D copies the data to storage near the GPUs first.</text>
+<text x="24" y="690" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sources: PyArrow, PyIceberg, delta-rs, Ray Data, Hugging Face streaming and PyTorch data pages; BigQuery, Snowflake, Iceberg and Kubeflow Trainer pages.</text>
+</svg>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 584" width="1180" height="584" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Parquet file layout</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >Two row groups and three columns, illustrative. Drawn from the Parquet format page.</text>
+<rect x="24" y="84" width="560" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="34" y="105" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >4-byte magic number PAR1</text>
+<rect x="24" y="124" width="560" height="154" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.6" stroke-dasharray="6 4" />
+<text x="34" y="144" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >Row group 1: one column chunk for each column</text>
+<rect x="44" y="154" width="520" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="54" y="175" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Column 1 chunk 1</text>
+<text x="554" y="175" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="end" >made of pages</text>
+<rect x="44" y="194" width="520" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="54" y="215" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Column 2 chunk 1</text>
+<text x="554" y="215" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="end" >made of pages</text>
+<rect x="44" y="234" width="520" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="54" y="255" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Column 3 chunk 1</text>
+<text x="554" y="255" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="end" >made of pages</text>
+<rect x="24" y="286" width="560" height="154" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.6" stroke-dasharray="6 4" />
+<text x="34" y="306" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="start" >Row group 2: one column chunk for each column</text>
+<rect x="44" y="316" width="520" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="54" y="337" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Column 1 chunk 2</text>
+<text x="554" y="337" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="end" >made of pages</text>
+<rect x="44" y="356" width="520" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="54" y="377" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Column 2 chunk 2</text>
+<text x="554" y="377" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="end" >made of pages</text>
+<rect x="44" y="396" width="520" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="54" y="417" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Column 3 chunk 2</text>
+<text x="554" y="417" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="end" >made of pages</text>
+<rect x="24" y="448" width="560" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="34" y="469" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >File metadata</text>
+<text x="574" y="469" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="end" >locations of all column chunks</text>
+<rect x="24" y="488" width="560" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="34" y="509" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >4-byte length of the file metadata</text>
+<rect x="24" y="528" width="560" height="34" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="34" y="549" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >4-byte magic number PAR1</text>
+<text x="624" y="108" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="start" >A reader</text>
+<text x="624" y="128" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >1. reads the file metadata at the end,</text>
+<text x="624" y="148" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >2. finds the column chunks it needs,</text>
+<text x="624" y="168" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >3. reads those chunks one after the other,</text>
+<text x="624" y="188" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >4. skips pages and columns it does not need.</text>
+<text x="624" y="222" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="start" >Units of parallelization (format page)</text>
+<text x="624" y="242" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >MapReduce: file or row group</text>
+<text x="624" y="262" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >I/O: column chunk</text>
+<text x="624" y="282" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Encoding and compression: page</text>
+</svg>

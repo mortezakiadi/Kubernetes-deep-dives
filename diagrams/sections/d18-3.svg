@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 690" width="1180" height="690" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Control plane, then one pod for each task or run</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >The always-on parts are small (this page's reading). The pods that they start carry the cost. Pod counts are illustrative.</text>
+<rect x="24" y="84" width="480" height="400" rx="14" fill="#f7faff" stroke="#3b6fd8" stroke-width="2.2" />
+<text x="40" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#3b6fd8" text-anchor="start" >Orchestrator namespace: always on</text>
+<rect x="634" y="84" width="522" height="400" rx="14" fill="#f7faff" stroke="#3b6fd8" stroke-width="2.2" />
+<text x="650" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#3b6fd8" text-anchor="start" >Work namespace: pods that do the work</text>
+<rect x="36" y="128" width="456" height="168" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="48" y="152" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Airflow (Helm chart)</text>
+<rect x="48" y="166" width="212" height="54" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="58" y="187" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Scheduler</text>
+<rect x="270" y="166" width="212" height="54" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="280" y="187" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >DAG processor</text>
+<rect x="48" y="228" width="212" height="54" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="58" y="249" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >API server</text>
+<rect x="270" y="228" width="212" height="54" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="280" y="249" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Metadata database</text>
+<text x="280" y="266" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PostgreSQL or MySQL</text>
+<rect x="36" y="312" width="456" height="168" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="48" y="336" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Dagster (Helm chart)</text>
+<rect x="48" y="350" width="212" height="54" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="58" y="371" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Daemon</text>
+<rect x="270" y="350" width="212" height="54" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="280" y="371" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >Web server</text>
+<rect x="48" y="412" width="212" height="54" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="58" y="433" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >PostgreSQL container</text>
+<rect x="270" y="412" width="212" height="54" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="280" y="433" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start" >User code server</text>
+<text x="280" y="450" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >gRPC, your image</text>
+<rect x="646" y="128" width="316" height="168" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="658" y="152" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Airflow task pods</text>
+<rect x="658" y="164" width="65" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="690.5" y="180.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >task 1</text>
+<rect x="729" y="164" width="65" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="761.5" y="180.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >task 2</text>
+<rect x="800" y="164" width="65" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="832.5" y="180.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >task N</text>
+<text x="658" y="212" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The Kubernetes executor runs each task</text>
+<text x="658" y="229" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >in its own pod.</text>
+<text x="658" y="250" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Pod template: the first container is</text>
+<text x="658" y="267" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >named base.</text>
+<rect x="646" y="312" width="316" height="168" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="658" y="336" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Dagster run pods</text>
+<rect x="658" y="348" width="57" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="686.5" y="364.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >run 1</text>
+<rect x="721" y="348" width="57" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="749.5" y="364.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >run 2</text>
+<rect x="784" y="348" width="57" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="812.5" y="364.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >run N</text>
+<text x="658" y="396" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The K8sRunLauncher creates a</text>
+<text x="658" y="413" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Kubernetes Job for each run.</text>
+<text x="658" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Settings: runK8sConfig in the Helm</text>
+<text x="658" y="451" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >values.</text>
+<path d="M492,212 L646,212" stroke="#3b6fd8" stroke-width="2.2" fill="none" marker-end="url(#arB)"/>
+<text x="569.0" y="202" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >starts</text>
+<path d="M492,396 L646,396" stroke="#3b6fd8" stroke-width="2.2" fill="none" marker-end="url(#arB)"/>
+<text x="569.0" y="386" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >starts</text>
+<rect x="984" y="128" width="160" height="352" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 4" />
+<text x="994" y="152" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Log store</text>
+<text x="994" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >A persistent</text>
+<text x="994" y="191" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >volume or remote</text>
+<text x="994" y="208" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >logging. Without</text>
+<text x="994" y="225" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >it, Airflow logs</text>
+<text x="994" y="242" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >are lost when the</text>
+<text x="994" y="259" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >worker pods shut</text>
+<text x="994" y="276" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >down.</text>
+<path d="M962,278 L984,278" stroke="#9aa5b1" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+<text x="24" y="512" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e08a1e" text-anchor="start" >Managed versions, outside your cluster</text>
+<rect x="24" y="524" width="372" height="84" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" stroke-dasharray="7 5" />
+<text x="34" y="546" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Amazon MWAA</text>
+<text x="34" y="564" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Managed Airflow. It scales for you.</text>
+<rect x="404" y="524" width="372" height="84" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" stroke-dasharray="7 5" />
+<text x="414" y="546" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Google Managed Airflow</text>
+<text x="414" y="564" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Cloud Composer is being renamed to this.</text>
+<rect x="784" y="524" width="372" height="84" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" stroke-dasharray="7 5" />
+<text x="794" y="546" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Dagster+ control plane (Hybrid)</text>
+<text x="794" y="564" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Your code runs in containers that an agent you</text>
+<text x="794" y="581" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >operate starts.</text>
+<text x="24" y="632" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Pod settings go in the Airflow pod template and in Dagster's runK8sConfig. DAG = directed acyclic graph, which is one Airflow pipeline.</text>
+<text x="24" y="650" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sources: Airflow architecture, Kubernetes executor and Helm chart pages, Dagster Kubernetes pages, MWAA, Google Managed Airflow and Dagster+ Hybrid</text>
+<text x="24" y="668" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >pages.</text>
+</svg>

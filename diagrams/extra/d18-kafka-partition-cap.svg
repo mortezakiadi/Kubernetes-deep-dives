@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 496" width="1180" height="496" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Consumers against partitions (illustrative)</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >One topic with 6 partitions. In a consumer group, each partition goes to at most one consumer. A consumer box sits under the partitions that it reads.</text>
+<text x="24" y="100" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >4 consumers: C0 and C1 read 2 partitions each, C2 and C3 read 1 each</text>
+<rect x="24" y="114" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="66.0" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P0</text>
+<rect x="116" y="114" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="158.0" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P1</text>
+<rect x="208" y="114" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="250.0" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P2</text>
+<rect x="300" y="114" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="342.0" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P3</text>
+<rect x="392" y="114" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="434.0" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P4</text>
+<rect x="484" y="114" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="526.0" y="134" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P5</text>
+<rect x="24" y="158" width="176" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="112.0" y="178" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C0</text>
+<rect x="208" y="158" width="176" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="296.0" y="178" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C1</text>
+<rect x="392" y="158" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="434.0" y="178" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C2</text>
+<rect x="484" y="158" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="526.0" y="178" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C3</text>
+<text x="24" y="228" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >6 consumers: one partition for each consumer</text>
+<rect x="24" y="242" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="66.0" y="262" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P0</text>
+<rect x="116" y="242" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="158.0" y="262" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P1</text>
+<rect x="208" y="242" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="250.0" y="262" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P2</text>
+<rect x="300" y="242" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="342.0" y="262" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P3</text>
+<rect x="392" y="242" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="434.0" y="262" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P4</text>
+<rect x="484" y="242" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="526.0" y="262" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P5</text>
+<rect x="24" y="286" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="66.0" y="306" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C0</text>
+<rect x="116" y="286" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="158.0" y="306" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C1</text>
+<rect x="208" y="286" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="250.0" y="306" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C2</text>
+<rect x="300" y="286" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="342.0" y="306" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C3</text>
+<rect x="392" y="286" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="434.0" y="306" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C4</text>
+<rect x="484" y="286" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="526.0" y="306" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C5</text>
+<text x="24" y="356" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >10 consumers: 6 read one partition each, 4 are idle</text>
+<rect x="24" y="370" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="66.0" y="390" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P0</text>
+<rect x="116" y="370" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="158.0" y="390" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P1</text>
+<rect x="208" y="370" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="250.0" y="390" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P2</text>
+<rect x="300" y="370" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="342.0" y="390" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P3</text>
+<rect x="392" y="370" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="434.0" y="390" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P4</text>
+<rect x="484" y="370" width="84" height="30" rx="6" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="526.0" y="390" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >P5</text>
+<rect x="24" y="414" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="66.0" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C0</text>
+<rect x="116" y="414" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="158.0" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C1</text>
+<rect x="208" y="414" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="250.0" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C2</text>
+<rect x="300" y="414" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="342.0" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C3</text>
+<rect x="392" y="414" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="434.0" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C4</text>
+<rect x="484" y="414" width="84" height="30" rx="6" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="526.0" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >C5</text>
+<rect x="600" y="414" width="62" height="30" rx="6" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="4 3" />
+<text x="631" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >C6</text>
+<rect x="670" y="414" width="62" height="30" rx="6" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="4 3" />
+<text x="701" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >C7</text>
+<rect x="740" y="414" width="62" height="30" rx="6" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="4 3" />
+<text x="771" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >C8</text>
+<rect x="810" y="414" width="62" height="30" rx="6" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="4 3" />
+<text x="841" y="434" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >C9</text>
+<text x="24" y="476" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Blue = a consumer pod that reads. Grey dashed = an idle pod. Green = a partition.</text>
+</svg>

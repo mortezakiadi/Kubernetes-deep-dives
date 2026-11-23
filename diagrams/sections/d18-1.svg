@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 1028" width="1180" height="1028" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >What runs on your cluster, and what you connect to</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >Blue = pods that you size, place and patch. Orange = a managed service. Green = files in object storage that you connect to. Dashed orange line = a managed version of the same tool exists.</text>
+<rect x="24" y="84" width="580" height="654" rx="14" fill="#f7faff" stroke="#3b6fd8" stroke-width="2.2" />
+<text x="44" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#3b6fd8" text-anchor="start" >Your Kubernetes cluster</text>
+<rect x="232" y="95" width="253" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="358.5" y="111.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >you size, place and patch these</text>
+<rect x="44" y="128" width="520" height="66" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="54" y="150" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Spark driver and executor pods</text>
+<text x="54" y="168" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Started by a command or by an operator.</text>
+<path d="M564,161.0 L700,161.0" stroke="#e08a1e" stroke-width="2.2" fill="none" stroke-dasharray="7 5"/>
+<rect x="700" y="128" width="456" height="66" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="710" y="150" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Amazon EMR on EKS (Spark pods stay in your cluster)</text>
+<rect x="44" y="204" width="520" height="66" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="54" y="226" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Flink JobManager and TaskManager pods</text>
+<text x="54" y="244" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Started by Flink itself or by an operator.</text>
+<path d="M564,237.0 L700,237.0" stroke="#e08a1e" stroke-width="2.2" fill="none" stroke-dasharray="7 5"/>
+<rect x="700" y="204" width="456" height="66" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="710" y="226" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Amazon Managed Service for Apache Flink</text>
+<rect x="44" y="280" width="520" height="66" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="54" y="302" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Beam: no engine of its own</text>
+<text x="54" y="320" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >On a cluster, through the Flink runner or the Spark runner.</text>
+<path d="M564,313.0 L700,313.0" stroke="#e08a1e" stroke-width="2.2" fill="none" stroke-dasharray="7 5"/>
+<rect x="700" y="280" width="456" height="66" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="710" y="302" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Dataflow (Beam runner on Google Cloud)</text>
+<rect x="44" y="356" width="520" height="66" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="54" y="378" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Airflow scheduler, API server and task pods</text>
+<text x="54" y="396" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >One pod for each task.</text>
+<path d="M564,389.0 L700,389.0" stroke="#e08a1e" stroke-width="2.2" fill="none" stroke-dasharray="7 5"/>
+<rect x="700" y="356" width="456" height="66" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="710" y="378" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Amazon MWAA, Google Managed Airflow</text>
+<rect x="44" y="432" width="520" height="66" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="54" y="454" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Dagster daemon, web server and run pods</text>
+<text x="54" y="472" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >One pod for each run.</text>
+<path d="M564,465.0 L700,465.0" stroke="#e08a1e" stroke-width="2.2" fill="none" stroke-dasharray="7 5"/>
+<rect x="700" y="432" width="456" height="66" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="710" y="454" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Dagster+ control plane (Hybrid)</text>
+<rect x="44" y="508" width="520" height="66" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="54" y="530" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Kafka broker pods (Strimzi operator)</text>
+<text x="54" y="548" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Disk volumes and zone labels.</text>
+<path d="M564,541.0 L700,541.0" stroke="#e08a1e" stroke-width="2.2" fill="none" stroke-dasharray="7 5"/>
+<rect x="700" y="508" width="456" height="66" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="710" y="530" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Amazon MSK, Google Cloud Managed Service for Apache</text>
+<text x="710" y="548" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Kafka</text>
+<rect x="44" y="584" width="520" height="66" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="54" y="606" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Ray head and worker pods (KubeRay operator)</text>
+<text x="54" y="624" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Data loading and distributed Python.</text>
+<path d="M564,617.0 L700,617.0" stroke="#e08a1e" stroke-width="2.2" fill="none" stroke-dasharray="7 5"/>
+<rect x="700" y="584" width="456" height="66" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="710" y="606" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Anyscale (managed Ray)</text>
+<rect x="44" y="660" width="520" height="66" rx="10" fill="#dfe9fb" stroke="#3b6fd8" stroke-width="2.2" />
+<text x="54" y="682" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Training pods</text>
+<text x="54" y="708" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >They read what the tools on this page produce.</text>
+<rect x="24" y="762" width="580" height="140" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="34" y="784" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Object storage: Amazon S3 or Google Cloud Storage</text>
+<text x="34" y="802" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >A data lake is files here, read by engines in your pods. Parquet, Iceberg</text>
+<text x="34" y="819" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >and Delta Lake are layouts of these files. They are both: the bucket is</text>
+<text x="34" y="836" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >managed, and the readers, writers and clean-up jobs are your pods.</text>
+<rect x="44" y="868" width="72" height="24" rx="12.0" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="80.0" y="884.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >Parquet</text>
+<rect x="128" y="868" width="72" height="24" rx="12.0" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="164.0" y="884.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >Iceberg</text>
+<rect x="206" y="868" width="95" height="24" rx="12.0" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.4" />
+<text x="253.5" y="884.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2f9e5b" text-anchor="middle" >Delta Lake</text>
+<rect x="700" y="762" width="456" height="140" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="710" y="786" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Managed only: nothing to install</text>
+<text x="710" y="808" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Warehouses and Pub/Sub are managed only.</text>
+<text x="710" y="826" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >You connect to them from a pod.</text>
+<rect x="710" y="862" width="76" height="28" rx="14.0" fill="#ffffff" stroke="#e08a1e" stroke-width="1.4" />
+<text x="748.0" y="880.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e08a1e" text-anchor="middle" >Pub/Sub</text>
+<rect x="796" y="862" width="84" height="28" rx="14.0" fill="#ffffff" stroke="#e08a1e" stroke-width="1.4" />
+<text x="838.0" y="880.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e08a1e" text-anchor="middle" >BigQuery</text>
+<rect x="890" y="862" width="93" height="28" rx="14.0" fill="#ffffff" stroke="#e08a1e" stroke-width="1.4" />
+<text x="936.5" y="880.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e08a1e" text-anchor="middle" >Snowflake</text>
+<rect x="24" y="928" width="22" height="16" rx="4" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="54" y="941" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >runs on your cluster</text>
+<rect x="230" y="928" width="22" height="16" rx="4" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="260" y="941" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >managed service</text>
+<rect x="399" y="928" width="22" height="16" rx="4" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="429" y="941" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >files in object storage</text>
+<path d="M780,936 L830,936" stroke="#e08a1e" stroke-width="2.2" fill="none" stroke-dasharray="7 5"/>
+<text x="838" y="941" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >managed version of the same tool</text>
+<text x="24" y="970" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >MSK = Amazon Managed Streaming for Apache Kafka. MWAA = Amazon Managed Workflows for Apache Airflow. A pod count is not shown, because the picture shows</text>
+<text x="24" y="988" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >kinds of pods and not a real cluster.</text>
+<text x="24" y="1006" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sources: Spark, Flink, Airflow, Dagster, Strimzi, EMR on EKS, Ray, MSK and the managed services' own pages, listed in the text of this section.</text>
+</svg>

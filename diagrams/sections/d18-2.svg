@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 816" width="1180" height="816" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >What Spark, Flink and Beam create in your cluster</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >Pod counts are illustrative. A driver or JobManager is the pod that coordinates. Executors and TaskManagers are the pods that do the work.</text>
+<rect x="24" y="84" width="310" height="650" rx="14" fill="#f7faff" stroke="#3b6fd8" stroke-width="2.2" />
+<text x="40" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#3b6fd8" text-anchor="start" >Spark, on your cluster</text>
+<rect x="846" y="84" width="310" height="650" rx="14" fill="#f7faff" stroke="#3b6fd8" stroke-width="2.2" />
+<text x="862" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#3b6fd8" text-anchor="start" >Flink, on your cluster</text>
+<rect x="435" y="84" width="310" height="650" rx="14" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 4" />
+<text x="451" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#5b6675" text-anchor="start" >Beam: needs a runner</text>
+<rect x="36" y="132" width="286" height="100" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="46" y="154" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Driver pod</text>
+<text x="46" y="172" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Its service account must be allowed</text>
+<text x="46" y="189" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >to create pods, services and config</text>
+<text x="46" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >maps.</text>
+<path d="M179.0,232 L179.0,272" stroke="#3b6fd8" stroke-width="2.2" fill="none" marker-end="url(#arB)"/>
+<rect x="36" y="272" width="286" height="348" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="48" y="296" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Executor pods (count illustrative)</text>
+<rect x="48" y="308" width="95" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="95.5" y="324.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >executor 1</text>
+<rect x="149" y="308" width="95" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="196.5" y="324.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >executor 2</text>
+<rect x="250" y="308" width="95" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="297.5" y="324.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >executor N</text>
+<text x="48" y="358" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >CPU request:</text>
+<text x="48" y="376" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >spark.kubernetes.executor.request.cores</text>
+<text x="48" y="403" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Placement:</text>
+<text x="48" y="421" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >node selector. In a</text>
+<text x="48" y="438" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >SparkApplication also tolerations</text>
+<text x="48" y="455" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >and affinity. Optional Volcano</text>
+<text x="48" y="472" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >PodGroup.</text>
+<text x="48" y="499" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Scratch:</text>
+<text x="48" y="517" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >a volume named</text>
+<text x="48" y="534" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >spark-local-dir-... gets shuffle</text>
+<text x="48" y="551" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >data</text>
+<text x="48" y="578" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#7a4fc4" text-anchor="start" >Clean-up:</text>
+<text x="48" y="596" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >executors are deleted when the</text>
+<text x="48" y="613" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >job ends (default)</text>
+<rect x="36" y="636" width="286" height="62" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="46" y="658" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >The driver pod stays</text>
+<text x="46" y="676" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >in the Completed state until it is</text>
+<text x="46" y="693" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >cleaned up.</text>
+<rect x="858" y="132" width="150" height="100" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="868" y="154" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >JobManager pod</text>
+<text x="868" y="172" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Needs the right</text>
+<text x="868" y="189" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >to create and</text>
+<text x="868" y="206" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >delete pods.</text>
+<rect x="1020" y="132" width="128" height="100" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="1030" y="154" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >HA</text>
+<text x="1030" y="172" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >ConfigMaps</text>
+<text x="1030" y="190" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Pointers only.</text>
+<path d="M1008,182 L1020,182" stroke="#3b6fd8" stroke-width="2" fill="none" marker-end="url(#arB)"/>
+<path d="M933.0,232 L933.0,272" stroke="#3b6fd8" stroke-width="2.2" fill="none" marker-end="url(#arB)"/>
+<rect x="858" y="272" width="286" height="170" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.6" />
+<text x="870" y="296" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >TaskManager pods (count illustrative)</text>
+<rect x="870" y="308" width="50" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="895.0" y="324.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >TM 1</text>
+<rect x="926" y="308" width="50" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="951.0" y="324.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >TM 2</text>
+<rect x="982" y="308" width="50" height="24" rx="12.0" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.4" />
+<text x="1007.0" y="324.55" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#3b6fd8" text-anchor="middle" >TM N</text>
+<text x="870" y="358" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Flink starts them when needed and</text>
+<text x="870" y="375" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >releases idle ones.</text>
+<text x="870" y="398" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >To read logs of a released pod,</text>
+<text x="870" y="415" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >raise</text>
+<text x="870" y="432" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >resourcemanager.taskmanager-timeout.</text>
+<path d="M1001.0,442 L1001.0,482" stroke="#2f9e5b" stroke-width="2.2" fill="none" marker-end="url(#arG)"/>
+<rect x="858" y="482" width="286" height="134" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6" />
+<text x="868" y="504" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Object storage or a shared</text>
+<text x="868" y="522" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >volume</text>
+<text x="868" y="540" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Checkpoint folder and HA storage</text>
+<text x="868" y="557" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >folder. Every pod must reach it.</text>
+<text x="868" y="574" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >For HA, ReadWriteMany is</text>
+<text x="868" y="591" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >recommended and ReadWriteOnce may</text>
+<text x="868" y="608" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >cause mount failures.</text>
+<rect x="447" y="132" width="286" height="100" rx="10" fill="#ffffff" stroke="#7b8794" stroke-width="1.6" />
+<text x="457" y="154" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Beam program</text>
+<text x="457" y="172" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >A model for batch and stream</text>
+<text x="457" y="189" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >pipelines. It is not an engine.</text>
+<path d="M447,182 L334,182" stroke="#7b8794" stroke-width="2.2" fill="none" marker-end="url(#ar)"/>
+<text x="390.5" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >Spark runner</text>
+<path d="M733,182 L846,182" stroke="#7b8794" stroke-width="2.2" fill="none" marker-end="url(#ar)"/>
+<text x="789.5" y="174" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6675" text-anchor="middle" >Flink runner</text>
+<path d="M590.0,232 L590.0,292" stroke="#e08a1e" stroke-width="2.2" fill="none" marker-end="url(#arO)"/>
+<text x="600.0" y="268" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#e08a1e" text-anchor="start" >Dataflow runner</text>
+<rect x="447" y="292" width="286" height="130" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.6" />
+<text x="457" y="314" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Dataflow (outside your cluster)</text>
+<text x="457" y="332" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >A managed Google Cloud service. It</text>
+<text x="457" y="349" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >allocates worker VMs and deletes</text>
+<text x="457" y="366" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >them when the job ends.</text>
+<rect x="447" y="442" width="286" height="130" rx="10" fill="#ffffff" stroke="#7b8794" stroke-width="1.6" />
+<text x="457" y="464" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Where Beam user code runs</text>
+<text x="457" y="482" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >environment_type: DOCKER (default,</text>
+<text x="457" y="499" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >needs Docker on each worker node),</text>
+<text x="457" y="516" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >PROCESS, EXTERNAL (an outside</text>
+<text x="457" y="533" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >service), LOOPBACK (tests only).</text>
+<text x="24" y="758" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Sources: Spark on Kubernetes, Kubeflow Spark operator guide, Flink native Kubernetes and Kubernetes HA pages, Beam runner and SDK harness pages,</text>
+<text x="24" y="776" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Dataflow overview.</text>
+<text x="24" y="794" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >ConfigMap = a Kubernetes object that holds small settings. HA = high availability. TM = TaskManager.</text>
+</svg>
