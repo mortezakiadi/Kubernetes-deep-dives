@@ -1443,6 +1443,14 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 
 
 <h3 id="d02-2">Gang scheduling</h3>
+<blockquote>
+<p><strong>Note: from Ray to gang scheduling, two different problems</strong></p>
+<ul>
+<li><strong>Gang scheduling is about pods on nodes:</strong> a job's pods must start all together or not at all, so a few running pods don't sit on GPUs waiting for the rest.</li>
+<li><strong>Ray is about work inside pods:</strong> it <mark class="kw-act">spreads</mark> many small tasks and long-lived actors over pods that already exist, moves their data, and collects the results.</li>
+<li><strong>Where they meet:</strong> a Ray cluster is itself a group of pods, so it can need <mark class="kw">gang scheduling</mark> too. With the default scheduler a Ray cluster can be only partly placed, which is why <mark class="kw-tool">KubeRay</mark> can hand its pods to <mark class="kw-tool">Volcano</mark>, <mark class="kw-tool">YuniKorn</mark> or coscheduling (<a href="https://docs.ray.io/en/latest/cluster/kubernetes/k8s-ecosystem/volcano.html">KubeRay with Volcano</a>). Ray's own placement groups do <mark class="kw">all-or-nothing</mark> one level down, for slots inside pods that already exist.</li>
+</ul>
+</blockquote>
 <p><strong>Scenario.</strong> A research team submits a distributed PyTorch job with 8 GPU workers. The cluster only has room for 6, so the default scheduler starts 6 workers and leaves 2 <code>Pending</code>. The 6 running workers sit idle for hours, burning expensive GPU time while they wait for teammates that may never arrive. How do you stop that from happening?</p>
 <figure class="diagram"><button aria-label="Open diagram full screen: Gang scheduling" class="open" data-src="diagrams/sections/d02-2.svg" data-title="Gang scheduling" type="button"><img alt="Diagram: Gang scheduling" decoding="async" loading="lazy" src="diagrams/sections/d02-2.svg"/><span class="hint">Open full screen</span></button></figure>
 <p><strong>What the picture shows.</strong> <mark class="kw">Gang scheduling</mark> (<mark class="kw">all-or-nothing</mark>) and why the default scheduler can't do it.</p>

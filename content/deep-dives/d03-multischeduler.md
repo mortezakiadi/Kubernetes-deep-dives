@@ -483,6 +483,12 @@ for step in range(100):
 
 ### Gang scheduling
 
+> **Note: from Ray to gang scheduling, two different problems**
+>
+> - **Gang scheduling is about pods on nodes:** a job's pods must start all together or not at all, so a few running pods don't sit on GPUs waiting for the rest.
+> - **Ray is about work inside pods:** it spreads many small tasks and long-lived actors over pods that already exist, moves their data, and collects the results.
+> - **Where they meet:** a Ray cluster is itself a group of pods, so it can need gang scheduling too. With the default scheduler a Ray cluster can be only partly placed, which is why KubeRay can hand its pods to Volcano, YuniKorn or coscheduling ([KubeRay with Volcano](https://docs.ray.io/en/latest/cluster/kubernetes/k8s-ecosystem/volcano.html)). Ray's own placement groups do all-or-nothing one level down, for slots inside pods that already exist.
+
 **Scenario.** A research team submits a distributed PyTorch job with 8 GPU workers. The cluster only has room for 6, so the default scheduler starts 6 workers and leaves 2 `Pending`. The 6 running workers sit idle for hours, burning expensive GPU time while they wait for teammates that may never arrive. How do you stop that from happening?
 
 ![Gang scheduling](diagrams/sections/d02-2.svg)
