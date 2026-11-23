@@ -1,0 +1,70 @@
+# S02: The trajectory as data: turns, log-probabilities, snapshots and a deterministic replay
+# Design reference: The trajectory as data: turns, snapshots and branch points
+
+$ lh.py rollout --run base --tasks <all 32> --seeds 0,1,2,3 --parallel 12
+job.batch/ro-base created
+ro-base Complete
+
+$ aws s3 ls s3://<bucket>/trajectories/base- | wc -l   # root attempts recorded
+128 trajectories in 1000 s
+
+$ aws s3 cp s3://<bucket>/trajectories/base-t2-16-s2.json - | jq '{task_id,bugs,env_image,seed,outcome,verifier_version,stop,summary_boundaries}'
+{
+ "task_id": "t2-16",
+ "bugs": 2,
+ "env_image": "public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b",
+ "seed": 2,
+ "outcome": 1.0,
+ "verifier_version": "lh-verify@1.0",
+ "stop": "submit",
+ "summary_boundaries": []
+}
+
+$ one turn of it (.turns[2]), observation shortened
+{
+ "index": 2,
+ "prompt_tokens": 497,
+ "completion_tokens": 61,
+ "action": {
+  "new": "return round(price * (1 - percent / 100), 2)",
+  "old": "return round(price * (1 - percent / 10), 2)",
+  "path": "shop/pricing.py",
+  "tool": "replace"
+ },
+ "logprobs_ref": "logprobs/base-t2-16-s2/002.json",
+ "context_ref": "contexts/base-t2-16-s2/002.json",
+ "policy_version": 0,
+ "entropy_first_action_token": 0.0009,
+ "snapshot_id": "snapshots/base-t2-16-s2/002.tgz",
+ "branch_reason": "edit",
+ "checks": {
+  "builds": true,
+  "existing_tests_pass": true,
+  "issue_examples": 2,
+  "issue_examples_fixed": 1,
+  "phi": 0.75,
+  "phi_in_place": 0.75
+ },
+ "observation": "replaced 1 occurrence in shop/pricing.py"
+}
+
+$ branch points chosen across all 128 trajectories, by reason
+{"edit": 300, "first-test-run": 111, "uncertain": 63, "every-3": 95}  (of 1024 turns)
+
+$ lh.py replay --run base-replay --trajectory base-t2-16-s2 --turn 2
+job.batch/rp-base-replay created
+rp-base-replay Complete
+
+$ aws s3 cp s3://<bucket>/curriculum/replay/base-replay/base-t2-16-s2.json -
+{"from_turn": 2, "replayed_turns": 7, "all_identical": true}
+{"same_observation": true, "same_state": true, "tool": "cat", "turn": 3}
+{"same_observation": true, "same_state": true, "tool": "replace", "turn": 4}
+{"same_observation": true, "same_state": true, "tool": "run_tests", "turn": 5}
+{"same_observation": true, "same_state": true, "tool": "invalid", "turn": 6}
+{"same_observation": true, "same_state": true, "tool": "write", "turn": 7}
+{"same_observation": true, "same_state": true, "tool": "run_tests", "turn": 8}
+
+[PASS] all 128 attempts were recorded
+[PASS] every turn has its context, its per-token log-probabilities from the rollout engine, its policy version and the environment's checks
+[PASS] only some turns are branch points, chosen by uncertainty, by important actions, or every third turn
+[PASS] replaying from the snapshot reproduced every observation and every state hash

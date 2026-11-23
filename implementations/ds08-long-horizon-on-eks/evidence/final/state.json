@@ -1,0 +1,96 @@
+{
+ "base_seconds": 1000,
+ "example": "base-t2-16-s2",
+ "csi_snapshot_s": 70,
+ "csi_restore_s": 22,
+ "tar_put_s": 0.03,
+ "base_stats": {
+  "1 bug(s)": {
+   "tasks": 8,
+   "attempts": 32,
+   "pass@1": 0.625,
+   "pass@4": 0.625,
+   "zero_variance_groups": 1.0,
+   "mean_turns": 5.375,
+   "partial_progress_of_failures": 0.458,
+   "recovery_rate": 0.0,
+   "early_stop": 0.125,
+   "loop_guard": 0.125,
+   "ran_out_of_turns": 0.0,
+   "false_claims": 0.0,
+   "in_place_over_fresh": 0.0,
+   "compacted_episodes": 0.0,
+   "env_seconds_per_attempt": 36.503,
+   "env_seconds_per_success": 58.4
+  },
+  "2 bug(s)": {
+   "tasks": 12,
+   "attempts": 48,
+   "pass@1": 0.271,
+   "pass@4": 0.417,
+   "zero_variance_groups": 0.75,
+   "mean_turns": 8.167,
+   "partial_progress_of_failures": 0.541,
+   "recovery_rate": 0.037,
+   "early_stop": 0.083,
+   "loop_guard": 0.083,
+   "ran_out_of_turns": 0.0,
+   "false_claims": 0.0,
+   "in_place_over_fresh": 0.0,
+   "compacted_episodes": 0.021,
+   "env_seconds_per_attempt": 64.602,
+   "env_seconds_per_success": 238.5
+  },
+  "3 bug(s)": {
+   "tasks": 12,
+   "attempts": 48,
+   "pass@1": 0.146,
+   "pass@4": 0.25,
+   "zero_variance_groups": 0.833,
+   "mean_turns": 9.583,
+   "partial_progress_of_failures": 0.651,
+   "recovery_rate": 0.0,
+   "early_stop": 0.083,
+   "loop_guard": 0.083,
+   "ran_out_of_turns": 0.0,
+   "false_claims": 0.0,
+   "in_place_over_fresh": 0.0,
+   "compacted_episodes": 0.0,
+   "env_seconds_per_attempt": 96.796,
+   "env_seconds_per_success": 663.7
+  }
+ },
+ "credit_trajs": [
+  "base-t2-12-s0",
+  "base-t2-17-s2",
+  "base-t3-20-s0",
+  "base-t3-23-s0",
+  "base-t2-09-s0",
+  "base-t2-12-s1"
+ ],
+ "credit_recs": [
+  "base-t2-12-s0",
+  "base-t2-17-s2",
+  "base-t3-20-s0",
+  "base-t3-23-s0",
+  "base-t2-09-s0",
+  "base-t2-12-s1"
+ ],
+ "credit_corr": 0.875,
+ "credit_sign": 0.944,
+ "shaping_loop": {
+  "potential": 0.0,
+  "naive": 0.3,
+  "outcome": 0.0
+ },
+ "shaping_cheat": {
+  "potential": -0.05,
+  "naive": 0.1,
+  "outcome": 0.0
+ },
+ "shaping_corr": {
+  "episodes": 128,
+  "potential_vs_outcome": 0.693,
+  "naive_tests_vs_outcome": -0.147
+ }
+}

@@ -1,0 +1,140 @@
+# S11: Branch rollouts fill spare capacity and yield to primary rollouts
+# Design reference: The infrastructure (the Kueue YAML)
+
+$ kubectl create -f branch-job.yaml   # 12 branch pods at branch-low priority: 6 CPUs, all of it borrowed
+job.batch/br-fill created
+
+$ kubectl get clusterqueue branches -o jsonpath='{.status.flavorsUsage}'
+[{"name": "env-cpu", "resources": [{"borrowed": "6", "name": "cpu", "total": "6"}, {"borrowed": "6Gi", "name": "memory", "total": "6Gi"}]}]
+
+$ lh.py rollout --run base-prio --tasks <3 tasks> --seeds 0,1 --parallel 6 --no-wait   # primary priority
+job.batch/ro-base-prio created
+
+$ kubectl -n rl-envs get workload <the branch job's> -o jsonpath='{.status.conditions[?(@.type=="Evicted")]}'
+{"status": "True", "reason": "Preempted", "message": "Preempted to accommodate a workload (UID: e938e86e-3431-450d-bae3-90555e9e334b, JobUID: 727057be-c8ed-44a7-917b-df7c7608590f) due to reclamation within the cohort; preemptor path: /rl-envs/rollouts; preemptee path: /rl-envs/branches"}
+
+$ kubectl -n rl-envs get workloads -o custom-columns=WORKLOAD:.metadata.name,QUEUE:.spec.queueName,PRIORITY:.spec.priority,ADMITTED:.status.admission.clusterQueue
+WORKLOAD                            QUEUE         PRIORITY   ADMITTED
+job-br-2b415b5052-2-879ed           rl-branches   100        branches
+job-br-2b415b5052-4-804de           rl-branches   100        branches
+job-br-2b415b5052-6-754e2           rl-branches   100        branches
+job-br-3cb74957a6-2-0f6e1           rl-branches   100        branches
+job-br-3cb74957a6-4-c7135           rl-branches   100        branches
+job-br-3cb74957a6-5-2112c           rl-branches   100        branches
+job-br-600f497649-2-0a85e           rl-branches   100        branches
+job-br-600f497649-4-46582           rl-branches   100        branches
+job-br-600f497649-5-ffe17           rl-branches   100        branches
+job-br-65c0dfd8fd-2-6f173           rl-branches   100        branches
+job-br-65c0dfd8fd-4-88175           rl-branches   100        branches
+job-br-65c0dfd8fd-5-002d4           rl-branches   100        branches
+job-br-738139f576-2-c5e1c           rl-branches   100        branches
+job-br-738139f576-4-444c8           rl-branches   100        branches
+job-br-738139f576-6-e100d           rl-branches   100        branches
+job-br-959417a6b3-2-6be04           rl-branches   100        branches
+job-br-959417a6b3-6-244f3           rl-branches   100        branches
+job-br-959417a6b3-8-cc545           rl-branches   100        branches
+job-br-9f65f2ab94-2-fed5b           rl-branches   100        branches
+job-br-9f65f2ab94-4-16641           rl-branches   100        branches
+job-br-9f65f2ab94-5-a1a3b           rl-branches   100        branches
+job-br-c233857710-2-53371           rl-branches   100        branches
+job-br-c233857710-4-6e4d3           rl-branches   100        branches
+job-br-c233857710-6-9cf71           rl-branches   100        branches
+job-br-c9fedfd435-2-38606           rl-branches   100        branches
+job-br-c9fedfd435-4-8f2de           rl-branches   100        branches
+job-br-c9fedfd435-5-aaf71           rl-branches   100        branches
+job-br-db0c26c915-2-42788           rl-branches   100        branches
+job-br-db0c26c915-4-bdb80           rl-branches   100        branches
+job-br-db0c26c915-5-3a0b9           rl-branches   100        branches
+job-br-f1df17e25c-2-8d729           rl-branches   100        branches
+job-br-f1df17e25c-6-a692f           rl-branches   100        branches
+job-br-f1df17e25c-8-8dba8           rl-branches   100        branches
+job-br-f5c97e1ebd-2-95798           rl-branches   100        branches
+job-br-f5c97e1ebd-4-466a9           rl-branches   100        branches
+job-br-f5c97e1ebd-6-e295a           rl-branches   100        branches
+job-br-fill-5be6b                   rl-branches   100        <none>
+job-cu-base-cur-st0-0-96572         rl-rollouts   1000       rollouts
+job-cu-base-cur-st0-1-1f73a         rl-rollouts   1000       rollouts
+job-cu-base-cur-st0-2-34e4d         rl-rollouts   1000       rollouts
+job-cu-base-cur-st0-3-74859         rl-rollouts   1000       rollouts
+job-cu-base-cur-st1-0-bec64         rl-rollouts   1000       rollouts
+job-cu-base-cur-st1-1-ae49c         rl-rollouts   1000       rollouts
+job-cu-base-cur-st1-2-d13b1         rl-rollouts   1000       rollouts
+job-cu-base-cur-st1-3-068f0         rl-rollouts   1000       rollouts
+job-cu-base-cur-st2-0-6a861         rl-rollouts   1000       rollouts
+job-cu-base-cur-st2-1-c1879         rl-rollouts   1000       rollouts
+job-cu-base-cur-st2-2-c82ba         rl-rollouts   1000       rollouts
+job-cu-base-cur-st2-3-31eef         rl-rollouts   1000       rollouts
+job-ro-base-96b79                   rl-rollouts   1000       rollouts
+job-ro-base-prio-54f7a              rl-rollouts   1000       rollouts
+job-rp-base-replay-bbcb6            rl-rollouts   1000       rollouts
+job-sc-base-cheat-e873f             rl-rollouts   1000       rollouts
+job-sc-base-edit-tests-d4663        rl-rollouts   1000       rollouts
+job-sc-base-false-claim-baa2d       rl-rollouts   1000       rollouts
+job-sc-base-huge-rewrite-7357c      rl-rollouts   1000       rollouts
+job-sc-base-loop-9e671              rl-rollouts   1000       rollouts
+job-sc-base-patch-framework-7133a   rl-rollouts   1000       rollouts
+
+$ kubectl -n rl-envs get jobs   # after the primary rollouts finished
+NAME                      STATUS     COMPLETIONS   DURATION   AGE
+br-2b415b5052-2           Complete   4/4           108s       45m
+br-2b415b5052-4           Complete   4/4           54s        45m
+br-2b415b5052-6           Complete   4/4           28s        45m
+br-3cb74957a6-2           Complete   12/12         68s        40m
+br-3cb74957a6-4           Complete   12/12         34s        40m
+br-3cb74957a6-5           Complete   12/12         34s        40m
+br-600f497649-2           Complete   12/12         59s        40m
+br-600f497649-4           Complete   12/12         40s        40m
+br-600f497649-5           Complete   12/12         34s        40m
+br-65c0dfd8fd-2           Complete   12/12         69s        40m
+br-65c0dfd8fd-4           Complete   12/12         39s        40m
+br-65c0dfd8fd-5           Complete   12/12         35s        40m
+br-738139f576-2           Complete   12/12         94s        40m
+br-738139f576-4           Complete   12/12         70s        40m
+br-738139f576-6           Complete   12/12         42s        40m
+br-959417a6b3-2           Complete   4/4           56s        45m
+br-959417a6b3-6           Complete   4/4           41s        45m
+br-959417a6b3-8           Complete   4/4           25s        45m
+br-9f65f2ab94-2           Complete   4/4           58s        45m
+br-9f65f2ab94-4           Complete   4/4           39s        45m
+br-9f65f2ab94-5           Complete   4/4           15s        45m
+br-c233857710-2           Complete   12/12         96s        40m
+br-c233857710-4           Complete   12/12         63s        40m
+br-c233857710-6           Complete   12/12         41s        40m
+br-c9fedfd435-2           Complete   4/4           33s        45m
+br-c9fedfd435-4           Complete   4/4           24s        45m
+br-c9fedfd435-5           Complete   4/4           18s        45m
+br-db0c26c915-2           Complete   4/4           65s        45m
+br-db0c26c915-4           Complete   4/4           65s        45m
+br-db0c26c915-5           Complete   4/4           31s        45m
+br-f1df17e25c-2           Complete   12/12         63s        40m
+br-f1df17e25c-6           Complete   12/12         51s        40m
+br-f1df17e25c-8           Complete   12/12         35s        40m
+br-f5c97e1ebd-2           Complete   4/4           55s        45m
+br-f5c97e1ebd-4           Complete   4/4           75s        45m
+br-f5c97e1ebd-6           Complete   4/4           40s        45m
+br-fill                   Running    0/12          12s        73s
+cu-base-cur-st0-0         Complete   4/4           38s        6m30s
+cu-base-cur-st0-1         Complete   4/4           31s        6m28s
+cu-base-cur-st0-2         Complete   4/4           41s        6m25s
+cu-base-cur-st0-3         Complete   4/4           30s        6m23s
+cu-base-cur-st1-0         Complete   4/4           71s        5m30s
+cu-base-cur-st1-1         Complete   4/4           69s        5m27s
+cu-base-cur-st1-2         Complete   4/4           72s        5m25s
+cu-base-cur-st1-3         Complete   4/4           29s        5m23s
+cu-base-cur-st2-0         Complete   4/4           111s       3m54s
+cu-base-cur-st2-1         Complete   4/4           113s       3m51s
+cu-base-cur-st2-2         Complete   4/4           112s       3m49s
+cu-base-cur-st2-3         Complete   4/4           41s        3m47s
+ro-base                   Complete   12/12         16m        65m
+ro-base-prio              Complete   6/6           53s        68s
+rp-base-replay            Complete   1/1           4s         49m
+sc-base-cheat             Complete   1/1           13s        8m43s
+sc-base-edit-tests        Complete   1/1           10s        8m7s
+sc-base-false-claim       Complete   1/1           9s         7m18s
+sc-base-huge-rewrite      Complete   1/1           10s        7m35s
+sc-base-loop              Complete   1/1           13s        9m11s
+sc-base-patch-framework   Complete   1/1           10s        7m51s
+
+[PASS] the branch rollouts were admitted on borrowed capacity
+[PASS] submitting primary rollouts preempted the branches
+[PASS] the primary rollouts finished, and the branches were admitted again afterwards

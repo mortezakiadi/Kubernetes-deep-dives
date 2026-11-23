@@ -1,0 +1,76 @@
+# S01: The platform at rest: cluster, node pools, storage, queues and services
+# Design reference: The infrastructure: environments, trajectories and credit workers
+
+$ aws eks describe-cluster --name ds08-longhorizon --query 'cluster.{name,status,version,autoMode}'
+{
+    "name": "ds08-longhorizon",
+    "status": "ACTIVE",
+    "version": "1.37",
+    "autoMode": false
+}
+
+$ kubectl get nodes -o custom-columns=NODE,POOL,TYPE,ZONE,GPU
+NODE                                         POOL     TYPE          ZONE         GPU
+ip-10-81-17-104.us-east-2.compute.internal   system   m6i.2xlarge   us-east-2a   <none>
+ip-10-81-23-230.us-east-2.compute.internal   gpu      g5.xlarge     us-east-2a   1
+ip-10-81-40-145.us-east-2.compute.internal   gpu      g5.xlarge     us-east-2b   1
+ip-10-81-56-12.us-east-2.compute.internal    system   m6i.2xlarge   us-east-2c   <none>
+
+$ aws eks list-addons --cluster-name ds08-longhorizon --query addons --output text
+aws-ebs-csi-driver	coredns	eks-pod-identity-agent	kube-proxy	metrics-server	snapshot-controller	vpc-cni
+
+$ kubectl get storageclass,volumesnapshotclass
+NAME                                  PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+storageclass.storage.k8s.io/env-gp3   ebs.csi.aws.com         Delete          WaitForFirstConsumer   true                   11m
+storageclass.storage.k8s.io/gp2       kubernetes.io/aws-ebs   Delete          WaitForFirstConsumer   false                  18m
+
+NAME                                                  DRIVER            DELETIONPOLICY   AGE
+volumesnapshotclass.snapshot.storage.k8s.io/env-ebs   ebs.csi.aws.com   Delete           11m
+
+$ kubectl get clusterqueue -o custom-columns=QUEUE:.metadata.name,COHORT:.spec.cohortName,CPU-OWNED:.spec.resourceGroups[0].flavors[0].resources[0].nominalQuota,CPU-MAY-BORROW:.spec.resourceGroups[0].flavors[0].resources[0].borrowingLimit,RECLAIM:.spec.preemption.reclaimWithinCohort
+QUEUE      COHORT    CPU-OWNED   CPU-MAY-BORROW   RECLAIM
+branches   rl-envs   0           6                Never
+rollouts   rl-envs   6           0                Any
+
+$ kubectl -n llm get deploy,svc
+NAME                   READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/vllm   1/1     1            1           11m
+
+NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/vllm   ClusterIP   172.20.180.53   <none>        8000/TCP   11m
+
+$ kubectl get --raw /api/v1/namespaces/llm/services/vllm:8000/proxy/v1/models
+{"object":"list","data":[{"id":"policy","object":"model","created":1795467663,"owned_by":"vllm","root":"Qwen/Qwen2.5-7B-Instruct","parent":null,"max_model_len":8192,"permission":[{"id":"modelperm-811dcad4cd9f78f1","object":"model_permission","created":1795467663,"allow_create_engine":false,"allow_sampling":true,"allow_logprobs":true,"allow_search_indices":false,"allow_view":true,"allow_fine_tuning
+
+$ kubectl -n platform get deploy,svc,networkpolicy
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/trajstore   2/2     2            2           11m
+deployment.apps/verifier    2/2     2            2           11m
+
+NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/trajstore   ClusterIP   172.20.69.30    <none>        8080/TCP   11m
+service/verifier    ClusterIP   172.20.234.97   <none>        8080/TCP   11m
+
+NAME                                                 POD-SELECTOR   AGE
+networkpolicy.networking.k8s.io/verifier-isolation   app=verifier   11m
+
+$ kubectl -n rl-envs get networkpolicy env-egress -o jsonpath='{.spec.egress[*].to[0].namespaceSelector.matchLabels}'
+{"kubernetes.io/metadata.name":"llm"} {"kubernetes.io/metadata.name":"platform"} {"kubernetes.io/metadata.name":"kube-system"}
+
+$ aws s3 ls s3://<bucket>/tasks/public/ | wc -l ; aws s3 ls s3://<bucket>/tasks/hidden/ | wc -l
+32 public task files
+0 hidden files (the hidden tests are only in the verifier's ConfigMap)
+
+$ kubectl -n rl-envs get jobs,workloads   # before any run
+
+No resources found in rl-envs namespace.
+
+[PASS] the cluster is ACTIVE on Kubernetes 1.37, standard EKS (Auto Mode off)
+[PASS] two GPU nodes, one GPU each
+[PASS] the EBS CSI driver and the snapshot controller are installed as EKS add-ons
+[PASS] a gp3 storage class and a VolumeSnapshotClass for EBS exist
+[PASS] primary rollouts own the environment capacity; branch rollouts own none and may only borrow it
+[PASS] the rollout engine serves the policy (Qwen2.5-7B-Instruct at a pinned commit) under the name 'policy'
+[PASS] environments may reach only the rollout engine, the platform services and DNS
+[PASS] 32 tasks are published, and no hidden test is in the bucket
+[PASS] nothing is running and the store holds no trajectory

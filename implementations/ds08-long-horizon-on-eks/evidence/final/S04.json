@@ -1,0 +1,33 @@
+{
+ "id": "S04",
+ "title": "Success by horizon: why long tasks are hard",
+ "design_ref": "Why long horizons are hard; Measuring progress on long tasks",
+ "purpose": "From the 128 root attempts of S02, measure success as a function of the number of bugs (the horizon), pass@1 against pass@4, the share of groups whose four attempts all agree (no learning signal for group-relative RL), partial progress on failures, recovery, the behaviour pathologies, and the environment time per solved task.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "lh.py stats --run base",
+   "output": "metric                            1 bug(s)    2 bug(s)    3 bug(s)\ntasks                                    8          12          12\nattempts                                32          48          48\npass@1                               0.625       0.271       0.146\npass@4                               0.625       0.417        0.25\nzero_variance_groups                   1.0        0.75       0.833\nmean_turns                           5.375       8.167       9.583\npartial_progress_of_failures         0.458       0.541       0.651\nrecovery_rate                          0.0       0.037         0.0\nearly_stop                           0.125       0.083       0.083\nloop_guard                           0.125       0.083       0.083\nran_out_of_turns                       0.0         0.0         0.0\nfalse_claims                           0.0         0.0         0.0\ncompacted_episodes                     0.0       0.021         0.0\nenv_seconds_per_attempt             36.503      64.602      96.796\nenv_seconds_per_success               58.4       238.5       663.7",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "success falls as the horizon grows",
+   "passed": true,
+   "because": "Each added bug needs its own read, edit and test, and each is another chance to go wrong."
+  },
+  {
+   "description": "pass@4 is above pass@1: the model can solve tasks it does not solve reliably",
+   "passed": true,
+   "because": "pass@4 counts a task as solved if any of its four attempts was."
+  },
+  {
+   "description": "many groups carry no signal for group-relative RL (all four attempts agree)",
+   "passed": true,
+   "because": "When every attempt succeeds or every attempt fails, every advantage in the group is zero."
+  }
+ ],
+ "notes": []
+}

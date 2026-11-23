@@ -1,0 +1,31 @@
+# S03: Snapshots on the storage layer: a CSI VolumeSnapshot and k branches restored from it
+# Design reference: Branching rollouts: tree-shaped exploration (the YAML)
+
+$ kubectl create -f pvc.yaml -f seed-job.yaml   # a gp3 volume, and a pod that writes the recorded state onto it
+persistentvolumeclaim/csi-demo-workspace created
+job.batch/csi-demo-seed created
+
+$ kubectl create -f volumesnapshot.yaml   # traj-csi-demo-turn-2
+volumesnapshot.snapshot.storage.k8s.io/traj-csi-demo-turn-2 created
+
+$ kubectl -n rl-envs get volumesnapshot -o custom-columns=NAME:.metadata.name,READY:.status.readyToUse,SIZE:.status.restoreSize,SOURCE:.spec.source.persistentVolumeClaimName
+NAME                   READY   SIZE   SOURCE
+traj-csi-demo-turn-2   true    1Gi    csi-demo-workspace
+
+$ kubectl create -f branches.yaml   # Indexed Job, 4 completions, each with an ephemeral volume restored from the snapshot
+job.batch/csi-demo-branches created
+
+$ kubectl -n rl-envs logs job/csi-demo-seed ; kubectl -n rl-envs logs <each branch pod>
+{"mode": "seed", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": null, "seconds": 0.07}
+{"mode": "check", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": true, "seconds": 0.01}
+{"mode": "check", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": true, "seconds": 0.0}
+{"mode": "check", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": true, "seconds": 0.0}
+{"mode": "check", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": true, "seconds": 0.0}
+
+$ what each path cost (measured in this run)
+CSI path: volume created and seeded 24 s; VolumeSnapshot readyToUse after 70 s; 4 restored branch pods done after 22 s
+tar path (the platform's branching): 569 snapshots so far, 1.1 KB and 0.03 s each on average (written through the trajectory store)
+
+[PASS] the seed pod wrote the recorded state (same tree hash as the trajectory recorded after that turn)
+[PASS] all four branch volumes, restored from the VolumeSnapshot, hold exactly that state
+[PASS] the costs were measured, and the snapshot path's cost decides the branching rate

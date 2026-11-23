@@ -1,0 +1,123 @@
+{
+ "id": "S01",
+ "title": "The platform at rest: cluster, node pools, storage, queues and services",
+ "design_ref": "The infrastructure: environments, trajectories and credit workers",
+ "purpose": "Show what was built before anything runs: a standard EKS cluster with a CPU pool and a GPU pool, the EBS CSI driver and the snapshot controller, the two environment queues, the rollout engine serving the policy, the trajectory store, the verifier with no network, and an empty store.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "aws eks describe-cluster --name ds08-longhorizon --query 'cluster.{name,status,version,autoMode}'",
+   "output": "{\n    \"name\": \"ds08-longhorizon\",\n    \"status\": \"ACTIVE\",\n    \"version\": \"1.37\",\n    \"autoMode\": false\n}",
+   "exit_code": 0,
+   "seconds": 1.24
+  },
+  {
+   "display": "kubectl get nodes -o custom-columns=NODE,POOL,TYPE,ZONE,GPU",
+   "output": "NODE                                         POOL     TYPE          ZONE         GPU\nip-10-81-17-104.us-east-2.compute.internal   system   m6i.2xlarge   us-east-2a   <none>\nip-10-81-23-230.us-east-2.compute.internal   gpu      g5.xlarge     us-east-2a   1\nip-10-81-40-145.us-east-2.compute.internal   gpu      g5.xlarge     us-east-2b   1\nip-10-81-56-12.us-east-2.compute.internal    system   m6i.2xlarge   us-east-2c   <none>",
+   "exit_code": 0,
+   "seconds": 2.29
+  },
+  {
+   "display": "aws eks list-addons --cluster-name ds08-longhorizon --query addons --output text",
+   "output": "aws-ebs-csi-driver\tcoredns\teks-pod-identity-agent\tkube-proxy\tmetrics-server\tsnapshot-controller\tvpc-cni",
+   "exit_code": 0,
+   "seconds": 1.21
+  },
+  {
+   "display": "kubectl get storageclass,volumesnapshotclass",
+   "output": "NAME                                  PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE\nstorageclass.storage.k8s.io/env-gp3   ebs.csi.aws.com         Delete          WaitForFirstConsumer   true                   11m\nstorageclass.storage.k8s.io/gp2       kubernetes.io/aws-ebs   Delete          WaitForFirstConsumer   false                  18m\n\nNAME                                                  DRIVER            DELETIONPOLICY   AGE\nvolumesnapshotclass.snapshot.storage.k8s.io/env-ebs   ebs.csi.aws.com   Delete           11m",
+   "exit_code": 0,
+   "seconds": 1.29
+  },
+  {
+   "display": "kubectl get clusterqueue -o custom-columns=QUEUE:.metadata.name,COHORT:.spec.cohortName,CPU-OWNED:.spec.resourceGroups[0].flavors[0].resources[0].nominalQuota,CPU-MAY-BORROW:.spec.resourceGroups[0].flavors[0].resources[0].borrowingLimit,RECLAIM:.spec.preemption.reclaimWithinCohort",
+   "output": "QUEUE      COHORT    CPU-OWNED   CPU-MAY-BORROW   RECLAIM\nbranches   rl-envs   0           6                Never\nrollouts   rl-envs   6           0                Any",
+   "exit_code": 0,
+   "seconds": 1.1
+  },
+  {
+   "display": "kubectl -n llm get deploy,svc",
+   "output": "NAME                   READY   UP-TO-DATE   AVAILABLE   AGE\ndeployment.apps/vllm   1/1     1            1           11m\n\nNAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE\nservice/vllm   ClusterIP   172.20.180.53   <none>        8000/TCP   11m",
+   "exit_code": 0,
+   "seconds": 1.29
+  },
+  {
+   "display": "kubectl get --raw /api/v1/namespaces/llm/services/vllm:8000/proxy/v1/models",
+   "output": "{\"object\":\"list\",\"data\":[{\"id\":\"policy\",\"object\":\"model\",\"created\":1795467663,\"owned_by\":\"vllm\",\"root\":\"Qwen/Qwen2.5-7B-Instruct\",\"parent\":null,\"max_model_len\":8192,\"permission\":[{\"id\":\"modelperm-811dcad4cd9f78f1\",\"object\":\"model_permission\",\"created\":1795467663,\"allow_create_engine\":false,\"allow_sampling\":true,\"allow_logprobs\":true,\"allow_search_indices\":false,\"allow_view\":true,\"allow_fine_tuning",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n platform get deploy,svc,networkpolicy",
+   "output": "NAME                        READY   UP-TO-DATE   AVAILABLE   AGE\ndeployment.apps/trajstore   2/2     2            2           11m\ndeployment.apps/verifier    2/2     2            2           11m\n\nNAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE\nservice/trajstore   ClusterIP   172.20.69.30    <none>        8080/TCP   11m\nservice/verifier    ClusterIP   172.20.234.97   <none>        8080/TCP   11m\n\nNAME                                                 POD-SELECTOR   AGE\nnetworkpolicy.networking.k8s.io/verifier-isolation   app=verifier   11m",
+   "exit_code": 0,
+   "seconds": 1.57
+  },
+  {
+   "display": "kubectl -n rl-envs get networkpolicy env-egress -o jsonpath='{.spec.egress[*].to[0].namespaceSelector.matchLabels}'",
+   "output": "{\"kubernetes.io/metadata.name\":\"llm\"} {\"kubernetes.io/metadata.name\":\"platform\"} {\"kubernetes.io/metadata.name\":\"kube-system\"}",
+   "exit_code": 0,
+   "seconds": 1.24
+  },
+  {
+   "display": "aws s3 ls s3://<bucket>/tasks/public/ | wc -l ; aws s3 ls s3://<bucket>/tasks/hidden/ | wc -l",
+   "output": "32 public task files\n0 hidden files (the hidden tests are only in the verifier's ConfigMap)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-envs get jobs,workloads   # before any run",
+   "output": "\nNo resources found in rl-envs namespace.",
+   "exit_code": 0,
+   "seconds": 1.31
+  }
+ ],
+ "checks": [
+  {
+   "description": "the cluster is ACTIVE on Kubernetes 1.37, standard EKS (Auto Mode off)",
+   "passed": true,
+   "because": "Terraform creates the cluster with no compute configuration; the nodes are managed node groups."
+  },
+  {
+   "description": "two GPU nodes, one GPU each",
+   "passed": true,
+   "because": "The GPU node group has two nodes of whichever listed one-GPU type EC2 had capacity for."
+  },
+  {
+   "description": "the EBS CSI driver and the snapshot controller are installed as EKS add-ons",
+   "passed": true,
+   "because": "Both are in the cluster layer; the driver's controller has its own AWS identity through EKS Pod Identity."
+  },
+  {
+   "description": "a gp3 storage class and a VolumeSnapshotClass for EBS exist",
+   "passed": true,
+   "because": "Created by the platform layer."
+  },
+  {
+   "description": "primary rollouts own the environment capacity; branch rollouts own none and may only borrow it",
+   "passed": true,
+   "because": "Two ClusterQueues in one cohort, with priority classes primary (1000) and branch-low (100)."
+  },
+  {
+   "description": "the rollout engine serves the policy (Qwen2.5-7B-Instruct at a pinned commit) under the name 'policy'",
+   "passed": true,
+   "because": "vLLM 0.33.0 with prefix caching on, from the release image pinned by digest."
+  },
+  {
+   "description": "environments may reach only the rollout engine, the platform services and DNS",
+   "passed": true,
+   "because": "The env-egress NetworkPolicy lists exactly three destinations; the verifier's own policy has no egress at all."
+  },
+  {
+   "description": "32 tasks are published, and no hidden test is in the bucket",
+   "passed": true,
+   "because": "Terraform uploads only the public half of each task; the hidden half is mounted into the verifier pods."
+  },
+  {
+   "description": "nothing is running and the store holds no trajectory",
+   "passed": true,
+   "because": "A fresh build."
+  }
+ ],
+ "notes": []
+}

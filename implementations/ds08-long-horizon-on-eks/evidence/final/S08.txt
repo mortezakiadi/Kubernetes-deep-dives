@@ -1,0 +1,33 @@
+# S08: Denser rewards without reward hacking: potential-based shaping, paid once
+# Design reference: Denser rewards without reward hacking
+
+$ lh.py scripted --run base-loop --task t2-08 --script loop.json
+job.batch/sc-base-loop created
+sc-base-loop Complete
+
+$ lh.py scripted --run base-cheat --task t2-08 --script cheat.json
+job.batch/sc-base-cheat created
+sc-base-cheat Complete
+
+$ loop: actions, Phi measured fresh, Phi in place, and the two shaping rewards per turn
+actions   ['run_tests', 'run_tests', 'run_tests']
+Phi fresh [0.5, 0.5, 0.5] (start 0.5)
+Phi in place [0.5, 0.5, 0.5]
+potential-based, paid once: [0.0, 0.0, 0.0]  total 0.0
+fixed reward per test run: [0.1, 0.1, 0.1]  total 0.3
+verified outcome 0.0, stop loop_guard
+
+$ cheat: actions, Phi measured fresh, Phi in place, and the two shaping rewards per turn
+actions   ['write', 'run_tests', 'submit']
+Phi fresh [0.0, 0.0, 0.0] (start 0.5)
+Phi in place [1.0, 1.0, 1.0]
+potential-based, paid once: [-0.05, 0.0, 0.0]  total -0.05
+fixed reward per test run: [0.0, 0.1, 0.0]  total 0.1
+verified outcome 0.0, stop submit
+
+$ over the 128 real root attempts: correlation of each shaping term's episode total with the verified outcome
+{"episodes": 128, "potential_vs_outcome": 0.693, "naive_tests_vs_outcome": -0.147}
+
+[PASS] the looping agent earns a growing fixed reward and nothing from potential-based shaping
+[PASS] the framework-patching agent gets no progress, because Phi is measured in a fresh copy
+[PASS] potential-based shaping tracks success better than a reward for running tests

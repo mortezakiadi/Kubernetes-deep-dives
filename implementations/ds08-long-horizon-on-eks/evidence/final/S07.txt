@@ -1,0 +1,39 @@
+# S07: Train on what the model saw, and what one gradient step does to each turn
+# Design reference: Context management; Credit assignment
+
+$ lh.py trainer logprobs --trajectories <1 compacted + 1 not> --out credit/base/logprob-check.json
+job.batch/tr-lp-check created
+tr-lp-check Complete
+
+$ aws s3 cp s3://<bucket>/credit/base/logprob-check.json -   # one row per turn (first 12)
+{"compacted": false, "mean_abs_diff_full_history": 0.0001, "mean_abs_diff_seen": 0.0001, "prompt_tokens_full": 322, "prompt_tokens_rollout": 322, "prompt_tokens_seen": 322, "tokens": 10, "trajectory": "base-t2-14-s2", "turn": 0}
+{"compacted": false, "mean_abs_diff_full_history": 0.0, "mean_abs_diff_seen": 0.0, "prompt_tokens_full": 379, "prompt_tokens_rollout": 379, "prompt_tokens_seen": 379, "tokens": 18, "trajectory": "base-t2-14-s2", "turn": 1}
+{"compacted": false, "mean_abs_diff_full_history": 0.0014, "mean_abs_diff_seen": 0.0014, "prompt_tokens_full": 517, "prompt_tokens_rollout": 517, "prompt_tokens_seen": 517, "tokens": 34, "trajectory": "base-t2-14-s2", "turn": 2}
+{"compacted": false, "mean_abs_diff_full_history": 0.0, "mean_abs_diff_seen": 0.0, "prompt_tokens_full": 575, "prompt_tokens_rollout": 575, "prompt_tokens_seen": 575, "tokens": 17, "trajectory": "base-t2-14-s2", "turn": 3}
+{"compacted": false, "mean_abs_diff_full_history": 0.0068, "mean_abs_diff_seen": 0.0068, "prompt_tokens_full": 688, "prompt_tokens_rollout": 688, "prompt_tokens_seen": 688, "tokens": 31, "trajectory": "base-t2-14-s2", "turn": 4}
+{"compacted": false, "mean_abs_diff_full_history": 0.0001, "mean_abs_diff_seen": 0.0001, "prompt_tokens_full": 742, "prompt_tokens_rollout": 742, "prompt_tokens_seen": 742, "tokens": 10, "trajectory": "base-t2-14-s2", "turn": 5}
+{"compacted": false, "mean_abs_diff_full_history": 0.0099, "mean_abs_diff_seen": 0.0099, "prompt_tokens_full": 972, "prompt_tokens_rollout": 972, "prompt_tokens_seen": 972, "tokens": 81, "trajectory": "base-t2-14-s2", "turn": 6}
+{"compacted": false, "mean_abs_diff_full_history": 0.0, "mean_abs_diff_seen": 0.0, "prompt_tokens_full": 1074, "prompt_tokens_rollout": 1074, "prompt_tokens_seen": 1074, "tokens": 10, "trajectory": "base-t2-14-s2", "turn": 7}
+{"compacted": false, "mean_abs_diff_full_history": 0.0075, "mean_abs_diff_seen": 0.0075, "prompt_tokens_full": 1458, "prompt_tokens_rollout": 1458, "prompt_tokens_seen": 1458, "tokens": 32, "trajectory": "base-t2-14-s2", "turn": 8}
+{"compacted": false, "mean_abs_diff_full_history": 0.0004, "mean_abs_diff_seen": 0.0004, "prompt_tokens_full": 1513, "prompt_tokens_rollout": 1513, "prompt_tokens_seen": 1513, "tokens": 10, "trajectory": "base-t2-14-s2", "turn": 9}
+{"compacted": false, "mean_abs_diff_full_history": 0.0019, "mean_abs_diff_seen": 0.0019, "prompt_tokens_full": 1708, "prompt_tokens_rollout": 1708, "prompt_tokens_seen": 1708, "tokens": 81, "trajectory": "base-t2-14-s2", "turn": 10}
+{"compacted": false, "mean_abs_diff_full_history": 0.0001, "mean_abs_diff_seen": 0.0001, "prompt_tokens_full": 1810, "prompt_tokens_rollout": 1810, "prompt_tokens_seen": 1810, "tokens": 10, "trajectory": "base-t2-14-s2", "turn": 11}
+
+$ lh.py trainer update --trajectory base-t2-09-s0 --credit credit/base-c4/<it>.json --out credit/base/update-base-t2-09-s0.json
+job.batch/tr-upd created
+tr-upd Complete
+
+$ first-order change of each turn's mean token log-probability after one step (lr 1e-3)
+turn  action      A(traj)  d(traj)     A(turn)  d(turn)
+   0  ls          +0.58  +0.0000   -0.25  -0.0000
+   1  cat         +0.58  -0.0000   -0.25  +0.0000
+   2  replace     +0.58  +0.0004   -0.25  -0.0002
+   3  cat         +0.58  +0.0000   +0.50  +0.0000
+   4  replace     +0.58  +0.0011   +0.50  +0.0010
+   5  run_tests   +0.58  +0.0005   +0.00  +0.0000
+   6  submit      +0.58  +0.0022   +0.00  -0.0000
+
+[PASS] on the stored context, the trainer reproduces the rollout engine's log-probabilities (mean absolute difference below 0.05)
+[PASS] for compacted turns, the full history gives different log-probabilities: it is not what the model saw
+[PASS] with trajectory-level credit, every turn is pushed the same way, the bad decisions with the good ones (changes under 0.0001 count as none)
+[PASS] with turn-level credit, turns with a positive advantage go up and turns with a negative one go down

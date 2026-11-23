@@ -1,0 +1,34 @@
+# S06: Is the credit any good? Four branches against twelve
+# Design reference: Credit assignment: a ladder of methods (checking credit quality)
+
+$ lh.py credit --run base-c12 --trajectories <the same 6> --k 12 --max-points 3
+job.batch/cr-base-c12 created
+cr-base-c12 Complete
+
+$ per-segment advantages: k=4 vs the k=12 reference vs trajectory-level
+base-t2-12-s0 segment ending at turn  2: MC k=4 -0.25   reference k=12 -0.08   trajectory-level -0.58
+base-t2-12-s0 segment ending at turn  4: MC k=4 +0.00   reference k=12 -0.17   trajectory-level -0.58
+base-t2-12-s0 segment ending at turn  5: MC k=4 +0.00   reference k=12 +0.00   trajectory-level -0.58
+base-t2-17-s2 segment ending at turn  2: MC k=4 +0.00   reference k=12 -0.25   trajectory-level -0.58
+base-t2-17-s2 segment ending at turn  6: MC k=4 -0.25   reference k=12 +0.00   trajectory-level -0.58
+base-t2-17-s2 segment ending at turn  8: MC k=4 +0.00   reference k=12 +0.00   trajectory-level -0.58
+base-t3-20-s0 segment ending at turn  2: MC k=4 +0.00   reference k=12 -0.17   trajectory-level -0.58
+base-t3-20-s0 segment ending at turn  4: MC k=4 -0.25   reference k=12 -0.08   trajectory-level -0.58
+base-t3-20-s0 segment ending at turn  6: MC k=4 +0.00   reference k=12 +0.00   trajectory-level -0.58
+base-t3-23-s0 segment ending at turn  2: MC k=4 +0.00   reference k=12 -0.17   trajectory-level -1.00
+base-t3-23-s0 segment ending at turn  4: MC k=4 +0.00   reference k=12 +0.33   trajectory-level -1.00
+base-t3-23-s0 segment ending at turn  6: MC k=4 -0.50   reference k=12 -0.67   trajectory-level -1.00
+base-t2-09-s0 segment ending at turn  2: MC k=4 -0.25   reference k=12 -0.67   trajectory-level +0.58
+base-t2-09-s0 segment ending at turn  4: MC k=4 +0.50   reference k=12 +0.92   trajectory-level +0.58
+base-t2-09-s0 segment ending at turn  5: MC k=4 +0.00   reference k=12 +0.00   trajectory-level +0.58
+base-t2-12-s1 segment ending at turn  2: MC k=4 -0.25   reference k=12 -0.25   trajectory-level +1.73
+base-t2-12-s1 segment ending at turn  4: MC k=4 +1.00   reference k=12 +1.00   trajectory-level +1.73
+base-t2-12-s1 segment ending at turn  5: MC k=4 +0.00   reference k=12 +0.00   trajectory-level +1.73
+
+$ agreement with the reference
+segments compared: 18
+Monte Carlo k=4: correlation 0.875, same sign 0.944
+trajectory-level: one value per trajectory, so it cannot rank the turns inside a trajectory (true for 6 of 6)
+
+[PASS] four branches agree with the twelve-branch reference (positive correlation)
+[PASS] trajectory-level credit gives every turn of a trajectory the same advantage, so it ranks no decision

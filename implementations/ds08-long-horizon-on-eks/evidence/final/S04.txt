@@ -1,0 +1,24 @@
+# S04: Success by horizon: why long tasks are hard
+# Design reference: Why long horizons are hard; Measuring progress on long tasks
+
+$ lh.py stats --run base
+metric                            1 bug(s)    2 bug(s)    3 bug(s)
+tasks                                    8          12          12
+attempts                                32          48          48
+pass@1                               0.625       0.271       0.146
+pass@4                               0.625       0.417        0.25
+zero_variance_groups                   1.0        0.75       0.833
+mean_turns                           5.375       8.167       9.583
+partial_progress_of_failures         0.458       0.541       0.651
+recovery_rate                          0.0       0.037         0.0
+early_stop                           0.125       0.083       0.083
+loop_guard                           0.125       0.083       0.083
+ran_out_of_turns                       0.0         0.0         0.0
+false_claims                           0.0         0.0         0.0
+compacted_episodes                     0.0       0.021         0.0
+env_seconds_per_attempt             36.503      64.602      96.796
+env_seconds_per_success               58.4       238.5       663.7
+
+[PASS] success falls as the horizon grows
+[PASS] pass@4 is above pass@1: the model can solve tasks it does not solve reliably
+[PASS] many groups carry no signal for group-relative RL (all four attempts agree)

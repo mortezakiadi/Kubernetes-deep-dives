@@ -1,0 +1,47 @@
+# S05: Branching from snapshots: Monte Carlo values and turn-level credit
+# Design reference: Credit assignment: a ladder of methods; Branching rollouts
+
+$ lh.py credit --run base-c4 --trajectories <6 trajectories> --k 4 --max-points 3
+job.batch/cr-base-c4 created
+cr-base-c4 Complete
+
+$ credit/base-c4/base-t2-12-s0.json
+outcome 0.0  V(start) 0.25  values after branch points {'2': 0.0, '4': 0.0, '5': 0.0}  decisive {"after_turn": -1, "delta_v": -0.25, "to_turn": 2}
+turn advantages (Monte Carlo): [-0.25, -0.25, -0.25, 0.0, 0.0, 0.0, 0.0, 0.0]
+turn advantages (trajectory-level): [-0.5774] x 8
+
+$ credit/base-c4/base-t2-17-s2.json
+outcome 0.0  V(start) 0.25  values after branch points {'2': 0.25, '6': 0.0, '8': 0.0}  decisive {"after_turn": 2, "delta_v": -0.25, "to_turn": 6}
+turn advantages (Monte Carlo): [0.0, 0.0, 0.0, -0.25, -0.25, -0.25, -0.25, 0.0, 0.0, 0.0, 0.0]
+turn advantages (trajectory-level): [-0.5774] x 11
+
+$ credit/base-c4/base-t3-20-s0.json
+outcome 0.0  V(start) 0.25  values after branch points {'2': 0.25, '4': 0.0, '6': 0.0}  decisive {"after_turn": 2, "delta_v": -0.25, "to_turn": 4}
+turn advantages (Monte Carlo): [0.0, 0.0, 0.0, -0.25, -0.25, 0.0, 0.0, 0.0, 0.0]
+turn advantages (trajectory-level): [-0.5774] x 9
+
+$ credit/base-c4/base-t3-23-s0.json
+outcome 0.0  V(start) 0.5  values after branch points {'2': 0.5, '4': 0.5, '6': 0.0}  decisive {"after_turn": 4, "delta_v": -0.5, "to_turn": 6}
+turn advantages (Monte Carlo): [0.0, 0.0, 0.0, 0.0, 0.0, -0.5, -0.5, 0.0, 0.0]
+turn advantages (trajectory-level): [-1.0] x 9
+
+$ credit/base-c4/base-t2-09-s0.json
+outcome 1.0  V(start) 0.75  values after branch points {'2': 0.5, '4': 1.0, '5': 1.0}  decisive {"after_turn": 2, "delta_v": 0.5, "to_turn": 4}
+turn advantages (Monte Carlo): [-0.25, -0.25, -0.25, 0.5, 0.5, 0.0, 0.0]
+turn advantages (trajectory-level): [0.5774] x 7
+
+$ credit/base-c4/base-t2-12-s1.json
+outcome 1.0  V(start) 0.25  values after branch points {'2': 0.0, '4': 1.0, '5': 1.0}  decisive {"after_turn": 2, "delta_v": 1.0, "to_turn": 4}
+turn advantages (Monte Carlo): [-0.25, -0.25, -0.25, 1.0, 1.0, 0.0, 0.0]
+turn advantages (trajectory-level): [1.7321] x 7
+
+$ vLLM /metrics during the branch rollouts: prefix cache
+queried 228974 tokens, hit 221824 (97%)
+
+$ environment time: branches vs the trajectories they credit
+branches 1613 s for 6 trajectories whose own episodes took 453 s
+
+[PASS] every chosen trajectory got values at its branch points from four verified continuations each
+[PASS] turn-level advantages differ between turns of the same trajectory, unlike trajectory-level ones
+[PASS] on at least one failed trajectory a branch succeeded, so a state on the failed path still had value
+[PASS] branches reused their shared prefix from the rollout engine's cache

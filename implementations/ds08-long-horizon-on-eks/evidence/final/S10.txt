@@ -1,0 +1,29 @@
+# S10: Exploration: a reverse curriculum from snapshots of successes
+# Design reference: Exploration: curricula over the horizon
+
+$ lh.py curriculum --run base-cur --spec recipes/curriculum.json --from-run base
+job.batch/cu-base-cur-st0-0 created
+job.batch/cu-base-cur-st0-1 created
+job.batch/cu-base-cur-st0-2 created
+job.batch/cu-base-cur-st0-3 created
+{"stage": 0, "remaining_turns_max": 2, "start_points": [{"trajectory": "base-t3-20-s3", "from_turn": 7, "remaining_turns": 2}, {"trajectory": "base-t3-21-s0", "from_turn": 6, "remaining_turns": 2}, {"trajectory": "base-t3-21-s1", "from_turn": 6, "remaining_turns": 2}, {"trajectory": "base-t3-21-s2", "from_turn": 6, "remaining_turns": 2}], "episodes": 16, "success_rate": 1.0, "promote_when": 0.6, "promoted": true}
+job.batch/cu-base-cur-st1-0 created
+job.batch/cu-base-cur-st1-1 created
+job.batch/cu-base-cur-st1-2 created
+job.batch/cu-base-cur-st1-3 created
+{"stage": 1, "remaining_turns_max": 5, "start_points": [{"trajectory": "base-t3-20-s3", "from_turn": 4, "remaining_turns": 5}, {"trajectory": "base-t3-21-s0", "from_turn": 4, "remaining_turns": 4}, {"trajectory": "base-t3-21-s1", "from_turn": 4, "remaining_turns": 4}, {"trajectory": "base-t3-21-s2", "from_turn": 4, "remaining_turns": 4}], "episodes": 16, "success_rate": 0.312, "promote_when": 0.5, "promoted": false}
+job.batch/cu-base-cur-st2-0 created
+job.batch/cu-base-cur-st2-1 created
+job.batch/cu-base-cur-st2-2 created
+job.batch/cu-base-cur-st2-3 created
+{"stage": 2, "remaining_turns_max": null, "start_points": [{"trajectory": "base-t3-20-s3", "from_turn": null, "remaining_turns": null}, {"trajectory": "base-t3-21-s0", "from_turn": null, "remaining_turns": null}, {"trajectory": "base-t3-21-s1", "from_turn": null, "remaining_turns": null}, {"trajectory": "base-t3-21-s2", "from_turn": null, "remaining_turns": null}], "episodes": 8, "success_rate": 0.125, "promote_when": null, "promoted": false}
+
+$ aws s3 cp s3://<bucket>/curriculum/base-cur.json -
+source successes: base-t3-20-s3, base-t3-21-s0, base-t3-21-s1, base-t3-21-s2
+stage 0: remaining turns <= 2, 16 episodes, success 1.0, promote when >= 0.6: True
+stage 1: remaining turns <= 5, 16 episodes, success 0.312, promote when >= 0.5: False
+stage 2: from the start, 8 episodes, success 0.125, last stage, no promotion
+
+[PASS] the curriculum found successful three-bug attempts to start from
+[PASS] each stage ran its episodes and the scheduler recorded a promotion decision
+[PASS] starting closer to the goal succeeds more often than starting from the beginning

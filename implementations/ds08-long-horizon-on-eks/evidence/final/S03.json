@@ -1,0 +1,65 @@
+{
+ "id": "S03",
+ "title": "Snapshots on the storage layer: a CSI VolumeSnapshot and k branches restored from it",
+ "design_ref": "Branching rollouts: tree-shaped exploration (the YAML)",
+ "purpose": "Write a recorded state onto an EBS volume, take a Kubernetes VolumeSnapshot of it, and start four branch pods whose ephemeral volumes are restored from that snapshot, exactly as in the design's YAML. Each must hold the recorded state. Measure what it costs, and compare with the tar snapshots the platform uses for its own branching.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl create -f pvc.yaml -f seed-job.yaml   # a gp3 volume, and a pod that writes the recorded state onto it",
+   "output": "persistentvolumeclaim/csi-demo-workspace created\njob.batch/csi-demo-seed created",
+   "exit_code": 0,
+   "seconds": 4.52
+  },
+  {
+   "display": "kubectl create -f volumesnapshot.yaml   # traj-csi-demo-turn-2",
+   "output": "volumesnapshot.snapshot.storage.k8s.io/traj-csi-demo-turn-2 created",
+   "exit_code": 0,
+   "seconds": 2.72
+  },
+  {
+   "display": "kubectl -n rl-envs get volumesnapshot -o custom-columns=NAME:.metadata.name,READY:.status.readyToUse,SIZE:.status.restoreSize,SOURCE:.spec.source.persistentVolumeClaimName",
+   "output": "NAME                   READY   SIZE   SOURCE\ntraj-csi-demo-turn-2   true    1Gi    csi-demo-workspace",
+   "exit_code": 0,
+   "seconds": 1.08
+  },
+  {
+   "display": "kubectl create -f branches.yaml   # Indexed Job, 4 completions, each with an ephemeral volume restored from the snapshot",
+   "output": "job.batch/csi-demo-branches created",
+   "exit_code": 0,
+   "seconds": 2.55
+  },
+  {
+   "display": "kubectl -n rl-envs logs job/csi-demo-seed ; kubectl -n rl-envs logs <each branch pod>",
+   "output": "{\"mode\": \"seed\", \"files\": 7, \"tree_sha256\": \"23e663e9d1370ca0\", \"matches\": null, \"seconds\": 0.07}\n{\"mode\": \"check\", \"files\": 7, \"tree_sha256\": \"23e663e9d1370ca0\", \"matches\": true, \"seconds\": 0.01}\n{\"mode\": \"check\", \"files\": 7, \"tree_sha256\": \"23e663e9d1370ca0\", \"matches\": true, \"seconds\": 0.0}\n{\"mode\": \"check\", \"files\": 7, \"tree_sha256\": \"23e663e9d1370ca0\", \"matches\": true, \"seconds\": 0.0}\n{\"mode\": \"check\", \"files\": 7, \"tree_sha256\": \"23e663e9d1370ca0\", \"matches\": true, \"seconds\": 0.0}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "what each path cost (measured in this run)",
+   "output": "CSI path: volume created and seeded 24 s; VolumeSnapshot readyToUse after 70 s; 4 restored branch pods done after 22 s\ntar path (the platform's branching): 569 snapshots so far, 1.1 KB and 0.03 s each on average (written through the trajectory store)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the seed pod wrote the recorded state (same tree hash as the trajectory recorded after that turn)",
+   "passed": true,
+   "because": "csi_env.py restores the trajectory's own snapshot into the volume and hashes it."
+  },
+  {
+   "description": "all four branch volumes, restored from the VolumeSnapshot, hold exactly that state",
+   "passed": true,
+   "because": "The ephemeral volume's dataSource is the VolumeSnapshot, so EBS creates each new volume from the snapshot."
+  },
+  {
+   "description": "the costs were measured, and the snapshot path's cost decides the branching rate",
+   "passed": true,
+   "because": "The design: a 30-second restore limits you to a few branches per task, a 1-second one to many."
+  }
+ ],
+ "notes": [
+  "CSI VolumeSnapshot ready after 70 s and four restored branches after 22 s; a tar snapshot took 0.03 s on average."
+ ]
+}

@@ -1,0 +1,88 @@
+{
+ "id": "S05",
+ "title": "Branching from snapshots: Monte Carlo values and turn-level credit",
+ "design_ref": "Credit assignment: a ladder of methods; Branching rollouts",
+ "purpose": "Pick multi-bug trajectories, failed and successful, one per task (the failed ones from tasks the model solves at least once, so a better decision existed), and give the credit worker four branches per branch point. It must compute the value of the state after each branch point, turn the differences into per-turn advantages, and find the decisive segment; on a failed trajectory a successful branch shows which decision mattered. Branches must share their prefix in the rollout engine's cache.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "lh.py credit --run base-c4 --trajectories <6 trajectories> --k 4 --max-points 3",
+   "output": "job.batch/cr-base-c4 created\ncr-base-c4 Complete",
+   "exit_code": 0,
+   "seconds": 306.83
+  },
+  {
+   "display": "credit/base-c4/base-t2-12-s0.json",
+   "output": "outcome 0.0  V(start) 0.25  values after branch points {'2': 0.0, '4': 0.0, '5': 0.0}  decisive {\"after_turn\": -1, \"delta_v\": -0.25, \"to_turn\": 2}\nturn advantages (Monte Carlo): [-0.25, -0.25, -0.25, 0.0, 0.0, 0.0, 0.0, 0.0]\nturn advantages (trajectory-level): [-0.5774] x 8",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "credit/base-c4/base-t2-17-s2.json",
+   "output": "outcome 0.0  V(start) 0.25  values after branch points {'2': 0.25, '6': 0.0, '8': 0.0}  decisive {\"after_turn\": 2, \"delta_v\": -0.25, \"to_turn\": 6}\nturn advantages (Monte Carlo): [0.0, 0.0, 0.0, -0.25, -0.25, -0.25, -0.25, 0.0, 0.0, 0.0, 0.0]\nturn advantages (trajectory-level): [-0.5774] x 11",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "credit/base-c4/base-t3-20-s0.json",
+   "output": "outcome 0.0  V(start) 0.25  values after branch points {'2': 0.25, '4': 0.0, '6': 0.0}  decisive {\"after_turn\": 2, \"delta_v\": -0.25, \"to_turn\": 4}\nturn advantages (Monte Carlo): [0.0, 0.0, 0.0, -0.25, -0.25, 0.0, 0.0, 0.0, 0.0]\nturn advantages (trajectory-level): [-0.5774] x 9",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "credit/base-c4/base-t3-23-s0.json",
+   "output": "outcome 0.0  V(start) 0.5  values after branch points {'2': 0.5, '4': 0.5, '6': 0.0}  decisive {\"after_turn\": 4, \"delta_v\": -0.5, \"to_turn\": 6}\nturn advantages (Monte Carlo): [0.0, 0.0, 0.0, 0.0, 0.0, -0.5, -0.5, 0.0, 0.0]\nturn advantages (trajectory-level): [-1.0] x 9",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "credit/base-c4/base-t2-09-s0.json",
+   "output": "outcome 1.0  V(start) 0.75  values after branch points {'2': 0.5, '4': 1.0, '5': 1.0}  decisive {\"after_turn\": 2, \"delta_v\": 0.5, \"to_turn\": 4}\nturn advantages (Monte Carlo): [-0.25, -0.25, -0.25, 0.5, 0.5, 0.0, 0.0]\nturn advantages (trajectory-level): [0.5774] x 7",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "credit/base-c4/base-t2-12-s1.json",
+   "output": "outcome 1.0  V(start) 0.25  values after branch points {'2': 0.0, '4': 1.0, '5': 1.0}  decisive {\"after_turn\": 2, \"delta_v\": 1.0, \"to_turn\": 4}\nturn advantages (Monte Carlo): [-0.25, -0.25, -0.25, 1.0, 1.0, 0.0, 0.0]\nturn advantages (trajectory-level): [1.7321] x 7",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "vLLM /metrics during the branch rollouts: prefix cache",
+   "output": "queried 228974 tokens, hit 221824 (97%)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "environment time: branches vs the trajectories they credit",
+   "output": "branches 1613 s for 6 trajectories whose own episodes took 453 s",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "every chosen trajectory got values at its branch points from four verified continuations each",
+   "passed": true,
+   "because": "One Indexed Job of four branch pods per point, on the low-priority branch queue; each branch ends with the verifier's fresh-environment check."
+  },
+  {
+   "description": "turn-level advantages differ between turns of the same trajectory, unlike trajectory-level ones",
+   "passed": true,
+   "because": "Each segment gets V(after) - V(before); trajectory-level gives every turn the same number."
+  },
+  {
+   "description": "on at least one failed trajectory a branch succeeded, so a state on the failed path still had value",
+   "passed": true,
+   "because": "A failing trajectory with one successful branch shows which decision turned failure into success."
+  },
+  {
+   "description": "branches reused their shared prefix from the rollout engine's cache",
+   "passed": true,
+   "because": "Every branch from a point sends the same message prefix; vLLM's prefix cache serves those tokens without recomputing them."
+  }
+ ],
+ "notes": [
+  "Prefix cache hit rate during branching: 97%. Branch environment time 1613 s against 453 s for the trajectories themselves."
+ ]
+}

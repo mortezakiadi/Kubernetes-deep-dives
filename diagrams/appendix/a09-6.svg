@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="520px" viewBox="0 0 1420 520" style="background:#ffffff"><title>Verification never trusts the agent's environment</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker></defs><rect width="1420" height="520" fill="#ffffff"/><rect x="40" y="60" width="300" height="170" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="40" y="60" width="300" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="41" y="78" width="298" height="12" fill="#eff6ff"/>
+<text x="52" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">The agent's final files</text>
+<text x="52" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">whatever it left: fixed code,</text>
+<text x="52" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">edited tests, a patched</text>
+<text x="52" y="142" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">framework, a huge rewrite</text>
+<rect x="390" y="60" width="300" height="170" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="390" y="60" width="300" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="391" y="78" width="298" height="12" fill="#ecfdf5"/>
+<text x="402" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">A fresh copy</text>
+<text x="402" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the task's original files</text>
+<text x="402" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">+ only the files the agent changed</text>
+<text x="402" y="142" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">- its edits to protected paths</text>
+<text x="402" y="159" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">+ the hidden tests</text>
+<path d="M340 145 L390 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="740" y="40" width="300" height="90" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="740" y="40" width="300" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="741" y="58" width="298" height="12" fill="#fef2f2"/>
+<text x="752" y="60" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Required</text>
+<text x="752" y="88" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">hidden tests, regression tests,</text>
+<text x="752" y="105" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">diff size &lt;= 60, no tampering</text>
+<rect x="740" y="150" width="300" height="90" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="740" y="150" width="300" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="741" y="168" width="298" height="12" fill="#fffbeb"/>
+<text x="752" y="170" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Recorded</text>
+<text x="752" y="198" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">honest claims, ran the tests</text>
+<text x="752" y="215" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">before submitting</text>
+<path d="M690 120 L740 90" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M690 170 L740 195" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1090" y="60" width="290" height="170" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1090" y="60" width="290" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1091" y="78" width="288" height="12" fill="#f8fafc"/>
+<text x="1102" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">The verdict</text>
+<text x="1102" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">outcome 1 only if every required</text>
+<text x="1102" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">check passes; verifier version</text>
+<text x="1102" y="142" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">on every result; the in-place</text>
+<text x="1102" y="159" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">verdict alongside, for comparison</text>
+<path d="M1040 110 L1090 120" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="40" y="280" width="1340" height="200" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="280" width="1340" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="41" y="298" width="1338" height="12" fill="#f8fafc"/>
+<text x="52" y="300" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">What runs where</text>
+<text x="52" y="328" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the verifier pods: Python standard library only, the task bank mounted read-only, NetworkPolicy with no egress at all,</text>
+<text x="52" y="345" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each test run in a child process with CPU, memory and file-size limits; called only from rl-envs and platform</text>
+<text x="52" y="362" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the progress measure Phi uses the same fresh copy and the tamper check, so a patched framework earns no progress either</text>
+<text x="52" y="379" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the hidden tests never leave the verifier: they are not in the bucket and the environments cannot read the ConfigMap</text></svg>

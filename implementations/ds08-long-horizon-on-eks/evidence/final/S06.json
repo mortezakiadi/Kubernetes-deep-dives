@@ -1,0 +1,42 @@
+{
+ "id": "S06",
+ "title": "Is the credit any good? Four branches against twelve",
+ "design_ref": "Credit assignment: a ladder of methods (checking credit quality)",
+ "purpose": "On the trajectories of S05, estimate the same branch points' values again with twelve fresh branches each, as the reference. Compare each method's per-segment advantages with the reference: Monte Carlo with four branches, and trajectory-level advantages.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "lh.py credit --run base-c12 --trajectories <the same 6> --k 12 --max-points 3",
+   "output": "job.batch/cr-base-c12 created\ncr-base-c12 Complete",
+   "exit_code": 0,
+   "seconds": 1024.72
+  },
+  {
+   "display": "per-segment advantages: k=4 vs the k=12 reference vs trajectory-level",
+   "output": "base-t2-12-s0 segment ending at turn  2: MC k=4 -0.25   reference k=12 -0.08   trajectory-level -0.58\nbase-t2-12-s0 segment ending at turn  4: MC k=4 +0.00   reference k=12 -0.17   trajectory-level -0.58\nbase-t2-12-s0 segment ending at turn  5: MC k=4 +0.00   reference k=12 +0.00   trajectory-level -0.58\nbase-t2-17-s2 segment ending at turn  2: MC k=4 +0.00   reference k=12 -0.25   trajectory-level -0.58\nbase-t2-17-s2 segment ending at turn  6: MC k=4 -0.25   reference k=12 +0.00   trajectory-level -0.58\nbase-t2-17-s2 segment ending at turn  8: MC k=4 +0.00   reference k=12 +0.00   trajectory-level -0.58\nbase-t3-20-s0 segment ending at turn  2: MC k=4 +0.00   reference k=12 -0.17   trajectory-level -0.58\nbase-t3-20-s0 segment ending at turn  4: MC k=4 -0.25   reference k=12 -0.08   trajectory-level -0.58\nbase-t3-20-s0 segment ending at turn  6: MC k=4 +0.00   reference k=12 +0.00   trajectory-level -0.58\nbase-t3-23-s0 segment ending at turn  2: MC k=4 +0.00   reference k=12 -0.17   trajectory-level -1.00\nbase-t3-23-s0 segment ending at turn  4: MC k=4 +0.00   reference k=12 +0.33   trajectory-level -1.00\nbase-t3-23-s0 segment ending at turn  6: MC k=4 -0.50   reference k=12 -0.67   trajectory-level -1.00\nbase-t2-09-s0 segment ending at turn  2: MC k=4 -0.25   reference k=12 -0.67   trajectory-level +0.58\nbase-t2-09-s0 segment ending at turn  4: MC k=4 +0.50   reference k=12 +0.92   trajectory-level +0.58\nbase-t2-09-s0 segment ending at turn  5: MC k=4 +0.00   reference k=12 +0.00   trajectory-level +0.58\nbase-t2-12-s1 segment ending at turn  2: MC k=4 -0.25   reference k=12 -0.25   trajectory-level +1.73\nbase-t2-12-s1 segment ending at turn  4: MC k=4 +1.00   reference k=12 +1.00   trajectory-level +1.73\nbase-t2-12-s1 segment ending at turn  5: MC k=4 +0.00   reference k=12 +0.00   trajectory-level +1.73",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "agreement with the reference",
+   "output": "segments compared: 18\nMonte Carlo k=4: correlation 0.875, same sign 0.944\ntrajectory-level: one value per trajectory, so it cannot rank the turns inside a trajectory (true for 6 of 6)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "four branches agree with the twelve-branch reference (positive correlation)",
+   "passed": true,
+   "because": "Both are means of verified outcomes from the same snapshot; more branches only reduce the noise."
+  },
+  {
+   "description": "trajectory-level credit gives every turn of a trajectory the same advantage, so it ranks no decision",
+   "passed": true,
+   "because": "(outcome - group mean) / group std is one number per trajectory."
+  }
+ ],
+ "notes": [
+  "Monte Carlo k=4 against k=12: correlation 0.875 over 18 segments, same sign in 0.944 of them."
+ ]
+}

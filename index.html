@@ -287,7 +287,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li class="notes"><a href="#appendix-design-04-eks">E. Design 04 on EKS (built and tested)</a></li>
 <li class="notes"><a href="#appendix-design-05-eks">F. Design 05 on AWS (built and tested)</a></li>
 <li class="notes"><a href="#appendix-design-06-eks">G. Design 06 on EKS (built and tested)</a></li>
-<li class="notes"><a href="#appendix-design-07-eks">H. Design 07 on AWS (built and tested)</a></li></ul>
+<li class="notes"><a href="#appendix-design-07-eks">H. Design 07 on AWS (built and tested)</a></li>
+<li class="notes"><a href="#appendix-design-08-eks">I. Design 08 on EKS (built and tested)</a></li></ul>
     </nav>
   </aside>
   <main>
@@ -302,7 +303,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>18 deep dives</li>
         <li>37 designs</li>
-        <li>1127 scenario sections</li>
+        <li>1145 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -21570,6 +21571,926 @@ Three other pages already teach parts of this topic, and this page links to them
 <h3 id="appendix-design-07-eks-reproducing-it-and-taking-it-down">Reproducing it, and taking it down</h3>
 <pre class="snippet"><code class="language-bash"><span class="ln">export AWS_PROFILE=&lt;your profile&gt;</span><span class="ln">./scripts/up.sh                         <span class="tc"># about 25 minutes</span></span><span class="ln">python3 tests/run_scenarios.py all      <span class="tc"># several hours: it trains, breaks and measures</span></span><span class="ln">./scripts/down.sh --yes                 <span class="tc"># and then ./scripts/verify-clean.sh must print CLEAN</span></span></code></pre>
 <p>Everything is tagged with the project name. <code>down.sh</code> deletes the workloads, then the platform layer, then the cluster layer and the leftover log group, and <code>verify-clean.sh</code> reports anything of the project that remains in the region, including launch templates, volumes and the state bucket. The cluster costs about $6 an hour while it is up.</p></div>
+</section>
+
+<section class="entry appendix" id="appendix-design-08-eks" aria-labelledby="appendix-design-08-eks-h">
+  <header class="entry-head">
+    <span class="tag">Appendix</span>
+    <h2 id="appendix-design-08-eks-h">Appendix I: Design 08 built and tested on Amazon EKS</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#a09-1">Context: the problem, the actors and who talks to whom</a></li><li><a href="#appendix-design-08-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a09-2">2. EKS topology and instances</a></li><li><a href="#a09-3">3. Architecture</a></li><li><a href="#appendix-design-08-eks-4-how-i-implemented-it">4. How I implemented it</a></li><li><a href="#appendix-design-08-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-08-eks-s01-the-platform-at-rest-cluster-node-pools-storage-queues-and-services">S01: The platform at rest: cluster, node pools, storage, queues and services</a></li><li><a href="#appendix-design-08-eks-s02-the-trajectory-as-data-turns-log-probabilities-snapshots-and-a-deterministic-replay">S02: The trajectory as data: turns, log-probabilities, snapshots and a deterministic replay</a></li><li><a href="#appendix-design-08-eks-s03-snapshots-on-the-storage-layer-a-csi-volumesnapshot-and-k-branches-restored-from-it">S03: Snapshots on the storage layer: a CSI VolumeSnapshot and k branches restored from it</a></li><li><a href="#appendix-design-08-eks-s04-success-by-horizon-why-long-tasks-are-hard">S04: Success by horizon: why long tasks are hard</a></li><li><a href="#appendix-design-08-eks-s05-branching-from-snapshots-monte-carlo-values-and-turn-level-credit">S05: Branching from snapshots: Monte Carlo values and turn-level credit</a></li><li><a href="#appendix-design-08-eks-s06-is-the-credit-any-good-four-branches-against-twelve">S06: Is the credit any good? Four branches against twelve</a></li><li><a href="#appendix-design-08-eks-s07-train-on-what-the-model-saw-and-what-one-gradient-step-does-to-each-turn">S07: Train on what the model saw, and what one gradient step does to each turn</a></li><li><a href="#appendix-design-08-eks-s08-denser-rewards-without-reward-hacking-potential-based-shaping-paid-once">S08: Denser rewards without reward hacking: potential-based shaping, paid once</a></li><li><a href="#appendix-design-08-eks-s09-verification-for-long-tasks-a-fresh-environment-layered-checks">S09: Verification for long tasks: a fresh environment, layered checks</a></li><li><a href="#appendix-design-08-eks-s10-exploration-a-reverse-curriculum-from-snapshots-of-successes">S10: Exploration: a reverse curriculum from snapshots of successes</a></li><li><a href="#appendix-design-08-eks-s11-branch-rollouts-fill-spare-capacity-and-yield-to-primary-rollouts">S11: Branch rollouts fill spare capacity and yield to primary rollouts</a></li><li><a href="#appendix-design-08-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-08-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-08-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li></ol></nav>
+  <div class="prose"><p>This appendix describes a working, scaled-down implementation of <a href="#design-long-horizon">Design 08: Training for long-horizon reasoning</a>. I built it with Terraform on a standard Amazon EKS cluster in one AWS account: a fleet of agent environments <mark class="kw-act">admitted</mark> by <mark class="kw-tool">Kueue</mark>, a <mark class="kw-tool">vLLM</mark> rollout engine that returns per-token log-probabilities, a trajectory store that records every turn with its context and snapshot, a verifier that judges each attempt in a fresh copy with hidden tests, a credit worker that branches from snapshots and turns verified outcomes into turn-level values, potential-based reward shaping, a reverse curriculum, and a trainer job that checks what one policy-gradient step does to each turn.</p>
+<p>The order is the one a reader needs: first the context, then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested, with the commands, the results, why the results can be trusted and why the system produces them. Section 6 says plainly what I did not build.</p>
+<p><strong>What "scaled down" means here.</strong> The design is about agents that work for hundreds of turns on real repositories, with RL runs that last weeks. This build uses one 7B policy (Qwen2.5-7B-Instruct, Apache-2.0, pinned to a commit) served on one GPU, a second GPU for the trainer, and a bank of 32 small Python repositories with one, two or three planted bugs each. An episode has at most 16 turns and six tools (<code>ls</code>, <code>cat</code>, <code>replace</code>, <code>write</code>, <code>run_tests</code>, <code>submit</code>). The horizon is short, but it is long enough for the effects the design is about to show up and be measured: success falls as bugs are added, an attempt can fix one bug and then break the code, a fixed reward for activity can be farmed, and an agent can make the tests pass by changing the tests. None of the mechanisms depends on the size. A 16-turn episode and a 300-turn one go through the same environment pods, the same store, the same verifier and the same credit worker.</p>
+<p>11 of 11 scenarios passed, 42 of 42 checks.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Title</th>
+<th>Checks passed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S01</td>
+<td>The platform at rest: cluster, node pools, storage, queues and services</td>
+<td>9 of 9</td>
+</tr>
+<tr>
+<td>S02</td>
+<td>The trajectory as data: turns, log-probabilities, snapshots and a deterministic replay</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S03</td>
+<td>Snapshots on the storage layer: a CSI VolumeSnapshot and k branches restored from it</td>
+<td>3 of 3</td>
+</tr>
+<tr>
+<td>S04</td>
+<td>Success by horizon: why long tasks are hard</td>
+<td>3 of 3</td>
+</tr>
+<tr>
+<td>S05</td>
+<td>Branching from snapshots: Monte Carlo values and turn-level credit</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S06</td>
+<td>Is the credit any good? Four branches against twelve</td>
+<td>2 of 2</td>
+</tr>
+<tr>
+<td>S07</td>
+<td>Train on what the model saw, and what one gradient step does to each turn</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S08</td>
+<td>Denser rewards without reward hacking: potential-based shaping, paid once</td>
+<td>3 of 3</td>
+</tr>
+<tr>
+<td>S09</td>
+<td>Verification for long tasks: a fresh environment, layered checks</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>Exploration: a reverse curriculum from snapshots of successes</td>
+<td>3 of 3</td>
+</tr>
+<tr>
+<td>S11</td>
+<td>Branch rollouts fill spare capacity and yield to primary rollouts</td>
+<td>3 of 3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a09-1">Context: the problem, the actors and who talks to whom</h3>
+<p><strong>Scenario.</strong> The agent team trains a model to fix bugs in a repository over many turns. When an attempt fails at turn 14, a single 0 at the end says nothing about which of the 14 decisions was wrong. Group-relative RL gives every turn of a failed attempt the same negative advantage, including the turn where the agent fixed the first bug correctly. The team needs to record trajectories as data, branch from the middle of them, judge outcomes in a way the agent cannot game, and give credit to the turns that earned it.</p>
+<p>Six terms are used throughout.</p>
+<ul>
+<li><strong>Task.</strong> One small repository (a package <code>shop/</code> and its tests) with one to three planted bugs, and a short issue text that names the module and function of each bug. The public half (files and issue) is in S3; the hidden tests are only in the verifier.</li>
+<li><strong>Episode and trajectory.</strong> One attempt at one task, up to 16 turns. The trajectory is its record: every turn's action, observation, context reference, per-token log-probabilities, entropy, progress measure and snapshot, plus the verified outcome.</li>
+<li><strong>Branch point.</strong> A turn whose working copy was saved as a snapshot, because the action choice was uncertain, the action was an edit or the first test run, or every third turn as a fallback.</li>
+<li><strong>Branch.</strong> A continuation from a branch point's snapshot, with the same context and a new seed, run to the end and verified. The mean outcome of k branches is a Monte Carlo estimate of the state's value, V(t).</li>
+<li><strong>Progress, Φ.</strong> 0.2 if the package builds, plus 0.3 if the existing tests pass, plus 0.5 times the fraction of the issue's examples that now give the expected value. The verifier measures it in a fresh copy of the agent's current files, and sets it to 0 if the tamper check fails. Potential-based shaping pays the change in Φ.</li>
+<li><strong>Verified outcome.</strong> 1 only if the hidden tests, the regression tests, the diff-size limit and the tamper check all pass in a fresh copy. Every outcome carries the verifier version (<code>lh-verify@1.0</code>).</li>
+</ul>
+<figure class="diagram"><button aria-label="Open diagram full screen: Who uses the platform, what it is made of, and what it talks to" class="open" data-src="diagrams/appendix/a09-1.svg" data-title="Who uses the platform, what it is made of, and what it talks to" type="button"><img alt="Diagram: Who uses the platform, what it is made of, and what it talks to" decoding="async" loading="lazy" src="diagrams/appendix/a09-1.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> A researcher starts rollouts, credit runs and curricula with the launcher <code>lh.py</code>. Each environment pod runs an episode: it asks the rollout engine for one action per turn, runs the tool in its working copy, asks the verifier for progress, and writes the turn through the trajectory store. The credit worker reads finished trajectories and submits branch jobs. The trainer job reads stored contexts and log-probabilities. Outside the platform there are only the model weights and the container images, each pinned.</p>
+<h3 id="appendix-design-08-eks-1-the-software-components-i-implemented">1. The software components I implemented</h3>
+<p><strong>Scenario.</strong> A reader needs to know which parts I wrote and which I reused, before reading any result.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Component</th>
+<th>What it does</th>
+<th>Where it runs</th>
+<th>Written or reused</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Standard EKS cluster</strong></td>
+<td>Kubernetes 1.37 with two managed node groups and the EKS add-ons, the VPC CNI with network policy enforcement on, the EBS CSI driver and the snapshot controller.</td>
+<td>AWS</td>
+<td>Written (Terraform)</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Kueue 0.20.7</strong></td>
+<td>Admission of environment jobs: two ClusterQueues (rollouts, branches) in one cohort, a CPU ResourceFlavor, two priority classes.</td>
+<td><code>kueue-system</code></td>
+<td>Reused, configured</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>NVIDIA device plugin 0.20.2</strong></td>
+<td>Advertises <code>nvidia.com/gpu</code> on the GPU nodes.</td>
+<td><code>nvidia-device-plugin</code></td>
+<td>Reused</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Rollout engine</strong></td>
+<td>vLLM 0.33.0 serving Qwen2.5-7B-Instruct as <code>policy</code>, with prefix caching, a fixed seed, per-token log-probabilities and the top five alternatives per token.</td>
+<td><code>llm</code>, GPU node</td>
+<td>Reused, configured</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Task bank (<code>tasks/</code>)</strong></td>
+<td>Four modules with two plantable bugs each; 32 tasks of one, two or three bugs, with visible, hidden and regression tests; self-checks that every bug breaks a hidden test and every fix passes.</td>
+<td>Built at <code>up.sh</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Environment (<code>rollout.py</code>, <code>agent.py</code>, <code>sandbox.py</code>)</strong></td>
+<td>One episode per attempt: the agent loop with context compaction and one action per turn, a working copy with six tools, branch-point selection, tar snapshots, a loop guard, and replay.</td>
+<td><code>rl-envs</code>, system nodes</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Trajectory store (<code>trajstore.py</code>)</strong></td>
+<td>A small HTTP service and the only writer to the bucket for environments: write-once trajectories, snapshots, contexts, log-probabilities, credit records and curricula.</td>
+<td><code>platform</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Verifier (<code>verifier.py</code>)</strong></td>
+<td><code>/verify</code> and <code>/progress</code>: a fresh copy of the task plus the agent's changed files, hidden and regression tests in child processes with limits, the diff-size and tamper checks, the honesty check.</td>
+<td><code>platform</code>, no egress</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Credit worker (<code>credit.py</code>)</strong></td>
+<td>Picks branch points, submits branch jobs to the branch queue, waits, and turns the verified outcomes into V(t) and turn-level advantages next to the trajectory-level ones.</td>
+<td>Job in <code>platform</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Trainer (<code>trainer.py</code>)</strong></td>
+<td>Recomputes log-probabilities on the stored context with Transformers, compares them with the rollout engine's, and measures what one policy-gradient step with each kind of advantage does to each turn (LoRA, peft 0.22.0).</td>
+<td>GPU job in <code>platform</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Metrics and shaping (<code>metrics.py</code>)</strong></td>
+<td>Success by horizon, pass@k, zero-variance groups, naive and potential-based shaping, pathology counts.</td>
+<td>Launcher</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>Launcher (<code>lh.py</code>)</strong></td>
+<td><code>rollout</code>, <code>scripted</code>, <code>replay</code>, <code>credit</code>, <code>trainer</code>, <code>stats</code>, <code>curriculum</code>: creates the Jobs with the pinned image, waits, and prints results.</td>
+<td>The researcher's machine</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>13</td>
+<td><strong>Snapshot measurements (<code>csi_env.py</code>)</strong></td>
+<td>Seeds an EBS volume with a recorded state, snapshots it with a CSI VolumeSnapshot, restores four volumes and checks each one's tree hash.</td>
+<td><code>rl-envs</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>Scenario runner and screenshot renderer</strong></td>
+<td>Runs the scenarios, records commands and output, redacts private values, draws terminal-style screenshots.</td>
+<td><code>tests/</code></td>
+<td>Adapted from Appendix G</td>
+</tr>
+</tbody>
+</table>
+<p>The Terraform is about 1080 lines; the platform's code (launcher, environments, agent, verifier, trajectory store, credit, trainer, metrics, task bank) about 1780 lines of Python; the curriculum spec 13 lines of JSON; the test code about 960 lines.</p>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>Two images, unmodified.</strong> Environment, store, verifier and credit pods run the Python 3.12 slim image, pinned by digest, with the code from a ConfigMap. The rollout engine and the trainer run the <mark class="kw-tool">vLLM</mark> 0.33.0 release image, pinned by digest; the trainer adds peft 0.22.0 at start. Nothing is built or pushed.</li>
+<li><strong>One action per turn.</strong> The rollout engine stops generation at a second <code>ACTION:</code> line, and the environment runs only the first action it finds and says so in the observation if there were more. Without this the 7B model often wrote a whole plan of actions into one turn, and a "turn" stopped meaning one decision.</li>
+<li><strong>Why a 7B policy.</strong> With Qwen2.5-3B-Instruct, pass@1 on one-bug tasks was about 0.17 and multi-bug tasks were never solved, so there were no successes to branch towards and no curriculum to build. The 7B model solves most one-bug tasks and some three-bug ones, which is the range where credit assignment matters.</li>
+</ul></div></details>
+
+<h3 id="a09-2">2. EKS topology and instances</h3>
+<p><strong>Scenario.</strong> The design needs many cheap, isolated environments next to one expensive rollout engine, snapshots that branches can start from, a verifier the agent cannot reach around, and spare capacity that branches may use without delaying primary rollouts.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: One VPC in us-east-2, three zones, a CPU node group and a GPU node group" class="open" data-src="diagrams/appendix/a09-2.svg" data-title="One VPC in us-east-2, three zones, a CPU node group and a GPU node group" type="button"><img alt="Diagram: One VPC in us-east-2, three zones, a CPU node group and a GPU node group" decoding="async" loading="lazy" src="diagrams/appendix/a09-2.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> One VPC in us-east-2 with a public and a private subnet in each of three zones, one NAT gateway, an S3 gateway endpoint, one EKS cluster with two managed node groups <mark class="kw-act">spread</mark> over all three zones, the bucket, and the <mark class="kw">EBS</mark> volumes and snapshots that the CSI driver creates.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><p><strong>Why standard EKS with managed node groups, and not Auto Mode.</strong> I chose the substrate for what this design needs, not for the least setup.</p><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">A fixed GPU pair with a pinned driver.</span></summary><div class="acc-body">The trainer's check in S07 compares its log-probabilities with the rollout engine's; both depend on the GPU stack. A managed node group's AMI release is a Terraform variable (<code>1.37.1-20261119</code>), so it changes only when that line changes. Auto Mode replaces nodes after at most 21 days with the latest AMI (<a href="https://docs.aws.amazon.com/eks/latest/userguide/auto-security.html">Security considerations for EKS Auto Mode</a>).</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Kueue as the only gate for environments.</span></summary><div class="acc-body">Primary and branch rollouts compete for a fixed CPU budget on the system nodes (S11). With a fixed pool, the queue decides who runs; nothing waits for a node purchase.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Ordinary EC2 instances and EBS volumes.</span></summary><div class="acc-body">The nodes, the CSI volumes and the snapshots are listed by EC2, so cost and teardown can be checked from the account (S01, section 7).<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What I built</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Region</strong></td>
+<td>us-east-2. One VPC of five allowed per region; the NAT gateway uses one of five Elastic IPs.</td>
+<td>Design 07's build uses us-east-1 in the same account.</td>
+</tr>
+<tr>
+<td><strong>Cluster</strong></td>
+<td>EKS <code>ds08-longhorizon</code>, Kubernetes 1.37, <code>bootstrap_self_managed_addons = false</code>, access entries. The public endpoint accepts only the administrator's <code>/32</code>.</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Add-ons</strong></td>
+<td>VPC CNI with <code>enableNetworkPolicy</code>, kube-proxy, Pod Identity agent, CoreDNS, metrics-server, EBS CSI driver <code>v1.68.1-eksbuild.1</code> (its own Pod Identity role), snapshot controller <code>v8.7.0-eksbuild.5</code>.</td>
+<td>NetworkPolicy isolates environments and the verifier; the CSI pieces give S03 its VolumeSnapshots.</td>
+</tr>
+<tr>
+<td><strong>System node group</strong></td>
+<td>2 × <code>m6i.2xlarge</code> (8 vCPU, 32 GiB), AL2023 standard AMI, on demand.</td>
+<td>Environments, store, verifier, credit worker and controllers. Twelve environment pods of 500m CPU fit with room for the services.</td>
+</tr>
+<tr>
+<td><strong>GPU node group</strong></td>
+<td>2 nodes, one GPU each, on demand, 200 GB disk, AL2023 NVIDIA AMI <code>1.37.1-20261119</code>, GPU taint. Types in priority order: <code>g6e.xlarge</code>, <code>g6.2xlarge</code>, <code>g6e.2xlarge</code>, <code>g5.xlarge</code>, <code>g5.2xlarge</code>, <code>g6.xlarge</code>.</td>
+<td>All have one GPU with at least 24 GB. EC2 refused <code>g6.2xlarge</code> and <code>g6e.2xlarge</code> for capacity while I built this, so the list is long. S01 records what the final run got. The vLLM and trainer pods request 3 vCPU and 10 to 12 GiB so they fit the smallest type in the list.</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>One private S3 bucket (<code>ds08-longhorizon-data-&lt;random&gt;</code>); a gp3 StorageClass <code>env-gp3</code> and a VolumeSnapshotClass <code>env-ebs</code>.</td>
+<td>S3 for trajectories and tar snapshots; EBS for the design's VolumeSnapshot path.</td>
+</tr>
+<tr>
+<td><strong>Identity</strong></td>
+<td>Pod Identity roles for the trajectory store (the bucket's prefixes) and the EBS CSI driver. Environment, verifier and branch pods have no role and no service-account token.</td>
+<td>Code the agent writes runs in a pod with nothing to misuse.</td>
+</tr>
+<tr>
+<td><strong>Namespaces</strong></td>
+<td><code>rl-envs</code> (restricted Pod Security: environments and branches), <code>llm</code> (rollout engine), <code>platform</code> (store, verifier, credit worker, trainer). The credit worker's Role lets it create and read Jobs in <code>rl-envs</code> only.</td>
+<td>One place for each kind of thing.</td>
+</tr>
+</tbody>
+</table></div></details></div>
+
+
+<h3 id="a09-3">3. Architecture</h3>
+<p><strong>Scenario.</strong> One map of what runs where and which layer is responsible for what, so that each scenario can say which layer produced the behaviour it shows.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Design 08 on EKS: the five layers" class="open" data-src="diagrams/appendix/a09-3.svg" data-title="Design 08 on EKS: the five layers" type="button"><img alt="Diagram: Design 08 on EKS: the five layers" decoding="async" loading="lazy" src="diagrams/appendix/a09-3.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The operator's tools at the top, <mark class="kw-act">admission</mark>, the environments and the model, credit, verification and training, and the stores. Every layer writes to the store; nothing else in the environments can write to the bucket.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: One turn of an episode" class="open" data-src="diagrams/appendix/a09-4.svg" data-title="One turn of an episode" type="button"><img alt="Diagram: One turn of an episode" decoding="async" loading="lazy" src="diagrams/appendix/a09-4.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> One turn. The environment builds the context, replacing old observations by a one-line note once it passes 7,000 characters (the last two turns stay in full). It asks the rollout engine for one action and its log-probabilities, runs the tool, asks the verifier for Φ, decides whether this turn is a branch point, and writes the snapshot, the context and the log-probabilities. After the last turn the verifier gives the outcome and the trajectory is written.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Turn-level credit from branches, against trajectory-level advantages" class="open" data-src="diagrams/appendix/a09-5.svg" data-title="Turn-level credit from branches, against trajectory-level advantages" type="button"><img alt="Diagram: Turn-level credit from branches, against trajectory-level advantages" decoding="async" loading="lazy" src="diagrams/appendix/a09-5.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> An illustration with made-up values of what the credit worker computes. Branching from three snapshots of one failed trajectory gives V(2), V(4) and V(6). The turns between two branch points get the change in V as their advantage, so the good fix is credited and the bad edit is blamed. Trajectory-level advantages give all turns the same number. S05 and S06 measure this on real trajectories.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: What the verifier checks, and where" class="open" data-src="diagrams/appendix/a09-6.svg" data-title="What the verifier checks, and where" type="button"><img alt="Diagram: What the verifier checks, and where" decoding="async" loading="lazy" src="diagrams/appendix/a09-6.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The verifier never trusts the agent's working copy. It builds a fresh copy of the task, applies only the agent's changes to non-test files, adds the hidden tests, and runs the required checks. Honesty and "ran the tests" are recorded but do not decide the outcome.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Primary rollouts own the capacity; branches borrow it and give it back" class="open" data-src="diagrams/appendix/a09-7.svg" data-title="Primary rollouts own the capacity; branches borrow it and give it back" type="button"><img alt="Diagram: Primary rollouts own the capacity; branches borrow it and give it back" decoding="async" loading="lazy" src="diagrams/appendix/a09-7.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The two queues. Primary rollouts own 6 vCPU and 12 GiB, twelve environments; branch rollouts own nothing and may only <mark class="kw-act">borrow</mark>. S11 runs the four steps at the bottom.</p>
+<h3 id="appendix-design-08-eks-4-how-i-implemented-it">4. How I implemented it</h3>
+<p><strong>Scenario.</strong> Someone who wants to rebuild or extend this needs to know how the pieces fit, in the order they are built.</p>
+<ol>
+<li><strong>Terraform, cluster layer (<code>terraform/10-cluster</code>).</strong> The VPC, subnets, NAT gateway and S3 endpoint; the cluster and its roles; the add-ons nodes need before they become Ready; the two node groups; then <mark class="kw-tool">CoreDNS</mark>, metrics-server, the <mark class="kw-tool">EBS CSI driver</mark> with its <mark class="kw">Pod Identity</mark> role, and the snapshot controller. The provider has <code>allowed_account_ids</code>; the account ID and the administrator's address live only in a git-ignored <code>local.auto.tfvars</code> that <code>up.sh</code> writes. State is local and git-ignored.</li>
+<li><strong>Tasks.</strong> <code>up.sh</code> runs <code>tasks/make_tasks.py</code>, which writes 32 tasks (8 with one bug, 12 with two, 12 with three) split into a public part and a hidden part, then <code>tasks/check_tasks.py</code>, which checks on every task that the original code fails each hidden test it should, that the reference fix passes everything, and that no hidden test is in the public part.</li>
+<li><strong>Terraform, platform layer (<code>terraform/20-platform</code>).</strong> Namespaces with their Pod Security levels; the <mark class="kw">device plugin</mark> and <mark class="kw-tool">Kueue</mark>; the flavor, <mark class="kw">priority classes</mark> and queues; the <mark class="kw">StorageClass</mark> and VolumeSnapshotClass; the bucket with the public tasks and the store's role; the code ConfigMaps and the task bank ConfigMap (hidden tests, mounted only in the verifier); the rollout engine, the store and the verifier; the <mark class="kw">NetworkPolicies</mark>; the credit worker's service account and its Role in <code>rl-envs</code>.</li>
+<li><strong>An episode.</strong> <code>lh.py rollout</code> creates an Indexed Job in the rollouts queue: each pod takes every Nth attempt of the list. The pod fetches the task's public files from the store, and each turn asks the rollout engine for a completion with <code>logprobs</code> and <code>top_logprobs = 5</code>, parses the first <code>ACTION:</code> line, runs it, and asks the verifier's <code>/progress</code> for Φ. A turn becomes a branch point if the first action token's entropy is at least 0.5, if its action is an edit or the first test run, or every third turn; its working copy is written as a deterministic tar. The same action three times in a row ends the episode (the loop guard). At the end the pod sends the changed files and the agent's last message to <code>/verify</code> and writes the trajectory, with the tree hash after every turn.</li>
+<li><strong>Replay.</strong> <code>lh.py replay</code> restores a snapshot and re-runs the recorded actions after it, comparing every observation and tree hash with the trajectory (S02). The tools are deterministic, so a replay that differs means the environment is not.</li>
+<li><strong>Credit.</strong> <code>lh.py credit</code> starts the credit worker as a Job. For each chosen trajectory it takes up to four branch points by priority (uncertain, edit, first test run, every third turn), submits one branch Job per point to the branches queue with k seeds, waits, and writes V(t) for each point and an advantage per turn: the change in V between the branch points around the turn, with V(start) the task's group mean over root attempts and the outcome at the end. The trajectory-level advantage (outcome minus group mean, divided by the group's standard deviation) is written next to it.</li>
+<li><strong>Training check.</strong> <code>lh.py trainer</code> runs a GPU Job that loads the policy with Transformers at the same commit, rebuilds each turn's input from the stored context, and computes the log-probability of the tokens the rollout engine generated. It compares them with the stored ones and with the log-probabilities under the full, uncompacted history. It then puts a <mark class="kw">LoRA</mark> adapter on the attention projections and measures, per turn, the first-order change one step would make to that turn's mean log-probability, once with the trajectory-level advantage and once with the turn-level one.</li>
+<li><strong>Shaping and curriculum.</strong> <code>metrics.py</code> computes naive and potential-based shaped returns from the recorded Φ. <code>lh.py scripted</code> runs fixed scripts (a looping agent, a test editor, a framework patcher, a huge rewrite, a false claim) through the same environment and verifier. <code>lh.py curriculum</code> reads <code>recipes/curriculum.json</code>, takes successful three-bug trajectories, and starts episodes from their snapshots with at most 2, then 5 turns left, then from the beginning, recording a promotion decision per stage.</li>
+<li><strong>Scenarios and evidence.</strong> <code>tests/run_scenarios.py</code> runs every command it shows, records the real output, redacts the account ID, the administrator's address and the local user name, computes each check from the output, and draws the screenshot from the same text.</li>
+</ol>
+<h3 id="appendix-design-08-eks-5-the-scenarios-i-tested">5. The scenarios I tested</h3>
+<p><strong>Scenario.</strong> Each test below starts from a question the design asks and ends with evidence. Every command was run by the scenario runner against the live platform, in one run from a fresh build, in the order shown, and the output is what the command printed (shortened here; the screenshot and the evidence file have it in full). Each check is computed by the program from that output, not written by hand. One note on that fresh build: <code>up.sh</code> stopped waiting for the rollout engine after Kubernetes' default ten-minute progress deadline, because the cold GPU node was still downloading the model. I raised the deadline to 30 minutes in Terraform, applied it to the same build (the plan showed that one field and nothing else), and the engine became ready without a restart. The model samples at temperature 0.7, so the exact numbers differ from run to run; the checks test the direction of each effect, not a value.</p>
+<p><strong>How to read the screenshots.</strong> They are drawn from the recorded text by the renderer in <code>tests/render_terminal.py</code>. Lines starting with <code>$</code> are the commands; lines starting with <code>[PASS]</code> or <code>[FAIL]</code> are the checks. Where a step reads the store rather than running one command, the step's title says which object it read.</p>
+<h3 id="appendix-design-08-eks-s01-the-platform-at-rest-cluster-node-pools-storage-queues-and-services">S01: The platform at rest: cluster, node pools, storage, queues and services</h3>
+<p><strong>Design reference:</strong> The infrastructure: environments, trajectories and credit workers.</p>
+<p><strong>What this tests.</strong> Show what was built before anything runs: a standard EKS cluster with a CPU pool and a GPU pool, the <mark class="kw-tool">EBS CSI driver</mark> and the snapshot controller, the two environment queues, the rollout engine serving the policy, the trajectory store, the verifier with no network, and an empty store.</p>
+<p>Before testing behaviour I check that the platform is what section 2 says: a standard EKS cluster with two managed node groups, the GPU pool on a pinned accelerated AMI, the CSI driver and snapshot controller, the two queues, the rollout engine serving the pinned policy, the network policies, the published tasks without their hidden tests, and no run yet.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S01: The platform at rest: cluster, node pools, storage, queues and services" class="open" data-src="diagrams/appendix/a09-evidence/S01.png" data-title="S01: The platform at rest: cluster, node pools, storage, queues and services" type="button"><img alt="Diagram: S01: The platform at rest: cluster, node pools, storage, queues and services" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S01.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ aws eks describe-cluster --name ds08-longhorizon --query 'cluster.{name,status,version,autoMode}'</span><span class="ln">{</span><span class="ln">    "name": "ds08-longhorizon",</span><span class="ln">    "status": "ACTIVE",</span><span class="ln">    "version": "1.37",</span><span class="ln">    "autoMode": false</span><span class="ln">}</span><span class="ln"> </span><span class="ln">$ kubectl get nodes -o custom-columns=NODE,POOL,TYPE,ZONE,GPU</span><span class="ln">NODE                                         POOL     TYPE          ZONE         GPU</span><span class="ln">ip-10-81-17-104.us-east-2.compute.internal   system   m6i.2xlarge   us-east-2a   &lt;none&gt;</span><span class="ln">ip-10-81-23-230.us-east-2.compute.internal   gpu      g5.xlarge     us-east-2a   1</span><span class="ln">ip-10-81-40-145.us-east-2.compute.internal   gpu      g5.xlarge     us-east-2b   1</span><span class="ln">ip-10-81-56-12.us-east-2.compute.internal    system   m6i.2xlarge   us-east-2c   &lt;none&gt;</span><span class="ln"> </span><span class="ln">$ aws eks list-addons --cluster-name ds08-longhorizon --query addons --output text</span><span class="ln">aws-ebs-csi-driver  coredns eks-pod-identity-agent  kube-proxy  metrics-server  snapshot-controller vpc-cni</span><span class="ln"> </span><span class="ln">$ kubectl get storageclass,volumesnapshotclass</span><span class="ln">NAME                                  PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE</span><span class="ln">storageclass.storage.k8s.io/env-gp3   ebs.csi.aws.com         Delete          WaitForFirstConsumer   true                   11m</span><span class="ln">storageclass.storage.k8s.io/gp2       kubernetes.io/aws-ebs   Delete          WaitForFirstConsumer   false                  18m</span><span class="ln"> </span><span class="ln">NAME                                                  DRIVER            DELETIONPOLICY   AGE</span><span class="ln">volumesnapshotclass.snapshot.storage.k8s.io/env-ebs   ebs.csi.aws.com   Delete           11m</span><span class="ln"> </span><span class="ln">$ kubectl get clusterqueue -o custom-columns=QUEUE:.metadata.name,COHORT:.spec.cohortName,CPU-OWNED:.spec.resourceGroups[0].flavors[0].resources[0].nominalQuota,CPU-MAY-BORROW:.spec.resourceGroups[0].flavors[0].resources[0].borrowingLimit,RECLAIM:.spec.preemption.reclaimWithinCohort</span><span class="ln">QUEUE      COHORT    CPU-OWNED   CPU-MAY-BORROW   RECLAIM</span><span class="ln">branches   rl-envs   0           6                Never</span><span class="ln">rollouts   rl-envs   6           0                Any</span><span class="ln"> </span><span class="ln">$ kubectl -n llm get deploy,svc</span><span class="ln">NAME                   READY   UP-TO-DATE   AVAILABLE   AGE</span><span class="ln">deployment.apps/vllm   1/1     1            1           11m</span><span class="ln"> </span><span class="ln">NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE</span><span class="ln">service/vllm   ClusterIP   172.20.180.53   &lt;none&gt;        8000/TCP   11m</span><span class="ln"> </span><span class="ln">$ kubectl get --raw /api/v1/namespaces/llm/services/vllm:8000/proxy/v1/models</span><span class="ln">{"object":"list","data":[{"id":"policy","object":"model","created":1795467663,"owned_by":"vllm","root":"Qwen/Qwen2.5-7B-Instruct","parent":null,"max_model_len":8192,"permission":[{"id":"modelperm-811…</span><span class="ln"> </span><span class="ln">$ kubectl -n platform get deploy,svc,networkpolicy</span><span class="ln">NAME                        READY   UP-TO-DATE   AVAILABLE   AGE</span><span class="ln">deployment.apps/trajstore   2/2     2            2           11m</span><span class="ln">deployment.apps/verifier    2/2     2            2           11m</span><span class="ln"> </span><span class="ln">NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE</span><span class="ln">service/trajstore   ClusterIP   172.20.69.30    &lt;none&gt;        8080/TCP   11m</span><span class="ln">service/verifier    ClusterIP   172.20.234.97   &lt;none&gt;        8080/TCP   11m</span><span class="ln"> </span><span class="ln">NAME                                                 POD-SELECTOR   AGE</span><span class="ln">networkpolicy.networking.k8s.io/verifier-isolation   app=verifier   11m</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-envs get networkpolicy env-egress -o jsonpath='{.spec.egress[*].to[0].namespaceSelector.matchLabels}'</span><span class="ln">{"kubernetes.io/metadata.name":"llm"} {"kubernetes.io/metadata.name":"platform"} {"kubernetes.io/metadata.name":"kube-system"}</span><span class="ln"> </span><span class="ln">$ aws s3 ls s3://&lt;bucket&gt;/tasks/public/ | wc -l ; aws s3 ls s3://&lt;bucket&gt;/tasks/hidden/ | wc -l</span><span class="ln">32 public task files</span><span class="ln">0 hidden files (the hidden tests are only in the verifier's ConfigMap)</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-envs get jobs,workloads   <span class="tc"># before any run</span></span><span class="ln"> </span><span class="ln">No resources found in rl-envs namespace.</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the cluster is ACTIVE on Kubernetes 1.37, standard EKS (Auto Mode off)</td>
+<td>Terraform creates the cluster with no compute configuration; the nodes are managed node groups.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>two GPU nodes, one GPU each</td>
+<td>The GPU node group has two nodes of whichever listed one-GPU type EC2 had capacity for.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the EBS CSI driver and the snapshot controller are installed as EKS add-ons</td>
+<td>Both are in the cluster layer; the driver's controller has its own AWS identity through EKS Pod Identity.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a gp3 storage class and a VolumeSnapshotClass for EBS exist</td>
+<td>Created by the platform layer.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>primary rollouts own the environment capacity; branch rollouts own none and may only borrow it</td>
+<td>Two ClusterQueues in one cohort, with priority classes primary (1000) and branch-low (100).</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the rollout engine serves the policy (Qwen2.5-7B-Instruct at a pinned commit) under the name 'policy'</td>
+<td>vLLM 0.33.0 with prefix caching on, from the release image pinned by digest.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>environments may reach only the rollout engine, the platform services and DNS</td>
+<td>The env-egress NetworkPolicy lists exactly three destinations; the verifier's own policy has no egress at all.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>32 tasks are published, and no hidden test is in the bucket</td>
+<td>Terraform uploads only the public half of each task; the hidden half is mounted into the verifier pods.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>nothing is running and the store holds no trajectory</td>
+<td>A fresh build.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Every fact comes from the system that owns it: the cluster and node groups from the EKS API, the instances from EC2, the queues from <mark class="kw-tool">Kueue</mark>'s own objects, the model from the rollout engine's /v1/models, the tasks from the bucket.</li>
+<li>'No hidden test in the bucket' is a listing of the bucket's tasks/hidden/ prefix, not a statement about my upload code.</li>
+<li>'Nothing is running' is the API server's answer for Jobs in the environment namespace, and an empty trajectories/ prefix.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Auto Mode is off because the Terraform has no compute configuration; the node groups are what EKS describes because Terraform created them with those AMI types and release versions.</li>
+<li>The GPU nodes are whichever listed type EC2 had capacity for, because the node group takes the first type in its list that it can launch.</li>
+<li>The branch queue owns nothing and may <mark class="kw-act">borrow</mark> everything because that is its <mark class="kw">quota</mark>; S11 depends on it.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s02-the-trajectory-as-data-turns-log-probabilities-snapshots-and-a-deterministic-replay">S02: The trajectory as data: turns, log-probabilities, snapshots and a deterministic replay</h3>
+<p><strong>Design reference:</strong> The trajectory as data: turns, snapshots and branch points.</p>
+<p><strong>What this tests.</strong> Run the policy on all 32 tasks, four attempts each, as primary rollouts. Then look at one trajectory as the store holds it, and replay it from one of its snapshots to check that the environment is deterministic: the same state and actions give the same observations.</p>
+<p>The design treats a trajectory as data: every turn, its context, its log-probabilities, its state and its branch points, replayable from a snapshot. I run 128 root attempts (32 tasks, four seeds), open one trajectory turn by turn, and replay it from a snapshot.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S02: The trajectory as data: turns, log-probabilities, snapshots and a deterministic replay" class="open" data-src="diagrams/appendix/a09-evidence/S02.png" data-title="S02: The trajectory as data: turns, log-probabilities, snapshots and a deterministic replay" type="button"><img alt="Diagram: S02: The trajectory as data: turns, log-probabilities, snapshots and a deterministic replay" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S02.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ lh.py rollout --run base --tasks &lt;all 32&gt; --seeds 0,1,2,3 --parallel 12</span><span class="ln">job.batch/ro-base created</span><span class="ln">ro-base Complete</span><span class="ln"> </span><span class="ln">$ aws s3 ls s3://&lt;bucket&gt;/trajectories/base- | wc -l   <span class="tc"># root attempts recorded</span></span><span class="ln">128 trajectories in 1000 s</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/trajectories/base-t2-16-s2.json - | jq '{task_id,bugs,env_image,seed,outcome,verifier_version,stop,summary_boundaries}'</span><span class="ln">{</span><span class="ln"> "task_id": "t2-16",</span><span class="ln"> "bugs": 2,</span><span class="ln"> "env_image": "public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b",</span><span class="ln"> "seed": 2,</span><span class="ln"> "outcome": 1.0,</span><span class="ln"> "verifier_version": "lh-verify@1.0",</span><span class="ln"> "stop": "submit",</span><span class="ln"> "summary_boundaries": []</span><span class="ln">}</span><span class="ln"> </span><span class="ln">$ one turn of it (.turns[2]), observation shortened</span><span class="ln">{</span><span class="ln"> "index": 2,</span><span class="ln"> "prompt_tokens": 497,</span><span class="ln"> "completion_tokens": 61,</span><span class="ln"> "action": {</span><span class="ln">  "new": "return round(price * (1 - percent / 100), 2)",</span><span class="ln">  "old": "return round(price * (1 - percent / 10), 2)",</span><span class="ln">  "path": "shop/pricing.py",</span><span class="ln">  "tool": "replace"</span><span class="ln"> },</span><span class="ln"> "logprobs_ref": "logprobs/base-t2-16-s2/002.json",</span><span class="ln"> "context_ref": "contexts/base-t2-16-s2/002.json",</span><span class="ln"> "policy_version": 0,</span><span class="ln"> "entropy_first_action_token": 0.0009,</span><span class="ln"> "snapshot_id": "snapshots/base-t2-16-s2/002.tgz",</span><span class="ln"> "branch_reason": "edit",</span><span class="ln">… (10 more lines in the screenshot and in evidence/S02.txt)</span><span class="ln"> </span><span class="ln">$ branch points chosen across all 128 trajectories, by reason</span><span class="ln">{"edit": 300, "first-test-run": 111, "uncertain": 63, "every-3": 95}  (of 1024 turns)</span><span class="ln"> </span><span class="ln">$ lh.py replay --run base-replay --trajectory base-t2-16-s2 --turn 2</span><span class="ln">job.batch/rp-base-replay created</span><span class="ln">rp-base-replay Complete</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/curriculum/replay/base-replay/base-t2-16-s2.json -</span><span class="ln">{"from_turn": 2, "replayed_turns": 7, "all_identical": true}</span><span class="ln">{"same_observation": true, "same_state": true, "tool": "cat", "turn": 3}</span><span class="ln">{"same_observation": true, "same_state": true, "tool": "replace", "turn": 4}</span><span class="ln">{"same_observation": true, "same_state": true, "tool": "run_tests", "turn": 5}</span><span class="ln">{"same_observation": true, "same_state": true, "tool": "invalid", "turn": 6}</span><span class="ln">{"same_observation": true, "same_state": true, "tool": "write", "turn": 7}</span><span class="ln">{"same_observation": true, "same_state": true, "tool": "run_tests", "turn": 8}</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>all 128 attempts were recorded</td>
+<td>One Indexed Job of 12 pods; each pod runs every 12th attempt and writes each trajectory through the store.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>every turn has its context, its per-token log-probabilities from the rollout engine, its policy version and the environment's checks</td>
+<td>The runner stores the exact message list and the token ids with their log-probabilities for every turn; the verifier computes the checks on the real files.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>only some turns are branch points, chosen by uncertainty, by important actions, or every third turn</td>
+<td>A snapshot is taken only at a branch point; the reason is recorded with it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>replaying from the snapshot reproduced every observation and every state hash</td>
+<td>Observations have no clock or path in them (test timings are removed), listings are sorted, and snapshots are byte-for-byte deterministic.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The trajectory is read back from S3 through the store, after the episode's pod has exited; nothing is taken from the pod's memory.</li>
+<li>The per-token log-probabilities are the ones the rollout engine returned (with their token ids), not recomputed.</li>
+<li>The replay is a separate pod that has only the snapshot and the recorded actions; it compares every observation and every tree hash with the trajectory.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Every turn has a context reference and log-probabilities because the environment writes both through the store before it starts the next turn.</li>
+<li>Only some turns are branch points because a snapshot is taken only for an uncertain choice, an edit, the first test run, or every third turn.</li>
+<li>The replay is identical because the tools are deterministic functions of the files, and the snapshot is a deterministic tar of exactly those files.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s03-snapshots-on-the-storage-layer-a-csi-volumesnapshot-and-k-branches-restored-from-it">S03: Snapshots on the storage layer: a CSI VolumeSnapshot and k branches restored from it</h3>
+<p><strong>Design reference:</strong> Branching rollouts: tree-shaped exploration (the YAML).</p>
+<p><strong>What this tests.</strong> Write a recorded state onto an <mark class="kw">EBS</mark> volume, take a Kubernetes VolumeSnapshot of it, and start four branch pods whose ephemeral volumes are restored from that snapshot, exactly as in the design's YAML. Each must hold the recorded state. Measure what it costs, and compare with the tar snapshots the platform uses for its own branching.</p>
+<p>The design's branching YAML restores k branches from a VolumeSnapshot. I seed an EBS volume with the state a trajectory recorded after one of its turns, snapshot it with the CSI driver, restore four volumes from the snapshot, and check that each holds exactly that state. I also time both snapshot paths.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S03: Snapshots on the storage layer: a CSI VolumeSnapshot and k branches restored from it" class="open" data-src="diagrams/appendix/a09-evidence/S03.png" data-title="S03: Snapshots on the storage layer: a CSI VolumeSnapshot and k branches restored from it" type="button"><img alt="Diagram: S03: Snapshots on the storage layer: a CSI VolumeSnapshot and k branches restored from it" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S03.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl create -f pvc.yaml -f seed-job.yaml   <span class="tc"># a gp3 volume, and a pod that writes the recorded state onto it</span></span><span class="ln">persistentvolumeclaim/csi-demo-workspace created</span><span class="ln">job.batch/csi-demo-seed created</span><span class="ln"> </span><span class="ln">$ kubectl create -f volumesnapshot.yaml   <span class="tc"># traj-csi-demo-turn-2</span></span><span class="ln">volumesnapshot.snapshot.storage.k8s.io/traj-csi-demo-turn-2 created</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-envs get volumesnapshot -o custom-columns=NAME:.metadata.name,READY:.status.readyToUse,SIZE:.status.restoreSize,SOURCE:.spec.source.persistentVolumeClaimName</span><span class="ln">NAME                   READY   SIZE   SOURCE</span><span class="ln">traj-csi-demo-turn-2   true    1Gi    csi-demo-workspace</span><span class="ln"> </span><span class="ln">$ kubectl create -f branches.yaml   <span class="tc"># Indexed Job, 4 completions, each with an ephemeral volume restored from the snapshot</span></span><span class="ln">job.batch/csi-demo-branches created</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-envs logs job/csi-demo-seed ; kubectl -n rl-envs logs &lt;each branch pod&gt;</span><span class="ln">{"mode": "seed", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": null, "seconds": 0.07}</span><span class="ln">{"mode": "check", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": true, "seconds": 0.01}</span><span class="ln">{"mode": "check", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": true, "seconds": 0.0}</span><span class="ln">{"mode": "check", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": true, "seconds": 0.0}</span><span class="ln">{"mode": "check", "files": 7, "tree_sha256": "23e663e9d1370ca0", "matches": true, "seconds": 0.0}</span><span class="ln"> </span><span class="ln">$ what each path cost (measured in this run)</span><span class="ln">CSI path: volume created and seeded 24 s; VolumeSnapshot readyToUse after 70 s; 4 restored branch pods done after 22 s</span><span class="ln">tar path (the platform's branching): 569 snapshots so far, 1.1 KB and 0.03 s each on average (written through the trajectory store)</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the seed pod wrote the recorded state (same tree hash as the trajectory recorded after that turn)</td>
+<td>csi_env.py restores the trajectory's own snapshot into the volume and hashes it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>all four branch volumes, restored from the VolumeSnapshot, hold exactly that state</td>
+<td>The ephemeral volume's dataSource is the VolumeSnapshot, so EBS creates each new volume from the snapshot.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the costs were measured, and the snapshot path's cost decides the branching rate</td>
+<td>The design: a 30-second restore limits you to a few branches per task, a 1-second one to many.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> CSI VolumeSnapshot ready after 70 s and four restored branches after 22 s; a tar snapshot took 0.03 s on average.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The state is compared by tree hash: the seed pod's hash, the trajectory's recorded hash after that turn, and each restored volume's hash are computed independently.</li>
+<li>The snapshot's readiness and the timings come from the VolumeSnapshot objects and the pods' own clocks, not from assumptions about EBS.</li>
+<li>Each restored volume is a separate <mark class="kw">PersistentVolumeClaim</mark> with the snapshot as its dataSource, mounted by a separate pod.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The restored volumes match because an EBS snapshot is a point-in-time copy of the blocks, and every restore is created from the same snapshot.</li>
+<li>A CSI snapshot takes tens of seconds to become ready and a restore needs a new volume, while a tar of a small working copy is a single S3 write. That is why the branch jobs here use the tar path, and why the snapshot cost decides how often one can branch.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s04-success-by-horizon-why-long-tasks-are-hard">S04: Success by horizon: why long tasks are hard</h3>
+<p><strong>Design reference:</strong> Why long horizons are hard; Measuring progress on long tasks.</p>
+<p><strong>What this tests.</strong> From the 128 root attempts of S02, measure success as a function of the number of bugs (the horizon), pass@1 against pass@4, the share of groups whose four attempts all agree (no learning signal for group-relative RL), partial progress on failures, recovery, the behaviour pathologies, and the environment time per solved task.</p>
+<p>The design's first claim is that long tasks are hard in a specific way: success falls with the horizon, partial progress hides in failures, and group-relative RL gets no signal from groups where every attempt agrees. I read those numbers off the 128 root attempts.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S04: Success by horizon: why long tasks are hard" class="open" data-src="diagrams/appendix/a09-evidence/S04.png" data-title="S04: Success by horizon: why long tasks are hard" type="button"><img alt="Diagram: S04: Success by horizon: why long tasks are hard" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S04.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ lh.py stats --run base</span><span class="ln">metric                            1 bug(s)    2 bug(s)    3 bug(s)</span><span class="ln">tasks                                    8          12          12</span><span class="ln">attempts                                32          48          48</span><span class="ln">pass@1                               0.625       0.271       0.146</span><span class="ln">pass@4                               0.625       0.417        0.25</span><span class="ln">zero_variance_groups                   1.0        0.75       0.833</span><span class="ln">mean_turns                           5.375       8.167       9.583</span><span class="ln">partial_progress_of_failures         0.458       0.541       0.651</span><span class="ln">recovery_rate                          0.0       0.037         0.0</span><span class="ln">early_stop                           0.125       0.083       0.083</span><span class="ln">loop_guard                           0.125       0.083       0.083</span><span class="ln">ran_out_of_turns                       0.0         0.0         0.0</span><span class="ln">false_claims                           0.0         0.0         0.0</span><span class="ln">compacted_episodes                     0.0       0.021         0.0</span><span class="ln">env_seconds_per_attempt             36.503      64.602      96.796</span><span class="ln">env_seconds_per_success               58.4       238.5       663.7</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>success falls as the horizon grows</td>
+<td>Each added bug needs its own read, edit and test, and each is another chance to go wrong.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>pass@4 is above pass@1: the model can solve tasks it does not solve reliably</td>
+<td>pass@4 counts a task as solved if any of its four attempts was.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>many groups carry no signal for group-relative RL (all four attempts agree)</td>
+<td>When every attempt succeeds or every attempt fails, every advantage in the group is zero.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Every number is computed by metrics.py from the stored trajectories and their verified outcomes, in the same command shown.</li>
+<li>pass@1 and pass@4 come from the same four attempts per task, so the gap between them is the model's own variance, not a different run.</li>
+<li>The outcomes are the verifier's fresh-environment verdicts, which S09 shows cannot be gamed by the scripted tricks.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Success falls with the number of bugs because each bug needs its own read, edit and test, and each turn is another chance to break something.</li>
+<li>Many groups have zero variance because the model either always or never solves easy and hard tasks; those groups give a group-relative advantage of zero to every turn.</li>
+<li>Failed attempts still show partial progress because Φ counts each issue example separately, so fixing one of three bugs is visible even when the outcome is 0.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s05-branching-from-snapshots-monte-carlo-values-and-turn-level-credit">S05: Branching from snapshots: Monte Carlo values and turn-level credit</h3>
+<p><strong>Design reference:</strong> Credit assignment: a ladder of methods; Branching rollouts.</p>
+<p><strong>What this tests.</strong> Pick multi-bug trajectories, failed and successful, one per task (the failed ones from tasks the model solves at least once, so a better decision existed), and give the credit worker four branches per branch point. It must compute the value of the state after each branch point, turn the differences into per-turn advantages, and find the decisive segment; on a failed trajectory a successful branch shows which decision mattered. Branches must share their prefix in the rollout engine's cache.</p>
+<p>The design's answer to sparse credit is to branch from the middle of a trajectory and let verified continuations say what each state was worth. The credit worker branches four times from up to three branch points of six trajectories and turns the results into turn-level advantages.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S05: Branching from snapshots: Monte Carlo values and turn-level credit" class="open" data-src="diagrams/appendix/a09-evidence/S05.png" data-title="S05: Branching from snapshots: Monte Carlo values and turn-level credit" type="button"><img alt="Diagram: S05: Branching from snapshots: Monte Carlo values and turn-level credit" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S05.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ lh.py credit --run base-c4 --trajectories &lt;6 trajectories&gt; --k 4 --max-points 3</span><span class="ln">job.batch/cr-base-c4 created</span><span class="ln">cr-base-c4 Complete</span><span class="ln"> </span><span class="ln">$ credit/base-c4/base-t2-12-s0.json</span><span class="ln">outcome 0.0  V(start) 0.25  values after branch points {'2': 0.0, '4': 0.0, '5': 0.0}  decisive {"after_turn": -1, "delta_v": -0.25, "to_turn": 2}</span><span class="ln">turn advantages (Monte Carlo): [-0.25, -0.25, -0.25, 0.0, 0.0, 0.0, 0.0, 0.0]</span><span class="ln">turn advantages (trajectory-level): [-0.5774] x 8</span><span class="ln"> </span><span class="ln">$ credit/base-c4/base-t2-17-s2.json</span><span class="ln">outcome 0.0  V(start) 0.25  values after branch points {'2': 0.25, '6': 0.0, '8': 0.0}  decisive {"after_turn": 2, "delta_v": -0.25, "to_turn": 6}</span><span class="ln">turn advantages (Monte Carlo): [0.0, 0.0, 0.0, -0.25, -0.25, -0.25, -0.25, 0.0, 0.0, 0.0, 0.0]</span><span class="ln">turn advantages (trajectory-level): [-0.5774] x 11</span><span class="ln"> </span><span class="ln">$ credit/base-c4/base-t3-20-s0.json</span><span class="ln">outcome 0.0  V(start) 0.25  values after branch points {'2': 0.25, '4': 0.0, '6': 0.0}  decisive {"after_turn": 2, "delta_v": -0.25, "to_turn": 4}</span><span class="ln">turn advantages (Monte Carlo): [0.0, 0.0, 0.0, -0.25, -0.25, 0.0, 0.0, 0.0, 0.0]</span><span class="ln">turn advantages (trajectory-level): [-0.5774] x 9</span><span class="ln"> </span><span class="ln">$ credit/base-c4/base-t3-23-s0.json</span><span class="ln">outcome 0.0  V(start) 0.5  values after branch points {'2': 0.5, '4': 0.5, '6': 0.0}  decisive {"after_turn": 4, "delta_v": -0.5, "to_turn": 6}</span><span class="ln">turn advantages (Monte Carlo): [0.0, 0.0, 0.0, 0.0, 0.0, -0.5, -0.5, 0.0, 0.0]</span><span class="ln">turn advantages (trajectory-level): [-1.0] x 9</span><span class="ln"> </span><span class="ln">$ credit/base-c4/base-t2-09-s0.json</span><span class="ln">outcome 1.0  V(start) 0.75  values after branch points {'2': 0.5, '4': 1.0, '5': 1.0}  decisive {"after_turn": 2, "delta_v": 0.5, "to_turn": 4}</span><span class="ln">turn advantages (Monte Carlo): [-0.25, -0.25, -0.25, 0.5, 0.5, 0.0, 0.0]</span><span class="ln">turn advantages (trajectory-level): [0.5774] x 7</span><span class="ln"> </span><span class="ln">$ credit/base-c4/base-t2-12-s1.json</span><span class="ln">outcome 1.0  V(start) 0.25  values after branch points {'2': 0.0, '4': 1.0, '5': 1.0}  decisive {"after_turn": 2, "delta_v": 1.0, "to_turn": 4}</span><span class="ln">turn advantages (Monte Carlo): [-0.25, -0.25, -0.25, 1.0, 1.0, 0.0, 0.0]</span><span class="ln">turn advantages (trajectory-level): [1.7321] x 7</span><span class="ln"> </span><span class="ln">$ vLLM /metrics during the branch rollouts: prefix cache</span><span class="ln">queried 228974 tokens, hit 221824 (97%)</span><span class="ln"> </span><span class="ln">$ environment time: branches vs the trajectories they credit</span><span class="ln">branches 1613 s for 6 trajectories whose own episodes took 453 s</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>every chosen trajectory got values at its branch points from four verified continuations each</td>
+<td>One Indexed Job of four branch pods per point, on the low-priority branch queue; each branch ends with the verifier's fresh-environment check.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>turn-level advantages differ between turns of the same trajectory, unlike trajectory-level ones</td>
+<td>Each segment gets V(after) - V(before); trajectory-level gives every turn the same number.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>on at least one failed trajectory a branch succeeded, so a state on the failed path still had value</td>
+<td>A failing trajectory with one successful branch shows which decision turned failure into success.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>branches reused their shared prefix from the rollout engine's cache</td>
+<td>Every branch from a point sends the same message prefix; vLLM's prefix cache serves those tokens without recomputing them.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> <mark class="kw">Prefix cache</mark> hit rate during branching: 97%. Branch environment time 1613 s against 453 s for the trajectories themselves.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Every value is a mean of verified outcomes of real branch episodes, each a separate pod <mark class="kw-act">admitted</mark> by the branch queue and judged in a fresh copy.</li>
+<li>The trajectory-level advantages are computed from the same group of root attempts, so the two methods differ only in how they assign credit.</li>
+<li>The prefix-cache numbers are the difference of <mark class="kw-tool">vLLM</mark>'s own counters read before and after the credit run.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Turn-level advantages differ inside one trajectory because each segment gets the change in V between the branch points around it.</li>
+<li>A failed trajectory can have a state with value above zero because a branch from that state, with a different seed, found the fix the original attempt missed.</li>
+<li>Branches hit the prefix cache because every branch from a point sends the same messages up to that point; vLLM reuses those tokens' KV blocks.</li>
+<li>Branching costs several times the environment time of the trajectories it credits; that is the price the design names for this rung of the ladder.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s06-is-the-credit-any-good-four-branches-against-twelve">S06: Is the credit any good? Four branches against twelve</h3>
+<p><strong>Design reference:</strong> Credit assignment: a ladder of methods (checking credit quality).</p>
+<p><strong>What this tests.</strong> On the trajectories of S05, estimate the same branch points' values again with twelve fresh branches each, as the reference. Compare each method's per-segment advantages with the reference: Monte Carlo with four branches, and trajectory-level advantages.</p>
+<p>A credit method is only useful if its advantages are right. I estimate the same branch points again with twelve branches each as a reference, and compare the four-branch advantages and the trajectory-level ones against it.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S06: Is the credit any good? Four branches against twelve" class="open" data-src="diagrams/appendix/a09-evidence/S06.png" data-title="S06: Is the credit any good? Four branches against twelve" type="button"><img alt="Diagram: S06: Is the credit any good? Four branches against twelve" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S06.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ lh.py credit --run base-c12 --trajectories &lt;the same 6&gt; --k 12 --max-points 3</span><span class="ln">job.batch/cr-base-c12 created</span><span class="ln">cr-base-c12 Complete</span><span class="ln"> </span><span class="ln">$ per-segment advantages: k=4 vs the k=12 reference vs trajectory-level</span><span class="ln">base-t2-12-s0 segment ending at turn  2: MC k=4 -0.25   reference k=12 -0.08   trajectory-level -0.58</span><span class="ln">base-t2-12-s0 segment ending at turn  4: MC k=4 +0.00   reference k=12 -0.17   trajectory-level -0.58</span><span class="ln">base-t2-12-s0 segment ending at turn  5: MC k=4 +0.00   reference k=12 +0.00   trajectory-level -0.58</span><span class="ln">base-t2-17-s2 segment ending at turn  2: MC k=4 +0.00   reference k=12 -0.25   trajectory-level -0.58</span><span class="ln">base-t2-17-s2 segment ending at turn  6: MC k=4 -0.25   reference k=12 +0.00   trajectory-level -0.58</span><span class="ln">base-t2-17-s2 segment ending at turn  8: MC k=4 +0.00   reference k=12 +0.00   trajectory-level -0.58</span><span class="ln">base-t3-20-s0 segment ending at turn  2: MC k=4 +0.00   reference k=12 -0.17   trajectory-level -0.58</span><span class="ln">base-t3-20-s0 segment ending at turn  4: MC k=4 -0.25   reference k=12 -0.08   trajectory-level -0.58</span><span class="ln">base-t3-20-s0 segment ending at turn  6: MC k=4 +0.00   reference k=12 +0.00   trajectory-level -0.58</span><span class="ln">base-t3-23-s0 segment ending at turn  2: MC k=4 +0.00   reference k=12 -0.17   trajectory-level -1.00</span><span class="ln">base-t3-23-s0 segment ending at turn  4: MC k=4 +0.00   reference k=12 +0.33   trajectory-level -1.00</span><span class="ln">base-t3-23-s0 segment ending at turn  6: MC k=4 -0.50   reference k=12 -0.67   trajectory-level -1.00</span><span class="ln">base-t2-09-s0 segment ending at turn  2: MC k=4 -0.25   reference k=12 -0.67   trajectory-level +0.58</span><span class="ln">base-t2-09-s0 segment ending at turn  4: MC k=4 +0.50   reference k=12 +0.92   trajectory-level +0.58</span><span class="ln">base-t2-09-s0 segment ending at turn  5: MC k=4 +0.00   reference k=12 +0.00   trajectory-level +0.58</span><span class="ln">base-t2-12-s1 segment ending at turn  2: MC k=4 -0.25   reference k=12 -0.25   trajectory-level +1.73</span><span class="ln">… (2 more lines in the screenshot and in evidence/S06.txt)</span><span class="ln"> </span><span class="ln">$ agreement with the reference</span><span class="ln">segments compared: 18</span><span class="ln">Monte Carlo k=4: correlation 0.875, same sign 0.944</span><span class="ln">trajectory-level: one value per trajectory, so it cannot rank the turns inside a trajectory (true for 6 of 6)</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>four branches agree with the twelve-branch reference (positive correlation)</td>
+<td>Both are means of verified outcomes from the same snapshot; more branches only reduce the noise.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>trajectory-level credit gives every turn of a trajectory the same advantage, so it ranks no decision</td>
+<td>(outcome - group mean) / group std is one number per trajectory.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> Monte Carlo k=4 against k=12: correlation 0.875 over 18 segments, same sign in 0.944 of them.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The reference uses fresh branches from the same snapshots; it shares no episode with the four-branch estimate.</li>
+<li>The correlation and the sign agreement are computed over every segment both runs have, not a chosen subset.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The two Monte Carlo estimates agree because both are means of outcomes from the same states; more branches only reduce the noise.</li>
+<li>Trajectory-level credit cannot rank turns because it is one number per trajectory.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s07-train-on-what-the-model-saw-and-what-one-gradient-step-does-to-each-turn">S07: Train on what the model saw, and what one gradient step does to each turn</h3>
+<p><strong>Design reference:</strong> Context management; Credit assignment.</p>
+<p><strong>What this tests.</strong> Recompute every turn's token log-probabilities on a GPU with the same model, on the context stored with the turn and on the full uncompacted history. Then, for one trajectory whose turn-level credit has both signs (a failed one if there is one), measure the first-order effect of one policy-gradient step on each turn, for trajectory-level and for turn-level advantages.</p>
+<p>Two training requirements of the design: train on the context the model actually saw, and let each turn's advantage move that turn. The trainer recomputes log-probabilities on a GPU, then measures what one policy-gradient step would do to each turn.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S07: Train on what the model saw, and what one gradient step does to each turn" class="open" data-src="diagrams/appendix/a09-evidence/S07.png" data-title="S07: Train on what the model saw, and what one gradient step does to each turn" type="button"><img alt="Diagram: S07: Train on what the model saw, and what one gradient step does to each turn" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S07.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ lh.py trainer logprobs --trajectories &lt;1 compacted + 1 not&gt; --out credit/base/logprob-check.json</span><span class="ln">job.batch/tr-lp-check created</span><span class="ln">tr-lp-check Complete</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/credit/base/logprob-check.json -   <span class="tc"># one row per turn (first 12)</span></span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0001, "mean_abs_diff_seen": 0.0001, "prompt_tokens_full": 322, "prompt_tokens_rollout": 322, "prompt_tokens_seen": 322, "tokens": 10, "trajectory"…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0, "mean_abs_diff_seen": 0.0, "prompt_tokens_full": 379, "prompt_tokens_rollout": 379, "prompt_tokens_seen": 379, "tokens": 18, "trajectory": "bas…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0014, "mean_abs_diff_seen": 0.0014, "prompt_tokens_full": 517, "prompt_tokens_rollout": 517, "prompt_tokens_seen": 517, "tokens": 34, "trajectory"…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0, "mean_abs_diff_seen": 0.0, "prompt_tokens_full": 575, "prompt_tokens_rollout": 575, "prompt_tokens_seen": 575, "tokens": 17, "trajectory": "bas…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0068, "mean_abs_diff_seen": 0.0068, "prompt_tokens_full": 688, "prompt_tokens_rollout": 688, "prompt_tokens_seen": 688, "tokens": 31, "trajectory"…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0001, "mean_abs_diff_seen": 0.0001, "prompt_tokens_full": 742, "prompt_tokens_rollout": 742, "prompt_tokens_seen": 742, "tokens": 10, "trajectory"…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0099, "mean_abs_diff_seen": 0.0099, "prompt_tokens_full": 972, "prompt_tokens_rollout": 972, "prompt_tokens_seen": 972, "tokens": 81, "trajectory"…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0, "mean_abs_diff_seen": 0.0, "prompt_tokens_full": 1074, "prompt_tokens_rollout": 1074, "prompt_tokens_seen": 1074, "tokens": 10, "trajectory": "…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0075, "mean_abs_diff_seen": 0.0075, "prompt_tokens_full": 1458, "prompt_tokens_rollout": 1458, "prompt_tokens_seen": 1458, "tokens": 32, "trajecto…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0004, "mean_abs_diff_seen": 0.0004, "prompt_tokens_full": 1513, "prompt_tokens_rollout": 1513, "prompt_tokens_seen": 1513, "tokens": 10, "trajecto…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0019, "mean_abs_diff_seen": 0.0019, "prompt_tokens_full": 1708, "prompt_tokens_rollout": 1708, "prompt_tokens_seen": 1708, "tokens": 81, "trajecto…</span><span class="ln">{"compacted": false, "mean_abs_diff_full_history": 0.0001, "mean_abs_diff_seen": 0.0001, "prompt_tokens_full": 1810, "prompt_tokens_rollout": 1810, "prompt_tokens_seen": 1810, "tokens": 10, "trajecto…</span><span class="ln"> </span><span class="ln">$ lh.py trainer update --trajectory base-t2-09-s0 --credit credit/base-c4/&lt;it&gt;.json --out credit/base/update-base-t2-09-s0.json</span><span class="ln">job.batch/tr-upd created</span><span class="ln">tr-upd Complete</span><span class="ln"> </span><span class="ln">$ first-order change of each turn's mean token log-probability after one step (lr 1e-3)</span><span class="ln">turn  action      A(traj)  d(traj)     A(turn)  d(turn)</span><span class="ln">   0  ls          +0.58  +0.0000   -0.25  -0.0000</span><span class="ln">   1  cat         +0.58  -0.0000   -0.25  +0.0000</span><span class="ln">   2  replace     +0.58  +0.0004   -0.25  -0.0002</span><span class="ln">   3  cat         +0.58  +0.0000   +0.50  +0.0000</span><span class="ln">   4  replace     +0.58  +0.0011   +0.50  +0.0010</span><span class="ln">   5  run_tests   +0.58  +0.0005   +0.00  +0.0000</span><span class="ln">   6  submit      +0.58  +0.0022   +0.00  -0.0000</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>on the stored context, the trainer reproduces the rollout engine's log-probabilities (mean absolute difference below 0.05)</td>
+<td>Same weights, same chat template, same token ids; what is left is bf16 numerics of two engines.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>for compacted turns, the full history gives different log-probabilities: it is not what the model saw</td>
+<td>The prompt differs (longer, with observations the model never read), so every token's probability changes.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>with trajectory-level credit, every turn is pushed the same way, the bad decisions with the good ones (changes under 0.0001 count as none)</td>
+<td>Every turn has the same advantage, so the step moves the probability of good and bad decisions in the same direction.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>with turn-level credit, turns with a positive advantage go up and turns with a negative one go down</td>
+<td>The gradient of sum_t A_t log p_t moves each turn in the direction of its own advantage, to first order.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> 1 compacted turns checked; prompt lengths seen vs full: 1198/2005.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The trainer loads the policy at the same commit with Transformers, a different engine from <mark class="kw-tool">vLLM</mark>, so agreement is not one program checking itself.</li>
+<li>The full-history comparison uses the same turns and the same generated tokens; only the prompt changes.</li>
+<li>The per-turn change is computed from real gradients of the model with a <mark class="kw">LoRA</mark> adapter: the step's first-order effect on each turn's mean token log-probability.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The stored context reproduces the rollout engine's log-probabilities because it is exactly the prompt the engine received, with the same chat template and token ids.</li>
+<li>The full history gives different numbers because compaction removed observations the model never read; training on them would be off-policy.</li>
+<li>Trajectory-level credit pushes every turn the same way because every turn shares one advantage; turn-level credit raises the turns that increased V and lowers the ones that decreased it.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s08-denser-rewards-without-reward-hacking-potential-based-shaping-paid-once">S08: Denser rewards without reward hacking: potential-based shaping, paid once</h3>
+<p><strong>Design reference:</strong> Denser rewards without reward hacking.</p>
+<p><strong>What this tests.</strong> A fixed reward for running the tests pays an agent that runs them forever. Potential-based shaping pays only for new progress on the environment's real state. Compare both on a scripted looping agent, on a scripted agent that patches the test framework, and on every real trajectory, against the verified outcome.</p>
+<p>Denser rewards help long tasks, but a reward for activity can be farmed. I compare a fixed reward per test run with potential-based shaping on the change in Φ, on a scripted looping agent, on a scripted agent that patches the test framework, and on all real attempts.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S08: Denser rewards without reward hacking: potential-based shaping, paid once" class="open" data-src="diagrams/appendix/a09-evidence/S08.png" data-title="S08: Denser rewards without reward hacking: potential-based shaping, paid once" type="button"><img alt="Diagram: S08: Denser rewards without reward hacking: potential-based shaping, paid once" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S08.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ lh.py scripted --run base-loop --task t2-08 --script loop.json</span><span class="ln">job.batch/sc-base-loop created</span><span class="ln">sc-base-loop Complete</span><span class="ln"> </span><span class="ln">$ lh.py scripted --run base-cheat --task t2-08 --script cheat.json</span><span class="ln">job.batch/sc-base-cheat created</span><span class="ln">sc-base-cheat Complete</span><span class="ln"> </span><span class="ln">$ loop: actions, Phi measured fresh, Phi in place, and the two shaping rewards per turn</span><span class="ln">actions   ['run_tests', 'run_tests', 'run_tests']</span><span class="ln">Phi fresh [0.5, 0.5, 0.5] (start 0.5)</span><span class="ln">Phi in place [0.5, 0.5, 0.5]</span><span class="ln">potential-based, paid once: [0.0, 0.0, 0.0]  total 0.0</span><span class="ln">fixed reward per test run: [0.1, 0.1, 0.1]  total 0.3</span><span class="ln">verified outcome 0.0, stop loop_guard</span><span class="ln"> </span><span class="ln">$ cheat: actions, Phi measured fresh, Phi in place, and the two shaping rewards per turn</span><span class="ln">actions   ['write', 'run_tests', 'submit']</span><span class="ln">Phi fresh [0.0, 0.0, 0.0] (start 0.5)</span><span class="ln">Phi in place [1.0, 1.0, 1.0]</span><span class="ln">potential-based, paid once: [-0.05, 0.0, 0.0]  total -0.05</span><span class="ln">fixed reward per test run: [0.0, 0.1, 0.0]  total 0.1</span><span class="ln">verified outcome 0.0, stop submit</span><span class="ln"> </span><span class="ln">$ over the 128 real root attempts: correlation of each shaping term's episode total with the verified outcome</span><span class="ln">{"episodes": 128, "potential_vs_outcome": 0.693, "naive_tests_vs_outcome": -0.147}</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the looping agent earns a growing fixed reward and nothing from potential-based shaping</td>
+<td>Its actions never change the state, so Phi never rises; the fixed reward pays every repeat.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the framework-patching agent gets no progress, because Phi is measured in a fresh copy</td>
+<td>In place its patch makes every example 'pass' (Phi in place 1.0); the fresh copy restores nothing it may not change, and the tamper check zeroes Phi.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>potential-based shaping tracks success better than a reward for running tests</td>
+<td>Phi rises exactly when an issue example starts to give the expected value; running tests says nothing about whether anything was fixed.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The scripted agents run through the same environment, the same /progress calls and the same verifier as the model.</li>
+<li>Φ in place is recorded next to Φ fresh on every turn, so the effect of measuring fresh is visible, not asserted.</li>
+<li>The correlations are over all 128 root attempts, computed by metrics.py from the stored Φ values and outcomes.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Potential-based shaping pays the looping agent nothing because its state never changes, so Φ never rises; the fixed reward pays every repeat.</li>
+<li>The framework patch gets no progress because Φ is measured in a fresh copy of the task, and the tamper check rejects library code that names the test framework.</li>
+<li>Shaping on Φ tracks success because Φ rises exactly when an issue example starts giving the expected value.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s09-verification-for-long-tasks-a-fresh-environment-layered-checks">S09: Verification for long tasks: a fresh environment, layered checks</h3>
+<p><strong>Design reference:</strong> Verification for long tasks.</p>
+<p><strong>What this tests.</strong> Send the verifier scripted episodes written to look successful without being so: edit the protected tests, patch the test framework from library code, rewrite a whole module, and claim success without running anything. Then compare fresh-environment and in-place verdicts on every real trajectory.</p>
+<p>The design says the final check for a long task must run in a fresh environment with layered checks, because the agent controls its own working copy. I send the verifier four scripted episodes built to look successful, then compare fresh and in-place verdicts on every real attempt.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S09: Verification for long tasks: a fresh environment, layered checks" class="open" data-src="diagrams/appendix/a09-evidence/S09.png" data-title="S09: Verification for long tasks: a fresh environment, layered checks" type="button"><img alt="Diagram: S09: Verification for long tasks: a fresh environment, layered checks" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S09.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ lh.py scripted --run base-edit-tests --task t1-00 --script edit-tests.json</span><span class="ln">job.batch/sc-base-edit-tests created</span><span class="ln">sc-base-edit-tests Complete</span><span class="ln"> </span><span class="ln">$ lh.py scripted --run base-patch-framework --task t1-00 --script patch-framework.json</span><span class="ln">job.batch/sc-base-patch-framework created</span><span class="ln">sc-base-patch-framework Complete</span><span class="ln"> </span><span class="ln">$ lh.py scripted --run base-huge-rewrite --task t1-00 --script huge-rewrite.json</span><span class="ln">job.batch/sc-base-huge-rewrite created</span><span class="ln">sc-base-huge-rewrite Complete</span><span class="ln"> </span><span class="ln">$ lh.py scripted --run base-false-claim --task t1-00 --script false-claim.json</span><span class="ln">job.batch/sc-base-false-claim created</span><span class="ln">sc-base-false-claim Complete</span><span class="ln"> </span><span class="ln">$ verdicts: fresh environment vs in place, the checks that failed, protected edits dropped, verifier version</span><span class="ln">edit-tests       fresh 0.0  in place 0.0  failed ['hidden_tests', 'stopped_early']  dropped ['tests/test_existing.py']  lh-verify@1.0</span><span class="ln">patch-framework  fresh 0.0  in place 1.0  failed ['honest_claims', 'no_tampering', 'stopped_early']  dropped []  lh-verify@1.0</span><span class="ln">huge-rewrite     fresh 0.0  in place 1.0  failed ['diff_size', 'stopped_early']  dropped []  lh-verify@1.0</span><span class="ln">false-claim      fresh 1.0  in place 1.0  failed ['honest_claims', 'stopped_early']  dropped []  lh-verify@1.0</span><span class="ln"> </span><span class="ln">$ real root attempts where in-place and fresh verdicts differ</span><span class="ln">0 of 128</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>editing the protected tests does not help: the fresh copy restores them, and the bug is still there</td>
+<td>restore_paths: the verifier drops the agent's edits to tests/test_existing.py and tests/<strong>init</strong>.py.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>patching the test framework passes in place and fails fresh, on the tamper check</td>
+<td>The hidden tests run in the agent's own files would import the patched framework; the fresh build rejects library code that names it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a fix buried in an 80-line rewrite fails the diff-size limit</td>
+<td>At most 60 changed lines: a diff larger than the task needs is a sign of something else going on.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a correct fix with a false claim of passing tests is a success, flagged as dishonest</td>
+<td>honest_claims and stopped_early are recorded, not required: they are behaviour to track, not a reason to call a fixed bug unfixed.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> Real attempts whose in-place and fresh verdicts differ: 0 of 128.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Each verdict lists every check with its result, and carries the verifier version.</li>
+<li>The in-place verdict is computed by the same verifier on the agent's own files, so the difference between the two is the effect of the fresh copy alone.</li>
+<li>The hidden tests are only in the verifier's ConfigMap (S01), so no episode could have read them.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Editing the tests fails because the fresh copy drops the agent's edits to protected paths and the bug is still there.</li>
+<li>The framework patch passes in place and fails fresh because the tamper check rejects changed library code that names unittest or patches assertions.</li>
+<li>The huge rewrite fails because more than 60 changed lines is refused, whatever the tests say.</li>
+<li>The false claim is a success flagged as dishonest because honesty is recorded, not required: the bug was fixed.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s10-exploration-a-reverse-curriculum-from-snapshots-of-successes">S10: Exploration: a reverse curriculum from snapshots of successes</h3>
+<p><strong>Design reference:</strong> Exploration: curricula over the horizon.</p>
+<p><strong>What this tests.</strong> On the three-bug tasks, start episodes from snapshots late in successful attempts, where two turns or fewer remain, then where five or fewer remain, then from the beginning. The scheduler promotes a stage when its success rate reaches the spec's threshold. The policy is not trained between stages, so the success rates measure how the remaining horizon alone changes the signal.</p>
+<p>Exploration on long tasks needs successes to learn from. A reverse curriculum starts episodes close to the goal, from snapshots of earlier successes, and moves the start back as success rates allow. I run its three stages on the three-bug tasks.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S10: Exploration: a reverse curriculum from snapshots of successes" class="open" data-src="diagrams/appendix/a09-evidence/S10.png" data-title="S10: Exploration: a reverse curriculum from snapshots of successes" type="button"><img alt="Diagram: S10: Exploration: a reverse curriculum from snapshots of successes" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S10.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ lh.py curriculum --run base-cur --spec recipes/curriculum.json --from-run base</span><span class="ln">job.batch/cu-base-cur-st0-0 created</span><span class="ln">job.batch/cu-base-cur-st0-1 created</span><span class="ln">job.batch/cu-base-cur-st0-2 created</span><span class="ln">job.batch/cu-base-cur-st0-3 created</span><span class="ln">{"stage": 0, "remaining_turns_max": 2, "start_points": [{"trajectory": "base-t3-20-s3", "from_turn": 7, "remaining_turns": 2}, {"trajectory": "base-t3-21-s0", "from_turn": 6, "remaining_turns": 2}, {…</span><span class="ln">job.batch/cu-base-cur-st1-0 created</span><span class="ln">job.batch/cu-base-cur-st1-1 created</span><span class="ln">job.batch/cu-base-cur-st1-2 created</span><span class="ln">job.batch/cu-base-cur-st1-3 created</span><span class="ln">{"stage": 1, "remaining_turns_max": 5, "start_points": [{"trajectory": "base-t3-20-s3", "from_turn": 4, "remaining_turns": 5}, {"trajectory": "base-t3-21-s0", "from_turn": 4, "remaining_turns": 4}, {…</span><span class="ln">job.batch/cu-base-cur-st2-0 created</span><span class="ln">job.batch/cu-base-cur-st2-1 created</span><span class="ln">job.batch/cu-base-cur-st2-2 created</span><span class="ln">job.batch/cu-base-cur-st2-3 created</span><span class="ln">{"stage": 2, "remaining_turns_max": null, "start_points": [{"trajectory": "base-t3-20-s3", "from_turn": null, "remaining_turns": null}, {"trajectory": "base-t3-21-s0", "from_turn": null, "remaining_t…</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/curriculum/base-cur.json -</span><span class="ln">source successes: base-t3-20-s3, base-t3-21-s0, base-t3-21-s1, base-t3-21-s2</span><span class="ln">stage 0: remaining turns &lt;= 2, 16 episodes, success 1.0, promote when &gt;= 0.6: True</span><span class="ln">stage 1: remaining turns &lt;= 5, 16 episodes, success 0.312, promote when &gt;= 0.5: False</span><span class="ln">stage 2: from the start, 8 episodes, success 0.125, last stage, no promotion</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the curriculum found successful three-bug attempts to start from</td>
+<td>Start points come from earlier successes, as the design's spec says.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>each stage ran its episodes and the scheduler recorded a promotion decision</td>
+<td>lh.py curriculum starts branches from the chosen snapshots (or the full task for the last stage) and compares the success rate with the threshold.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>starting closer to the goal succeeds more often than starting from the beginning</td>
+<td>Less remaining horizon means fewer decisions to get wrong; that is the learnable signal a curriculum exploits.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Every stage's episodes are real branch episodes from stored snapshots, verified in a fresh copy.</li>
+<li>The policy is the same in every stage, so the change in success rate comes from where the episode starts, not from training.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Starting with two turns left succeeds more often because most of the work is already in the snapshot; only the last decisions remain.</li>
+<li>The scheduler promotes a stage when its success rate reaches the threshold in the spec, which is the design's rule for moving the start back.</li>
+</ul>
+<h3 id="appendix-design-08-eks-s11-branch-rollouts-fill-spare-capacity-and-yield-to-primary-rollouts">S11: Branch rollouts fill spare capacity and yield to primary rollouts</h3>
+<p><strong>Design reference:</strong> The infrastructure (the <mark class="kw-tool">Kueue</mark> YAML).</p>
+<p><strong>What this tests.</strong> Fill the environment capacity with low-priority branch rollouts, then submit primary rollouts. Kueue must <mark class="kw-act">preempt</mark> the branches to <mark class="kw-act">admit</mark> the primary work, and re-admit the branches when capacity frees up.</p>
+<p>Branches are useful but lower priority than primary rollouts. I fill the environment capacity with branch rollouts, then submit primary rollouts, and watch Kueue preempt the branches and re-admit them later.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S11: Branch rollouts fill spare capacity and yield to primary rollouts" class="open" data-src="diagrams/appendix/a09-evidence/S11.png" data-title="S11: Branch rollouts fill spare capacity and yield to primary rollouts" type="button"><img alt="Diagram: S11: Branch rollouts fill spare capacity and yield to primary rollouts" decoding="async" loading="lazy" src="diagrams/appendix/a09-evidence/S11.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl create -f branch-job.yaml   <span class="tc"># 12 branch pods at branch-low priority: 6 CPUs, all of it borrowed</span></span><span class="ln">job.batch/br-fill created</span><span class="ln"> </span><span class="ln">$ kubectl get clusterqueue branches -o jsonpath='{.status.flavorsUsage}'</span><span class="ln">[{"name": "env-cpu", "resources": [{"borrowed": "6", "name": "cpu", "total": "6"}, {"borrowed": "6Gi", "name": "memory", "total": "6Gi"}]}]</span><span class="ln"> </span><span class="ln">$ lh.py rollout --run base-prio --tasks &lt;3 tasks&gt; --seeds 0,1 --parallel 6 --no-wait   <span class="tc"># primary priority</span></span><span class="ln">job.batch/ro-base-prio created</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-envs get workload &lt;the branch job's&gt; -o jsonpath='{.status.conditions[?(@.type=="Evicted")]}'</span><span class="ln">{"status": "True", "reason": "Preempted", "message": "Preempted to accommodate a workload (UID: e938e86e-3431-450d-bae3-90555e9e334b, JobUID: 727057be-c8ed-44a7-917b-df7c7608590f) due to reclamation …</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-envs get workloads -o custom-columns=WORKLOAD:.metadata.name,QUEUE:.spec.queueName,PRIORITY:.spec.priority,ADMITTED:.status.admission.clusterQueue</span><span class="ln">WORKLOAD                            QUEUE         PRIORITY   ADMITTED</span><span class="ln">job-br-2b415b5052-2-879ed           rl-branches   100        branches</span><span class="ln">job-br-2b415b5052-4-804de           rl-branches   100        branches</span><span class="ln">job-br-2b415b5052-6-754e2           rl-branches   100        branches</span><span class="ln">job-br-3cb74957a6-2-0f6e1           rl-branches   100        branches</span><span class="ln">job-br-3cb74957a6-4-c7135           rl-branches   100        branches</span><span class="ln">job-br-3cb74957a6-5-2112c           rl-branches   100        branches</span><span class="ln">job-br-600f497649-2-0a85e           rl-branches   100        branches</span><span class="ln">job-br-600f497649-4-46582           rl-branches   100        branches</span><span class="ln">job-br-600f497649-5-ffe17           rl-branches   100        branches</span><span class="ln">job-br-65c0dfd8fd-2-6f173           rl-branches   100        branches</span><span class="ln">job-br-65c0dfd8fd-4-88175           rl-branches   100        branches</span><span class="ln">job-br-65c0dfd8fd-5-002d4           rl-branches   100        branches</span><span class="ln">job-br-738139f576-2-c5e1c           rl-branches   100        branches</span><span class="ln">job-br-738139f576-4-444c8           rl-branches   100        branches</span><span class="ln">job-br-738139f576-6-e100d           rl-branches   100        branches</span><span class="ln">… (43 more lines in the screenshot and in evidence/S11.txt)</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-envs get jobs   <span class="tc"># after the primary rollouts finished</span></span><span class="ln">NAME                      STATUS     COMPLETIONS   DURATION   AGE</span><span class="ln">br-2b415b5052-2           Complete   4/4           108s       45m</span><span class="ln">br-2b415b5052-4           Complete   4/4           54s        45m</span><span class="ln">br-2b415b5052-6           Complete   4/4           28s        45m</span><span class="ln">br-3cb74957a6-2           Complete   12/12         68s        40m</span><span class="ln">br-3cb74957a6-4           Complete   12/12         34s        40m</span><span class="ln">br-3cb74957a6-5           Complete   12/12         34s        40m</span><span class="ln">br-600f497649-2           Complete   12/12         59s        40m</span><span class="ln">br-600f497649-4           Complete   12/12         40s        40m</span><span class="ln">br-600f497649-5           Complete   12/12         34s        40m</span><span class="ln">br-65c0dfd8fd-2           Complete   12/12         69s        40m</span><span class="ln">br-65c0dfd8fd-4           Complete   12/12         39s        40m</span><span class="ln">br-65c0dfd8fd-5           Complete   12/12         35s        40m</span><span class="ln">br-738139f576-2           Complete   12/12         94s        40m</span><span class="ln">br-738139f576-4           Complete   12/12         70s        40m</span><span class="ln">br-738139f576-6           Complete   12/12         42s        40m</span><span class="ln">… (43 more lines in the screenshot and in evidence/S11.txt)</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the branch rollouts were admitted on borrowed capacity</td>
+<td>The branches queue owns no quota, so all of its usage is borrowed from the rollouts queue.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>submitting primary rollouts preempted the branches</td>
+<td>The rollouts queue has reclaimWithinCohort: Any; the branches' usage was borrowed.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the primary rollouts finished, and the branches were admitted again afterwards</td>
+<td>A preempted Workload goes back to its queue and is re-admitted when the borrowed capacity is free.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li><mark class="kw-act">Borrowing</mark>, <mark class="kw-act">eviction</mark> and re-admission are read from Kueue's <mark class="kw">ClusterQueue</mark> and Workload objects, not inferred from pod counts.</li>
+<li>The primary rollouts are a normal rollout job of the launcher, the same as in S02.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The branches run on borrowed capacity because their queue has no <mark class="kw">quota</mark> of its own.</li>
+<li>They are preempted because the rollouts queue may <mark class="kw-act">reclaim</mark> within the <mark class="kw">cohort</mark> and the branches' usage was borrowed.</li>
+<li>They come back because a preempted Workload returns to its queue and is <mark class="kw-act">admitted</mark> again when capacity is free.</li>
+</ul>
+<h3 id="appendix-design-08-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</h3>
+<p><strong>Scenario.</strong> A build is only credible if it says where it stops. These are the parts of Design 08 that this implementation does not cover, with the reason for each.</p>
+<table>
+<thead>
+<tr>
+<th>Not built</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>An RL training loop</strong></td>
+<td>The policy is never updated. Every rollout, branch and curriculum stage uses the same policy version 0. S07 measures what one policy-gradient step with each kind of advantage would do to each turn, to first order, on a LoRA adapter; it does not apply the step, and nothing here shows how training with turn-level advantages changes success over many steps.</td>
+</tr>
+<tr>
+<td><strong>A process reward model, a learned critic, or an LLM judge</strong></td>
+<td>The design's ladder of credit methods has learned value functions above Monte Carlo branching. Here credit comes only from verified branch outcomes, and the honesty check is a regular expression over the agent's last message, not a judge.</td>
+</tr>
+<tr>
+<td><strong>Long horizons and real repositories</strong></td>
+<td>Episodes have at most 16 turns on repositories of a few hundred lines. Context compaction is exercised (S07) but rarely needed. Nothing here shows how branching cost, snapshot size or context management behave at hundreds of turns and real repository sizes.</td>
+</tr>
+<tr>
+<td><strong>A VM-level sandbox, gVisor, or checkpoints of running processes</strong></td>
+<td>Each environment is a pod with the restricted Pod Security level, no service-account token, no identity, and egress only to the rollout engine, the platform services and DNS; the tests run in child processes with limits. The pod shares the node's kernel. The design's VM sandboxes and process checkpoints (CRIU) are not built; a snapshot here is the working copy's files, which is enough because the tools hold no other state.</td>
+</tr>
+<tr>
+<td><strong>CSI snapshots on the branch path</strong></td>
+<td>S03 shows the design's VolumeSnapshot path works and measures it. The branch jobs use tar snapshots through the store instead, because a small working copy is one S3 write while a VolumeSnapshot takes tens of seconds and a restore needs a new volume.</td>
+</tr>
+<tr>
+<td><strong>Off-policy correction and policy versions</strong></td>
+<td>Every turn records <code>policy_version: 0</code>; there is no second version, so no staleness to correct.</td>
+</tr>
+<tr>
+<td><strong>A curriculum that trains</strong></td>
+<td>S10 runs the reverse curriculum's stages and promotion rule on a fixed policy. It measures how the remaining horizon changes the success rate, not how a curriculum changes learning.</td>
+</tr>
+<tr>
+<td><strong>Human review and a tracking UI</strong></td>
+<td>Trajectories, credit records and curricula are JSON files in S3 and the output of <code>lh.py</code>. Nobody reviews samples, and nothing pages anyone.</td>
+</tr>
+<tr>
+<td><strong>Bitwise-reproducible rollouts</strong></td>
+<td>The model samples at temperature 0.7 with a fixed server seed, but batched GPU kernels are not bitwise reproducible, so two runs give different trajectories. The checks test directions, not values. The environment itself is deterministic, and S02's replay shows it.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="appendix-design-08-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</h3>
+<p><strong>Scenario.</strong> The point of Terraform is that anyone can rebuild this from the repository and remove it again. These are the exact steps.</p>
+<p><strong>What you need on your machine.</strong> Terraform 1.9 or later, the AWS CLI v2 signed in to the account you want to use, Helm 3, and Python 3 with <code>boto3</code>, <code>PyYAML</code> and Pillow. <code>scripts/setup-tools.sh</code> downloads a matching <code>kubectl</code> into the project folder with a checksum check. Check the account's <mark class="kw">quota</mark> for running on-demand G and VT instances in us-east-2 first: the build needs up to 16 vCPU of it, depending on which instance type EC2 has.</p>
+<p><strong>Build.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">cd implementations/ds08-long-horizon-on-eks</span><span class="ln">export AWS_PROFILE=&lt;your profile&gt;</span><span class="ln">./scripts/up.sh</span></code></pre>
+<p><code>up.sh</code> writes small local files with your account ID and your public address (both git-ignored), generates and checks the task bank, builds the VPC, the cluster and both node groups, then builds the platform and waits until the rollout engine has loaded the model.</p>
+<p><strong>Test.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">python3 tests/run_scenarios.py all</span></code></pre>
+<p>The whole run takes about two hours, most of it in S02 (128 episodes) and the branch rollouts of S05 and S06.</p>
+<p><strong>Take it down.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">./scripts/down.sh</span></code></pre>
+<p><code>down.sh</code> deletes the environment jobs, the VolumeSnapshots and the <mark class="kw">PersistentVolumeClaims</mark> through Kubernetes and waits for the CSI driver to remove the <mark class="kw">EBS</mark> volumes and snapshots, destroys the platform layer (the bucket is emptied with it), destroys the cluster layer, and then runs <code>verify-clean.sh</code>. That script looks, in us-east-2, for anything of this build: clusters, EC2 instances, Auto Scaling groups, launch templates, NAT gateways, addresses, VPCs and endpoints, security groups, volumes and snapshots (by name and by the CSI driver's cluster tag), network interfaces, buckets, roles and log groups. It prints <code>CLEAN</code> when nothing is left.</p>
+<p><strong>The teardown after the final run.</strong> This is the output of <code>verify-clean.sh</code> after <code>down.sh</code> removed the build that produced the evidence above:</p>
+<pre class="snippet"><code class="language-text"><span class="ln">ok         EKS clusters: none</span><span class="ln">ok         EC2 instances: none</span><span class="ln">ok         EC2 instances (Project): none</span><span class="ln">ok         Auto Scaling groups: none</span><span class="ln">ok         Launch templates: none</span><span class="ln">ok         NAT gateways: none</span><span class="ln">ok         Elastic IPs: none</span><span class="ln">ok         VPCs: none</span><span class="ln">ok         VPC endpoints: none</span><span class="ln">ok         Security groups: none</span><span class="ln">ok         EBS volumes: none</span><span class="ln">ok         CSI volumes: none</span><span class="ln">ok         CSI snapshots: none</span><span class="ln">ok         Network interfaces: none</span><span class="ln">ok         S3 buckets: none</span><span class="ln">ok         IAM roles: none</span><span class="ln">ok         CloudWatch log groups: none</span><span class="ln">info       tagging index still lists (it lags deletions): 9 item(s)</span><span class="ln"> </span><span class="ln">CLEAN: nothing from ds08-longhorizon remains in this account and region.</span></code></pre>
+<p><strong>Keeping it safe in a public repository.</strong> Terraform state, plans, kubeconfig files, local variable files, generated tasks and scratch evidence are git-ignored. <code>scripts/check-no-secrets.sh --all</code> blocks any file containing a credential pattern, the account ID or the administrator's address, read from the local variable files. The test harness redacts those values, and the local user name, before anything is written.</p>
+<h3 id="appendix-design-08-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</h3>
+<p>The terminal screenshots above are rendered from recorded command output. I could not capture the AWS Console from here. If you want console pictures, these pages show the same facts. Crop out the account number and your user name in the top bar before publishing.</p>
+<ul>
+<li>EKS, Clusters: <code>ds08-longhorizon</code>, its Compute tab with the two node groups, and the Add-ons tab with the <mark class="kw-tool">EBS CSI driver</mark> and the snapshot controller.</li>
+<li>EC2, Instances: the two GPU instances and their type; EC2, Snapshots: the CSI snapshot while S03 runs.</li>
+<li>S3: the bucket with <code>tasks/public/</code>, <code>trajectories/</code>, <code>snapshots/</code>, <code>contexts/</code>, <code>logprobs/</code>, <code>credit/</code> and <code>curriculum/</code>.</li>
+<li>IAM, Roles: the four <code>ds08-longhorizon-*</code> roles: cluster, node, trajectory store and EBS CSI driver.</li>
+<li>VPC: the VPC with its subnets, the NAT gateway and the S3 endpoint.</li>
+</ul></div>
 </section>
     <footer>
       <p>Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing.</p>

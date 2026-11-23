@@ -1,0 +1,74 @@
+{
+ "id": "S02",
+ "title": "The trajectory as data: turns, log-probabilities, snapshots and a deterministic replay",
+ "design_ref": "The trajectory as data: turns, snapshots and branch points",
+ "purpose": "Run the policy on all 32 tasks, four attempts each, as primary rollouts. Then look at one trajectory as the store holds it, and replay it from one of its snapshots to check that the environment is deterministic: the same state and actions give the same observations.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "lh.py rollout --run base --tasks <all 32> --seeds 0,1,2,3 --parallel 12",
+   "output": "job.batch/ro-base created\nro-base Complete",
+   "exit_code": 0,
+   "seconds": 982.81
+  },
+  {
+   "display": "aws s3 ls s3://<bucket>/trajectories/base- | wc -l   # root attempts recorded",
+   "output": "128 trajectories in 1000 s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/trajectories/base-t2-16-s2.json - | jq '{task_id,bugs,env_image,seed,outcome,verifier_version,stop,summary_boundaries}'",
+   "output": "{\n \"task_id\": \"t2-16\",\n \"bugs\": 2,\n \"env_image\": \"public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b\",\n \"seed\": 2,\n \"outcome\": 1.0,\n \"verifier_version\": \"lh-verify@1.0\",\n \"stop\": \"submit\",\n \"summary_boundaries\": []\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "one turn of it (.turns[2]), observation shortened",
+   "output": "{\n \"index\": 2,\n \"prompt_tokens\": 497,\n \"completion_tokens\": 61,\n \"action\": {\n  \"new\": \"return round(price * (1 - percent / 100), 2)\",\n  \"old\": \"return round(price * (1 - percent / 10), 2)\",\n  \"path\": \"shop/pricing.py\",\n  \"tool\": \"replace\"\n },\n \"logprobs_ref\": \"logprobs/base-t2-16-s2/002.json\",\n \"context_ref\": \"contexts/base-t2-16-s2/002.json\",\n \"policy_version\": 0,\n \"entropy_first_action_token\": 0.0009,\n \"snapshot_id\": \"snapshots/base-t2-16-s2/002.tgz\",\n \"branch_reason\": \"edit\",\n \"checks\": {\n  \"builds\": true,\n  \"existing_tests_pass\": true,\n  \"issue_examples\": 2,\n  \"issue_examples_fixed\": 1,\n  \"phi\": 0.75,\n  \"phi_in_place\": 0.75\n },\n \"observation\": \"replaced 1 occurrence in shop/pricing.py\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "branch points chosen across all 128 trajectories, by reason",
+   "output": "{\"edit\": 300, \"first-test-run\": 111, \"uncertain\": 63, \"every-3\": 95}  (of 1024 turns)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "lh.py replay --run base-replay --trajectory base-t2-16-s2 --turn 2",
+   "output": "job.batch/rp-base-replay created\nrp-base-replay Complete",
+   "exit_code": 0,
+   "seconds": 15.19
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/curriculum/replay/base-replay/base-t2-16-s2.json -",
+   "output": "{\"from_turn\": 2, \"replayed_turns\": 7, \"all_identical\": true}\n{\"same_observation\": true, \"same_state\": true, \"tool\": \"cat\", \"turn\": 3}\n{\"same_observation\": true, \"same_state\": true, \"tool\": \"replace\", \"turn\": 4}\n{\"same_observation\": true, \"same_state\": true, \"tool\": \"run_tests\", \"turn\": 5}\n{\"same_observation\": true, \"same_state\": true, \"tool\": \"invalid\", \"turn\": 6}\n{\"same_observation\": true, \"same_state\": true, \"tool\": \"write\", \"turn\": 7}\n{\"same_observation\": true, \"same_state\": true, \"tool\": \"run_tests\", \"turn\": 8}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "all 128 attempts were recorded",
+   "passed": true,
+   "because": "One Indexed Job of 12 pods; each pod runs every 12th attempt and writes each trajectory through the store."
+  },
+  {
+   "description": "every turn has its context, its per-token log-probabilities from the rollout engine, its policy version and the environment's checks",
+   "passed": true,
+   "because": "The runner stores the exact message list and the token ids with their log-probabilities for every turn; the verifier computes the checks on the real files."
+  },
+  {
+   "description": "only some turns are branch points, chosen by uncertainty, by important actions, or every third turn",
+   "passed": true,
+   "because": "A snapshot is taken only at a branch point; the reason is recorded with it."
+  },
+  {
+   "description": "replaying from the snapshot reproduced every observation and every state hash",
+   "passed": true,
+   "because": "Observations have no clock or path in them (test timings are removed), listings are sorted, and snapshots are byte-for-byte deterministic."
+  }
+ ],
+ "notes": []
+}
