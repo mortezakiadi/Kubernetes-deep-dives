@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 700" width="1180" height="700" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker>
+</defs>
+<g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">The scheduler-plugins project: kube-scheduler plus extra plugins</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">A Kubernetes SIG project. It ships two images; you choose which extra plugins run in that scheduler's KubeSchedulerConfiguration.</text>
+
+<!-- scheduler image -->
+<rect x="24" y="84" width="800" height="530" rx="16" fill="#f8fafc" stroke="#1e4fb8" stroke-width="1.8"/>
+<text x="44" y="110" font-size="14" font-weight="700" fill="#1e4fb8">Image 1: the scheduler</text>
+<text x="210" y="110" font-size="12" fill="#5b6675" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">registry.k8s.io/scheduler-plugins/kube-scheduler</text>
+<rect x="44" y="124" width="760" height="40" rx="9" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.2"/>
+<text x="58" y="149" font-size="12.5" fill="#1f2933"><tspan font-weight="700">Every built-in plugin</tspan>, the same as the default scheduler: NodeResourcesFit, TaintToleration, NodeAffinity ...</text>
+<text x="44" y="190" font-size="13" font-weight="700" fill="#3e4c59">Extra plugins (production)</text>
+
+<!-- row 1 -->
+<rect x="44" y="200" width="244" height="124" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="2.6"/>
+<rect x="190" y="208" width="88" height="20" rx="10" fill="#2f9e5b"/>
+<text x="234" y="222" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">THIS SECTION</text>
+<text x="58" y="224" font-size="13.5" font-weight="700" fill="#1f2933">Coscheduling</text>
+<text x="58" y="246" font-size="12" fill="#1f2933">all-or-nothing start for a group</text>
+<text x="58" y="263" font-size="12" fill="#1f2933">of pods (a PodGroup)</text>
+<text x="58" y="290" font-size="11.5" fill="#5b6675">stages: queueSort, preFilter,</text>
+<text x="58" y="306" font-size="11.5" fill="#5b6675">permit, unreserve</text>
+
+<rect x="302" y="200" width="244" height="124" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="316" y="224" font-size="13.5" font-weight="700" fill="#1f2933">Capacity Scheduling</text>
+<text x="316" y="246" font-size="12" fill="#1f2933">team quotas with a minimum and a</text>
+<text x="316" y="263" font-size="12" fill="#1f2933">maximum; idle minimum can be borrowed</text>
+<text x="316" y="290" font-size="11.5" fill="#5b6675">needs: ElasticQuota objects</text>
+
+<rect x="560" y="200" width="244" height="124" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="574" y="224" font-size="13.5" font-weight="700" fill="#1f2933">Node Resource Topology</text>
+<text x="574" y="246" font-size="12" fill="#1f2933">places pods by the hardware layout</text>
+<text x="574" y="263" font-size="12" fill="#1f2933">inside a node, not just its totals</text>
+<text x="574" y="290" font-size="11.5" fill="#5b6675">needs: NodeResourceTopology</text>
+<text x="574" y="306" font-size="11.5" fill="#5b6675">objects for each node</text>
+
+<!-- row 2 -->
+<rect x="44" y="338" width="244" height="110" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="58" y="362" font-size="13.5" font-weight="700" fill="#1f2933">Node Resources</text>
+<text x="58" y="384" font-size="12" fill="#1f2933">ranks nodes by allocatable</text>
+<text x="58" y="401" font-size="12" fill="#1f2933">capacity (least or most first)</text>
+<text x="58" y="428" font-size="11.5" fill="#5b6675">stage: score</text>
+
+<rect x="302" y="338" width="244" height="110" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="316" y="362" font-size="13.5" font-weight="700" fill="#1f2933">Preemption Toleration</text>
+<text x="316" y="384" font-size="12" fill="#1f2933">lets a priority class say when its</text>
+<text x="316" y="401" font-size="12" fill="#1f2933">pods are exempt from preemption</text>
+<text x="316" y="428" font-size="11.5" fill="#5b6675">policy set from the victim's side</text>
+
+<rect x="560" y="338" width="244" height="110" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="574" y="362" font-size="13.5" font-weight="700" fill="#1f2933">Trimaran (load-aware)</text>
+<text x="574" y="384" font-size="12" fill="#1f2933">uses nodes' real CPU and memory</text>
+<text x="574" y="401" font-size="12" fill="#1f2933">use, not only the pods' requests</text>
+<text x="574" y="428" font-size="11.5" fill="#5b6675">needs: a load-watcher and metrics</text>
+
+<!-- row 3 -->
+<rect x="44" y="462" width="502" height="70" rx="10" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="58" y="486" font-size="13.5" font-weight="700" fill="#1f2933">Network-Aware</text>
+<text x="58" y="506" font-size="12" fill="#1f2933">orders and places microservices by their dependencies and network cost</text>
+<text x="58" y="522" font-size="11.5" fill="#5b6675">TopologicalSort (queue sort), NetworkOverhead (filter and score); needs AppGroup objects</text>
+
+<rect x="560" y="462" width="244" height="70" rx="10" fill="#f8fafc" stroke="#cbd2d9" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="574" y="486" font-size="12.5" font-weight="700" fill="#7b8794">Samples, not for production</text>
+<text x="574" y="506" font-size="12" fill="#7b8794">Cross Node Preemption, Pod State,</text>
+<text x="574" y="522" font-size="12" fill="#7b8794">Quality of Service</text>
+
+<text x="44" y="562" font-size="12.5" fill="#1f2933">Turn any of them on in this scheduler's <tspan font-family="ui-monospace, SFMono-Regular, Menlo, monospace">KubeSchedulerConfiguration</tspan>, in one profile or in several.</text>
+<text x="44" y="582" font-size="12.5" fill="#1f2933">The project's Helm chart switches on four by default: Coscheduling, Capacity Scheduling,</text>
+<text x="44" y="600" font-size="12.5" fill="#1f2933">Node Resource Topology and Node Resources. They run together, each at its own stages.</text>
+
+<!-- controller image -->
+<rect x="848" y="84" width="308" height="250" rx="16" fill="#f8fafc" stroke="#6d3fc0" stroke-width="1.8"/>
+<text x="868" y="110" font-size="14" font-weight="700" fill="#6d3fc0">Image 2: the controller</text>
+<text x="868" y="130" font-size="11.5" fill="#5b6675" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">.../scheduler-plugins/controller</text>
+<text x="868" y="158" font-size="12.5" fill="#1f2933">Watches the plugins' own objects</text>
+<text x="868" y="176" font-size="12.5" fill="#1f2933">and keeps their status up to date,</text>
+<text x="868" y="194" font-size="12.5" fill="#1f2933">for example a PodGroup's phase and</text>
+<text x="868" y="212" font-size="12.5" fill="#1f2933">how many of its pods are scheduled.</text>
+<rect x="868" y="232" width="268" height="40" rx="9" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.2"/>
+<text x="882" y="257" font-size="12.5" font-weight="700" fill="#1f2933">PodGroup</text>
+<text x="954" y="257" font-size="12" fill="#5b6675">scheduling.x-k8s.io</text>
+<text x="868" y="300" font-size="12" fill="#5b6675">Its custom resources (CRDs) and</text>
+<text x="868" y="316" font-size="12" fill="#5b6675">permissions are installed with it.</text>
+
+<!-- how it reaches EKS -->
+<rect x="848" y="350" width="308" height="264" rx="16" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="868" y="376" font-size="14" font-weight="700" fill="#3e4c59">Two ways to run it</text>
+<text x="868" y="402" font-size="12.5" font-weight="700" fill="#1f2933">As a second scheduler</text>
+<text x="868" y="420" font-size="12" fill="#1f2933">one Helm chart; pods opt in with</text>
+<text x="868" y="436" font-size="12" fill="#1f2933">schedulerName. The only way on EKS.</text>
+<text x="868" y="464" font-size="12.5" font-weight="700" fill="#1f2933">As the only scheduler</text>
+<text x="868" y="482" font-size="12" fill="#1f2933">replace the default scheduler's image</text>
+<text x="868" y="498" font-size="12" fill="#1f2933">and config. Needs the control plane.</text>
+<text x="868" y="530" font-size="12" fill="#5b6675">The project recommends one scheduler</text>
+<text x="868" y="546" font-size="12" fill="#5b6675">in production: two can place pods on</text>
+<text x="868" y="562" font-size="12" fill="#5b6675">the same node at the same moment</text>
+<text x="868" y="578" font-size="12" fill="#5b6675">when the cluster is short of room.</text>
+
+<text x="24" y="650" font-size="12" fill="#5b6675">Sources: the project README (plugin list), each plugin's README (purpose and stages), and the install guide (images, the two ways to run it).</text>
+<text x="24" y="670" font-size="12" fill="#5b6675">Kueue, Volcano and KAI are separate projects, covered in the next accordions.</text>
+</g>
+</svg>

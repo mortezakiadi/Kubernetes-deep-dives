@@ -499,14 +499,22 @@ for step in range(100):
 **Going deeper, by topic.**
 
 - **Why a partial start never recovers:** the reason is the **rendezvous barrier**. Distributed PyTorch workers wait until every rank has joined, so 7 of 8 workers will sit on their GPUs forever.
-- **The options sit at different layers:**
-  - the **coscheduling plugin**: a PodGroup with `minMember` and a timeout. It is not built into kube-scheduler: it runs in a separate scheduler build from the scheduler-plugins project (see the note below);
-  - **Kueue**: decides at the job level whether a job may start;
-  - **KAI** or **Volcano**: replace the scheduler.
+- **Three ways to get all-or-nothing, at three layers:** they come from different projects and work in different places, so each has its own accordion below.
+  - **Option 1, a plugin inside a scheduler:** the coscheduling plugin from the scheduler-plugins project holds a group's pods until all of them have a node.
+  - **Option 2, a gate in front of the scheduler:** Kueue decides at the job level whether a job may start at all. The normal scheduler still places its pods.
+  - **Option 3, a different scheduler:** Volcano or KAI replaces kube-scheduler for these pods and places the whole job at once.
+- **Option 1, the scheduler-plugins project (coscheduling):** [scheduler-plugins](https://github.com/kubernetes-sigs/scheduler-plugins) is a Kubernetes SIG project of extra plugins built on the same scheduler framework as kube-scheduler. You can't drop a plugin into a running scheduler, because plugins are compiled into the scheduler program. So the project ships its own scheduler image, containing every built-in plugin plus its extras, and a controller image for the plugins' own objects. Coscheduling is the one this section needs; the others are shown so you know what else the same scheduler can do ([project README](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/README.md)).
+
+![The scheduler-plugins project](diagrams/extra/d03-scheduler-plugins-project.svg)
+
+- **This scheduler has its own `KubeSchedulerConfiguration`:** the file isn't a cluster object you apply with kubectl. It's handed to one scheduler program when that program starts, with `--config`. So a cluster can run several scheduler programs, and each reads its own file: the default scheduler's file, which AWS manages on EKS; the scheduler-plugins scheduler's file, which its Helm chart writes into a ConfigMap; and any copy of kube-scheduler you run yourself, as in the [second-scheduler appendix](#appendix-second-scheduler). Inside each file, every profile is one scheduler name, which is what pods choose with `schedulerName`. Installing the plugins scheduler as a second scheduler leaves the default scheduler and its file untouched.
+
+![Each scheduler program reads its own KubeSchedulerConfiguration](diagrams/extra/d03-scheduler-configs.svg)
+
+- **Option 1 in practice, installing and using coscheduling:** it runs as a second scheduler from the project's Helm chart. The steps below install it, switch on only coscheduling, put 8 workers in one group, and check that they start together or not at all.
 
 > **Note: what using the coscheduling plugin involves**
 >
-> - **You don't add it to the default scheduler:** plugins are compiled into the scheduler program, so you can't drop one into a running kube-scheduler. The [scheduler-plugins](https://github.com/kubernetes-sigs/scheduler-plugins) project ships its own kube-scheduler image: the same default plugins plus extras such as Coscheduling.
 > - **Where it hooks in:** not at filter or score. It keeps a group's pods together in the queue (`queueSort`), holds each pod at `permit` after it has been given a node, releases them all once `minMember` are waiting, and frees their nodes (`unreserve`) when the timeout passes. An optional `preFilter` check rejects a group early if it has fewer pods than `minMember` ([coscheduling README](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/pkg/coscheduling/README.md)).
 > - **What you install:** four pieces, all from one Helm command in Step 2 below: that scheduler image, the PodGroup custom resource, the project's controller that manages PodGroups, and permissions for the scheduler to read them ([install guide](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/doc/install.md)).
 > - **Step 1, choose what to switch on (`values.yaml`):** the project's Helm chart installs it as a second scheduler. It writes that scheduler's `KubeSchedulerConfiguration` for you, from these values ([chart values](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/manifests/install/charts/as-a-second-scheduler/values.yaml)). By default the chart turns on three more plugins; this keeps only coscheduling:
@@ -580,6 +588,110 @@ for step in range(100):
 > ```
 >
 > - **On EKS:** you can't replace the default scheduler, so this runs as a second scheduler, which the project installs with a Helm chart. The project itself warns that two schedulers can place pods on the same node at the same moment when the cluster is short of room, and recommends a single scheduler in production. See the [second-scheduler appendix](#appendix-second-scheduler) for running one.
+
+- **Option 2, Kueue (a gate at the job level):** Kueue is a separate SIG project that isn't a scheduler. It holds a whole job back, suspended, until its queue has quota for all of its pods, then lets it start, and the normal scheduler places the pods. Quota alone doesn't guarantee the pods all fit on real nodes. Its `waitForPodsReady` setting adds the all-or-nothing part: if not all of an admitted job's pods are ready within a timeout, Kueue suspends the job and puts it back in the queue ([waitForPodsReady docs](https://kueue.sigs.k8s.io/docs/tasks/manage/setup_wait_for_pods_ready/)).
+
+> **Note: installing and using Kueue for gangs**
+>
+> - **Step 1, choose the settings (`kueue-values.yaml`):** `waitForPodsReady` is switched on by being present in Kueue's own configuration ([configuration API](https://github.com/kubernetes-sigs/kueue/blob/main/apis/config/v1beta2/configuration_types.go)), which the Helm chart takes under `managerConfig` ([chart README](https://github.com/kubernetes-sigs/kueue/blob/main/charts/kueue/README.md)):
+>
+> ```yaml
+> managerConfig:
+>   structuredOverrides:
+>     waitForPodsReady:
+>       timeout: 10m               # all pods ready within 10 minutes, or requeue #!
+>       blockAdmission: true       # admit one gang at a time, so two can't deadlock #!
+> ```
+>
+> - **Step 2, install it:**
+>
+> ```bash
+> helm install kueue oci://registry.k8s.io/kueue/charts/kueue --version="0.20.7" \
+>   --create-namespace --namespace=kueue-system \
+>   --values kueue-values.yaml
+>
+> kubectl get deploy -n kueue-system          # kueue-controller-manager ready #!
+> ```
+>
+> - **Step 3, create the queues:** a `ResourceFlavor`, a `ClusterQueue` with each team's quota, and a `LocalQueue` in the team's namespace. The [Volcano vs. Kueue](#d02-6) section has the full YAML.
+> - **Step 4, submit the job with one label:** Kueue suspends it on creation and starts it once it's admitted. You don't create it suspended yourself ([running a Job](https://kueue.sigs.k8s.io/docs/tasks/run/jobs/)):
+>
+> ```yaml
+> apiVersion: batch/v1
+> kind: Job
+> metadata:
+>   name: trainer
+>   namespace: data-science
+>   labels:
+>     kueue.x-k8s.io/queue-name: ds-queue    # the LocalQueue #!
+> spec:
+>   parallelism: 8                           # Kueue admits all 8 or none #!
+>   completions: 8
+>   template:
+>     spec:
+>       restartPolicy: Never
+>       containers:
+>       - name: worker
+>         image: my-company/trainer:2.0
+>         resources:
+>           requests: {nvidia.com/gpu: 1}
+> ```
+>
+> - **Step 5, check it:**
+>
+> ```bash
+> kubectl -n data-science get workloads       # QUEUE, ADMITTED #!
+> kubectl -n data-science describe workload <name>   # "workload didn't fit" while waiting
+> ```
+>
+> - **On EKS:** Kueue runs entirely as a controller on your nodes and needs no change to the default scheduler.
+
+- **Option 3, Volcano or KAI (replace the scheduler for these pods):** both are separate projects that run as their own scheduler and place a whole group of pods at once. Pods choose them with `schedulerName`, and both use their own queues and PodGroups.
+
+> **Note: installing and using Volcano or KAI**
+>
+> - **Volcano, install** ([Volcano README](https://github.com/volcano-sh/volcano/blob/master/README.md)):
+>
+> ```bash
+> helm repo add volcano-sh https://volcano-sh.github.io/helm-charts
+> helm install volcano volcano-sh/volcano -n volcano-system --create-namespace
+> ```
+>
+> - **Volcano, use:** submit a Volcano `Job` with `schedulerName: volcano` and `minAvailable` set to the gang size, as in the [Volcano vs. Kueue](#d02-6) section. Volcano creates a PodGroup for the job and starts none of its pods until `minAvailable` fit; `kubectl get podgroup` shows its phase.
+> - **KAI, install** (pick a release from the project's releases page) ([KAI README](https://github.com/kai-scheduler/KAI-scheduler/blob/main/README.md)):
+>
+> ```bash
+> helm upgrade -i kai-scheduler oci://ghcr.io/kai-scheduler/kai-scheduler/kai-scheduler \
+>   -n kai-scheduler --create-namespace --version <VERSION>
+> ```
+>
+> - **KAI, use:** a queue called `default-queue` exists after install. Each pod sets `schedulerName: kai-scheduler` and the label `kai.scheduler/queue`. KAI groups known workloads itself: a PyTorchJob's master and workers are scheduled together or not at all. For a plain Job, the `kai.scheduler/batch-min-member` annotation sets how many pods must fit together ([KAI batch scheduling](https://github.com/kai-scheduler/KAI-scheduler/blob/main/docs/batch/README.md)):
+>
+> ```yaml
+> apiVersion: batch/v1
+> kind: Job
+> metadata:
+>   name: trainer
+>   annotations:
+>     kai.scheduler/batch-min-member: "8"    # 8 pods fit together, or none start #!
+> spec:
+>   parallelism: 8
+>   completions: 8
+>   template:
+>     metadata:
+>       labels:
+>         kai.scheduler/queue: default-queue #!
+>     spec:
+>       schedulerName: kai-scheduler #!
+>       restartPolicy: OnFailure
+>       containers:
+>       - name: worker
+>         image: my-company/trainer:2.0
+>         resources:
+>           limits: {nvidia.com/gpu: 1}
+> ```
+>
+> - **On EKS:** like the plugins scheduler, both run as an extra scheduler on your nodes. KAI needs the NVIDIA GPU Operator for GPU workloads, and its docs say to submit work in a namespace other than `kai-scheduler`.
 
 - **Kubernetes' own gang scheduling:** upstream Kubernetes now has a native **Workload API** with gang scheduling: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default (see the note below).
 - **Inference needs it too:** model-parallel *inference* has the same property. If one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
