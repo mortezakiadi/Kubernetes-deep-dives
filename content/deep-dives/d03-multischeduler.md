@@ -640,7 +640,47 @@ for step in range(100):
 > kubectl get deploy -n kueue-system          # kueue-controller-manager ready #!
 > ```
 >
-> - **Step 3, create the queues:** a `ResourceFlavor`, a `ClusterQueue` with each team's quota, and a `LocalQueue` in the team's namespace. The [Volcano vs. Kueue](#d02-6) section has the full YAML.
+> - **Step 3, create the queues:** Kueue needs three objects before it admits anything. Together they say "this team may use up to 50 GPUs of this kind, and jobs in its namespace queue here":
+>   - **ResourceFlavor:** a kind of hardware, such as A100 nodes. Empty, as here, it means any node; with `nodeLabels` it points at one node type.
+>   - **ClusterQueue:** the cluster-wide budget. It holds the quota per flavor, here 50 GPUs, and the waiting line Kueue admits jobs from. A cluster admin creates it; it has no namespace.
+>   - **LocalQueue:** a team's entry point into a ClusterQueue, created in the team's namespace. Jobs name it with the `kueue.x-k8s.io/queue-name` label.
+>
+> ```yaml
+> apiVersion: kueue.x-k8s.io/v1beta2
+> kind: ResourceFlavor
+> metadata:
+>   name: a100                     # a kind of GPU node #!
+> ---
+> apiVersion: kueue.x-k8s.io/v1beta2
+> kind: ClusterQueue
+> metadata:
+>   name: data-science             # cluster-wide, no namespace #!
+> spec:
+>   namespaceSelector: {}          # jobs from any namespace may use it
+>   resourceGroups:
+>   - coveredResources: ["nvidia.com/gpu"]
+>     flavors:
+>     - name: a100
+>       resources:
+>       - name: nvidia.com/gpu
+>         nominalQuota: 50         # the team's budget: 50 GPUs in use at once #!
+> ---
+> apiVersion: kueue.x-k8s.io/v1beta2
+> kind: LocalQueue
+> metadata:
+>   name: ds-queue                 # the name jobs put in their label #!
+>   namespace: data-science        # the team's namespace #!
+> spec:
+>   clusterQueue: data-science     # which budget it draws from #!
+> ```
+>
+> ```bash
+> kubectl apply -f queues.yaml
+> kubectl get clusterqueues                    # data-science
+> kubectl -n data-science get localqueues      # ds-queue -> data-science
+> ```
+>
+> - **With these in place:** the 8-GPU job in Step 4 is admitted only while the team has 8 of its 50 GPUs free. Borrowing between teams and preemption are added on top, as in the [Volcano vs. Kueue](#d02-6) section.
 > - **Step 4, submit the job with one label:** Kueue suspends it on creation and starts it once it's admitted. You don't create it suspended yourself ([running a Job](https://kueue.sigs.k8s.io/docs/tasks/run/jobs/)):
 >
 > ```yaml
