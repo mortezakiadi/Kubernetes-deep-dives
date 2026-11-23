@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 760" width="1180" height="760" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker>
+<marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d48a1c"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1e4fb8"/></marker>
+</defs>
+<g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">Where NVLink matters and where PCIe matters</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">GPU to GPU inside a server goes over NVLink. Anything leaving the server goes over PCIe to a network card first. Layout modeled on a p4d.24xlarge.</text>
+
+<!-- Server A -->
+<rect x="24" y="84" width="800" height="440" rx="14" fill="#f8fafc" stroke="#5b6675" stroke-width="1.6"/>
+<text x="44" y="108" font-size="14" font-weight="700" fill="#3e4c59">Server A: 8 A100 GPUs, 4 EFA cards, 4 PCIe roots</text>
+<rect x="48" y="118" width="752" height="36" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="60" y="141" font-size="12.5" font-weight="700" fill="#2f6f4a">NVSwitch: every GPU reaches every other GPU over NVLink</text>
+
+<!-- groups -->
+<g font-size="12">
+<!-- root 0 -->
+<rect x="48" y="166" width="176" height="206" rx="10" fill="none" stroke="#d48a1c" stroke-width="1.3" stroke-dasharray="5 4"/>
+<text x="56" y="182" font-size="11" font-weight="700" fill="#b26b00">PCIe root 0</text>
+<rect x="58" y="190" width="74" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="95" y="215" text-anchor="middle" font-weight="700" fill="#1f2933">GPU 0</text>
+<rect x="140" y="190" width="74" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="177" y="215" text-anchor="middle" font-weight="700" fill="#1f2933">GPU 1</text>
+<rect x="58" y="250" width="156" height="30" rx="6" fill="#fff7ec" stroke="#d48a1c"/><text x="136" y="270" text-anchor="middle" fill="#1f2933">PCIe switch</text>
+<rect x="58" y="300" width="100" height="30" rx="6" fill="#eef3fd" stroke="#1e4fb8"/><text x="108" y="320" text-anchor="middle" fill="#1f2933">EFA 0</text>
+<!-- root 1 -->
+<rect x="240" y="166" width="176" height="206" rx="10" fill="none" stroke="#d48a1c" stroke-width="1.3" stroke-dasharray="5 4"/>
+<text x="248" y="182" font-size="11" font-weight="700" fill="#b26b00">PCIe root 1</text>
+<rect x="250" y="190" width="74" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="287" y="215" text-anchor="middle" font-weight="700" fill="#1f2933">GPU 2</text>
+<rect x="332" y="190" width="74" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="369" y="215" text-anchor="middle" font-weight="700" fill="#1f2933">GPU 3</text>
+<rect x="250" y="250" width="156" height="30" rx="6" fill="#fff7ec" stroke="#d48a1c"/><text x="328" y="270" text-anchor="middle" fill="#1f2933">PCIe switch</text>
+<rect x="250" y="300" width="100" height="30" rx="6" fill="#eef3fd" stroke="#1e4fb8"/><text x="300" y="320" text-anchor="middle" fill="#1f2933">EFA 1</text>
+<!-- root 2 -->
+<rect x="432" y="166" width="176" height="206" rx="10" fill="none" stroke="#d48a1c" stroke-width="1.3" stroke-dasharray="5 4"/>
+<text x="440" y="182" font-size="11" font-weight="700" fill="#b26b00">PCIe root 2</text>
+<rect x="442" y="190" width="74" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="479" y="215" text-anchor="middle" font-weight="700" fill="#1f2933">GPU 4</text>
+<rect x="524" y="190" width="74" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="561" y="215" text-anchor="middle" font-weight="700" fill="#1f2933">GPU 5</text>
+<rect x="442" y="250" width="156" height="30" rx="6" fill="#fff7ec" stroke="#d48a1c"/><text x="520" y="270" text-anchor="middle" fill="#1f2933">PCIe switch</text>
+<rect x="442" y="300" width="100" height="30" rx="6" fill="#eef3fd" stroke="#1e4fb8"/><text x="492" y="320" text-anchor="middle" fill="#1f2933">EFA 2</text>
+<!-- root 3 -->
+<rect x="624" y="166" width="176" height="206" rx="10" fill="none" stroke="#d48a1c" stroke-width="1.3" stroke-dasharray="5 4"/>
+<text x="632" y="182" font-size="11" font-weight="700" fill="#b26b00">PCIe root 3</text>
+<rect x="634" y="190" width="74" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="671" y="215" text-anchor="middle" font-weight="700" fill="#1f2933">GPU 6</text>
+<rect x="716" y="190" width="74" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="753" y="215" text-anchor="middle" font-weight="700" fill="#1f2933">GPU 7</text>
+<rect x="634" y="250" width="156" height="30" rx="6" fill="#fff7ec" stroke="#d48a1c"/><text x="712" y="270" text-anchor="middle" fill="#1f2933">PCIe switch</text>
+<rect x="634" y="300" width="100" height="30" rx="6" fill="#eef3fd" stroke="#1e4fb8"/><text x="684" y="320" text-anchor="middle" fill="#1f2933">EFA 3</text>
+</g>
+<g stroke="#9aa5b1" stroke-width="1.2">
+<path d="M95,230 L95,250"/><path d="M177,230 L177,250"/><path d="M108,280 L108,300"/><path d="M287,230 L287,250"/><path d="M369,230 L369,250"/><path d="M300,280 L300,300"/><path d="M479,230 L479,250"/><path d="M561,230 L561,250"/><path d="M492,280 L492,300"/><path d="M671,230 L671,250"/><path d="M753,230 L753,250"/><path d="M684,280 L684,300"/>
+</g>
+<!-- CPUs -->
+<rect x="48" y="404" width="368" height="40" rx="8" fill="#f3f4f6" stroke="#5b6675"/><text x="232" y="429" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="middle">CPU 0 and its memory</text>
+<rect x="432" y="404" width="368" height="40" rx="8" fill="#f3f4f6" stroke="#5b6675"/><text x="616" y="429" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="middle">CPU 1 and its memory</text>
+<g stroke="#9aa5b1" stroke-width="1.2">
+<path d="M136,372 L136,404"/><path d="M328,372 L328,404"/><path d="M520,372 L520,404"/><path d="M712,372 L712,404"/>
+</g>
+<text x="44" y="474" font-size="12" fill="#5b6675">Grey lines are PCIe. Each GPU and each EFA card hangs off one PCIe root, and the CPU connects the roots.</text>
+<text x="44" y="494" font-size="12" fill="#5b6675">The exact layout is illustrative; run nvidia-smi topo -m on a real node.</text>
+
+<!-- path 1: NVLink GPU0 -> GPU5 -->
+<path d="M95,190 L95,160 L561,160 L561,186" stroke="#2f9e5b" stroke-width="3" fill="none" marker-end="url(#ag)"/>
+<circle cx="330" cy="160" r="10" fill="#2f9e5b"/><text x="330" y="164" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+<!-- path 2: GPU0 -> EFA0 same root -->
+<path d="M84,230 L84,296" stroke="#d48a1c" stroke-width="3" fill="none" marker-end="url(#ao)"/>
+<circle cx="68" cy="292" r="10" fill="#d48a1c"/><text x="68" y="296" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+<!-- path 3: GPU1 -> CPU0 -> EFA1 -->
+<path d="M190,230 L190,396 L336,396 L336,334" stroke="#c0392b" stroke-width="2.6" stroke-dasharray="7 4" fill="none" marker-end="url(#ar)"/>
+<circle cx="262" cy="396" r="10" fill="#c0392b"/><text x="262" y="400" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+<!-- path 4: EFA3 -> Server B -->
+<path d="M734,315 L896,315" stroke="#1e4fb8" stroke-width="3" fill="none" marker-end="url(#ab)"/>
+<circle cx="850" cy="315" r="11" fill="#1e4fb8"/><text x="850" y="319" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+<text x="842" y="300" font-size="11.5" fill="#1e4fb8" text-anchor="middle">EFA network</text>
+
+<!-- Server B -->
+<rect x="900" y="84" width="256" height="440" rx="14" fill="#f8fafc" stroke="#5b6675" stroke-width="1.6"/>
+<text x="918" y="108" font-size="14" font-weight="700" fill="#3e4c59">Server B: the same</text>
+<rect x="918" y="118" width="220" height="36" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/><text x="930" y="141" font-size="12.5" font-weight="700" fill="#2f6f4a">NVSwitch</text>
+<rect x="918" y="190" width="220" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="1028" y="215" font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">GPU 0 ... GPU 7</text>
+<rect x="918" y="300" width="220" height="30" rx="6" fill="#eef3fd" stroke="#1e4fb8"/><text x="1028" y="320" font-size="12" fill="#1f2933" text-anchor="middle">EFA 0 ... EFA 3</text>
+<rect x="918" y="404" width="220" height="40" rx="8" fill="#f3f4f6" stroke="#5b6675"/><text x="1028" y="429" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="middle">CPUs and memory</text>
+
+<!-- legend -->
+<rect x="24" y="540" width="1132" height="206" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
+<g font-size="12.5" fill="#1f2933">
+<circle cx="46" cy="566" r="11" fill="#2f9e5b"/><text x="46" y="570" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+<text x="66" y="570"><tspan font-weight="700">GPU to GPU, same server: NVLink through NVSwitch.</tspan> 600 GB/s per GPU on a p4d, and AWS says each GPU reaches the others at that</text>
+<text x="66" y="588">same speed. So any pair is equally good: what Kubernetes must get right is putting chatty pods on the same node (bin-packing, podAffinity).</text>
+<circle cx="46" cy="614" r="11" fill="#d48a1c"/><text x="46" y="618" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+<text x="66" y="618"><tspan font-weight="700">GPU to network card, same PCIe root: the good PCIe path.</tspan> Data goes card to GPU directly. About 11.35 GB/s in the dranet test.</text>
+<text x="66" y="636">A DRA claim on pcieRoot asks for this pairing (Deep dive 2, Dynamic Resource Allocation).</text>
+<circle cx="46" cy="662" r="11" fill="#c0392b"/><text x="46" y="666" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+<text x="66" y="666"><tspan font-weight="700">GPU to network card, different roots: the slow PCIe path.</tspan> Data detours through the CPU. About 6.04 GB/s, roughly half.</text>
+<circle cx="46" cy="694" r="11" fill="#1e4fb8"/><text x="46" y="698" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+<text x="66" y="698"><tspan font-weight="700">Server to server: the EFA network.</tspan> 400 Gbps per p4d in total. Every byte between nodes takes path 2 or 3 first.</text>
+<text x="66" y="728" fill="#5b6675">PCIe is "slow" only next to NVLink. For traffic leaving the server there is no NVLink, so the best you can do is path 2.</text>
+</g>
+</g>
+</svg>

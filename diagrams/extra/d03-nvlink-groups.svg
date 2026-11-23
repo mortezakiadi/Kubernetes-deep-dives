@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 640" width="1180" height="640" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">Not every GPU pair is linked the same way</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">A server without NVSwitch: GPUs joined in pairs by NVLink bridges. The layout and the NV4 count are illustrative; run nvidia-smi topo -m on yours.</text>
+
+<!-- server -->
+<rect x="24" y="84" width="560" height="330" rx="14" fill="#f8fafc" stroke="#5b6675" stroke-width="1.6"/>
+<text x="44" y="108" font-size="14" font-weight="700" fill="#3e4c59">One server, 4 GPUs, 2 CPUs</text>
+<rect x="56" y="130" width="96" height="48" rx="8" fill="#ffffff" stroke="#3e4c59" stroke-width="1.4"/><text x="104" y="159" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle">GPU 0</text>
+<rect x="196" y="130" width="96" height="48" rx="8" fill="#ffffff" stroke="#3e4c59" stroke-width="1.4"/><text x="244" y="159" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle">GPU 1</text>
+<rect x="316" y="130" width="96" height="48" rx="8" fill="#ffffff" stroke="#3e4c59" stroke-width="1.4"/><text x="364" y="159" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle">GPU 2</text>
+<rect x="456" y="130" width="96" height="48" rx="8" fill="#ffffff" stroke="#3e4c59" stroke-width="1.4"/><text x="504" y="159" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle">GPU 3</text>
+<!-- NVLink bridges -->
+<path d="M152,154 L196,154" stroke="#2f9e5b" stroke-width="6"/>
+<path d="M412,154 L456,154" stroke="#2f9e5b" stroke-width="6"/>
+<text x="174" y="124" font-size="11.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">NVLink</text>
+<text x="434" y="124" font-size="11.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">NVLink</text>
+<!-- PCIe down -->
+<g stroke="#9aa5b1" stroke-width="1.4"><path d="M104,178 L104,240"/><path d="M244,178 L244,240"/><path d="M364,178 L364,240"/><path d="M504,178 L504,240"/></g>
+<text x="112" y="214" font-size="11" fill="#5b6675">PCIe</text>
+<rect x="56" y="240" width="236" height="48" rx="8" fill="#f3f4f6" stroke="#5b6675"/><text x="174" y="269" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle">CPU 0 (NUMA node 0)</text>
+<rect x="316" y="240" width="236" height="48" rx="8" fill="#f3f4f6" stroke="#5b6675"/><text x="434" y="269" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle">CPU 1 (NUMA node 1)</text>
+<path d="M292,264 L316,264" stroke="#c0392b" stroke-width="3"/>
+<text x="304" y="310" font-size="11.5" fill="#c0392b" text-anchor="middle">link between CPUs</text>
+<text x="44" y="346" font-size="12" fill="#1f2933"><tspan font-weight="700" fill="#2f6f4a">GPU 0 to GPU 1:</tspan> straight over their NVLink bridge.</text>
+<text x="44" y="368" font-size="12" fill="#1f2933"><tspan font-weight="700" fill="#c0392b">GPU 1 to GPU 2:</tspan> no NVLink. Down PCIe, across both CPUs, up PCIe.</text>
+<text x="44" y="394" font-size="11.5" fill="#5b6675">A server with NVSwitch, like a p4d, links every pair over NVLink, so this check matters less there.</text>
+
+<!-- matrix -->
+<rect x="608" y="84" width="548" height="330" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="628" y="108" font-size="14" font-weight="700" fill="#3e4c59">What nvidia-smi topo -m shows</text>
+<rect x="628" y="122" width="508" height="168" rx="8" fill="#1f2933"/>
+<g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#e4e7eb">
+<text x="644" y="148" xml:space="preserve">        GPU0   GPU1   GPU2   GPU3</text>
+<text x="644" y="176" xml:space="preserve">GPU0     X     <tspan fill="#7ee2a8" font-weight="700">NV4</tspan>    <tspan fill="#ff8a7a">SYS</tspan>    <tspan fill="#ff8a7a">SYS</tspan></text>
+<text x="644" y="204" xml:space="preserve">GPU1    <tspan fill="#7ee2a8" font-weight="700">NV4</tspan>     X     <tspan fill="#ff8a7a">SYS</tspan>    <tspan fill="#ff8a7a">SYS</tspan></text>
+<text x="644" y="232" xml:space="preserve">GPU2    <tspan fill="#ff8a7a">SYS</tspan>    <tspan fill="#ff8a7a">SYS</tspan>     X     <tspan fill="#7ee2a8" font-weight="700">NV4</tspan></text>
+<text x="644" y="260" xml:space="preserve">GPU3    <tspan fill="#ff8a7a">SYS</tspan>    <tspan fill="#ff8a7a">SYS</tspan>    <tspan fill="#7ee2a8" font-weight="700">NV4</tspan>     X</text>
+</g>
+<text x="628" y="316" font-size="12" fill="#1f2933"><tspan font-weight="700" fill="#2f6f4a">NV#</tspan>: the pair is joined by a bonded set of # NVLinks.</text>
+<text x="628" y="338" font-size="12" fill="#1f2933"><tspan font-weight="700" fill="#c0392b">SYS</tspan>: the path crosses PCIe and the link between NUMA nodes.</text>
+<text x="628" y="360" font-size="12" fill="#1f2933">Other codes in between: PIX, PXB, PHB, NODE (PCIe paths).</text>
+<text x="628" y="392" font-size="11.5" fill="#5b6675">Code meanings: NVIDIA's legend for nvidia-smi topo -m.</text>
+
+<!-- placement -->
+<rect x="24" y="432" width="1132" height="190" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="44" y="458" font-size="14" font-weight="700" fill="#3e4c59">A 2-GPU tensor-parallel job arrives while GPU 0 and GPU 3 are busy</text>
+<rect x="44" y="474" width="530" height="78" rx="10" fill="#fdecea" stroke="#c0392b" stroke-width="1.4"/>
+<text x="60" y="498" font-size="13" font-weight="700" fill="#c0392b">Start now on GPU 1 + GPU 2 (SYS)</text>
+<text x="60" y="518" font-size="12" fill="#1f2933">GPU 1 and GPU 2 are free, so a plain count of 2 fits.</text>
+<text x="60" y="536" font-size="12" fill="#1f2933">But every exchange crosses both CPUs, and the job runs slowly.</text>
+<rect x="606" y="474" width="530" height="78" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="622" y="498" font-size="13" font-weight="700" fill="#2f6f4a">Wait until GPU 0 + GPU 1 or GPU 2 + GPU 3 is free (NV4)</text>
+<text x="622" y="518" font-size="12" fill="#1f2933">The job sits in the queue a little longer,</text>
+<text x="622" y="536" font-size="12" fill="#1f2933">then runs on an NVLink pair and can finish sooner overall.</text>
+<text x="44" y="580" font-size="12.5" fill="#1f2933">Kubernetes sees only nvidia.com/gpu: 2, not which pair. Holding the job for a good pair is the job of a topology-aware scheduler, such as KAI.</text>
+<text x="44" y="602" font-size="12" fill="#5b6675">Whether waiting pays off depends on how long the wait is and how much the job talks between its GPUs.</text>
+</g>
+</svg>

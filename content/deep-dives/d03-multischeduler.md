@@ -803,7 +803,7 @@ for step in range(100):
 - **The problem:** the default LeastAllocated scoring spreads pods across nodes. In ML that's bad for performance, because pod-to-pod traffic then goes over the much slower network.
 - **The goal:** a scheduler that uses MostAllocated (bin-packing) to put the pods on the same physical GPU node.
 - **The benefit:** pods can talk over NVLink, which has an order of magnitude or more bandwidth than the node's network, cutting training time sharply.
-- **Topology-aware bin-packing:** goes further and looks at how the GPUs are wired. On an NVIDIA HGX system, it places pods that talk to each other on GPUs linked by NVLink (fast) rather than only PCIe (slow).
+- **Topology-aware bin-packing:** goes further and looks at how the GPUs are wired. On an NVIDIA HGX system, it places pods that talk to each other on GPUs linked by NVLink (fast) rather than only PCIe (slow). PCIe is slow only next to NVLink, for GPU-to-GPU traffic. Traffic leaving the server always goes over PCIe to a network card, and there the [DRA section's](#d06-4) same-PCIe-root rule is what makes it fast. "NVLink, NVSwitch and PCIe" under Going deeper shows both.
 - **Can the standard scheduler do it?** Partly.
   - **The workaround:** a required `podAffinity` with `matchLabels: job: my-training-run` and `topologyKey: kubernetes.io/hostname`, which forces pod 2 onto the node where pod 1 landed.
 
@@ -830,7 +830,15 @@ spec:
         nvidia.com/gpu: 1
 ```
 
-  - **The failure point:** it only works if pod 1 finds a home first, and writing these rules for 100 pods is a management nightmare. A custom scheduler does it automatically for the whole batch.
+- **The failure point:** the first pod isn't the problem. Kubernetes lets the first pod of a group with affinity to itself schedule, as long as no other pod matches yet ([Kubernetes docs](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)). The problems are these:
+  - **Pods are still placed one at a time:** pod 1 picks a node without knowing whether the others will fit there, and the rest stay Pending if that node fills up.
+  - **One node is too small for a big group:** with `kubernetes.io/hostname`, 100 GPU pods would all have to fit on one server, which holds 8 GPUs on a p4d.
+  - **It's slow at scale:** the Kubernetes docs say inter-pod affinity can slow scheduling down significantly and don't recommend it in clusters larger than several hundred nodes.
+- **What to do instead:**
+  - **Write the rule once:** put it in the pod template of the Job or JobSet, so every pod gets it, instead of writing it per pod.
+  - **Pick the level that fits the group:** keep `kubernetes.io/hostname` for groups that fit on one node. For bigger groups, use a wider node label as the `topologyKey`, such as `topology.kubernetes.io/zone` or a rack label if your nodes carry one.
+  - **Use preferred instead of required** when a wider spread is acceptable, so pods place anyway rather than staying Pending.
+  - **Place the whole group at once:** Kueue's Topology-Aware Scheduling, beta since Kueue 0.14, admits a job only where all its pods fit in one domain. You set it with one annotation on the pod template, for example `kueue.x-k8s.io/podset-required-topology` naming a rack label ([Kueue TAS docs](https://kueue.sigs.k8s.io/docs/concepts/topology_aware_scheduling/)). Volcano, KAI and the native PodGroup topology rule below do the same in their own way.
 - **Newer Kubernetes (alpha):** since 1.36 you can put a topology rule on a PodGroup, such as "all these pods in one rack", and the scheduler keeps the whole group inside one such domain. If no domain can hold the whole group, none of the pods start. It is still alpha in 1.37 and off by default (the `TopologyAwareWorkloadScheduling` feature gate). A separate 1.37 alpha adds several levels, for example one zone for the whole job and one rack for each part. It builds on PodGroups, so the EKS caveat in the [gang scheduling note](#d02-2) applies here too.
 - **Best at this:** the KAI Scheduler, NVIDIA's open-source scheduler with topology-aware placement for GPU fabrics.
 
@@ -840,7 +848,17 @@ spec:
   - **Tensor parallelism** splits every layer and exchanges results constantly. Keep it inside one node on NVLink/NVSwitch.
   - **Pipeline parallelism** splits by layers and only hands activations across once per stage, so it tolerates the slower links between nodes.
   - **Hybrid:** tensor parallelism inside nodes and pipeline parallelism between them is the common setup.
-- **Inside one server too:** not every GPU pair may share the same NVLink group. `nvidia-smi topo -m` shows it, and a job may rightly wait in the queue rather than start on badly connected GPUs.
+- **Inside one server too:** not every GPU pair may share the same NVLink group. `nvidia-smi topo -m` shows it, and a job may rightly wait in the queue rather than start on badly connected GPUs. In its output, `NV#` means the pair is joined by a bonded set of NVLinks and `SYS` means the path crosses PCIe and the link between CPUs ([NVIDIA's legend](https://networking-docs.nvidia.com/doca/archive/3-4-0/gpunetio-installation-and-setup)).
+
+![Not every GPU pair is linked the same way](diagrams/extra/d03-nvlink-groups.svg)
+
+- **NVLink, NVSwitch and PCIe, which link matters where:** each kind of traffic has its own link, so there are two different placement goals.
+  - **GPU to GPU in one server, NVLink:** NVSwitch is a switch chip that lets every GPU reach every other one over NVLink. On a p4d, AWS says each GPU reaches the others at the same 600 GB/s ([AWS P4](https://aws.amazon.com/ec2/instance-types/p4/)). So on servers with NVSwitch, which GPU pair you get hardly matters; what matters is that chatty pods land on the same node.
+  - **Where NVSwitch is missing:** on servers without it, such as PCIe GPU cards joined by NVLink bridges, only some pairs share an NVLink link. That's where the GPU-pair check above, `nvidia-smi topo -m`, matters.
+  - **GPU to network card, PCIe:** data leaving the server goes from the GPU over PCIe to a network card, and NVLink plays no part. A GPU and card under the same PCIe root send it directly; under different roots, it detours through the CPU. The dranet test in the [DRA section](#d06-4) measured about 11.35 GB/s versus 6.04 GB/s. A DRA claim on `pcieRoot` asks for the good pairing.
+  - **Server to server, the network:** after PCIe, the data crosses the EFA network to the other server. Deep dive 15's [Inside the server](#d15-3) shows these paths on a generic 8-GPU server.
+
+![Where NVLink matters and where PCIe matters](diagrams/extra/d03-nvlink-vs-pcie.svg)
 
 ### Queueing and fair sharing
 
