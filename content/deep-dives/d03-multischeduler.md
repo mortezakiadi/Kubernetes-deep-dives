@@ -848,6 +848,9 @@ spec:
   - **Tensor parallelism** splits every layer and exchanges results constantly. Keep it inside one node on NVLink/NVSwitch.
   - **Pipeline parallelism** splits by layers and only hands activations across once per stage, so it tolerates the slower links between nodes.
   - **Hybrid:** tensor parallelism inside nodes and pipeline parallelism between them is the common setup.
+
+![How a model is split decides where its pods must go](diagrams/extra/d03-parallelism-placement.svg)
+
 - **Inside one server too:** not every GPU pair may share the same NVLink group. `nvidia-smi topo -m` shows it, and a job may rightly wait in the queue rather than start on badly connected GPUs. In its output, `NV#` means the pair is joined by a bonded set of NVLinks and `SYS` means the path crosses PCIe and the link between CPUs ([NVIDIA's legend](https://networking-docs.nvidia.com/doca/archive/3-4-0/gpunetio-installation-and-setup)).
 
 ![Not every GPU pair is linked the same way](diagrams/extra/d03-nvlink-groups.svg)
