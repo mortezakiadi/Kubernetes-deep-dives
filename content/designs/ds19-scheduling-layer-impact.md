@@ -109,7 +109,7 @@ spec:
     - record: team:gpu_active:sum                          # allocated GPUs actually working #!
       expr: |
         sum by (label_team) (
-          (DCGM_FI_PROF_GR_ENGINE_ACTIVE > bool 0.05)
+          (DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO > bool 0.05)
           * on (namespace) group_left(team) kube_namespace_labels{label_team!=""}
         )
     - record: fleet:gpu_capacity_healthy:sum
@@ -121,7 +121,7 @@ spec:
 **Going deeper.**
 
 - **Label hygiene matters:** namespaces must carry a team label; unlabeled namespaces are a reported category, not silently dropped.
-- **Metric names depend on the exporter version:** `DCGM_FI_PROF_GR_ENGINE_ACTIVE` is the name up to DCGM Exporter 4.8. From 4.9 it is `DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO`. See the rename table in [Design 24](#ds24-2).
+- **Metric names depend on the exporter version:** these rules use the DCGM Exporter 4.9 name, `DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO`. Up to 4.8 the same field was `DCGM_FI_PROF_GR_ENGINE_ACTIVE`. See the rename table in [Design 24](#ds24-2).
 - **Recompute, don't edit:** store raw per-minute aggregates, so a corrected definition can be applied to the whole history, including the baseline.
 
 ### Architecture of the scheduling layer
@@ -376,7 +376,7 @@ metadata: { name: default-gpu-idle }
 spec:
   selector: { matchLabels: { gpu.example.com/workload-kind: notebook } }
   idle:
-    metric: DCGM_FI_PROF_GR_ENGINE_ACTIVE
+    metric: DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO
     below: 0.05
     forMinutes: 60                         # 60 minutes with the GPU essentially unused #!
   actions:
@@ -390,7 +390,7 @@ kind: IdlePolicy
 metadata: { name: batch-gpu-idle }
 spec:
   selector: { matchLabels: { gpu.example.com/workload-kind: batch } }
-  idle: { metric: DCGM_FI_PROF_GR_ENGINE_ACTIVE, below: 0.05, forMinutes: 120 }
+  idle: { metric: DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO, below: 0.05, forMinutes: 120 }
   actions:
   - { after: 0m, do: notify, channel: owner }   # batch jobs: tell the owner, never kill automatically
 ```

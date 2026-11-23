@@ -70,7 +70,7 @@ spec:
 
 ### Choosing fields and the interval
 
-**Scenario.** The teams' dashboards relied on `DCGM_FI_DEV_GPU_UTIL`. A data-loading job that touched the GPU once a second showed 100% "utilization". SM activity, the field that would have shown the GPU was mostly idle, wasn't being collected at all.
+**Scenario.** The teams' dashboards relied on GPU utilization (`DCGM_FI_DEV_GPU_UTIL_RATIO`). A data-loading job that touched the GPU once a second showed 100% "utilization". SM activity, the field that would have shown the GPU was mostly idle, wasn't being collected at all.
 
 ![Field selection](diagrams/designs/concepts/ds24-c3.svg)
 
@@ -80,7 +80,7 @@ spec:
 
 - **Activity (profiling fields):** graphics engine active (the headline activity signal), SM active, SM occupancy, tensor pipe active and DRAM active. Several are commented out in the exporter's default list and must be enabled.
 - **Memory and interconnect:** framebuffer used and free, PCIe and NVLink transmit and receive bytes.
-- **Power and thermals:** power usage, GPU and memory temperature, and clock event (throttle) reasons.
+- **Power and thermals:** power usage, GPU and memory temperature, and time spent throttled, counted per cause.
 - **Errors:** Xid errors, ECC counts, row-remap status and failures, and NVLink error counters, which [Design 23](#design-health-remediation) uses.
 - **Identity:** driver version and GPU model as labels.
 - **Interval:** 30 seconds for the fleet. Profiling fields cost GPU-side sampling. Faster intervals multiply storage, and the questions asked (minutes to months) don't need them.
@@ -94,29 +94,29 @@ metadata: { name: fleet-dcgm-metrics, namespace: gpu-operator }
 data:
   dcgm-metrics.csv: |
     # activity
-    DCGM_FI_PROF_GR_ENGINE_ACTIVE,    gauge,   Ratio of time the graphics engine is active
-    DCGM_FI_PROF_SM_ACTIVE,           gauge,   Ratio of cycles an SM has at least one warp assigned
-    DCGM_FI_PROF_SM_OCCUPANCY,        gauge,   Ratio of resident warps to maximum warps per SM
-    DCGM_FI_PROF_PIPE_TENSOR_ACTIVE,  gauge,   Ratio of cycles the tensor pipe is active
-    DCGM_FI_PROF_DRAM_ACTIVE,         gauge,   Ratio of cycles device memory is sending or receiving
-    DCGM_FI_DEV_GPU_UTIL,             gauge,   Kept for compatibility; not used in rules
+    DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO, gauge,  Ratio of time the graphics engine is active
+    DCGM_FI_PROF_SM_UTIL_RATIO,       gauge,   Ratio of cycles an SM has at least one warp assigned
+    DCGM_FI_PROF_SM_OCCUPANCY_RATIO,  gauge,   Ratio of resident warps to maximum warps per SM
+    DCGM_FI_PROF_TENSOR_UTIL_RATIO,   gauge,   Ratio of cycles the tensor pipe is active
+    DCGM_FI_PROF_DRAM_UTIL_RATIO,     gauge,   Ratio of cycles device memory is sending or receiving
+    DCGM_FI_DEV_GPU_UTIL_RATIO,       gauge,   Kept for compatibility; not used in rules
     # memory and interconnect
-    DCGM_FI_DEV_FB_USED,              gauge,   Framebuffer used (MiB)
-    DCGM_FI_DEV_FB_FREE,              gauge,   Framebuffer free (MiB)
+    DCGM_FI_DEV_FB_USED_BYTES,        gauge,   Framebuffer used (bytes)
+    DCGM_FI_DEV_FB_FREE_BYTES,        gauge,   Framebuffer free (bytes)
     DCGM_FI_PROF_NVLINK_TX_BYTES,     gauge,   NVLink transmit rate (bytes/s)
     DCGM_FI_PROF_NVLINK_RX_BYTES,     gauge,   NVLink receive rate (bytes/s)
     DCGM_FI_PROF_PCIE_TX_BYTES,       gauge,   PCIe transmit rate (bytes/s)
     DCGM_FI_PROF_PCIE_RX_BYTES,       gauge,   PCIe receive rate (bytes/s)
     # power and thermals
-    DCGM_FI_DEV_POWER_USAGE,          gauge,   Power draw (W)
-    DCGM_FI_DEV_GPU_TEMP,             gauge,   GPU temperature (C)
-    DCGM_FI_DEV_MEMORY_TEMP,          gauge,   Memory temperature (C)
-    DCGM_FI_DEV_CLOCK_THROTTLE_REASONS, gauge, Clock throttle reasons bitmask
+    DCGM_FI_DEV_BOARD_POWER_WATTS,    gauge,   Power draw (W)
+    DCGM_FI_DEV_GPU_TEMP_CELSIUS,     gauge,   GPU temperature (C)
+    DCGM_FI_DEV_MEMORY_TEMP_CELSIUS,  gauge,   Memory temperature (C)
+    DCGM_FI_DEV_GPU_THERMAL_THROTTLE_SECONDS_TOTAL, counter, Time below application clocks due to thermal policy (s)
     # errors
-    DCGM_FI_DEV_XID_ERRORS,           gauge,   Last Xid error
+    DCGM_FI_DEV_XID_ERROR,            gauge,   Last Xid error
     DCGM_FI_DEV_ECC_DBE_VOL_TOTAL,    counter, Volatile double-bit ECC errors
-    DCGM_FI_DEV_ROW_REMAP_FAILURE,    gauge,   Row remapping failed
-    DCGM_FI_DEV_UNCORRECTABLE_REMAPPED_ROWS, counter, Rows remapped for uncorrectable errors
+    DCGM_FI_DEV_ROW_REMAP_FAILED,     gauge,   Row remapping failed
+    DCGM_FI_DEV_ROW_REMAP_UNCORRECTABLE_TOTAL, counter, Rows remapped for uncorrectable errors
     DCGM_FI_DEV_NVLINK_CRC_FLIT_ERROR_TOTAL, counter, NVLink flit CRC errors
 ```
 
@@ -124,8 +124,8 @@ data:
 
 - **Profiling fields and profilers compete:** when a user runs Nsight Compute or Nsight Systems with GPU metrics on a node, DCGM's profiling fields can conflict with it. DCGM can pause profiling collection (`dcgmi profile --pause`) for the session. Document this for users, and expect gaps rather than errors.
 - **When fleet metrics say "busy" but one job is slow, profile that job:** Nsight Systems records a timeline of one process, with its GPU kernels, memory copies and any phases you label, so you can see whether the GPU waits for data. Run it inside the job's pod. That needs access to the kernel's performance interface (in container terms, the `SYS_ADMIN` capability or privileged mode, and a host setting that allows it), and sampling GPU metrics needs elevated permissions ([Nsight Systems guide](https://docs.nvidia.com/nsight-systems/UserGuide/index.html)). Grant that only to a short-lived debug pod, not to every job, and pause DCGM's profiling fields on the node first, as above. In the current guide the option that samples GPU metrics is spelled `--gpu-metrics-devices`.
-- **Field names change between DCGM versions:** the throttle-reasons field has a newer name (`DCGM_FI_DEV_CLOCKS_EVENT_REASONS`). Pin the exporter version with the field list and test both together.
-- **Exporter 4.9 renamed the fields.** DCGM Exporter 4.9.0 ([release notes](https://github.com/NVIDIA/dcgm-exporter/releases/tag/4.9.0)), which GPU Operator v26.7.3 ships, renamed 23 default fields and changed 11 units: utilization from percent to a 0 to 1 ratio, memory from MiB to bytes, NVLink from MB/s to bytes per second. The list and rules in this design use the 4.8 names. On 4.9, rename them before trusting any dashboard. The pairs below come from comparing the 4.8.4 and 4.9.0 field lists ([4.9.0 list](https://github.com/NVIDIA/dcgm-exporter/blob/4.9.0/etc/default-counters.csv)):
+- **Field names change between exporter versions:** pin the exporter version together with the field list and the rules, and test them together. Everything in this design uses the DCGM Exporter 4.9 names.
+- **Exporter 4.9 renamed the fields.** DCGM Exporter 4.9.0 ([release notes](https://github.com/NVIDIA/dcgm-exporter/releases/tag/4.9.0)), which GPU Operator v26.7.3 ships, renamed 23 default fields and changed 11 units: utilization from percent to a 0 to 1 ratio, memory from MiB to bytes, NVLink from MB/s to bytes per second. This design uses the 4.9 names. For a cluster still on 4.8 or earlier, or when moving old dashboards across, the pairs below come from comparing the 4.8.4 and 4.9.0 field lists ([4.9.0 list](https://github.com/NVIDIA/dcgm-exporter/blob/4.9.0/etc/default-counters.csv)):
 
 | 4.8 and earlier | 4.9 |
 |---|---|
@@ -143,7 +143,7 @@ data:
 | `DCGM_FI_DEV_UNCORRECTABLE_REMAPPED_ROWS` | `DCGM_FI_DEV_ROW_REMAP_UNCORRECTABLE_TOTAL` |
 | `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL` (MB/s) | `DCGM_FI_DEV_NVLINK_THROUGHPUT_BYTES_PER_SECOND` |
 
-  The clock-reasons bitmask is no longer in the shipped lists. 4.9 offers per-cause counters instead, such as `DCGM_FI_DEV_GPU_THERMAL_THROTTLE_SECONDS_TOTAL`, plus each GPU's own slowdown temperature and margin (`DCGM_FI_DEV_GPU_TEMP_SLOWDOWN_CELSIUS`, `DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS`).
+  The clock-reasons bitmask is no longer in the shipped lists. 4.9 offers per-cause counters instead, such as `DCGM_FI_DEV_GPU_THERMAL_THROTTLE_SECONDS_TOTAL` (which the thermal alert below uses), plus each GPU's own slowdown temperature and margin (`DCGM_FI_DEV_GPU_TEMP_SLOWDOWN_CELSIUS`, `DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS`).
 
 ### Labels and joins: who used this GPU?
 
@@ -188,7 +188,7 @@ spec:
         )
     - record: gpu:engine_active:ratio                  # one series per GPU, with team and pool attached
       expr: |
-        label_replace(DCGM_FI_PROF_GR_ENGINE_ACTIVE, "node", "$1", "Hostname", "(.*)")
+        label_replace(DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO, "node", "$1", "Hostname", "(.*)")
         * on (namespace) group_left (team) namespace:team:info
         * on (node) group_left (pool, gpu_product) node:pool:info
 ```
@@ -367,7 +367,7 @@ spec:
     - alert: DcgmExporterDataStale
       expr: |
         max by (cluster, node) (
-          label_replace(time() - timestamp(DCGM_FI_DEV_POWER_USAGE), "node", "$1", "Hostname", "(.*)")
+          label_replace(time() - timestamp(DCGM_FI_DEV_BOARD_POWER_WATTS), "node", "$1", "Hostname", "(.*)")
         ) > 180
       for: 5m
       labels: { severity: page, owner: platform }
@@ -377,8 +377,7 @@ spec:
     - alert: GpuThermalThrottlingWidespread
       expr: |
         count by (cluster, pool) (
-          (DCGM_FI_DEV_CLOCK_THROTTLE_REASONS % 64 >= 32)                     # thermal slowdown bit #!
-          or (DCGM_FI_DEV_CLOCK_THROTTLE_REASONS % 128 >= 64)                  # hardware thermal slowdown bit
+          rate(DCGM_FI_DEV_GPU_THERMAL_THROTTLE_SECONDS_TOTAL[5m]) > 0.5     # throttled more than half the time #!
         ) > 16
       for: 30m
       labels: { severity: page, owner: platform }
@@ -403,7 +402,7 @@ spec:
 
 **Going deeper.**
 
-- **Bitmask alerts need care:** throttle reasons are bit flags. Test each bit with modulo arithmetic as above, and check the bit values against the DCGM version in use.
+- **Throttle counters are in seconds:** each per-cause throttle field counts seconds spent below application clocks, so `rate()` over a window is the fraction of that window the GPU was throttled, from 0 to 1. Older exporters exposed a bitmask of reasons instead, which had to be tested bit by bit.
 - **Alert on the pipeline too:** a dashboard showing zero because the exporter died is worse than no dashboard. Staleness alerts come first.
 
 ### Routing, ownership and noise control
