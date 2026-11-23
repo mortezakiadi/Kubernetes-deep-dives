@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" width="1180" height="560" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker>
+</defs>
+<g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">One round of RL fine-tuning: what the Generator and the Trainer are</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">Both are Python classes you write. Each one holds its own copy of the same model: one copy writes answers, the other copy learns.</text>
+
+<!-- Prompts -->
+<rect x="24" y="100" width="190" height="236" rx="12" fill="#f8fafc" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="40" y="126" font-size="14" font-weight="700" fill="#3e4c59">Prompts</text>
+<text x="40" y="146" font-size="12" fill="#5b6675">1,000 coding tasks,</text>
+<text x="40" y="162" font-size="12" fill="#5b6675">each with unit tests</text>
+<rect x="40" y="180" width="158" height="46" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.2"/>
+<text x="50" y="199" font-size="12" fill="#1f2933">"Write is_prime(n)</text>
+<text x="50" y="216" font-size="12" fill="#1f2933">in Python"</text>
+<text x="40" y="256" font-size="12" fill="#5b6675">data, not code</text>
+<text x="40" y="272" font-size="12" fill="#5b6675">that runs</text>
+
+<!-- Generator -->
+<rect x="250" y="100" width="270" height="236" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="266" y="126" font-size="14" font-weight="700" fill="#1f2933">Generator</text>
+<rect x="446" y="111" width="58" height="22" rx="11" fill="#2f9e5b"/>
+<text x="475" y="126" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">GPU</text>
+<text x="266" y="146" font-size="12" fill="#5b6675">a Python class (a Ray actor)</text>
+<rect x="266" y="158" width="238" height="52" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.3"/>
+<text x="278" y="179" font-size="12.5" font-weight="700" fill="#1f2933">holds: model copy, v12</text>
+<text x="278" y="198" font-size="12" fill="#5b6675">loaded for writing answers only</text>
+<text x="266" y="232" font-size="12" fill="#1f2933">writes one answer per prompt:</text>
+<rect x="266" y="242" width="238" height="44" rx="8" fill="#1f2933"/>
+<text x="278" y="260" font-size="11.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" fill="#e4e7eb">def is_prime(n):</text>
+<text x="278" y="277" font-size="11.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" fill="#e4e7eb" xml:space="preserve">    return n % 2 == 1</text>
+<text x="266" y="310" font-size="12" fill="#5b6675">the model stays loaded all run</text>
+
+<!-- Tests -->
+<rect x="556" y="100" width="250" height="236" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="572" y="126" font-size="14" font-weight="700" fill="#1f2933">Unit tests</text>
+<rect x="732" y="111" width="58" height="22" rx="11" fill="#5b6675"/>
+<text x="761" y="126" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">CPU</text>
+<text x="572" y="146" font-size="12" fill="#5b6675">plain Python tasks, no model</text>
+<text x="572" y="172" font-size="12" fill="#1f2933">run each answer in a sandbox:</text>
+<rect x="572" y="182" width="218" height="66" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.3"/>
+<text x="584" y="202" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" fill="#1f2933">is_prime(7) == True</text>
+<text x="770" y="202" font-size="12.5" font-weight="700" fill="#2f9e5b" text-anchor="end">pass</text>
+<text x="584" y="222" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" fill="#1f2933">is_prime(9) == False</text>
+<text x="770" y="222" font-size="12.5" font-weight="700" fill="#c0392b" text-anchor="end">fail</text>
+<text x="584" y="240" font-size="11" fill="#5b6675">9 is odd but not prime</text>
+<text x="572" y="276" font-size="12.5" font-weight="700" fill="#1f2933">score: 0.0</text>
+<text x="572" y="294" font-size="12" fill="#5b6675">1.0 only if every test passes</text>
+
+<!-- Trainer -->
+<rect x="842" y="100" width="314" height="236" rx="12" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="858" y="126" font-size="14" font-weight="700" fill="#1f2933">Trainer</text>
+<rect x="1082" y="111" width="58" height="22" rx="11" fill="#2f9e5b"/>
+<text x="1111" y="126" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">GPU</text>
+<text x="858" y="146" font-size="12" fill="#5b6675">a Python class (a Ray actor)</text>
+<rect x="858" y="158" width="282" height="52" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.3"/>
+<text x="870" y="179" font-size="12.5" font-weight="700" fill="#1f2933">holds: model copy, v12, set up to learn</text>
+<text x="870" y="198" font-size="12" fill="#5b6675">plus the extra state that training needs</text>
+<text x="858" y="232" font-size="12" fill="#1f2933">nudges the weights so that answers</text>
+<text x="858" y="250" font-size="12" fill="#1f2933">that passed become more likely</text>
+<text x="858" y="268" font-size="12" fill="#1f2933">and answers that failed less likely</text>
+<text x="858" y="300" font-size="12.5" font-weight="700" fill="#1f2933">result: weights v13</text>
+
+<!-- forward arrows -->
+<path d="M214,218 L246,218" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M520,218 L552,218" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M806,218 L838,218" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<g font-size="12" font-weight="600" fill="#3e4c59">
+<text x="214" y="88">1,000 prompts</text>
+<text x="500" y="88">1,000 answers</text>
+<text x="770" y="88">answers + scores</text>
+</g>
+<path d="M232,94 L232,206" stroke="#9aa5b1" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<path d="M538,94 L538,206" stroke="#9aa5b1" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<path d="M824,94 L824,206" stroke="#9aa5b1" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- return arrow -->
+<path d="M999,336 L999,382 L385,382 L385,340" stroke="#2f9e5b" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+<rect x="520" y="370" width="344" height="24" rx="6" fill="#ffffff"/>
+<text x="692" y="387" font-size="12.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">weights v13 sent back: load_weights(v13)</text>
+<text x="692" y="406" font-size="12" fill="#5b6675" text-anchor="middle">the Generator's copy catches up, and the next round starts</text>
+
+<!-- note -->
+<rect x="24" y="428" width="1132" height="116" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="44" y="454" font-size="14" font-weight="700" fill="#3e4c59">So are they models or Python code? Both.</text>
+<g font-size="13" fill="#1f2933">
+<text x="44" y="480">The Generator and the Trainer are Python classes you write; Ray runs each as an actor, a process that stays alive on its GPU.</text>
+<text x="44" y="502">Inside, each one loads the same model. The Generator uses its copy only to write answers. The Trainer's copy also keeps what learning needs,</text>
+<text x="44" y="524">such as gradients and optimizer state, so it uses more GPU memory. After each round the Trainer's improved weights are copied to the Generator.</text>
+</g>
+</g>
+</svg>
