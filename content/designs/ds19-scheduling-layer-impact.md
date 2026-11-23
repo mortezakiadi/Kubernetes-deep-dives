@@ -121,6 +121,7 @@ spec:
 **Going deeper.**
 
 - **Label hygiene matters:** namespaces must carry a team label; unlabeled namespaces are a reported category, not silently dropped.
+- **Metric names depend on the exporter version:** `DCGM_FI_PROF_GR_ENGINE_ACTIVE` is the name up to DCGM Exporter 4.8. From 4.9 it is `DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO`. See the rename table in [Design 24](#ds24-2).
 - **Recompute, don't edit:** store raw per-minute aggregates, so a corrected definition can be applied to the whole history, including the baseline.
 
 ### Architecture of the scheduling layer

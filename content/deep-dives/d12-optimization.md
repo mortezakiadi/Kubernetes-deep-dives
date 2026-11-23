@@ -87,6 +87,7 @@ spec:
 - Model images are a special case: tens or hundreds of GB.
 - Layered OCI images let ten fine-tuned variants share one cached copy of the base model on a node.
 - Pre-pulling or prefetching images is what keeps scale-up times predictable (see [Getting model weights into pods](#post-model-data)).
+- **SOCI offers two modes.** *Lazy loading* starts the container before the image has fully downloaded. It needs a SOCI index next to the image, made with `soci convert` (index v2), because SOCI snapshotter v0.10+ ignores the older `soci create` indexes by default ([SOCI index v2](https://github.com/awslabs/soci-snapshotter/blob/main/docs/soci-index-manifest-v2.md)). Many AI images read most of their files at start, so AWS added *parallel pull mode*: it downloads each layer in chunks over several connections and unpacks layers in parallel. Recent EKS AL2023 and Bottlerocket AMIs include it. It needs fast disk; AWS suggests EBS at 1000 MiB/s and 16K IOPS, or SOCI's directory on instance-store NVMe ([AWS: SOCI parallel pull](https://aws.amazon.com/blogs/containers/introducing-seekable-oci-parallel-pull-mode-for-amazon-eks/)).
 
 Startup time is a cost too: a slow-starting replica means paying for extra warm capacity. For model servers:
 

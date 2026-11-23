@@ -49,7 +49,7 @@ The short version: *detect at every layer, decide with evidence, repair by a lad
 checks:
 - { name: xid-watch,        layer: hardware, kind: passive, source: kernel-log,  interval: continuous }
 - { name: dcgm-fields,      layer: hardware, kind: passive, source: dcgm,        interval: 30s,
-    fields: [ECC_DBE_VOL_TOTAL, ROW_REMAP_PENDING, ROW_REMAP_FAILURE, NVLINK_CRC_FLIT_ERROR_COUNT_TOTAL, GPU_TEMP, POWER_VIOLATION] }
+    fields: [ECC_DBE_VOL_TOTAL, ROW_REMAP_PENDING, ROW_REMAP_FAILURE, NVLINK_CRC_FLIT_ERROR_TOTAL, GPU_TEMP, POWER_VIOLATION] }
 - { name: ib-counters,      layer: network,  kind: passive, source: sysfs,       interval: 60s,
     fields: [symbol_error, link_downed, port_rcv_errors, link_error_recovery] }
 - { name: sw-conformance,   layer: software, kind: passive, source: node-agent,  interval: 5m }

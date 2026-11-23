@@ -103,10 +103,10 @@ data:
     # memory and interconnect
     DCGM_FI_DEV_FB_USED,              gauge,   Framebuffer used (MiB)
     DCGM_FI_DEV_FB_FREE,              gauge,   Framebuffer free (MiB)
-    DCGM_FI_PROF_NVLINK_TX_BYTES,     counter, NVLink bytes transmitted
-    DCGM_FI_PROF_NVLINK_RX_BYTES,     counter, NVLink bytes received
-    DCGM_FI_PROF_PCIE_TX_BYTES,       counter, PCIe bytes transmitted
-    DCGM_FI_PROF_PCIE_RX_BYTES,       counter, PCIe bytes received
+    DCGM_FI_PROF_NVLINK_TX_BYTES,     gauge,   NVLink transmit rate (bytes/s)
+    DCGM_FI_PROF_NVLINK_RX_BYTES,     gauge,   NVLink receive rate (bytes/s)
+    DCGM_FI_PROF_PCIE_TX_BYTES,       gauge,   PCIe transmit rate (bytes/s)
+    DCGM_FI_PROF_PCIE_RX_BYTES,       gauge,   PCIe receive rate (bytes/s)
     # power and thermals
     DCGM_FI_DEV_POWER_USAGE,          gauge,   Power draw (W)
     DCGM_FI_DEV_GPU_TEMP,             gauge,   GPU temperature (C)
@@ -117,7 +117,7 @@ data:
     DCGM_FI_DEV_ECC_DBE_VOL_TOTAL,    counter, Volatile double-bit ECC errors
     DCGM_FI_DEV_ROW_REMAP_FAILURE,    gauge,   Row remapping failed
     DCGM_FI_DEV_UNCORRECTABLE_REMAPPED_ROWS, counter, Rows remapped for uncorrectable errors
-    DCGM_FI_DEV_NVLINK_CRC_FLIT_ERROR_COUNT_TOTAL, counter, NVLink flit CRC errors
+    DCGM_FI_DEV_NVLINK_CRC_FLIT_ERROR_TOTAL, counter, NVLink flit CRC errors
 ```
 
 **Going deeper.**
@@ -125,6 +125,25 @@ data:
 - **Profiling fields and profilers compete:** when a user runs Nsight Compute or Nsight Systems with GPU metrics on a node, DCGM's profiling fields can conflict with it. DCGM can pause profiling collection (`dcgmi profile --pause`) for the session. Document this for users, and expect gaps rather than errors.
 - **When fleet metrics say "busy" but one job is slow, profile that job:** Nsight Systems records a timeline of one process, with its GPU kernels, memory copies and any phases you label, so you can see whether the GPU waits for data. Run it inside the job's pod. That needs access to the kernel's performance interface (in container terms, the `SYS_ADMIN` capability or privileged mode, and a host setting that allows it), and sampling GPU metrics needs elevated permissions ([Nsight Systems guide](https://docs.nvidia.com/nsight-systems/UserGuide/index.html)). Grant that only to a short-lived debug pod, not to every job, and pause DCGM's profiling fields on the node first, as above. In the current guide the option that samples GPU metrics is spelled `--gpu-metrics-devices`.
 - **Field names change between DCGM versions:** the throttle-reasons field has a newer name (`DCGM_FI_DEV_CLOCKS_EVENT_REASONS`). Pin the exporter version with the field list and test both together.
+- **Exporter 4.9 renamed the fields.** DCGM Exporter 4.9.0 ([release notes](https://github.com/NVIDIA/dcgm-exporter/releases/tag/4.9.0)), which GPU Operator v26.7.3 ships, renamed 23 default fields and changed 11 units: utilization from percent to a 0 to 1 ratio, memory from MiB to bytes, NVLink from MB/s to bytes per second. The list and rules in this design use the 4.8 names. On 4.9, rename them before trusting any dashboard. The pairs below come from comparing the 4.8.4 and 4.9.0 field lists ([4.9.0 list](https://github.com/NVIDIA/dcgm-exporter/blob/4.9.0/etc/default-counters.csv)):
+
+| 4.8 and earlier | 4.9 |
+|---|---|
+| `DCGM_FI_PROF_GR_ENGINE_ACTIVE` | `DCGM_FI_PROF_GR_ENGINE_UTIL_RATIO` |
+| `DCGM_FI_PROF_SM_ACTIVE` | `DCGM_FI_PROF_SM_UTIL_RATIO` |
+| `DCGM_FI_PROF_SM_OCCUPANCY` | `DCGM_FI_PROF_SM_OCCUPANCY_RATIO` |
+| `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE` | `DCGM_FI_PROF_TENSOR_UTIL_RATIO` |
+| `DCGM_FI_PROF_DRAM_ACTIVE` | `DCGM_FI_PROF_DRAM_UTIL_RATIO` |
+| `DCGM_FI_DEV_GPU_UTIL` (percent) | `DCGM_FI_DEV_GPU_UTIL_RATIO` (0 to 1) |
+| `DCGM_FI_DEV_FB_USED`, `DCGM_FI_DEV_FB_FREE` (MiB) | `DCGM_FI_DEV_FB_USED_BYTES`, `DCGM_FI_DEV_FB_FREE_BYTES` |
+| `DCGM_FI_DEV_POWER_USAGE` | `DCGM_FI_DEV_BOARD_POWER_WATTS` |
+| `DCGM_FI_DEV_GPU_TEMP`, `DCGM_FI_DEV_MEMORY_TEMP` | `DCGM_FI_DEV_GPU_TEMP_CELSIUS`, `DCGM_FI_DEV_MEMORY_TEMP_CELSIUS` |
+| `DCGM_FI_DEV_XID_ERRORS` | `DCGM_FI_DEV_XID_ERROR` |
+| `DCGM_FI_DEV_ROW_REMAP_FAILURE` | `DCGM_FI_DEV_ROW_REMAP_FAILED` |
+| `DCGM_FI_DEV_UNCORRECTABLE_REMAPPED_ROWS` | `DCGM_FI_DEV_ROW_REMAP_UNCORRECTABLE_TOTAL` |
+| `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL` (MB/s) | `DCGM_FI_DEV_NVLINK_THROUGHPUT_BYTES_PER_SECOND` |
+
+  The clock-reasons bitmask is no longer in the shipped lists. 4.9 offers per-cause counters instead, such as `DCGM_FI_DEV_GPU_THERMAL_THROTTLE_SECONDS_TOTAL`, plus each GPU's own slowdown temperature and margin (`DCGM_FI_DEV_GPU_TEMP_SLOWDOWN_CELSIUS`, `DCGM_FI_DEV_GPU_TEMP_MARGIN_CELSIUS`).
 
 ### Labels and joins: who used this GPU?
 
@@ -439,6 +458,7 @@ receivers:
 
 - **Every team label must route somewhere:** a CI check compares team labels in the namespace inventory with the router's team list, so no alert lands nowhere.
 - **Inhibition hides information:** keep inhibited alerts visible in the alert UI and attached to the parent notification. Suppress the notifications, not the knowledge.
+- **If you route with AlertmanagerConfig objects instead,** know that by default each one only sees alerts whose `namespace` label equals its own namespace (strategy `OnNamespace`). A rule that aggregates the namespace away, like most fleet rules here, never reaches it. Either keep `namespace` in the rule's labels, or change `alertmanagerConfigMatcherStrategy` on the Alertmanager ([Prometheus Operator API](https://github.com/prometheus-operator/prometheus-operator/blob/main/pkg/apis/monitoring/v1/alertmanager_types.go)).
 
 ### Dashboards as code
 

@@ -43,6 +43,9 @@ args:
 **Going deeper.**
 
 - **Label everything with the model and its version,** so a dashboard can compare v7 and v8 of the same model side by side during a rollout.
+- **GenAI attributes on traces:** OpenTelemetry's GenAI conventions name the fields for model calls: `gen_ai.request.model`, `gen_ai.usage.input_tokens` and `gen_ai.usage.output_tokens`, plus `gen_ai.agent.name` and `gen_ai.tool.name` for agents ([GenAI attribute registry](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/registry/attributes/gen-ai.md)). Instrumentation such as [`opentelemetry-instrumentation-openai-v2`](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation-genai/opentelemetry-instrumentation-openai-v2) fills them in for every call made through the OpenAI SDK, including calls to vLLM. The conventions are still *Development* status and now live in their own repository. Older code writes `gen_ai.system`, while the current registry uses `gen_ai.provider.name`.
+- **Prompts stay out of traces by default:** the instrumentation captures message content only when `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` is set. Turn it on per environment, not in production by habit.
+- **Order the collector's processors:** put `k8sattributes` before `batch`. It identifies the sending pod by connection IP, and after batching that information is gone ([k8sattributes processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/k8sattributesprocessor/README.md)).
 - **Log prompts and answers carefully:** they can contain personal data. Keep them out of the general log store, and capture them only through a deliberate path with its own access rules (see "Responsible AI" below).
 
 ### Measure tokens, not requests
