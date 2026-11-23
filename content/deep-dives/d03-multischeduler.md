@@ -804,6 +804,9 @@ for step in range(100):
 - **The goal:** a scheduler that uses MostAllocated (bin-packing) to put the pods on the same physical GPU node.
 - **The benefit:** pods can talk over NVLink, which has an order of magnitude or more bandwidth than the node's network, cutting training time sharply.
 - **Topology-aware bin-packing:** goes further and looks at how the GPUs are wired. On an NVIDIA HGX system, it places pods that talk to each other on GPUs linked by NVLink (fast) rather than only PCIe (slow). PCIe is slow only next to NVLink, for GPU-to-GPU traffic. Traffic leaving the server always goes over PCIe to a network card, and there the [DRA section's](#d06-4) same-PCIe-root rule is what makes it fast. "NVLink, NVSwitch and PCIe" under Going deeper shows both.
+
+    ![Three ways GPUs in one server can be wired to each other](diagrams/extra/d03-gpu-wiring-three.svg)
+
 - **Can the standard scheduler do it?** Partly.
   - **The workaround:** a required `podAffinity` with `matchLabels: job: my-training-run` and `topologyKey: kubernetes.io/hostname`, which forces pod 2 onto the node where pod 1 landed.
 

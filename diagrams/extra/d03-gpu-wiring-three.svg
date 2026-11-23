@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 560" width="1180" height="560" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">Three ways GPUs in one server can be wired to each other</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">Green = NVLink, the fast GPU-to-GPU link. Grey = PCIe. Topology-aware bin-packing puts chatty pods on the green paths.</text>
+
+<!-- ===== Panel A: NVSwitch ===== -->
+<rect x="24" y="84" width="362" height="300" rx="14" fill="#f8fafc" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="44" y="110" font-size="14.5" font-weight="700" fill="#2f6f4a">1. NVLink through NVSwitch</text>
+<text x="44" y="130" font-size="12" fill="#5b6675">HGX boards, such as AWS p4d and p5</text>
+<g font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">
+<rect x="44" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="79" y="175">GPU 0</text>
+<rect x="128" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="163" y="175">GPU 1</text>
+<rect x="212" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="247" y="175">GPU 2</text>
+<rect x="296" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="331" y="175">GPU 3</text>
+</g>
+<g stroke="#2f9e5b" stroke-width="4"><path d="M79,190 L79,226"/><path d="M163,190 L163,226"/><path d="M247,190 L247,226"/><path d="M331,190 L331,226"/></g>
+<rect x="44" y="226" width="322" height="34" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="205" y="248" font-size="12.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">NVSwitch</text>
+<text x="44" y="290" font-size="12.5" fill="#1f2933"><tspan font-weight="700">Every pair</tspan> is linked by NVLink, at the</text>
+<text x="44" y="308" font-size="12.5" fill="#1f2933">same speed. Which GPUs you get hardly matters.</text>
+<text x="44" y="340" font-size="12.5" font-weight="700" fill="#2f6f4a">Place: the whole group on one node.</text>
+<text x="44" y="362" font-size="11.5" fill="#5b6675">4 of 8 GPUs drawn</text>
+
+<!-- ===== Panel B: NVLink bridges ===== -->
+<rect x="409" y="84" width="362" height="300" rx="14" fill="#f8fafc" stroke="#d48a1c" stroke-width="1.8"/>
+<text x="429" y="110" font-size="14.5" font-weight="700" fill="#b26b00">2. NVLink bridges between cards</text>
+<text x="429" y="130" font-size="12" fill="#5b6675">PCIe GPU cards joined by a bridge, such as H100 NVL</text>
+<g font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">
+<rect x="429" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="464" y="175">GPU 0</text>
+<rect x="513" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="548" y="175">GPU 1</text>
+<rect x="597" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="632" y="175">GPU 2</text>
+<rect x="681" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="716" y="175">GPU 3</text>
+</g>
+<g stroke="#2f9e5b" stroke-width="5"><path d="M499,170 L513,170"/><path d="M667,170 L681,170"/></g>
+<g stroke="#9aa5b1" stroke-width="1.6"><path d="M464,190 L464,226"/><path d="M548,190 L548,226"/><path d="M632,190 L632,226"/><path d="M716,190 L716,226"/></g>
+<rect x="429" y="226" width="322" height="34" rx="8" fill="#f3f4f6" stroke="#5b6675" stroke-width="1.2"/>
+<text x="590" y="248" font-size="12.5" font-weight="700" fill="#3e4c59" text-anchor="middle">PCIe and the CPUs</text>
+<text x="429" y="290" font-size="12.5" fill="#1f2933"><tspan font-weight="700">Only bridged pairs</tspan> share NVLink. GPU 1 to</text>
+<text x="429" y="308" font-size="12.5" fill="#1f2933">GPU 2 falls back to PCIe through the CPUs.</text>
+<text x="429" y="340" font-size="12.5" font-weight="700" fill="#b26b00">Place: chatty pods on a bridged pair.</text>
+<text x="429" y="362" font-size="11.5" fill="#5b6675">nvidia-smi topo -m shows NV# for these pairs</text>
+
+<!-- ===== Panel C: PCIe only ===== -->
+<rect x="794" y="84" width="362" height="300" rx="14" fill="#f8fafc" stroke="#9aa5b1" stroke-width="1.8"/>
+<text x="814" y="110" font-size="14.5" font-weight="700" fill="#3e4c59">3. PCIe only</text>
+<text x="814" y="130" font-size="12" fill="#5b6675">GPU cards with no NVLink at all</text>
+<g font-size="12" font-weight="700" fill="#1f2933" text-anchor="middle">
+<rect x="814" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="849" y="175">GPU 0</text>
+<rect x="898" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="933" y="175">GPU 1</text>
+<rect x="982" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="1017" y="175">GPU 2</text>
+<rect x="1066" y="150" width="70" height="40" rx="7" fill="#ffffff" stroke="#3e4c59"/><text x="1101" y="175">GPU 3</text>
+</g>
+<g stroke="#9aa5b1" stroke-width="1.6"><path d="M849,190 L849,226"/><path d="M933,190 L933,226"/><path d="M1017,190 L1017,226"/><path d="M1101,190 L1101,226"/></g>
+<rect x="814" y="226" width="154" height="34" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/><text x="891" y="248" font-size="12" fill="#1f2933" text-anchor="middle">PCIe switch A</text>
+<rect x="982" y="226" width="154" height="34" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/><text x="1059" y="248" font-size="12" fill="#1f2933" text-anchor="middle">PCIe switch B</text>
+<text x="814" y="290" font-size="12.5" fill="#1f2933"><tspan font-weight="700">Every exchange</tspan> goes over PCIe. GPUs under</text>
+<text x="814" y="308" font-size="12.5" fill="#1f2933">one switch take fewer hops than across switches.</text>
+<text x="814" y="340" font-size="12.5" font-weight="700" fill="#3e4c59">Place: under one PCIe switch, or avoid</text>
+<text x="814" y="358" font-size="12.5" font-weight="700" fill="#3e4c59">tensor parallelism across GPUs here.</text>
+
+<!-- ===== bottom ===== -->
+<rect x="24" y="404" width="1132" height="140" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="44" y="430" font-size="14" font-weight="700" fill="#3e4c59">How big the gap is, and what PCIe is still used for</text>
+<g font-size="12.5" fill="#1f2933">
+<text x="44" y="456"><tspan font-weight="700">On an A100 (p4d):</tspan> NVIDIA lists 600 GB/s of NVLink per GPU and 64 GB/s for its PCIe Gen4 link, about 9 times apart (A100 datasheet).</text>
+<text x="44" y="480"><tspan font-weight="700">PCIe still carries everything that leaves the server:</tspan> GPU to network card. There no NVLink exists, and the fast choice is a GPU and</text>
+<text x="44" y="498">card under the same PCIe root, which the DRA section asks for with a pcieRoot claim.</text>
+<text x="44" y="526" fill="#5b6675">Kubernetes itself sees only a GPU count; choosing the wired pair is what a topology-aware scheduler, such as KAI, adds.</text>
+</g>
+</g>
+</svg>
