@@ -31,9 +31,9 @@ def post(path, body):
 rows = [json.loads(line) for line in urllib.request.urlopen(
     "https://raw.githubusercontent.com/openai/grade-school-math/master/grade_school_math/data/test.jsonl", timeout=60).read().decode().splitlines()[:N_PROMPTS]]
 tok = AutoTokenizer.from_pretrained(MODEL)
-prompts = [tok.apply_chat_template([{"role": "user", "content": r["question"] + " Think step by step, then put the final answer in \\boxed{}."}],
-                                   add_generation_prompt=True, tokenize=True, enable_thinking=False) for r in rows]
-prompts = [p["input_ids"] if isinstance(p, dict) else list(p) for p in prompts]
+texts = [tok.apply_chat_template([{"role": "user", "content": r["question"] + " Think step by step, then put the final answer in \\boxed{}."}],
+                                 add_generation_prompt=True, tokenize=False, enable_thinking=False) for r in rows]
+prompts = [tok(t, add_special_tokens=False)["input_ids"] for t in texts]
 served = json.loads(urllib.request.urlopen(URL + "/v1/models", timeout=30).read())["data"][0]["id"]
 
 

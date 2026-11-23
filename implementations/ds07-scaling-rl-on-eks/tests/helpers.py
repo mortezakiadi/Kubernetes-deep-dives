@@ -199,17 +199,20 @@ def fit_sigmoid(hours, rate, skip=0.0):
 
 
 def run_tool(name, script, env, timeout=1800):
-    """Run a one-off job on the trainer's GPU and return (succeeded, log text)."""
+    """Run a one-off job on the trainer's GPU and return (succeeded, log text). A job that does not finish in time is deleted, so that it
+    cannot hold the GPU (a collective whose peer has died never returns)."""
     ensure_configs()
     kube("-n", NS, "delete", "job", name, "--ignore-not-found", "--wait=true", timeout=300)
-    apply_yaml(manifests.tool_job(name, script, env))
+    apply_yaml(manifests.tool_job(name, script, env, deadline=timeout))
 
     def done():
         j = kj("-n", NS, "get", "job", name).get("status", {})
         return (j.get("succeeded") or j.get("failed")) and True
-    wait_for(done, timeout, 10)
+    wait_for(done, timeout + 30, 10)
     j = kj("-n", NS, "get", "job", name).get("status", {})
     log = kube("-n", NS, "logs", f"job/{name}", "--tail", "2000")[1]
+    if not (j.get("succeeded") or j.get("failed")):
+        kube("-n", NS, "delete", "job", name, "--wait=false")
     return bool(j.get("succeeded")), log
 
 
@@ -237,9 +240,8 @@ def chart_curves(path, series, fits=None, title="", xlabel="GPU hours (trainer a
         ax.plot(h, r, "o", color=c, label=name)
         if fits and name in fits and fits[name]:
             p = fits[name]
-            xs = np.linspace(max(min(h), 1e-3), max(h) * 1.0, 100)
+            xs = np.linspace(max(min(h), 1e-3), max(h), 100)
             ax.plot(xs, sigmoid(xs, p["A"], p["B"], p["C_mid"], p["R0"]), "-", color=c, alpha=0.8)
-            ax.axhline(p["A"], color=c, ls=":", alpha=0.5)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title)
@@ -277,7 +279,6 @@ def chart_lines(path, lines, title="", xlabel="step", ylabel="", hlines=None, vl
         ax.plot(x, y, "-", color=PALETTE[i % len(PALETTE)], label=name, lw=1.5)
     for label, v in (hlines or {}).items():
         ax.axhline(v, color="gray", ls="--", lw=1)
-        ax.text(ax.get_xlim()[0], v, " " + label, fontsize=8, va="bottom", color="gray")
     for label, v in (vlines or {}).items():
         ax.axvline(v, color="#d62728", ls="--", lw=1)
         ax.text(v, ax.get_ylim()[1], " " + label, fontsize=8, va="top", color="#d62728")

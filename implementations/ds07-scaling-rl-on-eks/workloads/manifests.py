@@ -150,7 +150,7 @@ def sandbox_pool(workers_min=2, workers_max=60, threshold=8, latency_ms=0, scale
     return dump(*docs)
 
 
-def tool_job(name, script, env, nccl_version="2.31.2", gpu=True):
+def tool_job(name, script, env, nccl_version="2.31.2", gpu=True, deadline=1800):
     """A one-off job on the trainer node (a benchmark or a probe) with the same software as the trainer."""
     setup = TRAINER_SETUP.replace("{NCCL}", nccl_version)
     env_list = [{"name": k, "value": str(v)} for k, v in env.items()]
@@ -160,7 +160,7 @@ def tool_job(name, script, env, nccl_version="2.31.2", gpu=True):
                  "resources": {"limits": {"nvidia.com/gpu": 1}, "requests": {"cpu": "6", "memory": "24Gi"}},
                  "volumeMounts": [{"name": "shm", "mountPath": "/dev/shm"}, {"name": "app", "mountPath": "/app"}, {"name": "work", "mountPath": "/work"}]}
     job = {"apiVersion": "batch/v1", "kind": "Job", "metadata": {"name": name, "namespace": NS},
-           "spec": {"backoffLimit": 0, "ttlSecondsAfterFinished": 3600, "template": {"metadata": {"labels": {"tool": name}}, "spec": {
+           "spec": {"backoffLimit": 0, "ttlSecondsAfterFinished": 3600, "activeDeadlineSeconds": deadline, "template": {"metadata": {"labels": {"tool": name}}, "spec": {
                "restartPolicy": "Never", "serviceAccountName": "tools", "nodeSelector": {"pool": "trainer"}, "tolerations": GPU_TOLERATION,
                "containers": [container],
                "volumes": [{"name": "shm", "emptyDir": {"medium": "Memory", "sizeLimit": "8Gi"}}, {"name": "work", "emptyDir": {}},

@@ -12,7 +12,7 @@ import time
 
 import redis
 
-r = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"), port=6379, decode_responses=True)
+r = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"), port=6379, decode_responses=True, socket_timeout=60, socket_connect_timeout=10)
 LATENCY = float(os.environ.get("TOOL_LATENCY_MS", "0")) / 1000.0
 
 HARNESS = """
@@ -46,7 +46,11 @@ def run(job):
 
 
 while True:
-    item = r.blpop("sandbox:queue", timeout=5)
+    try:
+        item = r.blpop("sandbox:queue", timeout=5)
+    except redis.exceptions.RedisError:
+        time.sleep(1)
+        continue
     if not item:
         continue
     job = json.loads(item[1])

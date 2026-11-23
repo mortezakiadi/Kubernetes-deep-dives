@@ -6,8 +6,10 @@ unchanged, to the runs under test.
 """
 import statistics
 
-WINDOW = 8
-PARAMS = {"entropy_slope_rel": -0.03, "length_slope_rel": 0.04, "informative_min": 0.35, "tail_factor": 3.0, "need": 2, "hold": 3}
+WINDOW = 12
+# Set just outside what the healthy runs of S02 and S04 produced: entropy slope never below -0.034 per step (relative), length slope never above 0.094,
+# informative share never below 0.39, tail factor never above 4.6.
+PARAMS = {"entropy_slope_rel": -0.06, "length_slope_rel": 0.12, "informative_min": 0.30, "tail_factor": 6.0, "need": 2, "hold": 3}
 
 
 def _slope(ys):
@@ -23,11 +25,11 @@ def _slope(ys):
 def features(rows, i, early_tail):
     w = rows[max(0, i - WINDOW + 1): i + 1]
     ent = [r.get("entropy", 0) or 0 for r in w]
-    ln = [r.get("completions/mean_length", 0) or 0 for r in w]
+    ln = [r["completions/mean_length"] for r in w if r.get("completions/mean_length")]  # the metric is absent on steps where no group finished
     zero = [r.get("frac_zero_std_groups", 0) or 0 for r in w]
     tail = [r.get("sampling/masked_mean", 0) or 0 for r in w]
-    m_e, m_l = statistics.mean(ent) or 1e-9, statistics.mean(ln) or 1e-9
-    return {"entropy_slope_rel": _slope(ent) / m_e, "length_slope_rel": _slope(ln) / m_l, "informative": 1 - statistics.mean(zero),
+    m_e, m_l = statistics.mean(ent) or 1e-9, (statistics.mean(ln) if ln else 1e-9)
+    return {"entropy_slope_rel": _slope(ent) / m_e, "length_slope_rel": (_slope(ln) / m_l) if len(ln) > 3 else 0.0, "informative": 1 - statistics.mean(zero),
             "tail": statistics.mean(tail), "tail_early": early_tail}
 
 

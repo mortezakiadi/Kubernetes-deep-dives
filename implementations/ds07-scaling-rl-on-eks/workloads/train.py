@@ -174,7 +174,7 @@ class SandboxReward:
     def _redis(self):
         import redis
         if self.client is None:
-            self.client = redis.Redis(host="redis.rl-scale.svc", port=6379, decode_responses=True)
+            self.client = redis.Redis(host="redis.rl-scale.svc", port=6379, decode_responses=True, socket_timeout=400, socket_connect_timeout=10)
         return self.client
 
     def _score_one(self, text, t):
