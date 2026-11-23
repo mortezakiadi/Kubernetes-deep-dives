@@ -505,10 +505,11 @@ for step in range(100):
 **Going deeper, by topic.**
 
 - **Why a partial start never recovers:** the reason is the **rendezvous barrier**. Distributed PyTorch workers wait until every rank has joined, so 7 of 8 workers will sit on their GPUs forever.
-- **Three ways to get all-or-nothing, at three layers:** they come from different projects and work in different places, so each has its own accordion below.
+- **Four ways to get all-or-nothing:** they come from different projects and work in different places, so each has its own accordion below.
   - **Option 1, a plugin inside a scheduler:** the coscheduling plugin from the <strong><mark class="kw-act">scheduler-plugins project</mark></strong> holds a group's pods until all of them have a node.
   - **Option 2, a gate in front of the scheduler:** Kueue decides at the job level whether a job may start at all. The normal scheduler still places its pods.
   - **Option 3, a different scheduler:** Volcano or KAI replaces kube-scheduler for these pods and places the whole job at once.
+  - **Option 4, built into kube-scheduler itself:** Kubernetes' own Workload API, newer and still off by default.
 - **Option 1, the scheduler-plugins project (coscheduling):** the <strong><mark class="kw-act">scheduler-plugins project</mark></strong> ([on GitHub](https://github.com/kubernetes-sigs/scheduler-plugins)) is a Kubernetes SIG project of extra plugins built on the same scheduler framework as kube-scheduler. You can't drop a plugin into a running scheduler, because plugins are compiled into the scheduler program. So the project ships two container images. The scheduler image is kube-scheduler compiled from the same Kubernetes scheduler code with the extra plugins added, so every built-in plugin is in it too; it isn't a copy of your running default scheduler and doesn't read that scheduler's settings. The controller image manages the plugins' own objects ([install guide](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/doc/install.md)). Coscheduling is the one this section needs; the others are shown so you know what else the same scheduler can do ([project README](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/README.md)).
 
 ![The scheduler-plugins project](diagrams/extra/d03-scheduler-plugins-project.svg)
@@ -766,7 +767,7 @@ for step in range(100):
 >
 > - **On EKS:** like the plugins scheduler, both run as an extra scheduler on your nodes. KAI needs the NVIDIA GPU Operator for GPU workloads, and its docs say to submit work in a namespace other than `kai-scheduler`.
 
-- **Kubernetes' own gang scheduling:** upstream Kubernetes now has a native **Workload API** with gang scheduling: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default (see the note below).
+- **Option 4, Kubernetes' own gang scheduling (built into kube-scheduler):** the newest way needs no extra project. Upstream Kubernetes now has a native **Workload API** with gang scheduling in the default scheduler itself: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default. On EKS there is no documented way to switch it on yet, so options 1 to 3 are what you can use today (see the note below).
 - **Inference needs it too:** model-parallel *inference* has the same property. If one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
 
 > **Note: Kubernetes' own gang scheduling, and where EKS stands**
