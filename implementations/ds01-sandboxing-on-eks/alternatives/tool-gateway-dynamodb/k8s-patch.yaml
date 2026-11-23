@@ -1,0 +1,17 @@
+# Strategic-merge patch for the tool-gateway Deployment in k8s/40-platform.yaml.
+# Two replicas instead of one, and the table name for the store. The image also needs boto3 (add it to the platform image's pip install).
+# Apply together with tool_gateway.patch and terraform/ (which creates the table, the role and the Pod Identity association).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tool-gateway
+  namespace: sandbox-platform
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: tool-gateway
+          env:
+            - { name: TOOL_GATEWAY_TABLE, value: ds01-sandboxing-tool-gateway }
+            - { name: AWS_REGION, value: us-east-1 }

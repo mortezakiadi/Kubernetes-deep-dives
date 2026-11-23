@@ -1,0 +1,77 @@
+# gVisor (runsc) as the sandbox runtime. No nested virtualization is needed, so ordinary instance types work. The node does need
+# the runsc binaries and a containerd entry, which the user data below puts there.
+# Adapted from the user-data install in J. Cowan's "Running gVisor on EKS with Karpenter" and from gVisor's containerd guide.
+# Fill the two placeholders with: envsubst '${node_role_name} ${sandbox_sg}' < nodepool.yaml | kubectl apply -f -
+# Weaknesses to know: the download is from storage.googleapis.com on every boot, and "latest" is a moving target.
+# For anything real, bake the binaries into an AMI and pin the release.
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: sandbox-gvisor
+spec:
+  amiFamily: AL2023
+  amiSelectorTerms:
+    - alias: al2023@latest
+  role: ${node_role_name}
+  subnetSelectorTerms:
+    - tags:
+        ds01/tier: sandbox
+  securityGroupSelectorTerms:
+    - id: ${sandbox_sg}
+  userData: |
+    MIME-Version: 1.0
+    Content-Type: multipart/mixed; boundary="//"
+
+    --//
+    Content-Type: application/node.eks.aws
+
+    apiVersion: node.eks.aws/v1alpha1
+    kind: NodeConfig
+    spec:
+      containerd:
+        config: |
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc]
+            runtime_type = "io.containerd.runsc.v1"
+
+    --//
+    Content-Type: text/x-shellscript; charset="us-ascii"
+
+    #!/bin/bash
+    set -euxo pipefail
+    ARCH=$(uname -m)
+    URL="https://storage.googleapis.com/gvisor/releases/release/latest/$ARCH"
+    cd /tmp
+    curl -fsSLO "$URL/runsc"
+    curl -fsSLO "$URL/runsc.sha512"
+    curl -fsSLO "$URL/containerd-shim-runsc-v1"
+    curl -fsSLO "$URL/containerd-shim-runsc-v1.sha512"
+    sha512sum -c runsc.sha512
+    sha512sum -c containerd-shim-runsc-v1.sha512
+    chmod a+rx runsc containerd-shim-runsc-v1
+    mv runsc containerd-shim-runsc-v1 /usr/local/bin/
+    --//--
+---
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: sandbox-gvisor
+spec:
+  template:
+    metadata:
+      labels:
+        workload: sandbox
+        ds01/runtime: gvisor
+    spec:
+      nodeClassRef: { group: karpenter.k8s.aws, kind: EC2NodeClass, name: sandbox-gvisor }
+      taints:
+        - { key: workload, value: sandbox, effect: NoSchedule }
+      requirements:
+        - { key: karpenter.sh/capacity-type, operator: In, values: ["on-demand"] }
+        - { key: kubernetes.io/arch, operator: In, values: ["amd64"] }
+        - { key: karpenter.k8s.aws/instance-category, operator: In, values: ["c", "m"] }
+        - { key: karpenter.k8s.aws/instance-generation, operator: Gt, values: ["6"] }
+  disruption:
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: 10m
+  limits:
+    cpu: "32"

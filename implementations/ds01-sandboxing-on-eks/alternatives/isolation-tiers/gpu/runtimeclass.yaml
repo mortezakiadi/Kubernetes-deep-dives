@@ -1,0 +1,10 @@
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor-gpu
+handler: runsc-gpu
+scheduling:
+  nodeSelector:
+    ds01/runtime: gvisor-gpu
+  tolerations:
+    - { key: workload, operator: Equal, value: sandbox, effect: NoSchedule }

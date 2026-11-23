@@ -1,0 +1,123 @@
+# KEDA scales each warm pool by the size the Manager asks for (/internal/pool-demand, see manager.patch).
+# A SandboxWarmPool has a scale subresource, so KEDA can target it the same way it targets a Deployment.
+# Remove "replicas" from the SandboxWarmPool manifests in k8s/20-sandboxes.yaml first: KEDA owns that field from now on.
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pool-demand-token
+  namespace: sandboxes
+type: Opaque
+stringData:
+  token: REPLACE_WITH_THE_MANAGERS_KEDA_TOKEN   # the same value as /secrets/keda-token in the Manager
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: pool-demand-auth
+  namespace: sandboxes
+spec:
+  secretTargetRef:
+    - parameter: apiKey
+      name: pool-demand-token
+      key: token
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: python-untrusted-pool
+  namespace: sandboxes
+spec:
+  scaleTargetRef:
+    apiVersion: extensions.agents.x-k8s.io/v1beta1
+    kind: SandboxWarmPool
+    name: python-untrusted-pool
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  pollingInterval: 15
+  triggers:
+    - type: metrics-api
+      metricType: AverageValue
+      metadata:
+        url: http://sandbox-manager.sandbox-platform.svc:8000/internal/pool-demand
+        valueLocation: python-untrusted.desired
+        targetValue: "1"
+        authMode: apiKey
+        method: header
+        keyParamName: X-Internal-Token
+      authenticationRef:
+        name: pool-demand-auth
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: compute-only-pool
+  namespace: sandboxes
+spec:
+  scaleTargetRef:
+    apiVersion: extensions.agents.x-k8s.io/v1beta1
+    kind: SandboxWarmPool
+    name: compute-only-pool
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  pollingInterval: 15
+  triggers:
+    - type: metrics-api
+      metricType: AverageValue
+      metadata:
+        url: http://sandbox-manager.sandbox-platform.svc:8000/internal/pool-demand
+        valueLocation: compute-only.desired
+        targetValue: "1"
+        authMode: apiKey
+        method: header
+        keyParamName: X-Internal-Token
+      authenticationRef:
+        name: pool-demand-auth
+---
+# KEDA's service account needs to read and change the pool's scale. Adjust the subject to where KEDA is installed.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: keda-scale-sandbox-warm-pools
+rules:
+  - apiGroups: ["extensions.agents.x-k8s.io"]
+    resources: ["sandboxwarmpools"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions.agents.x-k8s.io"]
+    resources: ["sandboxwarmpools/scale"]
+    verbs: ["get", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: keda-scale-sandbox-warm-pools
+subjects:
+  - kind: ServiceAccount
+    name: keda-operator
+    namespace: keda
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: keda-scale-sandbox-warm-pools
+---
+# Network policies add up, so this opens the Manager's port to KEDA without touching the existing sandbox-manager-ingress policy.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sandbox-manager-ingress-keda
+  namespace: sandbox-platform
+spec:
+  podSelector:
+    matchLabels:
+      app: sandbox-manager
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: keda
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: keda-operator
+      ports:
+        - { protocol: TCP, port: 8000 }

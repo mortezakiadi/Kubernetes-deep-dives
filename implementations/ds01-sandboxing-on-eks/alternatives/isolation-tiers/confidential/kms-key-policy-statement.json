@@ -1,0 +1,13 @@
+{
+  "Sid": "ReleaseTheKeyOnlyToTheAttestedSandbox",
+  "Effect": "Allow",
+  "Principal": { "AWS": "arn:aws:iam::111122223333:role/ds01-confidential-session" },
+  "Action": ["kms:Decrypt"],
+  "Resource": "*",
+  "Condition": {
+    "StringEqualsIgnoreCase": {
+      "kms:RecipientAttestation:PCR17": "<the predicted PCR17 value that eks-nitro-sandbox-genpolicy prints>",
+      "kms:RecipientAttestation:PCR8:ServiceName": "eks.amazonaws.com"
+    }
+  }
+}

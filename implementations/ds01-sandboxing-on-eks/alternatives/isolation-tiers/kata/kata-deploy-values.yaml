@@ -1,0 +1,14 @@
+# helm install kata-deploy oci://ghcr.io/kata-containers/kata-deploy-charts/kata-deploy --version 4.0.0 -n kube-system -f kata-deploy-values.yaml
+# The chart then creates the RuntimeClasses, among them kata-qemu-runtime-rs, which the Kata template below uses.
+nodeSelector:
+  katacontainers.io/kata-runtime: "true"
+tolerations:
+  - key: katacontainers.io/kata-runtime
+    operator: Exists
+    effect: NoSchedule
+  - key: workload
+    operator: Equal
+    value: sandbox
+    effect: NoSchedule
+startupTaints:
+  - "katacontainers.io/kata-runtime:NoSchedule"

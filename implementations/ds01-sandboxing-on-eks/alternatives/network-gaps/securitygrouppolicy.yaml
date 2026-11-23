@@ -1,0 +1,17 @@
+# A security group of its own for the egress gateway pods, so the VPC itself refuses anything that is not a sandbox node on port 3128.
+# EKS Auto Mode only, Kubernetes 1.36 or later. Each matched pod gets a branch network interface, which lowers how many pods fit
+# on its node. At most one policy may match a pod.
+# NOT applied to sandbox pods: whether the policy reaches a pod running inside a Nitro Sandbox is not documented on the page
+# this was written from, and was not tried. The gateway pods run on ordinary nodes.
+# ${gateway_pod_sg} is the output "gateway_pod_sg_id" of terraform/ in this folder.
+apiVersion: eks.amazonaws.com/v1
+kind: SecurityGroupPolicy
+metadata:
+  name: egress-gateway
+  namespace: sandbox-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: egress-gateway
+  securityGroupSelectorTerms:
+    - id: ${gateway_pod_sg}

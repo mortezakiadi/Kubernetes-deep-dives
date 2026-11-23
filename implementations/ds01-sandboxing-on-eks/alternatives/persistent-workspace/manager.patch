@@ -1,0 +1,88 @@
+--- a/platform/ds01/common.py
++++ b/platform/ds01/common.py
+@@ -168,14 +168,14 @@
+         self.base = f"https://{os.environ['KUBERNETES_SERVICE_HOST']}:{os.environ['KUBERNETES_SERVICE_PORT']}"
+         self.ctx = ssl.create_default_context(cafile=f"{self.SA_DIR}/ca.crt")
+ 
+-    def request(self, method, path, body=None, timeout=15):
++    def request(self, method, path, body=None, timeout=15, content_type="application/json"):
+         token = read_secret(f"{self.SA_DIR}/token")
+         data = json.dumps(body).encode() if body is not None else None
+         req = urllib.request.Request(self.base + path, data=data, method=method)
+         req.add_header("Authorization", f"Bearer {token}")
+         req.add_header("Accept", "application/json")
+         if data is not None:
+-            req.add_header("Content-Type", "application/json")
++            req.add_header("Content-Type", content_type or "application/json")
+         try:
+             with urllib.request.urlopen(req, context=self.ctx, timeout=timeout) as resp:
+                 return resp.status, json.loads(resp.read() or b"{}")
+--- a/platform/ds01/manager.py
++++ b/platform/ds01/manager.py
+@@ -15,6 +15,7 @@
+ from datetime import datetime, timedelta, timezone
+ 
+ from ds01.common import K8s, Handler, audit, mint, read_secret, secrets_equal, serve, sha256_hex
++from ds01 import workspace
+ 
+ NS = "sandboxes"
+ CLAIMS = f"/apis/extensions.agents.x-k8s.io/v1beta1/namespaces/{NS}/sandboxclaims"
+@@ -35,6 +36,14 @@
+         "inject": {"metrics-api.sandbox-platform.svc": "metrics-api"},
+     },
+     "compute-only": {"pool": "compute-only-pool", "network": False, "default_allow": [], "inject": {}},
++    # Same sandbox as python-untrusted, with a persistent /workspace volume.
++    "python-persistent": {
++        "pool": "python-persistent-pool",
++        "network": True,
++        "persistent": True,
++        "default_allow": ["pypi.org", "files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "tool-gateway.sandbox-platform.svc"],
++        "inject": {"metrics-api.sandbox-platform.svc": "metrics-api"},
++    },
+ }
+ 
+ NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,30}$")
+@@ -192,7 +201,7 @@
+             "spec": {
+                 "warmPoolRef": {"name": tpl["pool"]},
+                 "additionalPodMetadata": {"labels": {"sandbox.users.io/session": sid, "sandbox.users.io/tenant": tenant, "sandbox.users.io/template": template}},
+-                "lifecycle": {"shutdownTime": shutdown, "shutdownPolicy": "Delete"},
++                "lifecycle": {"shutdownTime": shutdown, "shutdownPolicy": "Retain" if tpl.get("persistent") else "Delete"},
+             },
+         }
+         t0 = time.time()
+@@ -226,6 +235,34 @@
+         return 201, {"session_id": sid, "claim": sid, "template": template, "ready_ms": ready_ms,
+                      "allow_hosts": allow, "shutdown_time": shutdown, "session_token": token, "pod_ip": info.get("pod_ip")}
+ 
++    # ---- persistent workspaces: pause, resume, checkpoint ----------------------
++    def _workspace(self, sid, action, body):
++        found = [s for s in _active_claims() if s["session_id"] == sid and not s["terminating"]]
++        if not found:
++            return 404, {"error": "no such session"}
++        if not TEMPLATES.get(found[0]["template"], {}).get("persistent"):
++            return 400, {"error": "this session has no persistent workspace"}
++        try:
++            if action == "suspend":
++                workspace.suspend(k8s, sid)
++                result = {"state": "suspended"}
++            elif action == "resume":
++                workspace.resume(k8s, sid)
++                result = {"state": "running"}
++            else:
++                label = (body or {}).get("label", "") if isinstance(body, dict) else ""
++                if not NAME_RE.match(label):
++                    return 400, {"error": "label must be a short lowercase name"}
++                result = {"snapshot": workspace.checkpoint(k8s, sid, label)}
++        except TimeoutError:
++            audit(self.component, "workspace.timeout", session_id=sid, action=action)
++            return 504, {"error": "the sandbox did not become ready in time"}
++        except (LookupError, RuntimeError) as err:
++            audit(self.component, "workspace.failed", session_id=sid, action=action, detail=str(err)[:200])
++            return 502, {"error": f"could not {action} the workspace"}
++        _invalidate()
++        audit(self.component, f"workspace.{action}", session_id=sid, tenant=found[0]["tenant"], **result)
++        return 200, {"session_id": sid, **result}
+     def _delete(self, sid):
+         code, _ = k8s.request("DELETE", f"{CLAIMS}/{sid}")
+         _invalidate()

@@ -1,0 +1,95 @@
+--- a/platform/ds01/tool_gateway.py
++++ b/platform/ds01/tool_gateway.py
+@@ -6,18 +6,21 @@
+ """
+ import hashlib
+ import json
+-import secrets
++import os
+ import threading
+ import time
+ from collections import defaultdict, deque
+ 
+ from ds01.common import Handler, audit, http_json, read_secret, secrets_equal, serve, verify
++from ds01.store import ToolGatewayStore
+ 
+ MANAGER = "http://sandbox-manager.sandbox-platform.svc:8000"
+ BROKER = "http://credential-broker.sandbox-egress.svc:8001"
+ METRICS = "https://metrics-api.sandbox-platform.svc"
+ RATE_PER_MIN = 20
+ 
++# Approvals and rate counters live in DynamoDB, so the gateway can run as several replicas.
++store = ToolGatewayStore(os.environ["TOOL_GATEWAY_TABLE"], region=os.environ.get("AWS_REGION", "us-east-1"))
+ session_key = read_secret("/secrets/session-key")
+ internal_token = read_secret("/secrets/tool-gateway-token")
+ orchestrator_token = read_secret("/secrets/orchestrator-token")
+@@ -32,8 +35,6 @@
+                        "description": "Delete a project. Never available to an agent."},
+ }
+ 
+-_calls = defaultdict(deque)
+-_approvals = {}
+ _lock = threading.Lock()
+ _ticket_seq = [100]
+ 
+@@ -62,21 +63,10 @@
+         if status != 200:
+             audit(self.component, "auth.revoked", session_id=claims["sid"])
+             return 401, {"jsonrpc": "2.0", "id": rid, "error": {"code": -32000, "message": "session is no longer active"}}
+-        if not self._within_rate(claims["sid"]):
++        if not store.within_rate(claims["sid"], RATE_PER_MIN):
+             audit(self.component, "rate.limited", session_id=claims["sid"], limit_per_min=RATE_PER_MIN)
+             return 429, {"jsonrpc": "2.0", "id": rid, "error": {"code": -32029, "message": "rate limit exceeded"}}
+         return 200, self._rpc(claims, body)
+-
+-    def _within_rate(self, sid):
+-        now = time.time()
+-        with _lock:
+-            q = _calls[sid]
+-            while q and now - q[0] > 60:
+-                q.popleft()
+-            if len(q) >= RATE_PER_MIN:
+-                return False
+-            q.append(now)
+-            return True
+ 
+     def _rpc(self, claims, req):
+         rid, method, params = req.get("id"), req.get("method"), req.get("params") or {}
+@@ -107,18 +97,15 @@
+         if tool["risk"] == "high":
+             approval_id = params.get("approval_id")
+             key = _args_hash(name, args)
+-            with _lock:
+-                approval = _approvals.get(approval_id)
++            approval = store.get_approval(approval_id) if approval_id else None
+             if not approval or approval["session"] != sid or approval["key"] != key:
+-                approval_id = "apr-" + secrets.token_hex(4)
+-                with _lock:
+-                    _approvals[approval_id] = {"session": sid, "key": key, "tool": name, "state": "pending"}
++                approval_id = store.request_approval(sid, name, key)
+                 audit(self.component, "approval.requested", session_id=sid, tool=name, approval_id=approval_id)
+                 return err(-32001, "this tool needs a human approval", {"approval_id": approval_id, "state": "pending"})
+             if approval["state"] != "approved":
+                 return err(-32001, "approval still pending", {"approval_id": approval_id, "state": approval["state"]})
+-            with _lock:
+-                approval["state"] = "used"  # one approval, one call
++            if not store.consume(approval_id, sid, key):  # one approval, one call, whichever replica is asked
++                return err(-32001, "approval already used", {"approval_id": approval_id, "state": "used"})
+         result = self._run(name, args, claims)
+         audit(self.component, "tool.called", session_id=sid, agent=agent, tool=name, risk=tool["risk"], ok="error" not in result)
+         if "error" in result:
+@@ -146,11 +133,9 @@
+             return 401, {"error": "unauthorized"}
+         parts = path.strip("/").split("/")
+         if len(parts) == 4 and method == "POST" and parts[3] in ("approve", "deny"):
+-            with _lock:
+-                approval = _approvals.get(parts[2])
+-                if not approval:
+-                    return 404, {"error": "no such approval"}
+-                approval["state"] = "approved" if parts[3] == "approve" else "denied"
++            approval = store.decide(parts[2], parts[3] == "approve")
++            if not approval:
++                return 404, {"error": "no such pending approval"}
+             audit(self.component, "approval." + ("approved" if parts[3] == "approve" else "denied"), session_id=approval["session"], tool=approval["tool"], approval_id=parts[2])
+             return 200, {"approval_id": parts[2], "state": approval["state"]}
+         return 404, {"error": "not found"}

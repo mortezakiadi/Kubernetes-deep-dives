@@ -1,0 +1,84 @@
+# Egress rules for the platform pods. The deployed design limits who may CALL them (ingress) but not where they may call.
+# A compromised Manager or tool gateway can today open a connection to anything the node can reach. These rules list the calls
+# each component actually makes (read from platform/ds01/*.py and k8s/40-platform.yaml) and nothing else.
+# Ports are pod ports, because the policy is evaluated after the Service has been resolved to a pod.
+# Not covered: the credential broker and the egress gateway's own calls to the cloud (STS and the internet).
+# The API server is reached on 443 at addresses inside the VPC. 10.20.0.0/16 is the VPC of the deployed address plan; the tighter
+# value is the two or three control-plane subnets, which this implementation does not export.
+# DNS goes to any address, as it does in the deployed gateway policy, because where Auto Mode runs DNS was not checked.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: sandbox-manager-egress, namespace: sandbox-platform }
+spec:
+  podSelector: { matchLabels: { app: sandbox-manager } }
+  policyTypes: [Egress]
+  egress:
+    - to: [{ ipBlock: { cidr: 10.20.0.0/16 } }]
+      ports: [{ protocol: TCP, port: 443 }]        # the Kubernetes API: claims, pods, sandboxes
+    - to: [{ ipBlock: { cidr: 0.0.0.0/0 } }]
+      ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: tool-gateway-egress, namespace: sandbox-platform }
+spec:
+  podSelector: { matchLabels: { app: tool-gateway } }
+  policyTypes: [Egress]
+  egress:
+    - to: [{ podSelector: { matchLabels: { app: sandbox-manager } } }]
+      ports: [{ protocol: TCP, port: 8000 }]
+    - to: [{ podSelector: { matchLabels: { app: metrics-api } } }]
+      ports: [{ protocol: TCP, port: 8443 }]
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-egress } }
+          podSelector: { matchLabels: { app: credential-broker } }
+      ports: [{ protocol: TCP, port: 8001 }]
+    - to: [{ ipBlock: { cidr: 0.0.0.0/0 } }]
+      ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]
+---
+# The metrics API answers questions and calls nobody.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: metrics-api-egress, namespace: sandbox-platform }
+spec:
+  podSelector: { matchLabels: { app: metrics-api } }
+  policyTypes: [Egress]
+  egress: []
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: sandbox-router-egress, namespace: sandbox-router }
+spec:
+  podSelector: { matchLabels: { app: sandbox-router } }
+  policyTypes: [Egress]
+  egress:
+    - to: [{ ipBlock: { cidr: 10.20.0.0/16 } }]
+      ports: [{ protocol: TCP, port: 443 }]        # the Kubernetes API, including the exec channel for Tier 3
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandboxes } }
+          podSelector: { matchLabels: { app: sandbox } }
+      ports: [{ protocol: TCP, port: 8080 }, { protocol: TCP, port: 9090 }]   # sandboxd files and commands
+    - to: [{ ipBlock: { cidr: 0.0.0.0/0 } }]
+      ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: orchestrator-egress, namespace: agent-orchestrator }
+spec:
+  podSelector: { matchLabels: { app: orchestrator } }
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-platform } }
+          podSelector: { matchLabels: { app: sandbox-manager } }
+      ports: [{ protocol: TCP, port: 8000 }]
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-platform } }
+          podSelector: { matchLabels: { app: tool-gateway } }
+      ports: [{ protocol: TCP, port: 8003 }]
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: sandbox-router } }
+          podSelector: { matchLabels: { app: sandbox-router } }
+      ports: [{ protocol: TCP, port: 8004 }]
+    - to: [{ ipBlock: { cidr: 0.0.0.0/0 } }]
+      ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]

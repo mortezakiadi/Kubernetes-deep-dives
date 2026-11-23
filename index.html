@@ -303,7 +303,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>18 deep dives</li>
         <li>37 designs</li>
-        <li>1145 scenario sections</li>
+        <li>1149 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -12619,7 +12619,7 @@ Three other pages already teach parts of this topic, and this page links to them
     <span class="tag">Appendix</span>
     <h2 id="appendix-design-01-eks-h">Appendix B: Design 01 built and tested on Amazon EKS</h2>
   </header>
-  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#a02-5">Context: the problem, the actors and who talks to whom</a></li><li><a href="#appendix-design-01-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a02-2">2. EKS topology and instances</a></li><li><a href="#a02-10">Defence in depth: where each control lives, and who provides it</a></li><li><a href="#a02-1">3. Architecture</a></li><li><a href="#appendix-design-01-eks-4-how-it-is-implemented">4. How it is implemented</a></li><li><a href="#appendix-design-01-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-01-eks-s01-cluster-topology-node-pools-and-the-sandbox-node-pool">S01: Cluster topology, node pools and the sandbox node pool</a></li><li><a href="#appendix-design-01-eks-s02-the-isolation-boundary-a-microvm-per-sandbox-versus-a-shared-kernel">S02: The isolation boundary: a microVM per sandbox versus a shared kernel</a></li><li><a href="#appendix-design-01-eks-s03-pod-hardening-identity-and-kubernetes-permissions">S03: Pod hardening, identity and Kubernetes permissions</a></li><li><a href="#appendix-design-01-eks-s04-warm-pools-and-claims">S04: Warm pools and claims</a></li><li><a href="#appendix-design-01-eks-s05-default-deny-and-one-way-out">S05: Default deny, and one way out</a></li><li><a href="#appendix-design-01-eks-s06-the-egress-gateway-per-session-allowlist-the-global-ceiling-and-rate-limits">S06: The egress gateway: per-session allowlist, the global ceiling and rate limits</a></li><li><a href="#appendix-design-01-eks-s07-credentials-secrets-never-enter-the-sandbox">S07: Credentials: secrets never enter the sandbox</a></li><li><a href="#appendix-design-01-eks-s08-the-tool-gateway-mcp-policy-approvals-rate-limits-and-revocation">S08: The tool gateway (MCP): policy, approvals, rate limits and revocation</a></li><li><a href="#appendix-design-01-eks-s09-tier-3-a-microvm-with-no-network-device">S09: Tier 3: a microVM with no network device</a></li><li><a href="#appendix-design-01-eks-s10-limits-quotas-and-abuse">S10: Limits, quotas and abuse</a></li><li><a href="#appendix-design-01-eks-s11-one-query-for-an-audit">S11: One query for an audit</a></li><li><a href="#appendix-design-01-eks-s12-failure-drills">S12: Failure drills</a></li><li><a href="#appendix-design-01-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-01-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-01-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li><li><a href="#a02-8">9. An alternative egress gateway on Envoy</a></li></ol></nav>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#a02-5">Context: the problem, the actors and who talks to whom</a></li><li><a href="#appendix-design-01-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a02-2">2. EKS topology and instances</a></li><li><a href="#a02-10">Defence in depth: where each control lives, and who provides it</a></li><li><a href="#a02-1">3. Architecture</a></li><li><a href="#appendix-design-01-eks-4-how-it-is-implemented">4. How it is implemented</a></li><li><a href="#appendix-design-01-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-01-eks-s01-cluster-topology-node-pools-and-the-sandbox-node-pool">S01: Cluster topology, node pools and the sandbox node pool</a></li><li><a href="#appendix-design-01-eks-s02-the-isolation-boundary-a-microvm-per-sandbox-versus-a-shared-kernel">S02: The isolation boundary: a microVM per sandbox versus a shared kernel</a></li><li><a href="#appendix-design-01-eks-s03-pod-hardening-identity-and-kubernetes-permissions">S03: Pod hardening, identity and Kubernetes permissions</a></li><li><a href="#appendix-design-01-eks-s04-warm-pools-and-claims">S04: Warm pools and claims</a></li><li><a href="#appendix-design-01-eks-s05-default-deny-and-one-way-out">S05: Default deny, and one way out</a></li><li><a href="#appendix-design-01-eks-s06-the-egress-gateway-per-session-allowlist-the-global-ceiling-and-rate-limits">S06: The egress gateway: per-session allowlist, the global ceiling and rate limits</a></li><li><a href="#appendix-design-01-eks-s07-credentials-secrets-never-enter-the-sandbox">S07: Credentials: secrets never enter the sandbox</a></li><li><a href="#appendix-design-01-eks-s08-the-tool-gateway-mcp-policy-approvals-rate-limits-and-revocation">S08: The tool gateway (MCP): policy, approvals, rate limits and revocation</a></li><li><a href="#appendix-design-01-eks-s09-tier-3-a-microvm-with-no-network-device">S09: Tier 3: a microVM with no network device</a></li><li><a href="#appendix-design-01-eks-s10-limits-quotas-and-abuse">S10: Limits, quotas and abuse</a></li><li><a href="#appendix-design-01-eks-s11-one-query-for-an-audit">S11: One query for an audit</a></li><li><a href="#appendix-design-01-eks-s12-failure-drills">S12: Failure drills</a></li><li><a href="#appendix-design-01-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-01-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-01-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li><li><a href="#a02-8">9. An alternative egress gateway on Envoy</a></li><li><a href="#a02-15">10. Alternative implementations of what I did not build</a></li></ol></nav>
   <div class="prose"><p>This appendix describes a working implementation of <a href="#design-sandboxing">Design 01: Sandboxing and secure execution for agents and untrusted code</a>. I built it with Terraform on Amazon EKS in one AWS account, tested every claim in the design that can be tested on this platform, recorded the evidence, and removed it again with one command. Everything here ran on a real cluster. Every command, output and pass or fail result in section 5 is copied from the recorded test run, not written from memory.</p>
 <p>The order is the one a reader needs: first the context (the problem, who the actors are and who talks to whom), then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested with the commands, the results, why the results can be trusted and why the system produces them. The last section is an alternative egress gateway on Envoy, which I tested in a lab and not on the cluster.</p>
 <p>12 of 12 scenarios passed, 75 of 75 checks.</p>
@@ -14361,47 +14361,47 @@ Three other pages already teach parts of this topic, and this page links to them
 <tbody>
 <tr>
 <td><strong>GPU sandboxes</strong></td>
-<td>The design lists this as an open question. AWS documents that Nitro Sandboxes do not support GPU or other device passthrough (<a href="https://docs.aws.amazon.com/eks/latest/userguide/sandboxing-limitations.html">considerations</a>), so a GPU workload would need whole nodes without a sandbox runtime. A CPU sandbox proves the same isolation, network and credential design.</td>
+<td>The design lists this as an open question. AWS documents that Nitro Sandboxes do not support GPU or other device passthrough (<a href="https://docs.aws.amazon.com/eks/latest/userguide/sandboxing-limitations.html">considerations</a>), so a GPU workload would need whole nodes without a sandbox runtime. A CPU sandbox proves the same isolation, network and credential design. An alternative is written down in section 10.9.</td>
 </tr>
 <tr>
 <td><strong>gVisor (Tier 1) and Kata (Tier 2 alternative)</strong></td>
-<td>EKS Auto Mode does not allow the shim gVisor needs, and Kata needs self-managed nodes with nested virtualization. Tiers 2 and 3 on Nitro Sandboxes are the design's default and are fully built.</td>
+<td>EKS Auto Mode does not allow the shim gVisor needs, and Kata needs self-managed nodes with nested virtualization. Tiers 2 and 3 on Nitro Sandboxes are the design's default and are fully built. An alternative is written down in section 10.8.</td>
 </tr>
 <tr>
 <td><strong>Confidential mode</strong></td>
-<td>The design says agent sandboxes need isolated mode. Confidential mode is for regulated data and removes <code>exec</code>, which this design depends on.</td>
+<td>The design says agent sandboxes need isolated mode. Confidential mode is for regulated data and removes <code>exec</code>, which this design depends on. An alternative is written down in section 10.10.</td>
 </tr>
 <tr>
 <td><strong>A persistent workspace volume, pause and resume, checkpoints</strong></td>
-<td>The workspace is a size-limited scratch volume that lives and dies with the pod. The design's EBS-backed workspace and its pause and resume are not built.</td>
+<td>The workspace is a size-limited scratch volume that lives and dies with the pod. The design's EBS-backed workspace and its pause and resume are not built. An alternative is written down in section 10.7.</td>
 </tr>
 <tr>
 <td><strong>Snapshots and multi-cluster placement</strong></td>
-<td>Open questions in the design itself.</td>
+<td>Open questions in the design itself. An alternative is written down in section 10.12.</td>
 </tr>
 <tr>
 <td><strong>A separate certificate authority per sandbox</strong></td>
-<td>One gateway CA is trusted by every sandbox. The design describes one per sandbox, discarded with it.</td>
+<td>One gateway CA is trusted by every sandbox. The design describes one per sandbox, discarded with it. An alternative is written down in section 10.5.</td>
 </tr>
 <tr>
 <td><strong>A shared store for the tool gateway</strong></td>
-<td>Approvals and rate counters are in memory, so the tool gateway runs as one replica. A production build keeps them in a shared store such as DynamoDB.</td>
+<td>Approvals and rate counters are in memory, so the tool gateway runs as one replica. A production build keeps them in a shared store such as DynamoDB. An alternative is written down in section 10.1.</td>
 </tr>
 <tr>
 <td><strong>An append-only audit store</strong></td>
-<td>Audit lines go to each pod's log and are joined by a script. The design calls for an append-only store with its own retention. The EKS control-plane audit log does go to CloudWatch.</td>
+<td>Audit lines go to each pod's log and are joined by a script. The design calls for an append-only store with its own retention. The EKS control-plane audit log does go to CloudWatch. An alternative is written down in section 10.2.</td>
 </tr>
 <tr>
 <td><strong>A runtime-security agent on the nodes</strong></td>
-<td>The design itself notes it sees nothing inside a microVM. The audit trail is built from the boundaries instead.</td>
+<td>The design itself notes it sees nothing inside a microVM. The audit trail is built from the boundaries instead. An alternative is written down in section 10.3.</td>
 </tr>
 <tr>
 <td><strong>Image signing and a private registry mirror</strong></td>
-<td>The sandbox images are public images pulled through the NAT gateway. The design wants them pinned, signed and mirrored.</td>
+<td>The sandbox images are public images pulled through the NAT gateway. The design wants them pinned, signed and mirrored. An alternative is written down in section 10.4.</td>
 </tr>
 <tr>
 <td><strong>A warm-pool autoscaler</strong></td>
-<td>The pool sizes are fixed (2 and 1).</td>
+<td>The pool sizes are fixed (2 and 1). An alternative is written down in section 10.6.</td>
 </tr>
 </tbody>
 </table>
@@ -14554,7 +14554,336 @@ Three other pages already teach parts of this topic, and this page links to them
 
 
 
-</div>
+
+<h3 id="a02-15">10. Alternative implementations of what I did not build</h3>
+<p><strong>Scenario.</strong> Section 6 lists what this implementation leaves out. Here each item is written down as an alternative: real files under <code>alternatives/</code>, each with a label for how far it was checked. None of it is deployed. Nothing in <code>platform/</code>, <code>k8s/</code>, <code>terraform/</code> or <code>tests/</code> changes, so the 12 scenarios and the 75 checks above are not affected.</p>
+<p><strong>What the labels mean.</strong> I use three, and I do not use a stronger word than the check supports.</p>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tested</strong></td>
+<td>The logic ran in a test on my machine, with a positive control where a refusal is being tested.</td>
+</tr>
+<tr>
+<td><strong>Checked</strong></td>
+<td>The files passed a syntax or schema check (<code>terraform validate</code>, the Kubernetes schemas, or the CRD schemas of the pinned agent-sandbox release). Nothing was applied to an account or cluster.</td>
+</tr>
+<tr>
+<td><strong>From documentation</strong></td>
+<td>I wrote it from the vendor's documentation and never ran it. The page says which document.</td>
+</tr>
+</tbody>
+</table>
+<p>None of this ran on EKS. <code>alternatives/check-all.sh</code> runs every check that works on one machine with Docker, and it finished with no failure on the day of writing.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: The alternatives, each next to the part of the deployed design it extends" class="open" data-src="diagrams/appendix/a02-15.svg" data-title="The alternatives, each next to the part of the deployed design it extends" type="button"><img alt="Diagram: The alternatives, each next to the part of the deployed design it extends" decoding="async" loading="lazy" src="diagrams/appendix/a02-15.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The left column is the design as deployed, with the limit that section 6 names for each part. The right column is the alternative that addresses that limit, with its label. The arrows are not traffic. They show which deployed part each alternative would extend or replace.</p>
+<table>
+<thead>
+<tr>
+<th>Section 6 item</th>
+<th>Alternative</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A shared store for the tool gateway</td>
+<td>10.1</td>
+<td>Tested</td>
+</tr>
+<tr>
+<td>An append-only audit store</td>
+<td>10.2</td>
+<td>Checked</td>
+</tr>
+<tr>
+<td>A runtime-security agent on the nodes</td>
+<td>10.3</td>
+<td>Checked</td>
+</tr>
+<tr>
+<td>Image signing and a private registry mirror</td>
+<td>10.4</td>
+<td>Tested (signing), checked (the rest)</td>
+</tr>
+<tr>
+<td>A separate certificate authority per sandbox</td>
+<td>10.5</td>
+<td>Tested</td>
+</tr>
+<tr>
+<td>A warm-pool autoscaler</td>
+<td>10.6</td>
+<td>Tested (the sizing rule), checked (the rest)</td>
+</tr>
+<tr>
+<td>A persistent workspace, pause, resume, checkpoints</td>
+<td>10.7</td>
+<td>Tested against a fake cluster, checked against the schemas</td>
+</tr>
+<tr>
+<td>gVisor and Kata</td>
+<td>10.8</td>
+<td>Checked (templates), from documentation (nodes)</td>
+</tr>
+<tr>
+<td>GPU sandboxes</td>
+<td>10.9</td>
+<td>From documentation</td>
+</tr>
+<tr>
+<td>Confidential mode</td>
+<td>10.10</td>
+<td>From documentation</td>
+</tr>
+<tr>
+<td>Network gaps found while writing the defence-in-depth section</td>
+<td>10.11</td>
+<td>Checked</td>
+</tr>
+<tr>
+<td>Snapshots and multi-cluster placement</td>
+<td>10.12</td>
+<td>A decision note, no files</td>
+</tr>
+</tbody>
+</table>
+<p>Where a patch to the deployed code is needed, the folder holds a <code>.patch</code> file that I applied to a copy of <code>platform/</code> and compiled. I did not apply any of them to the real files.</p>
+<p><strong>10.1 A shared store for the tool gateway.</strong></p>
+<p><strong>The gap.</strong> The tool gateway keeps approvals and rate counters in the memory of one process. With two replicas, an approval could be used once on each, and each replica would count only its own calls. So it runs as one replica.</p>
+<p><strong>What I built.</strong> A small store class on DynamoDB, a patch that makes the tool gateway use it, the Terraform for the table and for a role that can only read and write that table, and a Deployment patch that sets two replicas. The two properties that matter are enforced by DynamoDB, not by Python. Consuming an approval is one conditional write, so only one caller can win. Counting a call is one atomic increment.</p>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>ConditionExpression="attribute_not_exists(pk)"</code>: creating an approval cannot overwrite an existing one, even if two replicas picked the same random id.</li>
+<li><code>UpdateExpression="SET #s = :used"</code>: marks the approval used. This is the write that spends it.</li>
+<li><code>ConditionExpression="#s = :approved AND #sess = :session AND #k = :key"</code>: the write succeeds only if the approval is approved, belongs to this session, and was approved for these exact arguments. DynamoDB checks and writes in one step, so two replicas racing for one approval cannot both succeed.</li>
+<li><code>UpdateExpression="ADD n :one SET expires_at = :exp"</code>: adds one to this session's counter for the current minute. The add is atomic, so three replicas share one count.</li>
+<li><code>return int(out["Attributes"]["n"]) &lt;= limit</code>: the decision uses the number DynamoDB returned from that same write, so there is no read-then-write gap.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-python"><span class="ln"><span class="tc"># from alternatives/tool-gateway-dynamodb/store.py</span></span><span class="ln">    def request_approval(self, session: str, tool: str, key: str, now: float | None = None) -&gt; str:</span><span class="ln">        """Create a pending approval for this session, tool and argument hash. Returns its id."""</span><span class="ln">        now = now or time.time()</span><span class="ln">        approval_id = "apr-" + secrets.token_hex(4)</span><span class="ln">        self._table.put_item(</span><span class="ln">            Item={"pk": f"APPROVAL#{approval_id}", "sk": "A", "session": session, "key": key, "tool": tool,</span><span class="ln">                  "state": "pending", "expires_at": int(now) + APPROVAL_TTL_SECONDS},</span><span class="ln kl">            ConditionExpression="attribute_not_exists(pk)",</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">    def consume(self, approval_id: str, session: str, key: str) -&gt; bool:</span><span class="ln">        """Use an approval. True for exactly one caller, however many replicas race for it."""</span><span class="ln">        try:</span><span class="ln">            self._table.update_item(</span><span class="ln">                Key={"pk": f"APPROVAL#{approval_id}", "sk": "A"},</span><span class="ln kl">                UpdateExpression="SET <span class="tc">#s = :used",</span></span><span class="ln kl">                ConditionExpression="#s = :approved AND <span class="tc">#sess = :session AND #k = :key",</span></span><span class="ln">                ExpressionAttributeNames={"#s": "state", "#sess": "session", "#k": "key"},</span><span class="ln">                ExpressionAttributeValues={":used": "used", ":approved": "approved", ":session": session, ":key": key},</span><span class="ln">            )</span><span class="ln">            return True</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">    def within_rate(self, session: str, limit: int, now: float | None = None) -&gt; bool:</span><span class="ln">        """Count one call in the current one-minute window. False once the window already holds `limit` calls."""</span><span class="ln">        now = now or time.time()</span><span class="ln">        window = int(now // 60)</span><span class="ln">        out = self._table.update_item(</span><span class="ln">            Key={"pk": f"RATE#{session}", "sk": f"W#{window}"},</span><span class="ln kl">            UpdateExpression="ADD n :one SET expires_at = :exp",</span><span class="ln">            ExpressionAttributeValues={":one": 1, ":exp": (window + 2) * 60},</span><span class="ln">            ReturnValues="UPDATED_NEW",</span><span class="ln">        )</span><span class="ln kl">        return int(out["Attributes"]["n"]) &lt;= limit</span></code></pre>
+<p><strong>How far it was checked.</strong> Tested. <code>check.sh</code> starts DynamoDB Local in Docker and runs seven tests. Two of them are the point: 25 threads, each with its own client, race to consume one approval and exactly one wins; and three clients share one rate counter, so 20 of 25 calls pass and 5 are refused. The Terraform passes <code>terraform validate</code>. The patch applies to a copy of <code>platform/</code> and the result compiles.</p>
+<p><strong>What it does not show.</strong> I ran it against DynamoDB Local, not against the service. The table's expiry sweep (the <code>expires_at</code> attribute) is configured in Terraform and was not observed. The egress gateway has the same weakness in its rate counters, which section 4 handles by pinning each sandbox to one replica. I did not apply the store to it.</p>
+<p><strong>10.2 An append-only audit store, and 10.3 watching the boundary.</strong></p>
+<p><strong>The gap.</strong> Audit lines go to each pod's log and are joined by a script (scenario S11). Anyone who can delete a pod log can change the record. And a runtime-security agent on the nodes would see nothing inside a microVM, so the design builds the trail from the boundaries instead. The deployed build does that from the platform's own lines. It does not record the network boundary itself.</p>
+<p><strong>What I built.</strong> Two Terraform folders and one picture. <code>audit-store/</code> is the bucket that nobody can edit, and the path into it. <code>boundary-monitoring/</code> adds two more sources of lines: every connection at the sandbox subnets (VPC Flow Logs) and every DNS question in the VPC (Route 53 Resolver query logs). Both feed the same bucket.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Three sources go through CloudWatch Logs and Firehose into one S3 bucket with Object Lock" class="open" data-src="diagrams/appendix/a02-16.svg" data-title="Three sources go through CloudWatch Logs and Firehose into one S3 bucket with Object Lock" type="button"><img alt="Diagram: Three sources go through CloudWatch Logs and Firehose into one S3 bucket with Object Lock" decoding="async" loading="lazy" src="diagrams/appendix/a02-16.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Platform pod logs, flow logs and DNS query logs each land in a CloudWatch log group. A subscription <mark class="kw-act">filter</mark> sends each to one Kinesis Data Firehose stream, which writes batches to an S3 bucket under a date prefix. The platform filter passes only lines that contain a session ID. The other two pass everything. The bucket is the part that matters.</p>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>object_lock_enabled = true</code>: turns Object Lock on for the bucket. It needs the versioning below.</li>
+<li><code>status = "Enabled"</code>: Object Lock needs versioning. A new write becomes a new version, and the old version stays.</li>
+<li><code>mode = "COMPLIANCE"</code>: in compliance mode, no user, including the account root user, can delete or overwrite a version before its retention ends (<a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html">S3 Object Lock</a>). Governance mode would let a privileged user lift it.</li>
+<li><code>days = var.retention_days</code>: how long. The default is 365 days. A longer period costs storage and cannot be shortened for versions already written.</li>
+<li><code>kms_master_key_id = aws_kms_key.audit.arn</code>: objects are encrypted with a key of the account's own, with <mark class="kw-act">rotation</mark> on.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-hcl"><span class="ln"><span class="tc"># from alternatives/audit-store/terraform/main.tf</span></span><span class="ln">resource "aws_s3_bucket" "audit" {</span><span class="ln">  bucket              = "${var.project}-audit-${var.account_id}"</span><span class="ln kl">  object_lock_enabled = true</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">resource "aws_s3_bucket_versioning" "audit" {</span><span class="ln">  bucket = aws_s3_bucket.audit.id</span><span class="ln">  versioning_configuration {</span><span class="ln kl">    status = "Enabled"</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">resource "aws_s3_bucket_object_lock_configuration" "audit" {</span><span class="ln">  bucket = aws_s3_bucket.audit.id</span><span class="ln">  rule {</span><span class="ln">    default_retention {</span><span class="ln kl">      mode = "COMPLIANCE"</span><span class="ln kl">      days = var.retention_days</span><span class="ln">    }</span><span class="ln">  }</span><span class="ln">  depends_on = [aws_s3_bucket_versioning.audit]</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">      kms_master_key_id = aws_kms_key.audit.arn</span></code></pre>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>for_each = toset(var.sandbox_subnet_ids)</code>: one flow log per sandbox subnet, so every sandbox node is covered.</li>
+<li><code>traffic_type = "ALL"</code>: accepted and rejected traffic both. A rejected connection is the interesting one.</li>
+<li><code>max_aggregation_interval = 60</code>: records are grouped over one minute, the shortest choice, so a burst is visible while it still matters.</li>
+<li><code>resource_id = var.vpc_id</code>: the query log covers the whole VPC. It cannot be limited to the sandbox subnets.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-hcl"><span class="ln"><span class="tc"># from alternatives/boundary-monitoring/terraform/main.tf</span></span><span class="ln">resource "aws_flow_log" "sandbox" {</span><span class="ln kl">  for_each                 = toset(var.sandbox_subnet_ids)</span><span class="ln">  subnet_id                = each.value</span><span class="ln kl">  traffic_type             = "ALL"</span><span class="ln">  log_destination_type     = "cloud-watch-logs"</span><span class="ln">  log_destination          = aws_cloudwatch_log_group.flow.arn</span><span class="ln">  iam_role_arn             = aws_iam_role.flow.arn</span><span class="ln kl">  max_aggregation_interval = 60</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">resource "aws_route53_resolver_query_log_config_association" "dns" {</span><span class="ln">  resolver_query_log_config_id = aws_route53_resolver_query_log_config.dns.id</span><span class="ln kl">  resource_id                  = var.vpc_id</span></code></pre>
+<p><strong>How far it was checked.</strong> Checked. Both folders pass <code>terraform validate</code>. I did not apply them, so no line has travelled this path, and I did not see the Object Lock refuse a delete.</p>
+<p><strong>What is missing.</strong> Three things, stated plainly. The deployed design has no agent that ships pod output to CloudWatch, and the platform filter assumes one writes to the log group named in the variable. I did not build that shipper. Second, the flow logs record what reaches the VPC's network. I expect a connection that a network policy drops on the node not to appear there, but I did not test it. Third, the DNS log covers the VPC, so it also carries names asked by the platform's own pods. Neither source sees inside the microVM, which is the limit the design itself states.</p>
+<p><strong>10.4 Image signing and a private mirror.</strong></p>
+<p><strong>The gap.</strong> The sandbox images are public images, pulled by tag through the NAT gateway. A tag can be moved to different contents. The design wants images pinned, signed and mirrored.</p>
+<p><strong>What I built.</strong> An ECR mirror of the two public registries the platform pulls from, with tags that cannot be moved. A <mark class="kw">KMS</mark> key that signs images, so the private half never leaves KMS. An <mark class="kw-act">admission</mark> rule that lets a pod in only if every image comes from the mirror and carries a signature made with that key.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: From public registries through the mirror and the signing key to the admission rule" class="open" data-src="diagrams/appendix/a02-18.svg" data-title="From public registries through the mirror and the signing key to the admission rule" type="button"><img alt="Diagram: From public registries through the mirror and the signing key to the admission rule" decoding="async" loading="lazy" src="diagrams/appendix/a02-18.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Images are pulled into the ECR mirror, signed once with the <mark class="kw">KMS</mark> key, and checked at <mark class="kw-act">admission</mark> by <mark class="kw-tool">Kyverno</mark> against the matching public key. Kyverno also rewrites each image reference to its digest, so what was signed is exactly what runs. An unsigned image, an image signed with another key and an image from a public registry are all refused at admission.</p>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>image_tag_mutability = "IMMUTABLE"</code>: a tag in a mirrored repository cannot be pushed again with different contents.</li>
+<li><code>key_usage = "SIGN_VERIFY"</code>: this key can sign and verify and cannot encrypt, so it has one job.</li>
+<li><code>customer_master_key_spec = "ECC_NIST_P256"</code>: the key type that cosign signs with through KMS.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-hcl"><span class="ln"><span class="tc"># from alternatives/image-trust/terraform/main.tf</span></span><span class="ln">resource "aws_ecr_repository_creation_template" "mirror" {</span><span class="ln">  for_each             = toset(["ecr-public", "k8s"])</span><span class="ln">  prefix               = each.value</span><span class="ln">  applied_for          = ["PULL_THROUGH_CACHE"]</span><span class="ln kl">  image_tag_mutability = "IMMUTABLE"</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">resource "aws_kms_key" "image_signing" {</span><span class="ln">  description              = "${var.project} image signing"</span><span class="ln kl">  key_usage                = "SIGN_VERIFY"</span><span class="ln kl">  customer_master_key_spec = "ECC_NIST_P256"</span></code></pre>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>failurePolicy: Fail</code>: if Kyverno cannot be reached, pods are refused rather than <mark class="kw-act">admitted</mark> unchecked.</li>
+<li><code>mutateDigest: true</code>: the image reference is rewritten to its digest, so the pod runs the bytes that were verified and not whatever the tag points to later.</li>
+<li><code>required: true</code>: an image with no signature is refused.</li>
+<li><code>publicKeys:</code>: the signature must verify against this key, the public half of the KMS key. A signature from any other key is refused.</li>
+<li><code>ignoreTlog: true</code>: no public transparency log is consulted. The key is the whole trust anchor, so who may use the KMS key matters.</li>
+<li><code>failureAction: Enforce</code>: in the second rule: it blocks, it does not just warn.</li>
+<li><code>image: "111122223333..."</code>: every container image must come from the account's own registry. This catches an image that was never put through the mirror.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-yaml"><span class="ln"><span class="tc"># from alternatives/image-trust/kyverno-policy.yaml</span></span><span class="ln kl">    <span class="tk">failurePolicy</span>: Fail</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">      <span class="tk">verifyImages</span>:</span><span class="ln">        - <span class="tk">imageReferences</span>:</span><span class="ln">            - "111122223333.dkr.ecr.us-east-1.amazonaws.com/*"</span><span class="ln">          <span class="tk">failureAction</span>: Enforce</span><span class="ln kl">          <span class="tk">mutateDigest</span>: true</span><span class="ln">          <span class="tk">verifyDigest</span>: true</span><span class="ln kl">          <span class="tk">required</span>: true</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">                    <span class="tk">publicKeys</span>: |-</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">                      <span class="tk">ignoreTlog</span>: true</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">      <span class="tk">validate</span>:</span><span class="ln kl">        <span class="tk">failureAction</span>: Enforce</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">              - <span class="tk">image</span>: "111122223333.dkr.ecr.us-east-1.amazonaws.com/*"</span></code></pre>
+<p><strong>How far it was checked.</strong> The signing is tested; the rest is checked. <code>check.sh</code> starts a local registry and signs an image with cosign using a throwaway key. It verifies that the signed image passes, the same image fails against a second key, and an unsigned image fails. The two refusals only count if the first check passes, and the script is written that way. The Terraform passes <code>terraform validate</code>. The Kyverno policy parses, and its field names follow <a href="https://kyverno.io/docs/policy-types/cluster-policy/verify-images/">Kyverno's documentation</a>, but <strong>I did not run it on a cluster</strong>. The mirror follows the <a href="https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html">ECR pull-through cache documentation</a>, and I did not apply it.</p>
+<p><strong>Not tested.</strong> Signing used a local key pair, not the KMS key, so cosign's KMS path was not exercised. Signing the images that the mirror pulls is a step the build job has to do, and no job is written. The policy hard-codes a placeholder account and region, and the public key must be filled in.</p>
+<p><strong>10.5 A separate certificate authority per sandbox.</strong></p>
+<p><strong>The gap.</strong> The gateway ends TLS for the one internal host that needs a credential, so every sandbox must trust a certificate authority that the gateway controls. In the tested build that is one authority shared by all sandboxes. If its key leaked, it could be used to impersonate any site to any sandbox.</p>
+<p><strong>What I built.</strong> A small module that creates one authority per session, limited so that a leaked key is of little use.</p>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>ec.generate_private_key(ec.SECP256R1())</code>: a new key for every session. Nothing is shared between sessions.</li>
+<li><code>.not_valid_after(now + valid_for)</code>: the authority expires with the session. The default is two hours.</li>
+<li><code>BasicConstraints(ca=True, path_length=0)</code>: it is an authority that cannot create more authorities.</li>
+<li><code>NameConstraints(permitted_subtrees=[x509.DNSName(host)])</code>: marked critical. A client that honours it accepts a certificate from this authority only for this one host name.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-python"><span class="ln"><span class="tc"># from alternatives/session-ca/session_ca.py</span></span><span class="ln kl">    key = ec.generate_private_key(ec.SECP256R1())</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">        .not_valid_before(now - datetime.timedelta(minutes=5)).not_valid_after(now + valid_for)</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">        .add_extension(x509.BasicConstraints(ca=True, path_length=0), critical=True)</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">        .add_extension(x509.NameConstraints(permitted_subtrees=[x509.DNSName(host)], excluded_subtrees=None), critical=True)</span></code></pre>
+<p><strong>How far it was checked.</strong> Tested, with the <code>cryptography</code> library and with the OpenSSL command line as a second opinion. Four tests: a certificate for the permitted host verifies; a certificate for any other host is refused even though it was signed with the authority's own key, which is the stolen-key case; another session's authority does not verify the certificate; and the authority certificate carries the limits above. Each refusal has a positive control, so a refusal cannot come from a broken test.</p>
+<p><strong>Not tested.</strong> Whether the clients inside real sandboxes enforce name constraints. OpenSSL and the <code>cryptography</code> verifier do. A client that ignores a critical extension would accept the certificate, so this has to be checked for each runtime in the sandbox image. The gateway code that would call this module is not written.</p>
+<p><strong>10.6 A warm-pool autoscaler.</strong></p>
+<p><strong>The gap.</strong> The pool sizes are fixed at 2 and 1. A claim takes one booted pod at once, and the pool boots a replacement. Claims that arrive while the replacement boots get a cold start, which scenario S04 measured at about 10 seconds with room on a node and 60 seconds when a node had to be launched.</p>
+<p><strong>What I built.</strong> A sizing rule, a Manager patch that counts claims and reports a desired size, and <mark class="kw-tool">KEDA</mark> objects that scale the pool to that size. A SandboxWarmPool has a scale subresource, and KEDA can scale any resource that has one (<a href="https://keda.sh/docs/latest/concepts/scaling-deployments/">KEDA</a>).</p>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>rate = claims_in_window / window_seconds</code>: claims per second over the recent window.</li>
+<li><code>max(floor, min(ceiling, math.ceil(rate * boot_seconds) + buffer))</code>: the pool must hold the claims that arrive during one boot of a replacement, plus a buffer, and stay between a floor and a ceiling.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-python"><span class="ln"><span class="tc"># from alternatives/warm-pool-autoscaler/pool_sizing.py</span></span><span class="ln kl">    rate = claims_in_window / window_seconds</span><span class="ln kl">    return max(floor, min(ceiling, math.ceil(rate * boot_seconds) + buffer))</span></code></pre>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>kind: SandboxWarmPool</code>: KEDA's target is the pool itself, through its scale subresource.</li>
+<li><code>minReplicaCount: 2</code>: never below today's fixed size.</li>
+<li><code>maxReplicaCount: 20</code>: a ceiling, because every pooled pod costs a microVM that is idle.</li>
+<li><code>pollingInterval: 15</code>: KEDA asks the Manager every 15 seconds. How fast the pool shrinks is left to KEDA's defaults, which I did not tune.</li>
+<li><code>valueLocation: python-untrusted.desired</code>: KEDA reads the Manager's answer for this template.</li>
+<li><code>keyParamName: X-Internal-Token</code>: KEDA authenticates with the same internal token header that the gateways use, with a token of its own.</li>
+<li><code>resources: ["sandboxwarmpools/scale"]</code>: KEDA's service account may change the scale of pools and nothing else about them.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-yaml"><span class="ln"><span class="tc"># from alternatives/warm-pool-autoscaler/keda.yaml</span></span><span class="ln">  <span class="tk">scaleTargetRef</span>:</span><span class="ln">    <span class="tk">apiVersion</span>: extensions.agents.x-k8s.io/v1beta1</span><span class="ln kl">    <span class="tk">kind</span>: SandboxWarmPool</span><span class="ln">    <span class="tk">name</span>: python-untrusted-pool</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">  <span class="tk">minReplicaCount</span>: 2</span><span class="ln kl">  <span class="tk">maxReplicaCount</span>: 20</span><span class="ln kl">  <span class="tk">pollingInterval</span>: 15</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">    - <span class="tk">type</span>: metrics-api</span><span class="ln">      <span class="tk">metricType</span>: AverageValue</span><span class="ln">      <span class="tk">metadata</span>:</span><span class="ln">        <span class="tk">url</span>: http://sandbox-manager.sandbox-platform.svc:8000/internal/pool-demand</span><span class="ln kl">        <span class="tk">valueLocation</span>: python-untrusted.desired</span><span class="ln">        <span class="tk">targetValue</span>: "1"</span><span class="ln">        <span class="tk">authMode</span>: apiKey</span><span class="ln">        <span class="tk">method</span>: header</span><span class="ln kl">        <span class="tk">keyParamName</span>: X-Internal-Token</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">    <span class="tk">resources</span>: ["sandboxwarmpools/scale"]</span></code></pre>
+<p><strong>How far it was checked.</strong> The sizing rule is tested (six tests: the floor, the ceiling, the buffer, rounding up and bad input). The Manager patch applies to a copy of <code>platform/</code> and compiles. The Kubernetes kinds in <code>keda.yaml</code> pass the Kubernetes schemas. KEDA's own kinds were not schema-checked and <strong>KEDA was never run</strong>.</p>
+<p><strong>Open points.</strong> The label I used to let KEDA's operator reach the Manager (<code>app.kubernetes.io/name: keda-operator</code>) is what I expect from KEDA's chart, and I did not check it. The boot time that the rule assumes (60 seconds by default) is the cold node case from S04. A pool that is sized on claims from the last five minutes reacts after the burst starts, not before it.</p>
+<p><strong>10.7 A persistent workspace, pause, resume and checkpoints.</strong></p>
+<p><strong>The gap.</strong> The workspace is a scratch volume that lives and dies with the pod. The design asks for a disk that survives, a way to pause a session and bring it back, and <mark class="kw-act">checkpoints</mark>.</p>
+<p><strong>What AWS and agent-sandbox allow.</strong> Three facts shape the design, and each has a source. A Nitro Sandbox can mount an <mark class="kw">EBS</mark> volume, one pod at a time, and it cannot be snapshotted, restored or moved while it runs (<a href="https://docs.aws.amazon.com/eks/latest/userguide/sandboxing-limitations.html">AWS</a>). The agent-sandbox <code>Sandbox</code> has an <code>operatingMode</code>. <code>Suspended</code> deletes the pod and keeps the volume, and <code>Running</code> creates a new pod on the same volume. And a <code>SandboxTemplate</code> can declare <code>volumeClaimTemplates</code>, which gives every sandbox its own volume (<a href="https://agent-sandbox.sigs.k8s.io/docs/volumes/volume-claim-template/">agent-sandbox</a>). So "pause" here means: keep the disk, drop the machine. The memory of a running process cannot be saved on Nitro Sandboxes.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Running, suspended, running again, with a checkpoint and what ends the disk" class="open" data-src="diagrams/appendix/a02-17.svg" data-title="Running, suspended, running again, with a checkpoint and what ends the disk" type="button"><img alt="Diagram: Running, suspended, running again, with a checkpoint and what ends the disk" decoding="async" loading="lazy" src="diagrams/appendix/a02-17.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Suspending deletes the pod and leaves the volume. Resuming creates a new pod that mounts the same volume, so the files are back and the processes start again from them. A <mark class="kw-act">checkpoint</mark> is a snapshot of the volume. Deleting the claim deletes the volume with it, so a persistent session cannot use the delete-at-end-time policy that the deployed Manager sets.</p>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>{"spec": {"operatingMode": mode}}, content_type="application/merge-patch+json"</code>: a merge patch that changes one field, Suspended or Running, and nothing else about the sandbox.</li>
+<li><code>persistentVolumeClaimName": f"{VOLUME_NAME}-{name}"</code>: the snapshot is of the volume that belongs to this session's sandbox, named by the pattern the controller uses.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-python"><span class="ln"><span class="tc"># from alternatives/persistent-workspace/workspace.py</span></span><span class="ln">def _set_mode(k8s, name, mode):</span><span class="ln kl">    code, resp = k8s.request("PATCH", f"{SANDBOXES}/{name}", {"spec": {"operatingMode": mode}}, content_type="application/merge-patch+json")</span><span class="ln">    if code &gt;= 300:</span><span class="ln">        raise RuntimeError(f"could not set operatingMode {mode}: {code} {resp.get('message', '')}")</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">def checkpoint(k8s, session_id, label, snapshot_class="ds01-workspace"):</span><span class="ln">    """Snapshot the workspace volume. Returns the snapshot name."""</span><span class="ln">    name = sandbox_name(k8s, session_id)</span><span class="ln">    snap = f"{session_id}-{label}"</span><span class="ln">    manifest = {</span><span class="ln">        "apiVersion": "snapshot.storage.k8s.io/v1", "kind": "VolumeSnapshot",</span><span class="ln">        "metadata": {"name": snap, "namespace": NS, "labels": {"ds01/session": session_id}},</span><span class="ln kl">        "spec": {"volumeSnapshotClassName": snapshot_class, "source": {"persistentVolumeClaimName": f"{VOLUME_NAME}-{name}"}},</span></code></pre>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>name: python-persistent</code>: generated from the real python-untrusted template. Only the name, one label, the workspace volume and the pool differ.</li>
+<li><code>accessModes: ["ReadWriteOncePod"]</code>: one pod at a time, which is what a sandbox can use for <mark class="kw">EBS</mark>.</li>
+<li><code>storageClassName: auto-ebs-sc</code>: an encrypted <mark class="kw">gp3</mark> class that <code>storage.yaml</code> defines for the Auto Mode EBS driver.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-yaml"><span class="ln"><span class="tc"># from alternatives/persistent-workspace/sandbox-template-persistent.yaml</span></span><span class="ln kl">  <span class="tk">name</span>: python-persistent</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">  <span class="tk">volumeClaimTemplates</span>:</span><span class="ln">    - <span class="tk">metadata</span>:</span><span class="ln">        <span class="tk">name</span>: workspace                 <span class="tc"># the PVC is named workspace-&lt;sandbox name&gt;</span></span><span class="ln">      <span class="tk">spec</span>:</span><span class="ln kl">        <span class="tk">accessModes</span>: ["ReadWriteOncePod"]   <span class="tc"># one pod at a time; the only mode EKS Auto Mode supports for EBS in a sandbox</span></span><span class="ln kl">        <span class="tk">storageClassName</span>: auto-ebs-sc</span><span class="ln">        <span class="tk">resources</span>:</span><span class="ln">          <span class="tk">requests</span>: { storage: 2Gi }</span></code></pre>
+<p><strong>How far it was checked.</strong> Checked and unit-tested, not run. Six unit tests use a fake Kubernetes: suspend sends one merge patch and deletes nothing, resume waits until the sandbox is Ready and times out otherwise, and a checkpoint names the right volume. <code>make_template.py</code> derives the persistent template from the real one, and <code>check.sh</code> fails if the committed file drifts from it. The template passes the CRD schemas of the pinned agent-sandbox release. That check is not decorative: it flags a misspelled field in a copy I broke on purpose, and it accepts the deployed templates. The Manager patch applies and compiles.</p>
+<p><strong>Not built, and why.</strong> Restoring a checkpoint into a new sandbox is not written. A warm-pool sandbox is already running, and Kubernetes cannot attach a volume to a running pod, which agent-sandbox's own GKE example works around with a privileged helper on each node (<a href="https://agent-sandbox.sigs.k8s.io/docs/use-cases/examples/latebind-storage-gke-sandbox/">agent-sandbox</a>). A restore would need a cold start and a different path. Also not checked: what the <code>Retain</code> shutdown policy does to the volume when the end time passes, and whether a suspended session needs its own expiry, because a suspended session holds a disk that costs money.</p>
+<p><strong>10.8 gVisor and Kata, 10.9 GPU sandboxes and 10.10 confidential mode.</strong></p>
+<p><strong>The gap.</strong> Section 6 gives one reason each. <mark class="kw-tool">gVisor</mark> needs a containerd entry that Auto Mode does not allow. <mark class="kw-tool">Kata</mark> needs nodes with nested virtualization. GPUs cannot pass into a Nitro Sandbox. Confidential mode removes <code>exec</code>. Each is real, so each alternative has to run on nodes that are not Auto Mode nodes, and says so.</p>
+<p><strong>What I built.</strong> Node pools and runtime classes for Kata, gVisor and gVisor with a GPU; one generated file of SandboxTemplates for the three; a Manager patch that lists them; and the written procedure for confidential mode. The templates are derived from the real <code>python-untrusted</code> template. Only the name, the runtime class, a label and (for the GPU one) a GPU limit differ. Everything that makes the sandbox safe is copied unchanged: no service account token, a read-only root, dropped capabilities, the one egress rule and the gateway's certificate.</p>
+<table>
+<thead>
+<tr>
+<th>Alternative</th>
+<th>Runs on</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kata</td>
+<td>Self-managed Karpenter 1.13 or later, nodes with nested virtualization. Not Auto Mode, whose NodeClass has no such field.</td>
+<td><a href="https://aws-samples.github.io/karpenter-blueprints/blueprints/nested-virtualization/">Karpenter blueprint</a></td>
+<td>From documentation</td>
+</tr>
+<tr>
+<td>gVisor</td>
+<td>Any current instance type, with the <code>runsc</code> binaries and a containerd entry added by user data</td>
+<td><a href="https://gvisor.dev/docs/user_guide/containerd/configuration/">gVisor</a></td>
+<td>From documentation</td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>gVisor with <code>nvproxy</code> on T4, A10G, L4, A100 and H100, with a driver version gVisor knows</td>
+<td><a href="https://gvisor.dev/docs/user_guide/gpu/">gVisor GPU</a></td>
+<td>From documentation</td>
+</tr>
+<tr>
+<td>Confidential</td>
+<td>Nitro Sandbox runtime class <code>confidential-sandbox</code>, with a Cedar policy</td>
+<td><a href="https://docs.aws.amazon.com/eks/latest/userguide/sandboxing-confidential-setup.html">AWS</a></td>
+<td>From documentation</td>
+</tr>
+</tbody>
+</table>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>nestedVirtualization: enabled</code>: two jobs in one field: it turns the feature on for the launched instance, and it makes <mark class="kw-tool">Karpenter</mark> skip instance types that cannot do it (<a href="https://aws-samples.github.io/karpenter-blueprints/blueprints/nested-virtualization/">Karpenter blueprint</a>).</li>
+<li><code>katacontainers.io/kata-runtime: "true"</code>: the Kata installer runs only on nodes with this label.</li>
+<li><code>startupTaints</code>: a new node is kept closed to sandbox pods until the Kata installer has finished and removed this <mark class="kw">taint</mark>.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-yaml"><span class="ln"><span class="tc"># from alternatives/isolation-tiers/kata/nodepool.yaml</span></span><span class="ln">  <span class="tk">cpuOptions</span>:</span><span class="ln kl">    <span class="tk">nestedVirtualization</span>: enabled      <span class="tc"># sets the instance's CpuOptions and filters out families that cannot do it</span></span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">        <span class="tk">katacontainers.io/kata-runtime</span>: "true"   <span class="tc"># the kata-deploy DaemonSet installs Kata only where this label is set</span></span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">      <span class="tk">startupTaints</span>:</span><span class="ln">        - { key: katacontainers.io/kata-runtime, effect: NoSchedule }</span></code></pre>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>runtime_type = "io.containerd.runsc.v1"</code>: tells containerd that a runtime named runsc is run through gVisor's shim. The runtime class's handler must carry the same name.</li>
+<li><code>sha512sum -c runsc.sha512</code>: the binary is checked against a checksum that comes from the same site, so this catches a damaged download and does not protect against a hostile site. Pin a release and bake the binary into the node image for real use.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-yaml"><span class="ln"><span class="tc"># from alternatives/isolation-tiers/gvisor/nodepool.yaml</span></span><span class="ln kl">            runtime_type = "io.containerd.runsc.v1"</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">    sha512sum -c runsc.sha512</span></code></pre>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>ConfigPath = "/etc/containerd/runsc-gpu.toml"</code>: a second gVisor runtime, with its own settings file, so GPU nodes do not change the plain gVisor runtime.</li>
+<li><code>nvproxy = "true"</code>: turns on the proxy that forwards the sandbox's GPU driver calls to the host driver.</li>
+<li><code>karpenter.k8s.aws/instance-family: g4dn, g5, g6</code>: T4, A10G and L4 nodes, on gVisor's supported list.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-yaml"><span class="ln"><span class="tc"># from alternatives/isolation-tiers/gpu/nodepool.yaml</span></span><span class="ln kl">            ConfigPath = "/etc/containerd/runsc-gpu.toml"</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">    nvproxy = "true"</span><span class="ln"><span class="tc"># ...</span></span><span class="ln kl">        - { key: karpenter.k8s.aws/instance-family, operator: In, values: ["g4dn", "g5", "g6"] }</span></code></pre>
+<p><strong>What is weaker.</strong> gVisor is a <mark class="kw">user-space kernel</mark>, not a hardware boundary. With <code>nvproxy</code> the sandbox's GPU calls reach the host's NVIDIA driver, and gVisor's own documentation says it is much less effective against bugs in that driver, so driver updates are part of the security plan. The alternative to gVisor for a GPU is what AWS says: run GPU pods without a sandbox runtime class, on nodes used by one tenant at a time.</p>
+<p><strong>Confidential mode.</strong> <code>confidential/README.md</code> holds the procedure from the AWS page and a <mark class="kw">KMS</mark> key policy statement. The steps are: generate a Cedar policy from the exact final pod spec with <code>eks-nitro-sandbox-genpolicy</code>, attach it as an annotation, and put the predicted PCR17 value and the PCR8 service-name condition in the KMS key policy. The README lists why this does not drop into the deployed design as a template. The pod is built by the controller from a template and a pool, so the final spec is not in a file, and the policy must match it exactly. I did not check whether a canary pod read back from the cluster reproduces what the next pooled pod carries.</p>
+<p><strong>How far it was checked.</strong> The three templates pass the pinned CRD schemas, and the two runtime classes pass the Kubernetes schemas (<code>kubeconform</code>). The Manager patch applies and compiles. <code>make_templates.py</code> regenerates the templates and <code>check.sh</code> fails on drift. <strong>The node pools, the Kata and gVisor installs, the GPU path and confidential mode were never run.</strong> A named risk: whether the network policies on the sandbox namespace are enforced the same way for a Kata or gVisor pod as for a Nitro Sandbox pod. I did not check, and the deployed design depends on it.</p>
+<p><strong>10.11 Narrower network rules.</strong></p>
+<p><strong>The gap.</strong> The defence-in-depth section explains that the security group rules between the node groups name groups and allow every port, and that the narrow control is the pod's network policy. Two things follow. The security groups can be narrower. And the platform pods have rules for who may call them, but none for where they may call, so a compromised Manager can open a connection to anything its node can reach.</p>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>from_port = 10250</code>: the control plane may reach the <mark class="kw-tool">kubelet</mark> and nothing else on the sandbox nodes, apart from sandboxd below.</li>
+<li><code>toset(["443", "3128"])</code>: a sandbox node may reach the cluster group on the API port and the gateway port only, instead of every port.</li>
+<li><code>from_port = 3128</code>: a security group of its own for the gateway pods: the proxy port, from sandbox nodes only, so the VPC refuses everything else before a network policy sees it.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-hcl"><span class="ln"><span class="tc"># from alternatives/network-gaps/terraform/main.tf</span></span><span class="ln">resource "aws_vpc_security_group_ingress_rule" "sandbox_kubelet" {</span><span class="ln">  security_group_id            = var.sandbox_sg_id</span><span class="ln">  referenced_security_group_id = var.cluster_sg_id</span><span class="ln">  ip_protocol                  = "tcp"</span><span class="ln kl">  from_port                    = 10250</span><span class="ln">  to_port                      = 10250</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">resource "aws_vpc_security_group_egress_rule" "sandbox_to_cluster" {</span><span class="ln kl">  for_each                     = toset(["443", "3128"])</span><span class="ln">  security_group_id            = var.sandbox_sg_id</span><span class="ln">  referenced_security_group_id = var.cluster_sg_id</span><span class="ln">  ip_protocol                  = "tcp"</span><span class="ln">  from_port                    = tonumber(each.value)</span><span class="ln"><span class="tc"># ...</span></span><span class="ln">resource "aws_vpc_security_group_ingress_rule" "gateway_from_sandboxes" {</span><span class="ln">  security_group_id            = aws_security_group.gateway_pods.id</span><span class="ln">  referenced_security_group_id = var.sandbox_sg_id</span><span class="ln">  ip_protocol                  = "tcp"</span><span class="ln kl">  from_port                    = 3128</span><span class="ln">  to_port                      = 3128</span></code></pre>
+<p>The highlighted lines, in order:</p>
+<ol>
+<li><code>port: 8000</code>: the tool gateway may call the Manager.</li>
+<li><code>port: 8443</code>: and the metrics API.</li>
+<li><code>port: 8001</code>: and the credential broker in the egress namespace.</li>
+<li><code>port: 53</code>: and DNS. Nothing else.</li>
+<li><code>egress: []</code>: the metrics API calls nobody, so it may call nobody.</li>
+</ol>
+<pre class="snippet numbered"><code class="language-yaml"><span class="ln"><span class="tc"># from alternatives/network-gaps/egress-policies.yaml</span></span><span class="ln"><span class="tk">metadata</span>: { name: tool-gateway-egress, namespace: sandbox-platform }</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">podSelector</span>: { matchLabels: { app: tool-gateway } }</span><span class="ln">  <span class="tk">policyTypes</span>: [Egress]</span><span class="ln">  <span class="tk">egress</span>:</span><span class="ln">    - <span class="tk">to</span>: [{ podSelector: { matchLabels: { app: sandbox-manager } } }]</span><span class="ln kl">      <span class="tk">ports</span>: [{ protocol: TCP, port: 8000 }]</span><span class="ln">    - <span class="tk">to</span>: [{ podSelector: { matchLabels: { app: metrics-api } } }]</span><span class="ln kl">      <span class="tk">ports</span>: [{ protocol: TCP, port: 8443 }]</span><span class="ln">    - <span class="tk">to</span>:</span><span class="ln">        - <span class="tk">namespaceSelector</span>: { matchLabels: { kubernetes.io/metadata.name: sandbox-egress } }</span><span class="ln">          <span class="tk">podSelector</span>: { matchLabels: { app: credential-broker } }</span><span class="ln kl">      <span class="tk">ports</span>: [{ protocol: TCP, port: 8001 }]</span><span class="ln">    - <span class="tk">to</span>: [{ ipBlock: { cidr: 0.0.0.0/0 } }]</span><span class="ln kl">      <span class="tk">ports</span>: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]</span><span class="ln"><span class="tc"># ...</span></span><span class="ln"><span class="tk">metadata</span>: { name: metrics-api-egress, namespace: sandbox-platform }</span><span class="ln"><span class="tk">spec</span>:</span><span class="ln">  <span class="tk">podSelector</span>: { matchLabels: { app: metrics-api } }</span><span class="ln">  <span class="tk">policyTypes</span>: [Egress]</span><span class="ln kl">  <span class="tk">egress</span>: []</span></code></pre>
+<p>The file has one egress policy for each platform component (Manager, tool gateway, metrics API, router and orchestrator). I read each component's calls from its source and from <code>k8s/40-platform.yaml</code>. The credential broker and the gateway's own calls to the cloud are not covered.</p>
+<p><strong>Security groups for individual pods.</strong> <code>securitygrouppolicy.yaml</code> gives the gateway pods a security group of their own. This is an EKS Auto Mode feature for Kubernetes 1.36 and later (<a href="https://docs.aws.amazon.com/eks/latest/userguide/auto-sgp.html">AWS</a>). Each matched pod gets a branch network interface, which lowers how many pods fit on a node, and a pod can match only one policy. I did not apply it to sandbox pods, because the AWS page does not say whether it reaches a pod inside a Nitro Sandbox.</p>
+<p><strong>How far it was checked.</strong> Checked. The Terraform passes <code>terraform validate</code>, and the five policies pass the Kubernetes schemas. <strong>Not run.</strong> Two risks: the security group ports are what the design is known to use, and a node needs more to join a cluster and pull images, so a missed port would show as nodes that never become Ready. Try it on a throwaway cluster first. And the egress rules allow the API server by the VPC's address range, because the control plane's own addresses are not exported by this implementation. The security group rules must replace the three deployed ones, because rules add up and the old, wider ones would still apply.</p>
+<p><strong>10.12 Snapshots and multi-cluster placement: a decision note.</strong> The design lists both as open questions. I did not build either, and I looked at what the platforms allow.</p>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>What I found</th>
+<th>Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Snapshot a running sandbox, with its memory</td>
+<td>AWS says Nitro Sandboxes do not support snapshot, restore or live migration (<a href="https://docs.aws.amazon.com/eks/latest/userguide/sandboxing-limitations.html">limitations</a>). agent-sandbox has memory snapshots only on GKE with gVisor.</td>
+<td>Not possible on this runtime. Section 10.7's checkpoint saves files, not memory.</td>
+</tr>
+<tr>
+<td>Checkpoint the files</td>
+<td>EBS snapshots work, and EKS Auto Mode is compatible with the snapshot controller but does not install it (<a href="https://docs.aws.amazon.com/eks/latest/userguide/csi-snapshot-controller.html">AWS</a>).</td>
+<td>Covered in 10.7.</td>
+</tr>
+<tr>
+<td>Place sessions across clusters (CPU and GPU)</td>
+<td>Out of scope for one cluster.</td>
+<td>This is Design 02, Appendix C.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The files.</strong> <code>alternatives/README.md</code> has the index with the label for each folder. <code>alternatives/check-all.sh</code> runs everything that can run on one machine. Two helpers are shared: <code>validate-terraform.sh</code> runs <code>terraform validate</code> in a throwaway copy, and <code>validate_agent_sandbox_crds.py</code> checks agent-sandbox YAML against the CRD schemas of the pinned release, after it verifies the download against the SHA-256 that Terraform pins.</p></div>
 </section>
 
 <section class="entry appendix" id="appendix-design-02-eks" aria-labelledby="appendix-design-02-eks-h">

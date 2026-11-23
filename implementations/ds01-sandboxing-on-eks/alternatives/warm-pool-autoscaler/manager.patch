@@ -1,0 +1,62 @@
+--- a/platform/ds01/manager.py
++++ b/platform/ds01/manager.py
+@@ -15,6 +15,7 @@
+ from datetime import datetime, timedelta, timezone
+ 
+ from ds01.common import K8s, Handler, audit, mint, read_secret, secrets_equal, serve, sha256_hex
++from ds01.pool_sizing import desired_pool_size
+ 
+ NS = "sandboxes"
+ CLAIMS = f"/apis/extensions.agents.x-k8s.io/v1beta1/namespaces/{NS}/sandboxclaims"
+@@ -46,7 +47,34 @@
+ internal_tokens = {
+     "egress-gateway": read_secret("/secrets/egress-gateway-token"),
+     "tool-gateway": read_secret("/secrets/tool-gateway-token"),
++    "keda": read_secret("/secrets/keda-token"),
+ }
++# How many claims each template served recently, for the warm-pool autoscaler (KEDA reads /internal/pool-demand).
++POOL_WINDOW_SECONDS = int(os.environ.get("POOL_WINDOW_SECONDS", "300"))
++POOL_BOOT_SECONDS = float(os.environ.get("POOL_BOOT_SECONDS", "60"))
++POOL_BUFFER = int(os.environ.get("POOL_BUFFER", "1"))
++POOL_FLOOR = int(os.environ.get("POOL_FLOOR", "2"))
++POOL_CEILING = int(os.environ.get("POOL_CEILING", "20"))
++_creates = {name: [] for name in TEMPLATES}
++_creates_lock = threading.Lock()
++
++
++def _note_create(template):
++    now = time.time()
++    with _creates_lock:
++        recent = _creates[template]
++        recent.append(now)
++        while recent and now - recent[0] > POOL_WINDOW_SECONDS:
++            recent.pop(0)
++
++
++def _pool_demand():
++    now = time.time()
++    with _creates_lock:
++        counts = {name: sum(1 for t in times if now - t <= POOL_WINDOW_SECONDS) for name, times in _creates.items()}
++    return {name: {"claims_in_window": n,
++                   "desired": desired_pool_size(n, POOL_WINDOW_SECONDS, POOL_BOOT_SECONDS, POOL_BUFFER, POOL_FLOOR, POOL_CEILING)}
++            for name, n in counts.items()}
+ 
+ _cache = {"at": 0.0, "claims": [], "pods": {}}
+ _cache_lock = threading.Lock()
+@@ -141,6 +169,8 @@
+ 
+     # ---- internal API for the gateways -------------------------------------
+     def _internal(self, method, path, who):
++        if path == "/internal/pool-demand":
++            return (200, _pool_demand()) if who == "keda" else (403, {"error": "not for this caller"})
+         m = re.fullmatch(r"/internal/by-ip/([0-9.]+)", path)
+         if m:
+             for s in _active_claims():
+@@ -212,6 +242,7 @@
+             k8s.request("DELETE", f"{CLAIMS}/{sid}")
+             return 504, {"error": "sandbox did not become ready in time"}
+         ready_ms = int((time.time() - t0) * 1000)
++        _note_create(template)
+         _invalidate()
+         info = next((s for s in _active_claims() if s["session_id"] == sid), None) or {}
+         token = mint(

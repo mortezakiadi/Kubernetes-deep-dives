@@ -1,0 +1,66 @@
+# Admission check for image trust: a pod in the sandbox or platform namespaces is admitted only if every image comes from the private
+# mirror and carries a cosign signature made with the platform's signing key. Kyverno also rewrites each image to its digest, so what
+# was signed is exactly what runs. Replace the public key with the output of
+#   aws kms get-public-key --key-id alias/ds01-sandboxing-image-signing --output text --query PublicKey | base64 -d | openssl pkey -pubin -inform DER
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-signed-mirrored-images
+spec:
+  webhookConfiguration:
+    failurePolicy: Fail
+    timeoutSeconds: 30
+  background: false
+  rules:
+    - name: verify-signature
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - sandboxes
+                - sandbox-platform
+                - sandbox-router
+                - sandbox-egress
+                - agent-orchestrator
+      verifyImages:
+        - imageReferences:
+            - "111122223333.dkr.ecr.us-east-1.amazonaws.com/*"
+          failureAction: Enforce
+          mutateDigest: true
+          verifyDigest: true
+          required: true
+          attestors:
+            - count: 1
+              entries:
+                - keys:
+                    publicKeys: |-
+                      -----BEGIN PUBLIC KEY-----
+                      REPLACE_WITH_THE_SIGNING_KEY_PUBLIC_KEY
+                      -----END PUBLIC KEY-----
+                    rekor:
+                      ignoreTlog: true
+                      url: https://rekor.sigstore.dev
+    # Anything that is not from the mirror is refused outright.
+    - name: only-from-the-mirror
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - sandboxes
+                - sandbox-platform
+                - sandbox-router
+                - sandbox-egress
+                - agent-orchestrator
+      validate:
+        failureAction: Enforce
+        message: "Images must come from the private mirror 111122223333.dkr.ecr.us-east-1.amazonaws.com."
+        pattern:
+          spec:
+            containers:
+              - image: "111122223333.dkr.ecr.us-east-1.amazonaws.com/*"
+            =(initContainers):
+              - image: "111122223333.dkr.ecr.us-east-1.amazonaws.com/*"

@@ -1,0 +1,27 @@
+--- a/platform/ds01/manager.py
++++ b/platform/ds01/manager.py
+@@ -35,6 +35,24 @@
+         "inject": {"metrics-api.sandbox-platform.svc": "metrics-api"},
+     },
+     "compute-only": {"pool": "compute-only-pool", "network": False, "default_allow": [], "inject": {}},
++    "python-kata": {
++        "pool": "python-kata-pool",
++        "network": True,
++        "default_allow": ["pypi.org", "files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "tool-gateway.sandbox-platform.svc"],
++        "inject": {"metrics-api.sandbox-platform.svc": "metrics-api"},
++    },
++    "python-gvisor": {
++        "pool": "python-gvisor-pool",
++        "network": True,
++        "default_allow": ["pypi.org", "files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "tool-gateway.sandbox-platform.svc"],
++        "inject": {"metrics-api.sandbox-platform.svc": "metrics-api"},
++    },
++    "python-gpu": {
++        "pool": "python-gpu-pool",
++        "network": True,
++        "default_allow": ["pypi.org", "files.pythonhosted.org", "metrics-api.sandbox-platform.svc", "tool-gateway.sandbox-platform.svc"],
++        "inject": {"metrics-api.sandbox-platform.svc": "metrics-api"},
++    },
+ }
+ 
+ NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,30}$")

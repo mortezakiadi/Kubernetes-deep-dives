@@ -1,0 +1,20 @@
+# Encrypted gp3 disks for the workspaces, and the snapshot class for checkpoints.
+# The provisioner name is the EKS Auto Mode one (the open-source EBS driver uses ebs.csi.aws.com instead).
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: auto-ebs-sc
+provisioner: ebs.csi.eks.amazonaws.com
+volumeBindingMode: WaitForFirstConsumer   # create the disk in the zone where the pod lands
+reclaimPolicy: Delete
+parameters:
+  type: gp3
+  encrypted: "true"
+---
+# Needs the external snapshot CRDs and controller. EKS Auto Mode does not install the controller; it only works with it.
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: ds01-workspace
+driver: ebs.csi.eks.amazonaws.com
+deletionPolicy: Delete

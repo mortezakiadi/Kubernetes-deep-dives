@@ -614,11 +614,150 @@ def node_vs_pod():
     chip(s, 1390 - 14 - 5 - 60 - 36, 666, "AWS")
     chip(s, 1390 - 14 - 5 - 60 - 36 + 52, 666, "Ours")
     return s.render()
+STATUS = {
+    "tested": ("#ecfdf5", "#059669", "#065f46"),
+    "checked": ("#eff6ff", "#2563eb", "#1e40af"),
+    "from docs": ("#fffbeb", "#d97706", "#92400e"),
+}
+def status_chip(s, x, y, kind):
+    fill, stroke, ink = STATUS[kind]
+    w = 16 + len(kind) * 6.4
+    s.parts.append(f'<rect x="{x}" y="{y - 12}" width="{w}" height="16" rx="8" fill="{fill}" stroke="{stroke}" stroke-width="1.2"/>')
+    s.text(x + w / 2, y, kind, 10.5, ink, "700", "middle")
+    return w
+def alternatives_overview():
+    """Figure: each alternative next to the part of the deployed design it extends."""
+    rows = [
+        ("10.1", "Tool gateway: shared store", "DynamoDB for approvals and rate counters", "tested"),
+        ("10.2", "Append-only audit store", "S3 Object Lock, compliance mode", "checked"),
+        ("10.3", "Watching the boundary", "VPC flow logs and DNS query logs", "checked"),
+        ("10.4", "Signed, mirrored images", "cosign, ECR pull-through cache, Kyverno", "tested"),
+        ("10.5", "A CA for each sandbox", "name constraints limit one CA to one host", "tested"),
+        ("10.6", "Warm-pool autoscaler", "KEDA scales the pool from demand", "tested"),
+        ("10.7", "Persistent workspace", "disk survives the pod; pause, resume, checkpoint", "checked"),
+        ("10.8", "gVisor and Kata", "other isolation runtimes on self-managed nodes", "from docs"),
+        ("10.9", "GPU sandboxes", "gVisor nvproxy on T4, A10G, L4, A100, H100", "from docs"),
+        ("10.10", "Confidential mode", "Cedar policy, attested KMS keys", "from docs"),
+        ("10.11", "Narrower network rules", "ports in security groups, egress policies", "checked"),
+    ]
+    left = {  # row index -> (first row, last row, title, lines)
+        "tool": (0, 0, "Tool gateway", ["one replica; state in memory"]),
+        "audit": (1, 2, "Audit trail", ["pod logs, joined by a script", "nothing inside the microVM"]),
+        "images": (3, 3, "Sandbox images", ["public images, by tag"]),
+        "ca": (4, 4, "Gateway CA", ["one CA trusted by every sandbox"]),
+        "pool": (5, 5, "Warm pool", ["fixed size: 2 and 1"]),
+        "ws": (6, 6, "Workspace", ["scratch volume, dies with the pod"]),
+        "rt": (7, 9, "Sandbox runtime", ["Nitro Sandbox microVM", "no GPU, no snapshots"]),
+        "net": (10, 10, "Network rules", ["every port open between node groups"]),
+    }
+    top, pitch, rh = 62, 70, 58
+    s = Svg(1420, top + 11 * pitch + 60, "Each alternative next to the part of the deployed design it extends")
+    s.text(40, 30, "DEPLOYED (unchanged)", 13, MUTED, "700")
+    s.text(1010, 30, "ALTERNATIVE (not deployed)", 13, MUTED, "700")
+    for key, (a, b, title, lines) in left.items():
+        y = top + a * pitch
+        h = (b - a) * pitch + rh
+        s.parts.append(f'<rect x="40" y="{y}" width="340" height="{h}" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>')
+        s.text(56, y + 26, title, 14, INK, "700")
+        for i, line in enumerate(lines):
+            s.text(56, y + 46 + i * 17, line, 12, MUTED)
+    for i, (num, title, line, st) in enumerate(rows):
+        y = top + i * pitch
+        s.parts.append(f'<rect x="1010" y="{y}" width="370" height="{rh}" rx="10" fill="#ffffff" stroke="{BLUE["stroke"]}" stroke-width="1.6" stroke-dasharray="6 4"/>')
+        s.text(1024, y + 22, f"{num}  {title}", 13.5, BLUE["ink"], "700")
+        s.text(1024, y + 42, line, 11.5, INK)
+        status_chip(s, 1380 - 16 - 16 - len(st) * 6.4 - 4, y + 22, st)
+        for key, (a, b, _, _) in left.items():
+            if a <= i <= b:
+                mid = top + i * pitch + rh / 2
+                s.arrow([(1010, mid), (380, mid)], "blue", dash=True)
+    s.text(40, top + 11 * pitch + 30, "10.12, snapshots and multi-cluster placement, has no files: it is a decision note (see the section).", 12, MUTED)
+    s.text(40, top + 11 * pitch + 50, "Green: its logic ran in a test. Blue: its files passed a schema or syntax check. Amber: written from documentation, never run.", 12, MUTED)
+    return s.render()
+def audit_pipeline():
+    """Figure: three sources, one subscription each, one append-only bucket."""
+    s = Svg(1420, 560, "Audit and boundary monitoring: three sources, one append-only bucket")
+    s.zone(20, 20, 330, 400, "SOURCES", GREY)
+    srcs = [("Platform pod logs", ["JSON lines with session_id:", "Manager, gateways, router"]),
+            ("VPC flow logs", ["every connection of the", "sandbox subnets: who, where,", "how many bytes, allowed or not"]),
+            ("DNS query logs", ["every name a pod in the", "VPC asked to resolve"])]
+    for i, (t, lines) in enumerate(srcs):
+        s.box(40, 60 + i * 120, 290, 100, t, lines, GREY)
+    s.zone(400, 20, 300, 400, "CLOUDWATCH LOGS", BLUE)
+    for i, name in enumerate(["platform log group", "flow log group", "resolver log group"]):
+        s.box(420, 60 + i * 120, 260, 100, name, ["subscription filter:", '"session_id" only' if i == 0 else "everything"], BLUE)
+        s.arrow([(330, 110 + i * 120), (420, 110 + i * 120)], "flow")
+    s.box(750, 150, 220, 120, "Kinesis Firehose", ["batches, then writes", "to S3 under a", "date prefix"], AMBER)
+    for i in range(3):
+        s.arrow([(680, 110 + i * 120), (750, 190 + (i - 1) * 25)], "flow")
+    s.parts.append(f'<rect x="1020" y="60" width="380" height="360" rx="14" fill="{RED["fill"]}" fill-opacity=".55" stroke="{RED["stroke"]}" stroke-width="1.5"/>')
+    s.text(1036, 84, "S3 BUCKET, OBJECT LOCK (COMPLIANCE)", 13, RED["ink"], "700")
+    for i, line in enumerate(["versioning on, retention 365 days (a variable)", "nobody, including the account root user, can", "delete or overwrite a version before then", "new versions and delete markers are still allowed,", "but they do not remove the locked version", "encrypted with a customer-managed KMS key"]):
+        s.text(1036, 116 + i * 22, line, 12, INK)
+    s.arrow([(970, 210), (1020, 210)], "flow")
+    s.parts.append(f'<rect x="20" y="450" width="1380" height="90" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>')
+    s.text(36, 476, "What this sees: every connection and every lookup at the boundary of the sandbox subnets, and every line the platform logs about a session.", 12.5, INK)
+    s.text(36, 498, "What it does not see: anything that happens inside the microVM. That limit is the same as in the deployed design (section 6).", 12.5, INK)
+    s.text(36, 520, "Terraform validated; nothing was applied, so no log line has travelled this path.", 12, MUTED)
+    return s.render()
+def workspace_lifecycle():
+    """Figure: running, suspended, running again, and what a checkpoint and a delete do to the disk."""
+    s = Svg(1420, 560, "A persistent workspace: the pod comes and goes, the disk stays")
+    def state(x, title, pod, disk, c):
+        s.parts.append(f'<rect x="{x}" y="60" width="360" height="190" rx="14" fill="{c["fill"]}" fill-opacity=".6" stroke="{c["stroke"]}" stroke-width="1.6"/>')
+        s.text(x + 18, 90, title, 14, c["ink"], "700")
+        s.parts.append(f'<rect x="{x + 18}" y="108" width="324" height="52" rx="8" fill="{"#ffffff" if pod else "#f1f5f9"}" stroke="{c["stroke"]}" stroke-width="1.3" stroke-dasharray="{"0" if pod else "5 4"}"/>')
+        s.text(x + 30, 130, "Pod (the microVM, its memory)" if pod else "No pod", 12.5, INK if pod else MUTED, "700")
+        s.text(x + 30, 148, "running processes, open connections" if pod else "deleted, nothing is running", 11.5, MUTED)
+        s.parts.append(f'<rect x="{x + 18}" y="172" width="324" height="52" rx="8" fill="#ffffff" stroke="{c["stroke"]}" stroke-width="1.8"/>')
+        s.text(x + 30, 194, "Volume (EBS, encrypted)", 12.5, INK, "700")
+        s.text(x + 30, 212, disk, 11.5, MUTED)
+    state(30, "1  Running", True, "the files, mounted at /workspace", GREEN)
+    state(530, "2  Suspended (operatingMode: Suspended)", False, "the same files, kept", AMBER)
+    state(1030, "3  Running again (operatingMode: Running)", True, "reattached to the new pod", GREEN)
+    s.arrow([(390, 155), (530, 155)], "flow", "suspend", 460, 146)
+    s.arrow([(890, 155), (1030, 155)], "flow", "resume", 960, 146)
+    s.parts.append(f'<rect x="30" y="290" width="520" height="120" rx="12" fill="{BLUE["fill"]}" fill-opacity=".6" stroke="{BLUE["stroke"]}" stroke-width="1.5"/>')
+    s.text(48, 318, "Checkpoint", 14, BLUE["ink"], "700")
+    s.text(48, 342, "A VolumeSnapshot of the volume, named <session>-<label>.", 12.5, INK)
+    s.text(48, 362, "It captures the files, not the memory: Nitro Sandboxes cannot", 12.5, INK)
+    s.text(48, 382, "be snapshotted, restored or moved while running (AWS).", 12.5, INK)
+    s.parts.append(f'<rect x="590" y="290" width="800" height="120" rx="12" fill="{RED["fill"]}" fill-opacity=".6" stroke="{RED["stroke"]}" stroke-width="1.5"/>')
+    s.text(608, 318, "What ends the disk", 14, RED["ink"], "700")
+    s.text(608, 342, "Deleting the claim deletes the sandbox and, with it, the volume (agent-sandbox documentation).", 12.5, INK)
+    s.text(608, 362, "So a persistent session must not use the claim's delete-at-end-time policy that the deployed Manager sets.", 12.5, INK)
+    s.text(608, 382, "The patch sets Retain for this template. What Retain does to the volume at end time was not checked.", 12.5, INK)
+    s.parts.append(f'<rect x="30" y="440" width="1360" height="90" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>')
+    s.text(46, 466, "Resume starts the processes again from the files. It is not a continuation of the memory the sandbox had.", 12.5, INK)
+    s.text(46, 488, "Only one pod may use the volume at a time (ReadWriteOncePod), and the volume cannot be resized while the pod runs (AWS).", 12.5, INK)
+    s.text(46, 510, "Restoring a checkpoint into a warm-pool sandbox is not built: Kubernetes cannot attach a volume to a pod that is already running.", 12, MUTED)
+    return s.render()
+def image_trust():
+    """Figure: from a public registry to a running pod, with the two places an image is refused."""
+    s = Svg(1420, 520, "Image trust: mirror, sign, verify at admission")
+    s.box(30, 90, 250, 100, "Public registries", ["public.ecr.aws", "registry.k8s.io"], GREY)
+    s.box(340, 90, 280, 100, "ECR pull-through cache", ["a private copy, tags immutable,", "created on first pull"], AMBER)
+    s.box(680, 90, 260, 100, "Signing key (KMS)", ["ECC P-256, sign and verify", "the private half never leaves KMS"], AMBER)
+    s.box(1000, 90, 390, 100, "Kyverno admission rule", ["1. every image comes from our registry", "2. every image has a valid signature"], BLUE)
+    s.arrow([(280, 140), (340, 140)], "flow", "pull", 310, 130)
+    s.arrow([(620, 140), (680, 140)], "flow", "sign", 650, 130)
+    s.arrow([(940, 140), (1000, 140)], "flow", "key", 970, 130)
+    s.box(1000, 280, 390, 90, "Pod starts", ["only if both rules pass, and the image", "is pinned to its digest"], GREEN)
+    s.arrow([(1195, 190), (1195, 280)], "ok", "both pass", 1240, 238)
+    s.box(560, 280, 380, 100, "Refused at admission", ["unsigned image", "signed with another key", "image from a public registry"], RED)
+    s.arrow([(1100, 190), (940, 300)], "bad", dash=True)
+    s.x_mark(1020, 245)
+    s.parts.append(f'<rect x="30" y="420" width="1360" height="80" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>')
+    s.text(46, 446, "Ran: signing and verification with cosign against a local registry. A signed image verifies, the same image fails against another key,", 12.5, INK)
+    s.text(46, 466, "and an unsigned image fails. Did not run: the Kyverno rule on a cluster, and the ECR rules, which Terraform validated but never applied.", 12.5, INK)
+    s.text(46, 486, "Pinning to the digest is what makes a signature mean something: a tag can be moved to other contents, a digest cannot.", 12, MUTED)
+    return s.render()
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
     for name, fn in (("a02-1", architecture), ("a02-2", topology), ("a02-3", network_paths), ("a02-4", credential_flow),
                      ("a02-5", context_overview), ("a02-6", context_sequence), ("a02-7", context_components),
-                     ("a02-8", envoy_gateway), ("a02-9", address_plan), ("a02-10", defence_in_depth), ("a02-11", who_may_call_whom), ("a02-12", life_map), ("a02-13", claim_lifecycle), ("a02-14", node_vs_pod)):
+                     ("a02-8", envoy_gateway), ("a02-9", address_plan), ("a02-10", defence_in_depth), ("a02-11", who_may_call_whom), ("a02-12", life_map), ("a02-13", claim_lifecycle), ("a02-14", node_vs_pod),
+                     ("a02-15", alternatives_overview), ("a02-16", audit_pipeline), ("a02-17", workspace_lifecycle), ("a02-18", image_trust)):
         (out / f"{name}.svg").write_text(fn())
         print("wrote", out / f"{name}.svg")

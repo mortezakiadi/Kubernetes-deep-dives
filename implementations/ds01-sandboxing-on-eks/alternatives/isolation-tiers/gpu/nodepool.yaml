@@ -1,0 +1,90 @@
+# GPU sandboxes with gVisor's nvproxy. Nitro Sandboxes cannot do this: AWS documents no GPU or device passthrough into them,
+# and says to run GPU pods without a sandbox runtime class. gVisor can, because it forwards the GPU driver calls from the sandbox
+# to the host driver (nvproxy), on T4, A100, A10G, L4 and H100 with a driver version it knows.
+# What stays weaker than a microVM: the calls reach the host's NVIDIA driver, so a driver bug is a host bug (gVisor says so itself).
+# The pods get their GPU through the NVIDIA k8s-device-plugin (gVisor documents it as compatible, including its CDI mode), which
+# is not installed by anything here, and the node image must carry the NVIDIA driver. Not verified: that the AL2023 alias gives a
+# driver version that runsc lists as supported (check with: runsc nvproxy list-supported-drivers).
+# Config only. Nothing here was run on a GPU instance.
+# Fill the placeholders with: envsubst '${node_role_name} ${sandbox_sg}' < nodepool.yaml | kubectl apply -f -
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: sandbox-gpu
+spec:
+  amiFamily: AL2023
+  amiSelectorTerms:
+    - alias: al2023@latest
+  role: ${node_role_name}
+  subnetSelectorTerms:
+    - tags:
+        ds01/tier: sandbox
+  securityGroupSelectorTerms:
+    - id: ${sandbox_sg}
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs: { volumeSize: 100Gi, volumeType: gp3, encrypted: true }
+  userData: |
+    MIME-Version: 1.0
+    Content-Type: multipart/mixed; boundary="//"
+
+    --//
+    Content-Type: application/node.eks.aws
+
+    apiVersion: node.eks.aws/v1alpha1
+    kind: NodeConfig
+    spec:
+      containerd:
+        config: |
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc-gpu]
+            runtime_type = "io.containerd.runsc.v1"
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc-gpu.options]
+            TypeUrl = "io.containerd.runsc.v1.options"
+            ConfigPath = "/etc/containerd/runsc-gpu.toml"
+
+    --//
+    Content-Type: text/x-shellscript; charset="us-ascii"
+
+    #!/bin/bash
+    set -euxo pipefail
+    ARCH=$(uname -m)
+    URL="https://storage.googleapis.com/gvisor/releases/release/latest/$ARCH"
+    cd /tmp
+    for f in runsc containerd-shim-runsc-v1; do
+      curl -fsSLO "$URL/$f"
+      curl -fsSLO "$URL/$f.sha512"
+      sha512sum -c "$f.sha512"
+    done
+    chmod a+rx runsc containerd-shim-runsc-v1
+    mv runsc containerd-shim-runsc-v1 /usr/local/bin/
+    cat > /etc/containerd/runsc-gpu.toml <<'TOML'
+    [runsc_config]
+    nvproxy = "true"
+    TOML
+    --//--
+---
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: sandbox-gpu
+spec:
+  template:
+    metadata:
+      labels:
+        workload: sandbox
+        ds01/runtime: gvisor-gpu
+    spec:
+      nodeClassRef: { group: karpenter.k8s.aws, kind: EC2NodeClass, name: sandbox-gpu }
+      taints:
+        - { key: workload, value: sandbox, effect: NoSchedule }
+      requirements:
+        - { key: karpenter.sh/capacity-type, operator: In, values: ["on-demand"] }
+        - { key: kubernetes.io/arch, operator: In, values: ["amd64"] }
+        # T4, A10G and L4. A100 (p4d) and H100 (p5) are on gVisor's list as well, and are much dearer.
+        - { key: karpenter.k8s.aws/instance-family, operator: In, values: ["g4dn", "g5", "g6"] }
+  disruption:
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: 5m
+  limits:
+    cpu: "32"
+    nvidia.com/gpu: "4"
