@@ -642,7 +642,7 @@ for step in range(100):
 >
 > - **Step 3, create the queues:** Kueue needs three objects before it admits anything. Together they say "this team may use up to 50 GPUs of this kind, and jobs in its namespace queue here":
 >   - **ResourceFlavor:** a kind of hardware, such as A100 nodes. Empty, as here, it means any node; with `nodeLabels` it points at one node type.
->   - **ClusterQueue:** the cluster-wide budget. It holds the quota per flavor, here 50 GPUs, and the waiting line Kueue admits jobs from. A cluster admin creates it; it has no namespace.
+>   - **ClusterQueue:** the cluster-wide budget. It holds the quota per flavor, here 50 GPUs, and the waiting line Kueue admits jobs from. A cluster admin creates it; it has no namespace. The 50 is one shared pot: every job from every LocalQueue that points here counts against it, so separate teams need separate ClusterQueues. Its `namespaceSelector` says which namespaces may use it; `{}` would let any namespace in, so this one names the team's two namespaces ([ClusterQueue docs](https://kueue.sigs.k8s.io/docs/concepts/cluster_queue/)).
 >   - **LocalQueue:** a team's entry point into a ClusterQueue, created in the team's namespace. Jobs name it with the `kueue.x-k8s.io/queue-name` label.
 >
 > ![Kueue's two levels: LocalQueues in namespaces, ClusterQueues at cluster level](diagrams/extra/d03-kueue-queues.svg)
@@ -658,7 +658,11 @@ for step in range(100):
 > metadata:
 >   name: data-science             # cluster-wide, no namespace #!
 > spec:
->   namespaceSelector: {}          # jobs from any namespace may use it
+>   namespaceSelector:             # only these namespaces may spend this budget #!
+>     matchExpressions:
+>     - key: kubernetes.io/metadata.name   # every namespace carries its own name as this label
+>       operator: In
+>       values: ["data-science", "data-science-dev"] #!
 >   resourceGroups:
 >   - coveredResources: ["nvidia.com/gpu"]
 >     flavors:
