@@ -1,0 +1,134 @@
+{
+ "id": "S01",
+ "title": "The platform at rest: cluster, node pools, queues, verifiers and stores",
+ "design_ref": "The experiment platform on Kubernetes",
+ "purpose": "Show what was built before anything runs: a standard EKS cluster (not Auto Mode) with a CPU pool and a GPU pool on a pinned accelerated AMI, Kueue and JobSet, the two queues, the sandboxed verifier pool, the health monitor, and the four stores in S3.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "aws eks describe-cluster --name ds06-posttrain --query 'cluster.{name,status,version,autoMode:computeConfig.enabled}'",
+   "output": "{\n    \"name\": \"ds06-posttrain\",\n    \"status\": \"ACTIVE\",\n    \"version\": \"1.37\",\n    \"autoMode\": false\n}",
+   "exit_code": 0,
+   "seconds": 3.12
+  },
+  {
+   "display": "aws eks describe-nodegroup --nodegroup-name ds06-posttrain-system --query 'nodegroup.{ami,release,types,desired,taints}'",
+   "output": "{\n    \"name\": \"ds06-posttrain-system\",\n    \"ami\": \"AL2023_x86_64_STANDARD\",\n    \"release\": \"1.37.1-20261119\",\n    \"types\": [\n        \"m6i.xlarge\"\n    ],\n    \"desired\": 2,\n    \"taints\": null\n}",
+   "exit_code": 0,
+   "seconds": 1.84
+  },
+  {
+   "display": "aws eks describe-nodegroup --nodegroup-name ds06-posttrain-gpu --query 'nodegroup.{ami,release,types,desired,taints}'",
+   "output": "{\n    \"name\": \"ds06-posttrain-gpu\",\n    \"ami\": \"AL2023_x86_64_NVIDIA\",\n    \"release\": \"1.37.1-20261119\",\n    \"types\": [\n        \"g6.2xlarge\",\n        \"g6e.2xlarge\",\n        \"g5.2xlarge\"\n    ],\n    \"desired\": 2,\n    \"taints\": [\n        {\n            \"key\": \"nvidia.com/gpu\",\n            \"value\": \"present\",\n            \"effect\": \"NO_SCHEDULE\"\n        }\n    ]\n}",
+   "exit_code": 0,
+   "seconds": 1.8
+  },
+  {
+   "display": "kubectl get nodes -o custom-columns=NODE,POOL,TYPE,ZONE,GPU",
+   "output": "NODE                                         POOL     TYPE          ZONE         GPU\nip-10-61-21-198.us-east-2.compute.internal   system   m6i.xlarge    us-east-2a   <none>\nip-10-61-44-172.us-east-2.compute.internal   gpu      g6e.2xlarge   us-east-2b   1\nip-10-61-47-18.us-east-2.compute.internal    system   m6i.xlarge    us-east-2b   <none>\nip-10-61-63-136.us-east-2.compute.internal   gpu      g6e.2xlarge   us-east-2c   1",
+   "exit_code": 0,
+   "seconds": 1.75
+  },
+  {
+   "display": "aws ec2 describe-instances --filters Name=tag:eks:nodegroup-name,Values=ds06-posttrain-gpu --query '[InstanceId,InstanceType,Zone]'",
+   "output": "i-04485b4a7b87695ff\tg6e.2xlarge\tus-east-2c\ni-03c16ab6698cf9485\tg6e.2xlarge\tus-east-2b",
+   "exit_code": 0,
+   "seconds": 1.86
+  },
+  {
+   "display": "kubectl get deploy,ds -A -o jsonpath=<images of the controllers>",
+   "output": "jobset-system/jobset-controller jobset/jobset:v0.13.1\nkueue-system/kueue-controller-manager kueue/kueue:v0.20.7\nplatform/health-monitor docker/library/python:3.12-slim@sha256:\u2026\nrewards/verifier docker/library/python:3.12-slim@sha256:\u2026\nnvidia-device-plugin/nvidia-device-plugin nvidia/k8s-device-plugin:v0.20.2\nnvidia-device-plugin/nvidia-device-plugin-mps-control-daemon nvidia/k8s-device-plugin:v0.20.2",
+   "exit_code": 0,
+   "seconds": 1.95
+  },
+  {
+   "display": "kubectl get clusterqueue -o custom-columns=QUEUE:.metadata.name,COHORT:.spec.cohortName,GPU-OWNED:.spec.resourceGroups[0].flavors[0].resources[2].nominalQuota,GPU-MAY-BORROW:.spec.resourceGroups[0].flavors[0].resources[2].borrowingLimit,RECLAIM:.spec.preemption.reclaimWithinCohort",
+   "output": "QUEUE        COHORT          GPU-OWNED   GPU-MAY-BORROW   RECLAIM\nablation     post-training   0           2                Never\nproduction   post-training   2           0                Any",
+   "exit_code": 0,
+   "seconds": 1.62
+  },
+  {
+   "display": "kubectl get workloadpriorityclass,localqueue -A",
+   "output": "NAME                                              VALUE\nworkloadpriorityclass.kueue.x-k8s.io/ablation     100\nworkloadpriorityclass.kueue.x-k8s.io/production   1000\n\nNAMESPACE       NAME                                   CLUSTERQUEUE   PENDING WORKLOADS   ADMITTED WORKLOADS\npost-training   localqueue.kueue.x-k8s.io/ablation     ablation       0                   0\npost-training   localqueue.kueue.x-k8s.io/production   production     0                   0",
+   "exit_code": 0,
+   "seconds": 2.03
+  },
+  {
+   "display": "kubectl -n rewards get deploy,hpa,networkpolicy",
+   "output": "NAME                       READY   UP-TO-DATE   AVAILABLE   AGE\ndeployment.apps/verifier   2/2     2            2           4h14m\n\nNAME                                           REFERENCE             TARGETS       MINPODS   MAXPODS   REPLICAS   AGE\nhorizontalpodautoscaler.autoscaling/verifier   Deployment/verifier   cpu: 5%/60%   2         6         2          4h14m\n\nNAME                                                 POD-SELECTOR   AGE\nnetworkpolicy.networking.k8s.io/verifier-isolation   <none>         4h14m",
+   "exit_code": 0,
+   "seconds": 1.88
+  },
+  {
+   "display": "aws eks list-pod-identity-associations --cluster-name ds06-posttrain --query associations[].[namespace,serviceAccount] --output text",
+   "output": "post-training\tevaluator\npost-training\tdatagen\npost-training\ttrainer\nplatform\thealth-monitor",
+   "exit_code": 0,
+   "seconds": 1.63
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/datasets/index.json -   # the versioned datasets, with content hashes",
+   "output": "distill-math@v1             240 rows  sha256 3400844fb143d021\neval-casual@v1               56 rows  sha256 8e2af040dd5ccc72\neval-code@v1                 20 rows  sha256 37cb6b5ba34c50b1\neval-harmful@v1              12 rows  sha256 cb8881ac2284296e\neval-math@v1                120 rows  sha256 e5da7edf7c73655b\neval-safe-scary@v1           16 rows  sha256 9a5a7ace584ccb6e\nrl-code@v1                   80 rows  sha256 18194fe90597da97\nrl-math@v1                  400 rows  sha256 0e739328f7320e1b\nsft-code-instruct@v1         20 rows  sha256 2b0864649027d133\nsft-general-chat@v1         184 rows  sha256 d2160c2f28937a34\nsft-reasoning-traces@v1     452 rows  sha256 f48674c60e5c1a50\nsft-safety@v1                28 rows  sha256 7112a92fd5de0fab",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n post-training get jobs,jobsets,workloads   # before any run",
+   "output": "\nNo resources found in post-training namespace.",
+   "exit_code": 0,
+   "seconds": 2.06
+  }
+ ],
+ "checks": [
+  {
+   "description": "the cluster is ACTIVE on Kubernetes 1.37, and EKS Auto Mode is not enabled",
+   "passed": true,
+   "because": "Terraform created a standard EKS cluster: no compute_config block, so EKS does not manage the nodes."
+  },
+  {
+   "description": "the GPU pool is an EKS managed node group on the NVIDIA AMI, at the pinned release, with a GPU taint",
+   "passed": true,
+   "because": "The release version is a Terraform variable, so the NVIDIA driver and CUDA user space change only when the file changes."
+  },
+  {
+   "description": "two GPU nodes are Ready and each advertises one GPU",
+   "passed": true,
+   "because": "The NVIDIA device plugin, installed by Terraform on the GPU pool only, advertises nvidia.com/gpu on each node."
+  },
+  {
+   "description": "the GPU nodes are ordinary EC2 instances the account can see (and count, and prove gone)",
+   "passed": true,
+   "because": "Managed node group instances are listed by EC2, unlike Auto Mode's managed instances."
+  },
+  {
+   "description": "Kueue 0.20.7, JobSet 0.13.1 and the NVIDIA device plugin 0.20.2 are running, with the verifier pool and the health monitor",
+   "passed": true,
+   "because": "Each controller is a Helm release pinned in Terraform; the image tags are the evidence of the versions."
+  },
+  {
+   "description": "production owns both GPUs and reclaims them; ablation owns none and may only borrow",
+   "passed": true,
+   "because": "Two ClusterQueues in one cohort. The ablation queue has no quota of its own, so everything it runs is borrowed and can be reclaimed."
+  },
+  {
+   "description": "the verifier namespace denies all egress and enforces the restricted Pod Security level",
+   "passed": true,
+   "because": "A NetworkPolicy with an empty egress list, enforced by the VPC CNI's network policy agent (enabled in the add-on's configuration)."
+  },
+  {
+   "description": "four workload identities: trainer, datagen, evaluator, health-monitor (and none for the verifiers)",
+   "passed": true,
+   "because": "EKS Pod Identity associations, each with a role scoped to the S3 prefixes it needs."
+  },
+  {
+   "description": "twelve versioned datasets are in the store, each with a content hash",
+   "passed": true,
+   "because": "Generated by datasets/make_datasets.py from a fixed seed and uploaded by Terraform."
+  },
+  {
+   "description": "nothing is running or queued",
+   "passed": true,
+   "because": "A fresh build: no run has been launched."
+  }
+ ],
+ "notes": []
+}

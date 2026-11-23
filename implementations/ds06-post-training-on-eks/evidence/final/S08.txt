@@ -1,0 +1,35 @@
+# S08: What filtering saves: the same RL run on unfiltered prompts
+# Design reference: Filtering: which samples carry signal
+
+$ ptl.py compare rl-f640ba-4440 rl-1ee56e-ff47   # filtered prompts vs unfiltered prompts
+                                   rl-f640ba-4440 rl-1ee56e-ff47
+stage                                          rl             rl
+recipe hash                          f640ba4ac1a6   1ee56eee5d5e
+ablation variable                               -data.prompts.math.source
+ablation value                                "-""datasets://rl-math@v1"
+GPU seconds                                 485.0          488.1
+steps                                          40             40
+reward_first_quarter                       0.6684         0.7717
+reward_last_quarter                        0.7744         0.8272
+frac_reward_zero_std_mean                  0.6312         0.7625
+entropy_first_quarter                      0.0205         0.0197
+entropy_last_quarter                       0.0098         0.0098
+share_of_wall.generate_s                    0.115            0.1
+share_of_wall.sync_s                        0.379          0.381
+share_of_wall.reward_s                      0.238          0.254
+eval math.accuracy                          0.733              -
+eval code.mean_pass_rate                      1.0              -
+eval casual.house_style_rate                0.839              -
+eval casual.step_leak_rate                  0.161              -
+eval casual.step_leak_rate_conversions            0.5              -
+eval casual.mean_words                        8.5              -
+eval harmful.refusal_rate                       1              -
+eval safe-scary.over_refusal_rate           0.062              -
+
+$ rollouts per informative group (1 / (1 - share of groups with zero reward spread))
+filtered:   0.6312 of groups uninformative -> 2.71 groups generated per useful group
+unfiltered: 0.7625 of groups uninformative -> 4.21 groups generated per useful group
+
+[PASS] the ablation finished after it was re-admitted
+[PASS] on unfiltered prompts a larger share of groups carries no learning signal
+[PASS] the only difference between the two runs is the declared variable

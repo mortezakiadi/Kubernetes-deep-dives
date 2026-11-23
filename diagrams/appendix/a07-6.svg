@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="520px" viewBox="0 0 1420 520" style="background:#ffffff"><title>Production owns the GPUs; ablations borrow them and give them back</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker></defs><rect width="1420" height="520" fill="#ffffff"/><rect x="20" y="30" width="1380" height="200" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">COHORT post-training (2 GPUs in the pool)</text>
+<rect x="40" y="70" width="420" height="140" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="70" width="420" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="88" width="418" height="12" fill="#ecfdf5"/>
+<text x="52" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">ClusterQueue production</text>
+<text x="52" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nominal quota: 2 GPUs, 12 vCPU, 44 GiB</text>
+<text x="52" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reclaimWithinCohort: Any</text>
+<text x="52" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">priority class production = 1000</text>
+<text x="52" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">never preempted: nobody can reclaim from it</text>
+<rect x="500" y="70" width="420" height="140" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="500" y="70" width="420" height="30" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="501" y="88" width="418" height="12" fill="#f5f3ff"/>
+<text x="512" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#5b21b6">ClusterQueue ablation</text>
+<text x="512" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nominal quota: 0; may borrow up to 2 GPUs</text>
+<text x="512" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reclaimWithinCohort: Never</text>
+<text x="512" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">priority class ablation = 100</text>
+<text x="512" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the launcher puts every ablation here</text>
+<rect x="960" y="70" width="420" height="140" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="960" y="70" width="420" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="961" y="88" width="418" height="12" fill="#f8fafc"/>
+<text x="972" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">ResourceFlavor gpu</text>
+<text x="972" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nodeLabels ds06/pool=gpu</text>
+<text x="972" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tolerates nvidia.com/gpu:NoSchedule</text>
+<text x="972" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a pod can reach a GPU node only</text>
+<text x="972" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">through an admitted Workload</text>
+<text x="40" y="270" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#334155">What S06 does, in time order</text>
+<circle cx="60" cy="301" r="7" fill="#7c3aed"/>
+<text x="80" y="305" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7c3aed">t0</text>
+<text x="140" y="305" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">rl-unfiltered (ablation, 2 GPUs) is admitted on borrowed quota and both its pods run</text>
+<circle cx="60" cy="341" r="7" fill="#334155"/>
+<text x="80" y="345" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#334155">t1</text>
+<text x="140" y="345" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">rl (production, 2 GPUs) is launched; production's own quota is in use by the borrower</text>
+<circle cx="60" cy="381" r="7" fill="#dc2626"/>
+<text x="80" y="385" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#dc2626">t1+</text>
+<text x="140" y="385" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">Kueue preempts the borrower: its Workload is evicted, the JobSet suspended, both pods deleted</text>
+<circle cx="60" cy="421" r="7" fill="#059669"/>
+<text x="80" y="425" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#059669">t1++</text>
+<text x="140" y="425" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">production is admitted on its nominal quota; rollout and trainer start together</text>
+<circle cx="60" cy="461" r="7" fill="#7c3aed"/>
+<text x="80" y="465" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#7c3aed">t2</text>
+<text x="140" y="465" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">production finishes; the GPUs are idle again; the ablation is re-admitted and restarts from step 0</text></svg>

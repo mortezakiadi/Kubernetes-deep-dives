@@ -1,0 +1,90 @@
+# S07: RL: rollout, reward and training as separate components of one job
+# Design reference: RL: choosing the objective; Rollout generation; Rewards and verifiers
+
+$ kubectl -n post-training get jobset rl-f640ba-4440 -o jsonpath='{.spec.replicatedJobs[*].name} {.spec.successPolicy} {.status.conditions}'
+rollout trainer
+{"operator": "All", "targetReplicatedJobs": ["trainer"]}
+[{"type": "Suspended", "status": "False", "reason": "ResumeJobs"}, {"type": "Completed", "status": "True", "reason": "AllJobsCompleted"}]
+
+$ kubectl -n post-training get workload <the RL run's> -o jsonpath='{.spec.podSets[*].name}={.spec.podSets[*].count} {.status.admission.podSetAssignments[*].resourceUsage}'
+{"rollout": 1, "trainer": 1}
+[{"cpu": "6", "memory": "22Gi", "nvidia.com/gpu": "1"}, {"cpu": "6", "memory": "22Gi", "nvidia.com/gpu": "1"}]
+
+$ the run's pods' nodes, and the GPU the trainer reported
+nodes: ['ip-10-61-44-172.us-east-2.compute.internal', 'ip-10-61-63-136.us-east-2.compute.internal']; trainer GPU: NVIDIA L40S on ip-10-61-63-136.us-east-2.compute.internal
+
+$ runs/rl-f640ba-4440/metrics.jsonl   # the health signals of every step (5 of 41 shown)
+step reward | reward_std | frac_reward_zero_std | entropy | mean_length | clipped_ratio | region_mean | min | max | grad_norm
+   1 0.503 | 0.539 | 0.25 | 0.0199 | 67.6 | 0 | 0 | 0.734 | 1.35 | 2.51
+  10 0.934 | 0.343 | 0.625 | 0.00814 | 81.2 | 0 | 0 | 0.908 | 1.21 | 1.1
+  20 0.859 | 0.387 | 0.625 | 0.0124 | 75 | 0 | 0 | 0.732 | 1.16 | 2.36
+  30 0.806 | 0.45 | 0.75 | 0.0143 | 78.4 | 0 | 0 | 0.649 | 1.17 | 1.1
+  40 0.922 | 0.338 | 0.875 | 0.0115 | 86.1 | 0 | 0 | 0.395 | 1.39 | 0.665
+
+$ read from the tracking store while the run was still running (recorded in S06)
+status.json: state=running last_step=5
+step=3  reward=0.475  entropy=0.023109  frac_reward_zero_std=0.125  completions/mean_length=106.046875
+step=4  reward=0.54375  entropy=0.029235  frac_reward_zero_std=0.125  completions/mean_length=76.859375
+step=5  reward=0.690625  entropy=0.02552  frac_reward_zero_std=0.375  completions/mean_length=65.15625
+
+$ runs/rl-f640ba-4440/summary.json: where the time went
+wall 172.3 s over 40 steps
+generation 19.8 s (0.115), weight sync 65.2 s in 40 syncs (0.379), reward calls 41.0 s (0.238)
+completion tokens generated: 220898; mode: server
+
+$ kubectl -n rewards exec <each verifier> -- … /metrics   # the reward pool's own counters
+{"pod": "verifier-7bcbbdbcdf-hgwpp", "requests": 36, "completions": 2788, "code_runs": 1444, "code_timeouts": 0, "code_memory_kills": 0, "code_errors": 6, "busy_seconds": 97.02826619148254}
+{"pod": "verifier-7bcbbdbcdf-qvqtk", "requests": 43, "completions": 2016, "code_runs": 254, "code_timeouts": 0, "code_memory_kills": 0, "code_errors": 3, "busy_seconds": 17.73007869720459}
+
+$ aws s3 ls s3://<bucket>/runs/rl-f640ba-4440/ckpt/
+step-00020
+step-00040
+checkpoint event: step 20, 1988 MB
+checkpoint event: step 40, 1988 MB
+
+$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=registry://assistant-v1/rl@rl-f640ba-4440   # RL
+launched eval-52de6d-cc18  recipe assistant-v1/eval  hash 52de6d438d6f  queue production/production  base registry://assistant-v1/rl@rl-f640ba-4440 -> rl-f640ba-4440
+job.batch/eval-52de6d-cc18 created
+
+$ ptl.py compare sft-39e942-0750 rl-f640ba-4440   # the SFT model and the RL model on the same suites
+                                   sft-39e942-0750  rl-f640ba-4440
+stage                                          sft              rl
+recipe hash                           39e942c685e4    f640ba4ac1a6
+ablation variable                                -               -
+ablation value                                 "-"             "-"
+GPU seconds                                   28.8           485.0
+steps                                           64              40
+reward_first_quarter                             -          0.6684
+reward_last_quarter                              -          0.7744
+frac_reward_zero_std_mean                        -          0.6312
+entropy_first_quarter                            -          0.0205
+entropy_last_quarter                             -          0.0098
+share_of_wall.generate_s                         -           0.115
+share_of_wall.sync_s                             -           0.379
+share_of_wall.reward_s                           -           0.238
+loss_first                                1.688848               -
+loss_last                                 0.241113               -
+eval math.accuracy                           0.783           0.733
+eval code.mean_pass_rate                     0.738             1.0
+eval casual.house_style_rate                 0.839           0.839
+eval casual.step_leak_rate                   0.161           0.161
+eval casual.step_leak_rate_conversions             0.5             0.5
+eval casual.mean_words                         8.5             8.5
+eval harmful.refusal_rate                        1               1
+eval safe-scary.over_refusal_rate            0.062           0.062
+
+$ ptl.py gate rl-f640ba-4440
+  pass  harmful.refusal_rate = 1 (must be >= 0.9)
+  pass  casual.house_style_rate = 0.839 vs reference 0.839 (may drop at most 0.05)
+  pass  code.mean_pass_rate = 1.0 vs reference 0.738 (may drop at most 0.05)
+  pass  math.accuracy = 0.733 vs reference 0.783 (may drop at most 0.05)
+rl-f640ba-4440: PROMOTED
+
+[PASS] one JobSet with two parts, rollout and trainer, that succeeds when the trainer does
+[PASS] Kueue admitted the run as one Workload asking for both GPUs at once
+[PASS] every step logged the design's health signals: reward, entropy, length, clipping, importance ratios, gradient norm
+[PASS] the signals could be read before the run finished
+[PASS] generation and weight sync were measured; the trainer pushed new weights to the rollout server every step
+[PASS] the rewards came from the verifier pool, which ran model-written code thousands of times
+[PASS] a checkpoint was written every 20 steps and the last two are kept
+[PASS] the RL model is registered with its base (the promoted SFT model) and its prompt data

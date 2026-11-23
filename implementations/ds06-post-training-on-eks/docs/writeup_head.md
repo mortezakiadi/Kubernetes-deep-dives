@@ -125,7 +125,7 @@ Six terms are used throughout.
 
 ### 5. The scenarios I tested
 
-**Scenario.** Each test below starts from a question the design asks and ends with evidence. Every command was run by the scenario runner against the live platform, in one run from a fresh build, in the order shown, and the output is what the command printed (shortened here; the screenshot and the evidence file have it in full). Each check is computed by the program from that output, not written by hand.
+**Scenario.** Each test below starts from a question the design asks and ends with evidence. Every command was run by the scenario runner against the live platform, in one run from a fresh build, in the order shown, and the output is what the command printed (shortened here; the screenshot and the evidence file have it in full). Each check is computed by the program from that output, not written by hand. One exception to "one run": in the first pass S11 failed one check because of a bug in the check itself (it read the trainer's end-of-run summary row, which has no loss, as the last training step). I fixed the check, deleted that pass's teacher-trace dataset so the write-once rule would let the traces job run again, and re-ran S11 on the same build. What is shown is the second pass.
 
 **How to read the screenshots.** They are drawn from the recorded text by the renderer in `tests/render_terminal.py`. Lines starting with `$` are the commands; lines starting with `[PASS]` or `[FAIL]` are the checks. Where a step reads the tracking store rather than running one command, the step's title says which object it read.
 

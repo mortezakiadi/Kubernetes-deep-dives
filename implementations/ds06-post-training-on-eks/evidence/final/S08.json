@@ -1,0 +1,39 @@
+{
+ "id": "S08",
+ "title": "What filtering saves: the same RL run on unfiltered prompts",
+ "design_ref": "Filtering: which samples carry signal",
+ "purpose": "Compare the production RL run with its one-key ablation on unfiltered math prompts (the run preempted in S06, which finished afterwards). In group-relative RL a group whose answers all get the same reward has zero advantage and teaches nothing.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "ptl.py compare rl-f640ba-4440 rl-1ee56e-ff47   # filtered prompts vs unfiltered prompts",
+   "output": "                                   rl-f640ba-4440 rl-1ee56e-ff47\nstage                                          rl             rl\nrecipe hash                          f640ba4ac1a6   1ee56eee5d5e\nablation variable                               -data.prompts.math.source\nablation value                                \"-\"\"datasets://rl-math@v1\"\nGPU seconds                                 485.0          488.1\nsteps                                          40             40\nreward_first_quarter                       0.6684         0.7717\nreward_last_quarter                        0.7744         0.8272\nfrac_reward_zero_std_mean                  0.6312         0.7625\nentropy_first_quarter                      0.0205         0.0197\nentropy_last_quarter                       0.0098         0.0098\nshare_of_wall.generate_s                    0.115            0.1\nshare_of_wall.sync_s                        0.379          0.381\nshare_of_wall.reward_s                      0.238          0.254\neval math.accuracy                          0.733              -\neval code.mean_pass_rate                      1.0              -\neval casual.house_style_rate                0.839              -\neval casual.step_leak_rate                  0.161              -\neval casual.step_leak_rate_conversions            0.5              -\neval casual.mean_words                        8.5              -\neval harmful.refusal_rate                       1              -\neval safe-scary.over_refusal_rate           0.062              -",
+   "exit_code": 0,
+   "seconds": 2.72
+  },
+  {
+   "display": "rollouts per informative group (1 / (1 - share of groups with zero reward spread))",
+   "output": "filtered:   0.6312 of groups uninformative -> 2.71 groups generated per useful group\nunfiltered: 0.7625 of groups uninformative -> 4.21 groups generated per useful group",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the ablation finished after it was re-admitted",
+   "passed": true,
+   "because": "It restarted from step 0 after the preemption in S06."
+  },
+  {
+   "description": "on unfiltered prompts a larger share of groups carries no learning signal",
+   "passed": true,
+   "because": "Unfiltered prompts include ones the model always solves and ones it never does; every answer in such a group gets the same reward, so its advantage is zero."
+  },
+  {
+   "description": "the only difference between the two runs is the declared variable",
+   "passed": true,
+   "because": "The launcher accepted the ablation only because its diff from rl.yaml was that one key."
+  }
+ ],
+ "notes": []
+}

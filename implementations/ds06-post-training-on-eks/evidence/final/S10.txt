@@ -1,0 +1,42 @@
+# S10: Rewards that run model-written code, in a sandbox
+# Design reference: Rewards and verifiers
+
+$ kubectl -n post-training run probe --image=python:3.12-slim -- python -c '<POST 11 hostile completions to the verifier>'
+correct            score 1.00  ok  
+wrong              score 0.33  ok  
+print_expected     score 0.00  ok  
+exit_before_tests  score 0.00  no result (exit 0)  
+infinite_loop      score 0.00  timeout  
+memory_bomb        score 0.00  memory-limit  
+internet           score 0.00  timeout  
+instance_metadata  score 0.00  timeout  
+kubernetes_api     score 0.00  timeout  
+read_secrets       score 0.00  ok  
+fill_disk          score 0.00  ok  
+answered by verifier-7bcbbdbcdf-hgwpp in 18.7 s
+
+$ kubectl -n rewards get pod <a verifier> -o jsonpath='{.spec.automountServiceAccountToken} {.spec.securityContext} {.spec.containers[0].securityContext}'
+{"automountServiceAccountToken": false, "pod": {"runAsGroup": 10001, "runAsNonRoot": true, "runAsUser": 10001, "seccompProfile": {"type": "RuntimeDefault"}}, "container": {"allowPrivilegeEscalation": false, "capabilities": {"drop": ["ALL"]}, "privileged": false, "readOnlyRootFilesystem": true, "runAsNonRoot": true}}
+
+$ kubectl -n default run probe --image=python:3.12-slim -- python -c '<call the verifier from the default namespace>'
+BLOCKED URLError
+
+$ kubectl -n post-training run probe -- python -c '<score six answers with the training and the held-out math verifiers>'
+completion                         math_exact (training) math_any (held-out)
+'so \\boxed{0.5}'                  1.0                   1.0
+'so \\boxed{1/2}'                  1.0                   1.0
+'so \\boxed{\\frac{1}{2}}'         1.0                   1.0
+'the answer is 0.5'                0.0                   1.0
+'\\boxed{2} or maybe \\boxed{0.5}' 0.0                   0.0
+'\\boxed{3,000}'                   1.0                   1.0
+
+[PASS] only the correct solution scores 1.0
+[PASS] printing the expected output and exiting before the tests both score 0
+[PASS] an infinite loop is killed at the time limit, and a memory bomb at the memory limit
+[PASS] no network: the internet, the instance metadata service and the Kubernetes API are all unreachable
+[PASS] no secrets and no disk: the child sees an empty environment and no service-account token, and cannot write 50 MB
+[PASS] the verifier pod runs as a non-root user with a read-only root filesystem, no capabilities and no token
+[PASS] the verifier pool cannot be called from outside the run namespaces
+[PASS] '1/2', '0.5' and '\frac{1}{2}' are the same answer to both verifiers
+[PASS] the held-out verifier differs from the training one: it accepts an unboxed final number
+[PASS] a hedge (two different boxed answers) scores nothing with either verifier

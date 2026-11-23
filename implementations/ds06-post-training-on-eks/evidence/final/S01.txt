@@ -1,0 +1,120 @@
+# S01: The platform at rest: cluster, node pools, queues, verifiers and stores
+# Design reference: The experiment platform on Kubernetes
+
+$ aws eks describe-cluster --name ds06-posttrain --query 'cluster.{name,status,version,autoMode:computeConfig.enabled}'
+{
+    "name": "ds06-posttrain",
+    "status": "ACTIVE",
+    "version": "1.37",
+    "autoMode": false
+}
+
+$ aws eks describe-nodegroup --nodegroup-name ds06-posttrain-system --query 'nodegroup.{ami,release,types,desired,taints}'
+{
+    "name": "ds06-posttrain-system",
+    "ami": "AL2023_x86_64_STANDARD",
+    "release": "1.37.1-20261119",
+    "types": [
+        "m6i.xlarge"
+    ],
+    "desired": 2,
+    "taints": null
+}
+
+$ aws eks describe-nodegroup --nodegroup-name ds06-posttrain-gpu --query 'nodegroup.{ami,release,types,desired,taints}'
+{
+    "name": "ds06-posttrain-gpu",
+    "ami": "AL2023_x86_64_NVIDIA",
+    "release": "1.37.1-20261119",
+    "types": [
+        "g6.2xlarge",
+        "g6e.2xlarge",
+        "g5.2xlarge"
+    ],
+    "desired": 2,
+    "taints": [
+        {
+            "key": "nvidia.com/gpu",
+            "value": "present",
+            "effect": "NO_SCHEDULE"
+        }
+    ]
+}
+
+$ kubectl get nodes -o custom-columns=NODE,POOL,TYPE,ZONE,GPU
+NODE                                         POOL     TYPE          ZONE         GPU
+ip-10-61-21-198.us-east-2.compute.internal   system   m6i.xlarge    us-east-2a   <none>
+ip-10-61-44-172.us-east-2.compute.internal   gpu      g6e.2xlarge   us-east-2b   1
+ip-10-61-47-18.us-east-2.compute.internal    system   m6i.xlarge    us-east-2b   <none>
+ip-10-61-63-136.us-east-2.compute.internal   gpu      g6e.2xlarge   us-east-2c   1
+
+$ aws ec2 describe-instances --filters Name=tag:eks:nodegroup-name,Values=ds06-posttrain-gpu --query '[InstanceId,InstanceType,Zone]'
+i-04485b4a7b87695ff	g6e.2xlarge	us-east-2c
+i-03c16ab6698cf9485	g6e.2xlarge	us-east-2b
+
+$ kubectl get deploy,ds -A -o jsonpath=<images of the controllers>
+jobset-system/jobset-controller jobset/jobset:v0.13.1
+kueue-system/kueue-controller-manager kueue/kueue:v0.20.7
+platform/health-monitor docker/library/python:3.12-slim@sha256:…
+rewards/verifier docker/library/python:3.12-slim@sha256:…
+nvidia-device-plugin/nvidia-device-plugin nvidia/k8s-device-plugin:v0.20.2
+nvidia-device-plugin/nvidia-device-plugin-mps-control-daemon nvidia/k8s-device-plugin:v0.20.2
+
+$ kubectl get clusterqueue -o custom-columns=QUEUE:.metadata.name,COHORT:.spec.cohortName,GPU-OWNED:.spec.resourceGroups[0].flavors[0].resources[2].nominalQuota,GPU-MAY-BORROW:.spec.resourceGroups[0].flavors[0].resources[2].borrowingLimit,RECLAIM:.spec.preemption.reclaimWithinCohort
+QUEUE        COHORT          GPU-OWNED   GPU-MAY-BORROW   RECLAIM
+ablation     post-training   0           2                Never
+production   post-training   2           0                Any
+
+$ kubectl get workloadpriorityclass,localqueue -A
+NAME                                              VALUE
+workloadpriorityclass.kueue.x-k8s.io/ablation     100
+workloadpriorityclass.kueue.x-k8s.io/production   1000
+
+NAMESPACE       NAME                                   CLUSTERQUEUE   PENDING WORKLOADS   ADMITTED WORKLOADS
+post-training   localqueue.kueue.x-k8s.io/ablation     ablation       0                   0
+post-training   localqueue.kueue.x-k8s.io/production   production     0                   0
+
+$ kubectl -n rewards get deploy,hpa,networkpolicy
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/verifier   2/2     2            2           4h14m
+
+NAME                                           REFERENCE             TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/verifier   Deployment/verifier   cpu: 5%/60%   2         6         2          4h14m
+
+NAME                                                 POD-SELECTOR   AGE
+networkpolicy.networking.k8s.io/verifier-isolation   <none>         4h14m
+
+$ aws eks list-pod-identity-associations --cluster-name ds06-posttrain --query associations[].[namespace,serviceAccount] --output text
+post-training	evaluator
+post-training	datagen
+post-training	trainer
+platform	health-monitor
+
+$ aws s3 cp s3://<bucket>/datasets/index.json -   # the versioned datasets, with content hashes
+distill-math@v1             240 rows  sha256 3400844fb143d021
+eval-casual@v1               56 rows  sha256 8e2af040dd5ccc72
+eval-code@v1                 20 rows  sha256 37cb6b5ba34c50b1
+eval-harmful@v1              12 rows  sha256 cb8881ac2284296e
+eval-math@v1                120 rows  sha256 e5da7edf7c73655b
+eval-safe-scary@v1           16 rows  sha256 9a5a7ace584ccb6e
+rl-code@v1                   80 rows  sha256 18194fe90597da97
+rl-math@v1                  400 rows  sha256 0e739328f7320e1b
+sft-code-instruct@v1         20 rows  sha256 2b0864649027d133
+sft-general-chat@v1         184 rows  sha256 d2160c2f28937a34
+sft-reasoning-traces@v1     452 rows  sha256 f48674c60e5c1a50
+sft-safety@v1                28 rows  sha256 7112a92fd5de0fab
+
+$ kubectl -n post-training get jobs,jobsets,workloads   # before any run
+
+No resources found in post-training namespace.
+
+[PASS] the cluster is ACTIVE on Kubernetes 1.37, and EKS Auto Mode is not enabled
+[PASS] the GPU pool is an EKS managed node group on the NVIDIA AMI, at the pinned release, with a GPU taint
+[PASS] two GPU nodes are Ready and each advertises one GPU
+[PASS] the GPU nodes are ordinary EC2 instances the account can see (and count, and prove gone)
+[PASS] Kueue 0.20.7, JobSet 0.13.1 and the NVIDIA device plugin 0.20.2 are running, with the verifier pool and the health monitor
+[PASS] production owns both GPUs and reclaims them; ablation owns none and may only borrow
+[PASS] the verifier namespace denies all egress and enforces the restricted Pod Security level
+[PASS] four workload identities: trainer, datagen, evaluator, health-monitor (and none for the verifiers)
+[PASS] twelve versioned datasets are in the store, each with a content hash
+[PASS] nothing is running or queued

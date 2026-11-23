@@ -1,0 +1,86 @@
+{
+ "id": "S10",
+ "title": "Rewards that run model-written code, in a sandbox",
+ "design_ref": "Rewards and verifiers",
+ "purpose": "Send the verifier pool completions written to cheat or to cause harm, from inside the post-training namespace as a trainer does: print the expected output, exit early, loop forever, exhaust memory, reach the internet, the instance metadata service, the Kubernetes API, read secrets, fill the disk. Only the correct solution may score. Then check the pool cannot be reached from elsewhere, and its verifiers' quirks.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n post-training run probe --image=python:3.12-slim -- python -c '<POST 11 hostile completions to the verifier>'",
+   "output": "correct            score 1.00  ok  \nwrong              score 0.33  ok  \nprint_expected     score 0.00  ok  \nexit_before_tests  score 0.00  no result (exit 0)  \ninfinite_loop      score 0.00  timeout  \nmemory_bomb        score 0.00  memory-limit  \ninternet           score 0.00  timeout  \ninstance_metadata  score 0.00  timeout  \nkubernetes_api     score 0.00  timeout  \nread_secrets       score 0.00  ok  \nfill_disk          score 0.00  ok  \nanswered by verifier-7bcbbdbcdf-hgwpp in 18.7 s",
+   "exit_code": 0,
+   "seconds": 23.9
+  },
+  {
+   "display": "kubectl -n rewards get pod <a verifier> -o jsonpath='{.spec.automountServiceAccountToken} {.spec.securityContext} {.spec.containers[0].securityContext}'",
+   "output": "{\"automountServiceAccountToken\": false, \"pod\": {\"runAsGroup\": 10001, \"runAsNonRoot\": true, \"runAsUser\": 10001, \"seccompProfile\": {\"type\": \"RuntimeDefault\"}}, \"container\": {\"allowPrivilegeEscalation\": false, \"capabilities\": {\"drop\": [\"ALL\"]}, \"privileged\": false, \"readOnlyRootFilesystem\": true, \"runAsNonRoot\": true}}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n default run probe --image=python:3.12-slim -- python -c '<call the verifier from the default namespace>'",
+   "output": "BLOCKED URLError",
+   "exit_code": 0,
+   "seconds": 8.6
+  },
+  {
+   "display": "kubectl -n post-training run probe -- python -c '<score six answers with the training and the held-out math verifiers>'",
+   "output": "completion                         math_exact (training) math_any (held-out)\n'so \\\\boxed{0.5}'                  1.0                   1.0\n'so \\\\boxed{1/2}'                  1.0                   1.0\n'so \\\\boxed{\\\\frac{1}{2}}'         1.0                   1.0\n'the answer is 0.5'                0.0                   1.0\n'\\\\boxed{2} or maybe \\\\boxed{0.5}' 0.0                   0.0\n'\\\\boxed{3,000}'                   1.0                   1.0",
+   "exit_code": 0,
+   "seconds": 4.86
+  }
+ ],
+ "checks": [
+  {
+   "description": "only the correct solution scores 1.0",
+   "passed": true,
+   "because": "The child process only ever receives the test arguments; the expected outputs stay in the verifier, which compares."
+  },
+  {
+   "description": "printing the expected output and exiting before the tests both score 0",
+   "passed": true,
+   "because": "Results are read only from a line that starts with a per-run random marker the candidate cannot know, and are then compared with the hidden expected values."
+  },
+  {
+   "description": "an infinite loop is killed at the time limit, and a memory bomb at the memory limit",
+   "passed": true,
+   "because": "A wall-clock timeout kills the child's process group; RLIMIT_AS caps its address space at 512 MiB."
+  },
+  {
+   "description": "no network: the internet, the instance metadata service and the Kubernetes API are all unreachable",
+   "passed": true,
+   "because": "The rewards namespace's NetworkPolicy drops all egress, including DNS, so each call hangs until the time limit kills the child: nothing leaves, and nothing scores."
+  },
+  {
+   "description": "no secrets and no disk: the child sees an empty environment and no service-account token, and cannot write 50 MB",
+   "passed": true,
+   "because": "The child gets a two-variable environment; the pod has automountServiceAccountToken: false; RLIMIT_FSIZE is 1 MiB."
+  },
+  {
+   "description": "the verifier pod runs as a non-root user with a read-only root filesystem, no capabilities and no token",
+   "passed": true,
+   "because": "Set in the Deployment; the namespace's restricted Pod Security level would reject the pod otherwise."
+  },
+  {
+   "description": "the verifier pool cannot be called from outside the run namespaces",
+   "passed": true,
+   "because": "The NetworkPolicy's ingress rule admits only the post-training and platform namespaces."
+  },
+  {
+   "description": "'1/2', '0.5' and '\\frac{1}{2}' are the same answer to both verifiers",
+   "passed": true,
+   "because": "Both parse the answer into an exact fraction before comparing; a verifier that accepted only one spelling would teach the model the spelling."
+  },
+  {
+   "description": "the held-out verifier differs from the training one: it accepts an unboxed final number",
+   "passed": true,
+   "because": "math_exact needs a boxed answer; math_any falls back to the last number. A model that games one does not automatically game the other."
+  },
+  {
+   "description": "a hedge (two different boxed answers) scores nothing with either verifier",
+   "passed": true,
+   "because": "Both verifiers return 0 when the boxed values differ; otherwise 'box every candidate answer' would be a cheap way to collect reward."
+  }
+ ],
+ "notes": []
+}

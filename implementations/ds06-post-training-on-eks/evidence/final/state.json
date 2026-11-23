@@ -1,0 +1,23 @@
+{
+ "sft": "sft-39e942-0750",
+ "eval_base": "eval-e57fda-850f",
+ "eval_sft": "eval-66f8b6-096d",
+ "sft_verdict": "promoted",
+ "sft_heavy": "sft-5d959b-ae97",
+ "eval_heavy": "eval-90646b-90ce",
+ "heavy_verdict": "blocked",
+ "filter": "filter-effc95-07c9",
+ "rl_unfiltered": "rl-1ee56e-ff47",
+ "rl": "rl-f640ba-4440",
+ "rl_midrun": "status.json: state=running last_step=5\nstep=3  reward=0.475  entropy=0.023109  frac_reward_zero_std=0.125  completions/mean_length=106.046875\nstep=4  reward=0.54375  entropy=0.029235  frac_reward_zero_std=0.125  completions/mean_length=76.859375\nstep=5  reward=0.690625  entropy=0.02552  frac_reward_zero_std=0.375  completions/mean_length=65.15625",
+ "eval_rl": "eval-52de6d-cc18",
+ "rl_verdict": "promoted",
+ "rl_high_lr": "rl-322ab0-7457",
+ "rl_mid_lr": "rl-09e05e-bfeb",
+ "traces": "traces-9f3bf6-d383",
+ "distill_off": "sft-dd72f4-b7ef",
+ "distill_on": "distill-4faf00-f898",
+ "eval_teacher": "eval-0d338b-8e6e",
+ "eval_off": "eval-963611-2c1a",
+ "eval_on": "eval-9baedc-d163"
+}

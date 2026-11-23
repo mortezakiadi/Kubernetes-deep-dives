@@ -1,0 +1,88 @@
+{
+ "id": "S09",
+ "title": "Stability: the signals that predict a collapse",
+ "design_ref": "Stability: the signals that predict a collapse",
+ "purpose": "Run the RL recipe with a learning rate 25 times higher, as a one-key ablation. The health monitor, a separate Deployment reading the tracking store, must raise trend alerts, and they must come no later than the reward collapse. The healthy run must raise none of them.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "ptl.py launch recipes/assistant-v1/ablations/rl-high-lr.yaml",
+   "output": "ablation of recipes/assistant-v1/rl.yaml (hash f640ba4ac1a6), declared variable: hyperparameters.lr\n  changed  hyperparameters.lr: 2e-06 -> 5e-05\nlaunched rl-322ab0-7457  recipe assistant-v1/rl  hash 322ab0a753cf  queue ablation/ablation  base registry://assistant-v1/sft@promoted -> sft-39e942-0750\njobset.jobset.x-k8s.io/rl-322ab0-7457 created",
+   "exit_code": 0,
+   "seconds": 7.02
+  },
+  {
+   "display": "runs/rl-322ab0-7457/metrics.jsonl   # every 4th step",
+   "output": "step reward | entropy | mean_length | grad_norm | frac_reward_zero_std\n   1 0.503 | 0.0199 | 67.6 | 2.51 | 0.25\n   5 0.0578 | 0.473 | 99 | 2.92 | 0.375\n   9 0.0609 | 0.96 | 249 | 16.3 | 0.25\n  13 0.075 | 0.586 | 8.31 | 0 | 1\n  17 0.0734 | 0.542 | 7.61 | 8.14 | 0.875\n  21 0.0109 | 0.348 | 276 | 117 | 0.5\n  25 0.075 | 0.641 | 28.8 | 0 | 1\n  29 0.0875 | 0.327 | 16.9 | 0 | 1\n  33 0.075 | 0.238 | 7.59 | 0 | 1\n  37 0.075 | 0.147 | 7.11 | 0 | 1\n  40 0.0625 | 0.145 | 6.69 | 0 | 1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/runs/rl-322ab0-7457/alerts.json -   # written by the health monitor",
+   "output": "{\"rule\": \"entropy_blowup\", \"step\": 5, \"message\": \"policy entropy tripled: the policy is breaking down\", \"first_window\": 0.0293, \"latest_window\": 1.0941}\n{\"rule\": \"grad_norm_spike\", \"step\": 4, \"message\": \"gradient norm above 5x its running median\", \"value\": 17.7978, \"median_before\": 1.9775}\n{\"rule\": \"length_explosion\", \"step\": 7, \"message\": \"mean response length more than doubled\", \"first_window\": 93.2083, \"latest_window\": 201.4766}\n{\"rule\": \"length_collapse\", \"step\": 14, \"message\": \"mean response length fell below 40% of its start\", \"first_window\": 93.2083, \"latest_window\": 8.0781}\n{\"rule\": \"reward_collapse\", \"step\": 5, \"message\": \"reward fell below 30% of its starting level (lagging signal)\", \"first_window\": 0.4062, \"latest_window\": 0.0305}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n platform logs deploy/health-monitor | grep rl-322ab0-7457",
+   "output": "ALERT {\"run\": \"rl-322ab0-7457\", \"rule\": \"entropy_blowup\", \"step\": 5, \"message\": \"policy entropy tripled: the policy is breaking down\", \"first_window\": 0.0293, \"latest_window\": 1.0941}\nALERT {\"run\": \"rl-322ab0-7457\", \"rule\": \"grad_norm_spike\", \"step\": 4, \"message\": \"gradient norm above 5x its running median\", \"value\": 17.7978, \"median_before\": 1.9775}\nALERT {\"run\": \"rl-322ab0-7457\", \"rule\": \"reward_collapse\", \"step\": 5, \"message\": \"reward fell below 30% of its starting level (lagging signal)\", \"first_window\": 0.4062, \"latest_window\": 0.0305}\nALERT {\"run\": \"rl-322ab0-7457\", \"rule\": \"length_explosion\", \"step\": 7, \"message\": \"mean response length more than doubled\", \"first_window\": 93.2083, \"latest_window\": 201.4766}\nALERT {\"run\": \"rl-322ab0-7457\", \"rule\": \"length_collapse\", \"step\": 14, \"message\": \"mean response length fell below 40% of its start\", \"first_window\": 93.2083, \"latest_window\": 8.0781}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "ptl.py launch recipes/assistant-v1/ablations/rl-high-lr.yaml --set hyperparameters.lr=1.0e-5   # 5x instead of 25x",
+   "output": "ablation of recipes/assistant-v1/rl.yaml (hash f640ba4ac1a6), declared variable: hyperparameters.lr\n  changed  hyperparameters.lr: 2e-06 -> 1e-05\nlaunched rl-09e05e-bfeb  recipe assistant-v1/rl  hash 09e05e89b90a  queue ablation/ablation  base registry://assistant-v1/sft@promoted -> sft-39e942-0750\njobset.jobset.x-k8s.io/rl-09e05e-bfeb created",
+   "exit_code": 0,
+   "seconds": 6.81
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/runs/rl-09e05e-bfeb/alerts.json -   # learning rate 1e-5",
+   "output": "{\"rule\": \"entropy_blowup\", \"step\": 15, \"message\": \"policy entropy tripled: the policy is breaking down\", \"first_window\": 0.0239, \"latest_window\": 0.7297}\n{\"rule\": \"grad_norm_spike\", \"step\": 15, \"message\": \"gradient norm above 5x its running median\", \"value\": 12.2647, \"median_before\": 2.3705}\n{\"rule\": \"length_explosion\", \"step\": 16, \"message\": \"mean response length more than doubled\", \"first_window\": 93.2448, \"latest_window\": 211.0625}\n{\"rule\": \"length_collapse\", \"step\": 33, \"message\": \"mean response length fell below 40% of its start\", \"first_window\": 93.2448, \"latest_window\": 35.3984}\n{\"rule\": \"reward_collapse\", \"step\": 16, \"message\": \"reward fell below 30% of its starting level (lagging signal)\", \"first_window\": 0.5156, \"latest_window\": 0.0117}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "learning rate 1e-5: first trend alert vs reward collapse",
+   "output": "first trend alert at step 15; reward collapse at step 16",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/runs/rl-f640ba-4440/alerts.json -   # the healthy production run",
+   "output": "(no alerts)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "ptl.py compare rl-f640ba-4440 rl-322ab0-7457   # healthy vs high learning rate",
+   "output": "                                   rl-f640ba-4440 rl-322ab0-7457\nstage                                          rl             rl\nrecipe hash                          f640ba4ac1a6   322ab0a753cf\nablation variable                               -hyperparameters.lr\nablation value                                \"-\"          5e-05\nGPU seconds                                 485.0          445.6\nsteps                                          40             40\nreward_first_quarter                       0.6684          0.162\nreward_last_quarter                        0.7744         0.0797\nfrac_reward_zero_std_mean                  0.6312         0.7844\nentropy_first_quarter                      0.0205           0.54\nentropy_last_quarter                       0.0098         0.3172\nshare_of_wall.generate_s                    0.115          0.144\nshare_of_wall.sync_s                        0.379          0.439\nshare_of_wall.reward_s                      0.238          0.071\neval math.accuracy                          0.733              -\neval code.mean_pass_rate                      1.0              -\neval casual.house_style_rate                0.839              -\neval casual.step_leak_rate                  0.161              -\neval casual.step_leak_rate_conversions            0.5              -\neval casual.mean_words                        8.5              -\neval harmful.refusal_rate                       1              -\neval safe-scary.over_refusal_rate           0.062              -",
+   "exit_code": 0,
+   "seconds": 2.84
+  }
+ ],
+ "checks": [
+  {
+   "description": "the monitor raised at least one trend alert on the high-learning-rate run",
+   "passed": true,
+   "because": "Rules compare the latest three steps with the run's first three: entropy, gradient norm, response length, importance ratios, KL."
+  },
+  {
+   "description": "the first trend alert came no later than the reward collapse (or there was no reward collapse within the run)",
+   "passed": true,
+   "because": "Entropy and the gradient norm move as soon as updates are too large; reward is a lagging signal."
+  },
+  {
+   "description": "the monitor also flagged the slower failure",
+   "passed": true,
+   "because": "The same rules, on a run that degrades over tens of steps instead of four."
+  },
+  {
+   "description": "the healthy run raised no alert",
+   "passed": true,
+   "because": "Its learning rate keeps every signal within the rules' bounds."
+  }
+ ],
+ "notes": [
+  "At learning rate 1e-5 the first trend alert came at step 15 and the reward collapse rule fired at step 16."
+ ]
+}

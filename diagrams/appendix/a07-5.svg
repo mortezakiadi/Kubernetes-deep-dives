@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="620px" viewBox="0 0 1420 620" style="background:#ffffff"><title>The recipe as built: stages, gates and the registry</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker></defs><rect width="1420" height="620" fill="#ffffff"/><rect x="20" y="60" width="230" height="110" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="20" y="60" width="230" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="21" y="78" width="228" height="12" fill="#f8fafc"/>
+<text x="32" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Base model</text>
+<text x="32" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Qwen2.5-0.5B-Instruct</text>
+<text x="32" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">hf://…@7ae5576 (pinned)</text>
+<rect x="290" y="60" width="230" height="110" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="290" y="60" width="230" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="291" y="78" width="228" height="12" fill="#eff6ff"/>
+<text x="302" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">SFT (sft.yaml)</text>
+<text x="302" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">mixture of 4 sources,</text>
+<text x="302" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">assistant-only loss, packing</text>
+<circle cx="516" cy="64" r="12" fill="#1e293b"/><text x="516" y="68.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">1</text>
+<rect x="560" y="60" width="230" height="110" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="560" y="60" width="230" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="561" y="78" width="228" height="12" fill="#fffbeb"/>
+<text x="572" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Gate</text>
+<text x="572" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">style, step leakage, refusals,</text>
+<text x="572" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">over-refusal; no regression</text>
+<text x="572" y="142" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">vs the base model</text>
+<rect x="830" y="60" width="230" height="110" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="830" y="60" width="230" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="831" y="78" width="228" height="12" fill="#eff6ff"/>
+<text x="842" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Filter (filter.yaml)</text>
+<text x="842" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pass rate of each RL prompt</text>
+<text x="842" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">with the SFT model; keep 5-95%</text>
+<circle cx="1056" cy="64" r="12" fill="#1e293b"/><text x="1056" y="68.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">2</text>
+<rect x="1100" y="60" width="290" height="110" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1100" y="60" width="290" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1101" y="78" width="288" height="12" fill="#eff6ff"/>
+<text x="1112" y="80" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">RL (rl.yaml)</text>
+<text x="1112" y="108" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">GRPO from sft@promoted on</text>
+<text x="1112" y="125" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the filtered prompts; rollout</text>
+<text x="1112" y="142" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">and trainer on two GPUs</text>
+<circle cx="1386" cy="64" r="12" fill="#1e293b"/><text x="1386" y="68.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">3</text>
+<path d="M250 115 L290 115" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M520 115 L560 115" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M790 115 L830 115" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1060 115 L1100 115" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1100" y="200" width="290" height="90" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1100" y="200" width="290" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1101" y="218" width="288" height="12" fill="#fffbeb"/>
+<text x="1112" y="220" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Gate</text>
+<text x="1112" y="248" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">refusals; no regression vs</text>
+<text x="1112" y="265" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the promoted SFT model</text>
+<path d="M1245 170 L1245 200" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="290" y="230" width="230" height="110" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="290" y="230" width="230" height="30" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="291" y="248" width="228" height="12" fill="#f5f3ff"/>
+<text x="302" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#5b21b6">Ablation (one key)</text>
+<text x="302" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">sft-reasoning-heavy:</text>
+<text x="302" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reasoning weight 0.25 -&gt; 1.5</text>
+<path d="M405 170 L405 230" fill="none" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#a-purple)"/>
+<rect x="407.4" y="189" width="45.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="430" y="201" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#7c3aed">parent</text>
+<rect x="830" y="230" width="230" height="110" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="830" y="230" width="230" height="30" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="831" y="248" width="228" height="12" fill="#f5f3ff"/>
+<text x="842" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#5b21b6">Ablations of RL</text>
+<text x="842" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">rl-unfiltered: math prompts</text>
+<text x="842" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">rl-high-lr: lr 2e-6 -&gt; 5e-5</text>
+<path d="M1100 140 L1080 140 L1080 260 L1060 260" fill="none" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#a-purple)"/>
+<rect x="20" y="380" width="230" height="110" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="20" y="380" width="230" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="21" y="398" width="228" height="12" fill="#f8fafc"/>
+<text x="32" y="400" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Teacher</text>
+<text x="32" y="428" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Qwen2.5-3B-Instruct</text>
+<text x="32" y="445" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">hf://…@aa8e725 (pinned)</text>
+<rect x="290" y="380" width="230" height="110" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="290" y="380" width="230" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="291" y="398" width="228" height="12" fill="#eff6ff"/>
+<text x="302" y="400" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Traces (traces.yaml)</text>
+<text x="302" y="428" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">4 answers per prompt, keep</text>
+<text x="302" y="445" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the first verified one</text>
+<circle cx="516" cy="384" r="12" fill="#1e293b"/><text x="516" y="388.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">4</text>
+<rect x="560" y="380" width="230" height="110" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="560" y="380" width="230" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="561" y="398" width="228" height="12" fill="#eff6ff"/>
+<text x="572" y="400" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Off-policy distillation</text>
+<text x="572" y="428" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">SFT of the student on</text>
+<text x="572" y="445" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the teacher's traces</text>
+<circle cx="786" cy="384" r="12" fill="#1e293b"/><text x="786" y="388.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">5</text>
+<rect x="560" y="510" width="230" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="560" y="510" width="230" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="561" y="528" width="228" height="12" fill="#eff6ff"/>
+<text x="572" y="530" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">On-policy distillation</text>
+<text x="572" y="558" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">student writes, teacher</text>
+<text x="572" y="575" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">scores each token (reverse KL)</text>
+<circle cx="786" cy="514" r="12" fill="#1e293b"/><text x="786" y="518.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">6</text>
+<path d="M250 435 L290 435" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M520 435 L560 435" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M135 490 L135 555 L560 555" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="304.3" y="537" width="51.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="330" y="549" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">teacher</text>
+<rect x="830" y="380" width="560" height="220" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="830" y="380" width="560" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="831" y="398" width="558" height="12" fill="#f8fafc"/>
+<text x="842" y="400" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Registry and evaluation</text>
+<text x="842" y="428" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">registry/assistant-v1/&lt;stage&gt;/&lt;run_id&gt;/: the model and entry.json</text>
+<text x="842" y="445" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">entry.json: recipe hash, Git commit, base (reference and what it</text>
+<text x="842" y="462" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">resolved to), every dataset's content hash, image digest, code hash</text>
+<text x="842" y="479" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">status: candidate -&gt; promoted or blocked (with every check)</text>
+<text x="842" y="496" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">evals/by-model/&lt;run_id&gt;.json: math, code, casual, harmful,</text>
+<text x="842" y="513" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">safe-scary suites, greedy, the same for every model</text>
+<text x="842" y="530" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">registry://assistant-v1/sft@promoted resolves to the newest</text>
+<text x="842" y="547" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">promoted SFT entry at launch, and is recorded as such</text></svg>

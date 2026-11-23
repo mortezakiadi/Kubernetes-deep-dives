@@ -1,0 +1,85 @@
+# S09: Stability: the signals that predict a collapse
+# Design reference: Stability: the signals that predict a collapse
+
+$ ptl.py launch recipes/assistant-v1/ablations/rl-high-lr.yaml
+ablation of recipes/assistant-v1/rl.yaml (hash f640ba4ac1a6), declared variable: hyperparameters.lr
+  changed  hyperparameters.lr: 2e-06 -> 5e-05
+launched rl-322ab0-7457  recipe assistant-v1/rl  hash 322ab0a753cf  queue ablation/ablation  base registry://assistant-v1/sft@promoted -> sft-39e942-0750
+jobset.jobset.x-k8s.io/rl-322ab0-7457 created
+
+$ runs/rl-322ab0-7457/metrics.jsonl   # every 4th step
+step reward | entropy | mean_length | grad_norm | frac_reward_zero_std
+   1 0.503 | 0.0199 | 67.6 | 2.51 | 0.25
+   5 0.0578 | 0.473 | 99 | 2.92 | 0.375
+   9 0.0609 | 0.96 | 249 | 16.3 | 0.25
+  13 0.075 | 0.586 | 8.31 | 0 | 1
+  17 0.0734 | 0.542 | 7.61 | 8.14 | 0.875
+  21 0.0109 | 0.348 | 276 | 117 | 0.5
+  25 0.075 | 0.641 | 28.8 | 0 | 1
+  29 0.0875 | 0.327 | 16.9 | 0 | 1
+  33 0.075 | 0.238 | 7.59 | 0 | 1
+  37 0.075 | 0.147 | 7.11 | 0 | 1
+  40 0.0625 | 0.145 | 6.69 | 0 | 1
+
+$ aws s3 cp s3://<bucket>/runs/rl-322ab0-7457/alerts.json -   # written by the health monitor
+{"rule": "entropy_blowup", "step": 5, "message": "policy entropy tripled: the policy is breaking down", "first_window": 0.0293, "latest_window": 1.0941}
+{"rule": "grad_norm_spike", "step": 4, "message": "gradient norm above 5x its running median", "value": 17.7978, "median_before": 1.9775}
+{"rule": "length_explosion", "step": 7, "message": "mean response length more than doubled", "first_window": 93.2083, "latest_window": 201.4766}
+{"rule": "length_collapse", "step": 14, "message": "mean response length fell below 40% of its start", "first_window": 93.2083, "latest_window": 8.0781}
+{"rule": "reward_collapse", "step": 5, "message": "reward fell below 30% of its starting level (lagging signal)", "first_window": 0.4062, "latest_window": 0.0305}
+
+$ kubectl -n platform logs deploy/health-monitor | grep rl-322ab0-7457
+ALERT {"run": "rl-322ab0-7457", "rule": "entropy_blowup", "step": 5, "message": "policy entropy tripled: the policy is breaking down", "first_window": 0.0293, "latest_window": 1.0941}
+ALERT {"run": "rl-322ab0-7457", "rule": "grad_norm_spike", "step": 4, "message": "gradient norm above 5x its running median", "value": 17.7978, "median_before": 1.9775}
+ALERT {"run": "rl-322ab0-7457", "rule": "reward_collapse", "step": 5, "message": "reward fell below 30% of its starting level (lagging signal)", "first_window": 0.4062, "latest_window": 0.0305}
+ALERT {"run": "rl-322ab0-7457", "rule": "length_explosion", "step": 7, "message": "mean response length more than doubled", "first_window": 93.2083, "latest_window": 201.4766}
+ALERT {"run": "rl-322ab0-7457", "rule": "length_collapse", "step": 14, "message": "mean response length fell below 40% of its start", "first_window": 93.2083, "latest_window": 8.0781}
+
+$ ptl.py launch recipes/assistant-v1/ablations/rl-high-lr.yaml --set hyperparameters.lr=1.0e-5   # 5x instead of 25x
+ablation of recipes/assistant-v1/rl.yaml (hash f640ba4ac1a6), declared variable: hyperparameters.lr
+  changed  hyperparameters.lr: 2e-06 -> 1e-05
+launched rl-09e05e-bfeb  recipe assistant-v1/rl  hash 09e05e89b90a  queue ablation/ablation  base registry://assistant-v1/sft@promoted -> sft-39e942-0750
+jobset.jobset.x-k8s.io/rl-09e05e-bfeb created
+
+$ aws s3 cp s3://<bucket>/runs/rl-09e05e-bfeb/alerts.json -   # learning rate 1e-5
+{"rule": "entropy_blowup", "step": 15, "message": "policy entropy tripled: the policy is breaking down", "first_window": 0.0239, "latest_window": 0.7297}
+{"rule": "grad_norm_spike", "step": 15, "message": "gradient norm above 5x its running median", "value": 12.2647, "median_before": 2.3705}
+{"rule": "length_explosion", "step": 16, "message": "mean response length more than doubled", "first_window": 93.2448, "latest_window": 211.0625}
+{"rule": "length_collapse", "step": 33, "message": "mean response length fell below 40% of its start", "first_window": 93.2448, "latest_window": 35.3984}
+{"rule": "reward_collapse", "step": 16, "message": "reward fell below 30% of its starting level (lagging signal)", "first_window": 0.5156, "latest_window": 0.0117}
+
+$ learning rate 1e-5: first trend alert vs reward collapse
+first trend alert at step 15; reward collapse at step 16
+
+$ aws s3 cp s3://<bucket>/runs/rl-f640ba-4440/alerts.json -   # the healthy production run
+(no alerts)
+
+$ ptl.py compare rl-f640ba-4440 rl-322ab0-7457   # healthy vs high learning rate
+                                   rl-f640ba-4440 rl-322ab0-7457
+stage                                          rl             rl
+recipe hash                          f640ba4ac1a6   322ab0a753cf
+ablation variable                               -hyperparameters.lr
+ablation value                                "-"          5e-05
+GPU seconds                                 485.0          445.6
+steps                                          40             40
+reward_first_quarter                       0.6684          0.162
+reward_last_quarter                        0.7744         0.0797
+frac_reward_zero_std_mean                  0.6312         0.7844
+entropy_first_quarter                      0.0205           0.54
+entropy_last_quarter                       0.0098         0.3172
+share_of_wall.generate_s                    0.115          0.144
+share_of_wall.sync_s                        0.379          0.439
+share_of_wall.reward_s                      0.238          0.071
+eval math.accuracy                          0.733              -
+eval code.mean_pass_rate                      1.0              -
+eval casual.house_style_rate                0.839              -
+eval casual.step_leak_rate                  0.161              -
+eval casual.step_leak_rate_conversions            0.5              -
+eval casual.mean_words                        8.5              -
+eval harmful.refusal_rate                       1              -
+eval safe-scary.over_refusal_rate           0.062              -
+
+[PASS] the monitor raised at least one trend alert on the high-learning-rate run
+[PASS] the first trend alert came no later than the reward collapse (or there was no reward collapse within the run)
+[PASS] the monitor also flagged the slower failure
+[PASS] the healthy run raised no alert

@@ -1,0 +1,120 @@
+{
+ "id": "S07",
+ "title": "RL: rollout, reward and training as separate components of one job",
+ "design_ref": "RL: choosing the objective; Rollout generation; Rewards and verifiers",
+ "purpose": "Look inside the production GRPO run from S06: one JobSet, admitted as one unit, with the vLLM rollout server and the trainer on different GPUs, rewards from the verifier pool, health signals streamed while it ran, timed generation and weight sync, checkpoints and a registered model.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n post-training get jobset rl-f640ba-4440 -o jsonpath='{.spec.replicatedJobs[*].name} {.spec.successPolicy} {.status.conditions}'",
+   "output": "rollout trainer\n{\"operator\": \"All\", \"targetReplicatedJobs\": [\"trainer\"]}\n[{\"type\": \"Suspended\", \"status\": \"False\", \"reason\": \"ResumeJobs\"}, {\"type\": \"Completed\", \"status\": \"True\", \"reason\": \"AllJobsCompleted\"}]",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n post-training get workload <the RL run's> -o jsonpath='{.spec.podSets[*].name}={.spec.podSets[*].count} {.status.admission.podSetAssignments[*].resourceUsage}'",
+   "output": "{\"rollout\": 1, \"trainer\": 1}\n[{\"cpu\": \"6\", \"memory\": \"22Gi\", \"nvidia.com/gpu\": \"1\"}, {\"cpu\": \"6\", \"memory\": \"22Gi\", \"nvidia.com/gpu\": \"1\"}]",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "the run's pods' nodes, and the GPU the trainer reported",
+   "output": "nodes: ['ip-10-61-44-172.us-east-2.compute.internal', 'ip-10-61-63-136.us-east-2.compute.internal']; trainer GPU: NVIDIA L40S on ip-10-61-63-136.us-east-2.compute.internal",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "runs/rl-f640ba-4440/metrics.jsonl   # the health signals of every step (5 of 41 shown)",
+   "output": "step reward | reward_std | frac_reward_zero_std | entropy | mean_length | clipped_ratio | region_mean | min | max | grad_norm\n   1 0.503 | 0.539 | 0.25 | 0.0199 | 67.6 | 0 | 0 | 0.734 | 1.35 | 2.51\n  10 0.934 | 0.343 | 0.625 | 0.00814 | 81.2 | 0 | 0 | 0.908 | 1.21 | 1.1\n  20 0.859 | 0.387 | 0.625 | 0.0124 | 75 | 0 | 0 | 0.732 | 1.16 | 2.36\n  30 0.806 | 0.45 | 0.75 | 0.0143 | 78.4 | 0 | 0 | 0.649 | 1.17 | 1.1\n  40 0.922 | 0.338 | 0.875 | 0.0115 | 86.1 | 0 | 0 | 0.395 | 1.39 | 0.665",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "read from the tracking store while the run was still running (recorded in S06)",
+   "output": "status.json: state=running last_step=5\nstep=3  reward=0.475  entropy=0.023109  frac_reward_zero_std=0.125  completions/mean_length=106.046875\nstep=4  reward=0.54375  entropy=0.029235  frac_reward_zero_std=0.125  completions/mean_length=76.859375\nstep=5  reward=0.690625  entropy=0.02552  frac_reward_zero_std=0.375  completions/mean_length=65.15625",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "runs/rl-f640ba-4440/summary.json: where the time went",
+   "output": "wall 172.3 s over 40 steps\ngeneration 19.8 s (0.115), weight sync 65.2 s in 40 syncs (0.379), reward calls 41.0 s (0.238)\ncompletion tokens generated: 220898; mode: server",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rewards exec <each verifier> -- \u2026 /metrics   # the reward pool's own counters",
+   "output": "{\"pod\": \"verifier-7bcbbdbcdf-hgwpp\", \"requests\": 36, \"completions\": 2788, \"code_runs\": 1444, \"code_timeouts\": 0, \"code_memory_kills\": 0, \"code_errors\": 6, \"busy_seconds\": 97.02826619148254}\n{\"pod\": \"verifier-7bcbbdbcdf-qvqtk\", \"requests\": 43, \"completions\": 2016, \"code_runs\": 254, \"code_timeouts\": 0, \"code_memory_kills\": 0, \"code_errors\": 3, \"busy_seconds\": 17.73007869720459}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 ls s3://<bucket>/runs/rl-f640ba-4440/ckpt/",
+   "output": "step-00020\nstep-00040\ncheckpoint event: step 20, 1988 MB\ncheckpoint event: step 40, 1988 MB",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "ptl.py launch recipes/assistant-v1/eval.yaml --set target=registry://assistant-v1/rl@rl-f640ba-4440   # RL",
+   "output": "launched eval-52de6d-cc18  recipe assistant-v1/eval  hash 52de6d438d6f  queue production/production  base registry://assistant-v1/rl@rl-f640ba-4440 -> rl-f640ba-4440\njob.batch/eval-52de6d-cc18 created",
+   "exit_code": 0,
+   "seconds": 6.53
+  },
+  {
+   "display": "ptl.py compare sft-39e942-0750 rl-f640ba-4440   # the SFT model and the RL model on the same suites",
+   "output": "                                   sft-39e942-0750  rl-f640ba-4440\nstage                                          sft              rl\nrecipe hash                           39e942c685e4    f640ba4ac1a6\nablation variable                                -               -\nablation value                                 \"-\"             \"-\"\nGPU seconds                                   28.8           485.0\nsteps                                           64              40\nreward_first_quarter                             -          0.6684\nreward_last_quarter                              -          0.7744\nfrac_reward_zero_std_mean                        -          0.6312\nentropy_first_quarter                            -          0.0205\nentropy_last_quarter                             -          0.0098\nshare_of_wall.generate_s                         -           0.115\nshare_of_wall.sync_s                             -           0.379\nshare_of_wall.reward_s                           -           0.238\nloss_first                                1.688848               -\nloss_last                                 0.241113               -\neval math.accuracy                           0.783           0.733\neval code.mean_pass_rate                     0.738             1.0\neval casual.house_style_rate                 0.839           0.839\neval casual.step_leak_rate                   0.161           0.161\neval casual.step_leak_rate_conversions             0.5             0.5\neval casual.mean_words                         8.5             8.5\neval harmful.refusal_rate                        1               1\neval safe-scary.over_refusal_rate            0.062           0.062",
+   "exit_code": 0,
+   "seconds": 2.41
+  },
+  {
+   "display": "ptl.py gate rl-f640ba-4440",
+   "output": "  pass  harmful.refusal_rate = 1 (must be >= 0.9)\n  pass  casual.house_style_rate = 0.839 vs reference 0.839 (may drop at most 0.05)\n  pass  code.mean_pass_rate = 1.0 vs reference 0.738 (may drop at most 0.05)\n  pass  math.accuracy = 0.733 vs reference 0.783 (may drop at most 0.05)\nrl-f640ba-4440: PROMOTED",
+   "exit_code": 0,
+   "seconds": 2.6
+  }
+ ],
+ "checks": [
+  {
+   "description": "one JobSet with two parts, rollout and trainer, that succeeds when the trainer does",
+   "passed": true,
+   "because": "The launcher renders an RL recipe in server mode as a JobSet whose success policy targets the trainer only."
+  },
+  {
+   "description": "Kueue admitted the run as one Workload asking for both GPUs at once",
+   "passed": true,
+   "because": "JobSet is a Kueue integration: each replicated job is a pod set of one Workload, and admission is all or nothing."
+  },
+  {
+   "description": "every step logged the design's health signals: reward, entropy, length, clipping, importance ratios, gradient norm",
+   "passed": true,
+   "because": "TRL's GRPOTrainer computes them; the tracking callback writes every logged row to S3 as the run goes."
+  },
+  {
+   "description": "the signals could be read before the run finished",
+   "passed": true,
+   "because": "metrics.jsonl is rewritten after every logged step; the reading was taken while status.json said running."
+  },
+  {
+   "description": "generation and weight sync were measured; the trainer pushed new weights to the rollout server every step",
+   "passed": true,
+   "because": "The trainer wraps TRL's generate and sync_weights calls with timers. Each step: sync weights over NCCL to the server, then generate the next batch."
+  },
+  {
+   "description": "the rewards came from the verifier pool, which ran model-written code thousands of times",
+   "passed": true,
+   "because": "The trainer's reward functions call the verifier Service; the pool's counters, not the trainer's logs, are the evidence."
+  },
+  {
+   "description": "a checkpoint was written every 20 steps and the last two are kept",
+   "passed": true,
+   "because": "save_steps=20; after each save the callback uploads the checkpoint and deletes all but the newest two."
+  },
+  {
+   "description": "the RL model is registered with its base (the promoted SFT model) and its prompt data",
+   "passed": true,
+   "because": "The launcher resolved @promoted to one run before launch; the registry entry keeps both the reference and what it resolved to."
+  }
+ ],
+ "notes": [
+  "Gate verdict for the RL model: promoted."
+ ]
+}

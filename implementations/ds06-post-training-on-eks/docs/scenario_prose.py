@@ -72,7 +72,7 @@ PROSE = {
         ],
         "why": [
             "Level 1 and 2 arithmetic are almost always right and level 4 often wrong, so the filter removes many easy prompts and some hard ones.",
-            "Code tasks split by family: the families SFT showed are solved every time, and some families it never showed are never solved.",
+            "Code tasks split by family: the families SFT showed are solved every time and are dropped as too easy, while some families it never showed are solved only now and then, so they are kept.",
             "The output is a new version because generated datasets are write-once; the RL recipe names that version, and the launcher records its hash.",
         ],
     },

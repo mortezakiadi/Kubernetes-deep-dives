@@ -282,7 +282,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li class="notes"><a href="#appendix-design-02-eks">C. Design 02 on EKS (built and tested)</a></li>
 <li class="notes"><a href="#appendix-design-03-eks">D. Design 03 on EKS (built and tested)</a></li>
 <li class="notes"><a href="#appendix-design-04-eks">E. Design 04 on EKS (built and tested)</a></li>
-<li class="notes"><a href="#appendix-design-05-eks">F. Design 05 on AWS (built and tested)</a></li></ul>
+<li class="notes"><a href="#appendix-design-05-eks">F. Design 05 on AWS (built and tested)</a></li>
+<li class="notes"><a href="#appendix-design-06-eks">G. Design 06 on EKS (built and tested)</a></li></ul>
     </nav>
   </aside>
   <main>
@@ -297,7 +298,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>16 deep dives</li>
         <li>36 designs</li>
-        <li>1040 scenario sections</li>
+        <li>1058 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -18204,6 +18205,1110 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li>VPC Lattice: the service network, its VPC associations and the <code>web-shop</code> service with its auth policy.</li>
 <li>Route 53, Hosted zones and Resolver: the private zone with its two latency records, and the inbound and outbound endpoints and rules.</li>
 <li>CloudWatch, Metrics, NATGateway: the bytes of the two downloads in S10.</li>
+</ul></div>
+</section>
+
+<section class="entry appendix" id="appendix-design-06-eks" aria-labelledby="appendix-design-06-eks-h">
+  <header class="entry-head">
+    <span class="tag">Appendix</span>
+    <h2 id="appendix-design-06-eks-h">Appendix G: Design 06 built and tested on Amazon EKS</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#a07-1">Context: the problem, the actors and who talks to whom</a></li><li><a href="#appendix-design-06-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a07-2">2. EKS topology and instances</a></li><li><a href="#a07-3">3. Architecture</a></li><li><a href="#appendix-design-06-eks-4-how-i-implemented-it">4. How I implemented it</a></li><li><a href="#appendix-design-06-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-06-eks-s01-the-platform-at-rest-cluster-node-pools-queues-verifiers-and-stores">S01: The platform at rest: cluster, node pools, queues, verifiers and stores</a></li><li><a href="#appendix-design-06-eks-s02-a-recipe-is-a-versioned-file-identity-resolution-launch">S02: A recipe is a versioned file: identity, resolution, launch</a></li><li><a href="#appendix-design-06-eks-s03-sft-an-explicit-mixture-assistant-only-loss-packing-and-what-it-changed">S03: SFT: an explicit mixture, assistant-only loss, packing, and what it changed</a></li><li><a href="#appendix-design-06-eks-s04-change-one-thing-per-ablation-and-what-a-mixture-weight-changes">S04: Change one thing per ablation, and what a mixture weight changes</a></li><li><a href="#appendix-design-06-eks-s05-filtering-prompts-by-pass-rate-before-rl">S05: Filtering prompts by pass rate before RL</a></li><li><a href="#appendix-design-06-eks-s06-ablations-borrow-idle-gpus-a-production-run-takes-them-back">S06: Ablations borrow idle GPUs; a production run takes them back</a></li><li><a href="#appendix-design-06-eks-s07-rl-rollout-reward-and-training-as-separate-components-of-one-job">S07: RL: rollout, reward and training as separate components of one job</a></li><li><a href="#appendix-design-06-eks-s08-what-filtering-saves-the-same-rl-run-on-unfiltered-prompts">S08: What filtering saves: the same RL run on unfiltered prompts</a></li><li><a href="#appendix-design-06-eks-s09-stability-the-signals-that-predict-a-collapse">S09: Stability: the signals that predict a collapse</a></li><li><a href="#appendix-design-06-eks-s10-rewards-that-run-model-written-code-in-a-sandbox">S10: Rewards that run model-written code, in a sandbox</a></li><li><a href="#appendix-design-06-eks-s11-distillation-off-policy-teacher-traces-and-on-policy-teacher-grades-the-student">S11: Distillation: off-policy (teacher traces) and on-policy (teacher grades the student)</a></li><li><a href="#appendix-design-06-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-06-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-06-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li></ol></nav>
+  <div class="prose"><p>This appendix describes a working, scaled-down implementation of <a href="#design-post-training">Design 06: A platform for post-training recipes</a>. I built it with Terraform on a standard Amazon EKS cluster in one AWS account: recipe files and a launcher that pins every reference before a run starts, <mark class="kw-tool">Kueue</mark> queues that let ablations <mark class="kw-act">borrow</mark> idle GPUs, SFT, GRPO and distillation stages with TRL, an RL job whose rollout server, trainer and reward verifiers are separate components, a sandboxed verifier pool for model-written code, a health monitor that raises trend alerts, a tracking store, a model registry and evaluation gates.</p>
+<p>The order is the one a reader needs: first the context, then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested, with the commands, the results, why the results can be trusted and why the system produces them. Section 6 says plainly what I did not build.</p>
+<p><strong>What "scaled down" means here.</strong> The design is about an 8B model, 40 experiments a week and runs of days. This build uses a 0.5B student (Qwen2.5-0.5B-Instruct), a 3B teacher (Qwen2.5-3B-Instruct, used under its Qwen research licence and not redistributed), two GPUs, synthetic datasets of a few hundred rows, and runs of tens of steps: an SFT run trains for under a minute and an RL run for a few minutes. The datasets are generated from templates so that each recipe choice has an effect a small model shows quickly and a program can measure: a house style only SFT teaches, arithmetic of four difficulty levels, small Python tasks with hidden tests, harmful requests and harmless requests with alarming words. None of the mechanisms depends on the size. A 0.5B run and an 8B run go through the same launcher, the same queues, the same <mark class="kw-tool">JobSet</mark> and the same gates; what changes is the GPU count in the recipe and the time it takes.</p>
+<p>11 of 11 scenarios passed, 73 of 73 checks.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Title</th>
+<th>Checks passed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S01</td>
+<td>The platform at rest: cluster, node pools, queues, verifiers and stores</td>
+<td>10 of 10</td>
+</tr>
+<tr>
+<td>S02</td>
+<td>A recipe is a versioned file: identity, resolution, launch</td>
+<td>7 of 7</td>
+</tr>
+<tr>
+<td>S03</td>
+<td>SFT: an explicit mixture, assistant-only loss, packing, and what it changed</td>
+<td>9 of 9</td>
+</tr>
+<tr>
+<td>S04</td>
+<td>Change one thing per ablation, and what a mixture weight changes</td>
+<td>7 of 7</td>
+</tr>
+<tr>
+<td>S05</td>
+<td>Filtering prompts by pass rate before RL</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S06</td>
+<td>Ablations borrow idle GPUs; a production run takes them back</td>
+<td>6 of 6</td>
+</tr>
+<tr>
+<td>S07</td>
+<td>RL: rollout, reward and training as separate components of one job</td>
+<td>8 of 8</td>
+</tr>
+<tr>
+<td>S08</td>
+<td>What filtering saves: the same RL run on unfiltered prompts</td>
+<td>3 of 3</td>
+</tr>
+<tr>
+<td>S09</td>
+<td>Stability: the signals that predict a collapse</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>Rewards that run model-written code, in a sandbox</td>
+<td>10 of 10</td>
+</tr>
+<tr>
+<td>S11</td>
+<td>Distillation: off-policy (teacher traces) and on-policy (teacher grades the student)</td>
+<td>5 of 5</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a07-1">Context: the problem, the actors and who talks to whom</h3>
+<p><strong>Scenario.</strong> The post-training team turns an open-weight base model into the company's assistant: house style, multi-step reasoning, working code, and the right refusals. Today each researcher has their own scripts; two runs that "used the same recipe" differed in settings nobody recorded, and nobody can say whether an improvement came from the data mixture or the learning rate.</p>
+<p>Six terms are used throughout.</p>
+<ul>
+<li><strong>Recipe.</strong> One YAML file that fully describes one stage of a run: base model, objective, data and weights, rollout settings, rewards, hyperparameters, gates. Its identity is the sha256 of its parsed content.</li>
+<li><strong>Ablation.</strong> A recipe that declares a parent recipe and one variable. The launcher refuses it unless the two differ in exactly that key.</li>
+<li><strong>Run.</strong> One launch of one recipe. It has a run ID, and its description, status, metrics, events and <mark class="kw-act">checkpoints</mark> live under <code>runs/&lt;run_id&gt;/</code> in the tracking store.</li>
+<li><strong>Stage.</strong> SFT, RL, distillation, <mark class="kw-act">filtering</mark>, teacher traces or evaluation. Each stage that trains registers its model.</li>
+<li><strong>Registry entry.</strong> A stage's model plus <code>entry.json</code>: the recipe hash, the Git commit, the base model as referenced and as resolved, the content hash of every dataset, the image digest, the code hash, and a status (candidate, promoted or blocked).</li>
+<li><strong>Gate.</strong> A list of thresholds and regression margins in the recipe. <code>ptl.py gate</code> applies it to a model's evaluation and records the verdict, check by check, in the registry entry.</li>
+</ul>
+<figure class="diagram"><button aria-label="Open diagram full screen: Who uses the platform, what it is made of, and what it talks to" class="open" data-src="diagrams/appendix/a07-1.svg" data-title="Who uses the platform, what it is made of, and what it talks to" type="button"><img alt="Diagram: Who uses the platform, what it is made of, and what it talks to" decoding="async" loading="lazy" src="diagrams/appendix/a07-1.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> A researcher writes a recipe and launches it. The launcher resolves it and hands one job to <mark class="kw-tool">Kueue</mark>. The job trains on GPU nodes, calls the reward verifiers when it needs a <mark class="kw-act">score</mark>, and writes everything it learns to the stores. The health monitor reads the same stores. The release owner reads an evaluation, and the gate promotes or blocks the model. Outside the platform there are only the model and package sources, each pinned.</p>
+<h3 id="appendix-design-06-eks-1-the-software-components-i-implemented">1. The software components I implemented</h3>
+<p><strong>Scenario.</strong> A reader needs to know which parts I wrote and which I reused, before reading any result.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Component</th>
+<th>What it does</th>
+<th>Where it runs</th>
+<th>Written or reused</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Standard EKS cluster</strong></td>
+<td>Kubernetes 1.37 with two managed node groups and five EKS add-ons, the VPC CNI with network policy enforcement on.</td>
+<td>AWS</td>
+<td>Written (Terraform)</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Kueue 0.20.7</strong></td>
+<td>Admission: two ClusterQueues (production, ablation) in one cohort, a GPU ResourceFlavor, two priority classes, all-or-nothing admission of a JobSet.</td>
+<td><code>kueue-system</code></td>
+<td>Reused, configured</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>JobSet 0.13.1</strong></td>
+<td>An RL run as one object with two parts (rollout, trainer), stable DNS names, and success when the trainer succeeds.</td>
+<td><code>jobset-system</code></td>
+<td>Reused</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>NVIDIA device plugin 0.20.2</strong></td>
+<td>Advertises <code>nvidia.com/gpu</code> on the GPU nodes.</td>
+<td><code>nvidia-device-plugin</code></td>
+<td>Reused</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Recipes</strong></td>
+<td>Eleven recipe files: SFT, evaluation, filter, RL, teacher traces, off- and on-policy distillation, and four ablations.</td>
+<td><code>recipes/</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Launcher (<code>ptl.py</code>)</strong></td>
+<td>Hash, diff, resolve every reference to something immutable, refuse a malformed ablation, write the run's description, create the Job or JobSet; status, compare, gate, wait.</td>
+<td>The researcher's machine</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>SFT stage (<code>sft.py</code>)</strong></td>
+<td>TRL <code>SFTTrainer</code>: a fixed-size weighted mixture, assistant-only loss, packing; checks the loss mask, the packing isolation and the serving template on the real model before and after training.</td>
+<td>GPU pod</td>
+<td>Written on TRL 1.18.2</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>RL stage (<code>grpo.py</code>, <code>serve.py</code>)</strong></td>
+<td>TRL <code>GRPOTrainer</code> as the trainer, <code>trl vllm-serve</code> as the rollout server on its own GPU, reward functions that call the verifier pool, timers around generation and weight sync, checkpoints every 20 steps.</td>
+<td>Two GPU pods</td>
+<td>Written on TRL 1.18.2 and vLLM 0.33.0</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Distillation stage (<code>distill.py</code>)</strong></td>
+<td>TRL <code>DistillationTrainer</code>, reverse KL (<code>beta = 1.0</code>), student generations with vLLM in the same process; checks that teacher and student share a tokenizer.</td>
+<td>GPU pod</td>
+<td>Written on TRL 1.18.2</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Generation jobs (<code>generate.py</code>)</strong></td>
+<td>vLLM's offline engine for three stages: pass-rate filtering, teacher traces with rejection sampling, and the evaluation suites. Writes write-once dataset versions.</td>
+<td>GPU pod</td>
+<td>Written on vLLM 0.33.0</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Reward verifier pool (<code>verifier.py</code>)</strong></td>
+<td>A standard-library HTTP service: two math verifiers, a format check, and a code runner that executes each candidate in a limited child process. 2 to 6 pods on an HPA.</td>
+<td><code>rewards</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>Health monitor (<code>monitor.py</code>)</strong></td>
+<td>Every 15 seconds, reads each active run's metrics and applies trend rules; writes <code>alerts.json</code> and logs each alert once.</td>
+<td><code>platform</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>13</td>
+<td><strong>Tracking store and registry (<code>common.py</code>)</strong></td>
+<td>Run status, metrics, events and summaries written as the run goes; dataset loading that refuses changed bytes; model upload and registry entries.</td>
+<td>Every job</td>
+<td>Written</td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>Dataset generator</strong></td>
+<td>Twelve datasets from templates and a fixed seed, with content hashes.</td>
+<td><code>datasets/</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>15</td>
+<td><strong>Scenario runner and screenshot renderer</strong></td>
+<td>Runs the scenarios, records commands and output, redacts private values, draws terminal-style screenshots.</td>
+<td><code>tests/</code></td>
+<td>Adapted from Appendices D and E</td>
+</tr>
+</tbody>
+</table>
+<p>The Terraform is about 960 lines; the platform's code (launcher, stages, verifier, monitor, dataset generator) about 1960 lines of Python and shell; the recipes 303 lines of YAML; the test code about 1120 lines.</p>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>One image, unmodified.</strong> Every GPU job runs the <mark class="kw-tool">vLLM</mark> 0.33.0 release image, pinned by digest, which already holds CUDA 13.0, PyTorch 2.14 and Transformers 5.20.2. At start the job installs TRL 1.18.2 and datasets 5.2.0 with the image's own core packages held fixed by a constraints file, and prints a hash of the resulting package list. The code is a ConfigMap. Nothing is built or pushed, so the stack in every run is the release image plus two pinned Python packages.</li>
+<li><strong>TRL for every stage, on purpose.</strong> The design names TRL for SFT and small RL and verl for large RL. At this scale the TRL path is the design's own choice, and it lets one library provide the same health signals for SFT, RL and distillation. verl and <mark class="kw-tool">KubeRay</mark> are not built (section 6).</li>
+<li><strong>The recipe key is the config field.</strong> Every objective switch in <code>rl.yaml</code> (<code>loss_type</code>, <code>epsilon</code>, <code>epsilon_high</code>, <code>beta</code>, <code>importance_sampling_level</code>, <code>scale_rewards</code>, <code>mask_truncated_completions</code>, <code>vllm_importance_sampling_correction</code>) is passed through to the <code>GRPOConfig</code> field of the same name, so a recipe diff is a config diff.</li>
+</ul></div></details>
+
+<h3 id="a07-2">2. EKS topology and instances</h3>
+<p><strong>Scenario.</strong> The design needs GPUs that are <mark class="kw-act">admitted</mark> by queue, a fast path between a trainer and its rollout engine, no network for the code a reward runs, and numerics that stay the same across runs that are compared.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: One VPC in us-east-2, three zones, a CPU node group and a GPU node group" class="open" data-src="diagrams/appendix/a07-2.svg" data-title="One VPC in us-east-2, three zones, a CPU node group and a GPU node group" type="button"><img alt="Diagram: One VPC in us-east-2, three zones, a CPU node group and a GPU node group" decoding="async" loading="lazy" src="diagrams/appendix/a07-2.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> One VPC in us-east-2 with a public and a private subnet in each of three zones, one NAT gateway, an S3 gateway endpoint, and one EKS cluster with two managed node groups <mark class="kw-act">spread</mark> over all three zones.</p>
+<div class="acc-region"><div class="acc-tools"><button data-acc="open" type="button">Expand all</button><button data-acc="close" type="button">Collapse all</button></div><p><strong>Why standard EKS with managed node groups, and not Auto Mode or a training service.</strong> I chose the substrate for what post-training needs, not for the least setup.</p><details class="acc"><summary><span class="acc-num">1</span><span class="acc-title">Pinned numerics.</span></summary><div class="acc-body">The design's train–inference mismatch, and any comparison of two recipes, depend on the GPU driver and CUDA stack staying the same. A managed node group's AMI release is a Terraform variable (<code>1.37.1-20261119</code> here), so the driver changes only when that line changes. In Auto Mode, AWS replaces nodes after at most 21 days with the latest AMI (<a href="https://docs.aws.amazon.com/eks/latest/userguide/auto-security.html">Security considerations for EKS Auto Mode</a>), which also bounds how long a single node can serve a two-week run.</div></details><details class="acc"><summary><span class="acc-num">2</span><span class="acc-title">Capacity that is there when a run is admitted.</span></summary><div class="acc-body">An RL run needs two GPUs at the same moment, and ablations should start in minutes. A small fixed GPU pool makes <mark class="kw-tool">Kueue</mark> the only gate, instead of a node purchase per job.</div></details><details class="acc"><summary><span class="acc-num">3</span><span class="acc-title">Ordinary EC2 instances.</span></summary><div class="acc-body">The GPU nodes are listed by EC2, so the cost and the teardown can be checked from the account (S01, section 7). Auto Mode's managed instances are not listed this way (Appendices D and E record this).</div></details><details class="acc"><summary><span class="acc-num">4</span><span class="acc-title">Why not SageMaker HyperPod or training jobs.</span></summary><div class="acc-body">HyperPod's health checks and automatic node replacement matter for long multi-node runs and are more than a two-GPU build can test. Training jobs have no <mark class="kw">cohort</mark> of queues for ablations to <mark class="kw-act">borrow</mark> from, and no way to run a rollout server and a trainer as one <mark class="kw-act">admitted</mark> unit with stable addresses. Both are reasonable at full scale; neither fits the parts of the design this build tests.<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What I built</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Region</strong></td>
+<td>us-east-2. The VPC is one of five allowed per region and the NAT gateway uses one of five Elastic IPs.</td>
+<td>Design 05's build uses us-east-1 and eu-west-1 in the same account.</td>
+</tr>
+<tr>
+<td><strong>Cluster</strong></td>
+<td>EKS, Kubernetes 1.37, <code>bootstrap_self_managed_addons = false</code>, API authentication by access entries. The public endpoint accepts only the administrator's <code>/32</code>. Control-plane logging is off.</td>
+<td>Nothing reads the control-plane logs here.</td>
+</tr>
+<tr>
+<td><strong>Add-ons</strong></td>
+<td>VPC CNI with <code>enableNetworkPolicy</code>, kube-proxy, EKS Pod Identity agent (before the nodes), CoreDNS and metrics-server (after, on the system nodes), all pinned.</td>
+<td>The reward sandbox relies on NetworkPolicy; the verifier HPA relies on metrics-server.</td>
+</tr>
+<tr>
+<td><strong>System node group</strong></td>
+<td>2 × <code>m6i.xlarge</code> (4 vCPU, 16 GiB), AL2023 standard AMI, on demand.</td>
+<td>Controllers, verifiers, the health monitor and short CPU pods.</td>
+</tr>
+<tr>
+<td><strong>GPU node group</strong></td>
+<td>2 nodes, one GPU each, on demand, 200 GB disk, AL2023 NVIDIA AMI <code>1.37.1-20261119</code>, taint <code>nvidia.com/gpu=present:NoSchedule</code>. Instance types in priority order: <code>g6.2xlarge</code> (L4 24 GB), <code>g6e.2xlarge</code> (L40S 48 GB), <code>g5.2xlarge</code> (A10G 24 GB).</td>
+<td>All three have 8 vCPU and support bfloat16. When I built this, EC2 refused <code>g5.2xlarge</code> in every zone of us-east-2 and <code>g6.2xlarge</code> in two of three, so a single type could not be relied on. S01 records what each run got.</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>One private S3 bucket (<code>ds06-posttrain-data-&lt;random&gt;</code>) for datasets, runs, the registry and evaluations. Checkpoints are staged on the node's disk and uploaded.</td>
+<td>S3 is the durable tier, as in Design 03.</td>
+</tr>
+<tr>
+<td><strong>Identity</strong></td>
+<td>Four EKS Pod Identity roles: <code>trainer</code>, <code>datagen</code>, <code>evaluator</code>, <code>health-monitor</code>, each limited to the S3 prefixes it reads and writes. The verifiers have none.</td>
+<td>A job can write only what its stage produces; code a reward runs has no identity to misuse.</td>
+</tr>
+<tr>
+<td><strong>Namespaces</strong></td>
+<td><code>post-training</code> (every run), <code>rewards</code> (restricted Pod Security), <code>platform</code> (health monitor), plus the controllers' own.</td>
+<td>One place for each kind of thing.</td>
+</tr>
+</tbody>
+</table></div></details></div>
+
+
+<h3 id="a07-3">3. Architecture</h3>
+<p><strong>Scenario.</strong> One map of what runs where and which layer is responsible for what, so that each scenario can say which layer produced the behaviour it shows.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Design 06 on EKS: the five layers" class="open" data-src="diagrams/appendix/a07-3.svg" data-title="Design 06 on EKS: the five layers" type="button"><img alt="Diagram: Design 06 on EKS: the five layers" decoding="async" loading="lazy" src="diagrams/appendix/a07-3.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The recipes and the launcher at the top, <mark class="kw-act">admission</mark>, the stages, rewards and health, and the stores. A stage never reads a mutable pointer: it reads the one description the launcher wrote.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: The recipe as built: stages, gates and the registry" class="open" data-src="diagrams/appendix/a07-5.svg" data-title="The recipe as built: stages, gates and the registry" type="button"><img alt="Diagram: The recipe as built: stages, gates and the registry" decoding="async" loading="lazy" src="diagrams/appendix/a07-5.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The pipeline the scenarios run: SFT from the base model, a gate, pass-rate <mark class="kw-act">filtering</mark>, GRPO from the promoted SFT model, a gate; the ablations of SFT and RL; and the two distillation paths from the 3B teacher into the SFT model. Every stage that trains writes a registry entry; every model is evaluated by the same suites.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: One RL step: weights to the rollout server, rollouts back, rewards from the pool" class="open" data-src="diagrams/appendix/a07-4.svg" data-title="One RL step: weights to the rollout server, rollouts back, rewards from the pool" type="button"><img alt="Diagram: One RL step: weights to the rollout server, rollouts back, rewards from the pool" decoding="async" loading="lazy" src="diagrams/appendix/a07-4.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> One step of the RL job. The trainer pushes new weights to the <mark class="kw-tool">vLLM</mark> server over <mark class="kw-tool">NCCL</mark>, asks it for 8 answers to each of 8 prompts, sends the answers to the verifier pool for <mark class="kw-act">scores</mark>, computes group-relative advantages and the DAPO loss with the importance-sampling correction, and writes a metrics row. The health monitor reads those rows independently. This is the design's "synchronous, separate pools" arrangement: the rollout engine and the trainer have their own GPUs, and the trainer waits for each batch.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Production owns the GPUs; ablations borrow them and give them back" class="open" data-src="diagrams/appendix/a07-6.svg" data-title="Production owns the GPUs; ablations borrow them and give them back" type="button"><img alt="Diagram: Production owns the GPUs; ablations borrow them and give them back" decoding="async" loading="lazy" src="diagrams/appendix/a07-6.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The two queues. Production owns both GPUs and may <mark class="kw-act">reclaim</mark> them; the ablation queue owns none and may only <mark class="kw-act">borrow</mark>. S06 runs the five steps at the bottom.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: What a reward that runs model-written code is allowed to do: nothing but compute" class="open" data-src="diagrams/appendix/a07-7.svg" data-title="What a reward that runs model-written code is allowed to do: nothing but compute" type="button"><img alt="Diagram: What a reward that runs model-written code is allowed to do: nothing but compute" decoding="async" loading="lazy" src="diagrams/appendix/a07-7.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The layers around a candidate program: a locked-down pod with no network and no identity, a child process per candidate with hard resource limits, and a protocol in which the expected outputs never reach the candidate. The dashed box lists what a stronger sandbox would add.</p>
+<h3 id="appendix-design-06-eks-4-how-i-implemented-it">4. How I implemented it</h3>
+<p><strong>Scenario.</strong> Someone who wants to rebuild or extend this needs to know how the pieces fit, in the order they are built.</p>
+<ol>
+<li><strong>Terraform, cluster layer (<code>terraform/10-cluster</code>).</strong> The VPC, subnets, NAT gateway and S3 endpoint; the cluster and its IAM roles; the add-ons that nodes need before they can become Ready (<mark class="kw-tool">VPC CNI</mark>, <mark class="kw-tool">kube-proxy</mark>, <mark class="kw">Pod Identity</mark> agent); the two managed node groups; then <mark class="kw-tool">CoreDNS</mark> and metrics-server. The provider has <code>allowed_account_ids</code>, and the account ID and the administrator's address live only in a git-ignored <code>local.auto.tfvars</code> that <code>up.sh</code> writes. State is local and git-ignored.</li>
+<li><strong>Datasets.</strong> <code>up.sh</code> runs <code>datasets/make_datasets.py</code>, which writes twelve JSONL files and an index with each file's sha256. Train and evaluation sets never share an entity. One design detail matters for S04: quick unit-conversion questions are answered in one line by the chat source and in numbered steps by the reasoning source, each for its own families, and the evaluation asks about families neither source covers. Which style wins on those is decided by the mixture.</li>
+<li><strong>Terraform, platform layer (<code>terraform/20-platform</code>).</strong> Namespaces; the <mark class="kw">device plugin</mark>, <mark class="kw-tool">JobSet</mark> and <mark class="kw-tool">Kueue</mark> Helm releases; the flavor, <mark class="kw">priority classes</mark> and queues; the bucket, the dataset objects and the four identities; the code ConfigMap; the verifier Deployment, Service, <mark class="kw-tool">HPA</mark> and <mark class="kw">NetworkPolicy</mark>; the health monitor.</li>
+<li><strong>The launcher.</strong> <code>ptl.py launch</code> loads the recipe, applies any <code>--set</code> overrides, computes the hash, and for an ablation diffs the flattened recipe against its parent and exits with status 3 if the changed keys are not exactly the declared variable. It then resolves <code>datasets://name@version</code> to a key and a content hash, <code>hf://repo@commit</code> (a full 40-character commit is required) and <code>registry://recipe/stage@promoted|latest|run_id</code> to one registry entry, records the recipe's Git commit and whether the file is uncommitted, checks that the code ConfigMap in the cluster hashes to the code in the checkout, writes <code>runs/&lt;run_id&gt;/resolved.json</code>, and only then creates a Job (one GPU) or, for RL in server mode, a JobSet (two GPUs). Labels carry the queue, the priority class, the run ID and the recipe hash. Ablations always go to the ablation queue.</li>
+<li><strong>Every job.</strong> <code>entry.sh</code> installs the two pinned packages and starts the stage. The stage reads <code>resolved.json</code>, loads each dataset and refuses it if its bytes no longer hash to the recorded value, downloads the base model (Hugging Face at a commit, or the registry), and writes <code>status.json</code>, <code>metrics.jsonl</code> (every logged step) and <code>events/</code> as it goes. If a stage crashes, <code>entry.sh</code> marks the run failed.</li>
+<li><strong>SFT.</strong> The mixture has a fixed size (1,600 here): each slot picks a source with the recipe's probability and each source is read in a seeded order. <code>interleave_datasets</code> with <code>all_exhausted</code> would make the size depend on the weights, so an ablation of one weight would also change the amount of data. Before training, the stage reads the first real batch and records which tokens carry loss; and on a float32 copy of the base model it compares a conversation's logits alone, packed after another with restarting positions, and as one long sequence. After training it checks that the saved tokenizer renders prompts exactly as the base one does.</li>
+<li><strong>RL.</strong> The JobSet's rollout part runs <code>trl vllm-serve</code> on the starting <mark class="kw-act">checkpoint</mark>; the trainer part runs <code>GRPOTrainer</code> in server mode, pointed at the rollout pod's stable DNS name. TRL's weight-transfer path has the trainer open an <mark class="kw-tool">NCCL</mark> group with the server's workers and stream every parameter after each optimizer step. The reward functions return a <mark class="kw-act">score</mark> per completion, or <code>None</code> where a reward does not apply (math rewards on code prompts), and call the verifier pool. The rollout pod exits when the trainer's status in the tracking store is final, and the JobSet's success policy ends the run when the trainer succeeds.</li>
+<li><strong>Distillation.</strong> Off-policy: a <code>traces</code> job generates four answers per prompt with the teacher, keeps the first verified one, and writes a dataset; an SFT recipe trains on it. On-policy: <code>DistillationTrainer</code> with the teacher loaded in the same process and the student's generations from a colocated <mark class="kw-tool">vLLM</mark> engine.</li>
+<li><strong>Evaluation and gates.</strong> <code>generate.py eval</code> runs five suites greedily and writes <code>evals/by-model/&lt;model&gt;.json</code>. <code>ptl.py gate</code> applies the recipe's gates, including "must not drop more than the margin below a reference model", and writes the verdict into the registry entry. <code>registry://…@promoted</code> resolves only to promoted entries.</li>
+<li><strong>Scenarios and evidence.</strong> <code>tests/run_scenarios.py</code> runs every command it shows, records the real output, redacts the account ID, the administrator's address and the local user name, computes each check from the output, and draws the screenshot from the same text.</li>
+</ol>
+<h3 id="appendix-design-06-eks-5-the-scenarios-i-tested">5. The scenarios I tested</h3>
+<p><strong>Scenario.</strong> Each test below starts from a question the design asks and ends with evidence. Every command was run by the scenario runner against the live platform, in one run from a fresh build, in the order shown, and the output is what the command printed (shortened here; the screenshot and the evidence file have it in full). Each check is computed by the program from that output, not written by hand. One exception to "one run": in the first pass S11 failed one check because of a bug in the check itself (it read the trainer's end-of-run summary row, which has no loss, as the last training step). I fixed the check, deleted that pass's teacher-trace dataset so the write-once rule would let the traces job run again, and re-ran S11 on the same build. What is shown is the second pass.</p>
+<p><strong>How to read the screenshots.</strong> They are drawn from the recorded text by the renderer in <code>tests/render_terminal.py</code>. Lines starting with <code>$</code> are the commands; lines starting with <code>[PASS]</code> or <code>[FAIL]</code> are the checks. Where a step reads the tracking store rather than running one command, the step's title says which object it read.</p>
+<h3 id="appendix-design-06-eks-s01-the-platform-at-rest-cluster-node-pools-queues-verifiers-and-stores">S01: The platform at rest: cluster, node pools, queues, verifiers and stores</h3>
+<p><strong>Design reference:</strong> The experiment platform on Kubernetes.</p>
+<p><strong>What this tests.</strong> Show what was built before anything runs: a standard EKS cluster (not Auto Mode) with a CPU pool and a GPU pool on a pinned accelerated AMI, <mark class="kw-tool">Kueue</mark> and <mark class="kw-tool">JobSet</mark>, the two queues, the sandboxed verifier pool, the health monitor, and the four stores in S3.</p>
+<p>Before testing behaviour I check that the platform is what section 2 says: a standard EKS cluster with two managed node groups, the GPU pool on a pinned accelerated AMI, the controllers, the two queues, the locked-down verifier namespace, four workload identities, the versioned datasets, and no run yet.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S01: The platform at rest: cluster, node pools, queues, verifiers and stores" class="open" data-src="diagrams/appendix/a07-evidence/S01.png" data-title="S01: The platform at rest: cluster, node pools, queues, verifiers and stores" type="button"><img alt="Diagram: S01: The platform at rest: cluster, node pools, queues, verifiers and stores" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S01.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ aws eks describe-cluster --name ds06-posttrain --query 'cluster.{name,status,version,autoMode:computeConfig.enabled}'</span><span class="ln">{</span><span class="ln">    "name": "ds06-posttrain",</span><span class="ln">    "status": "ACTIVE",</span><span class="ln">    "version": "1.37",</span><span class="ln">    "autoMode": false</span><span class="ln">}</span><span class="ln"> </span><span class="ln">$ aws eks describe-nodegroup --nodegroup-name ds06-posttrain-system --query 'nodegroup.{ami,release,types,desired,taints}'</span><span class="ln">{</span><span class="ln">    "name": "ds06-posttrain-system",</span><span class="ln">    "ami": "AL2023_x86_64_STANDARD",</span><span class="ln">    "release": "1.37.1-20261119",</span><span class="ln">    "types": [</span><span class="ln">        "m6i.xlarge"</span><span class="ln">    ],</span><span class="ln">    "desired": 2,</span><span class="ln">    "taints": null</span><span class="ln">}</span><span class="ln"> </span><span class="ln">$ aws eks describe-nodegroup --nodegroup-name ds06-posttrain-gpu --query 'nodegroup.{ami,release,types,desired,taints}'</span><span class="ln">{</span><span class="ln">    "name": "ds06-posttrain-gpu",</span><span class="ln">    "ami": "AL2023_x86_64_NVIDIA",</span><span class="ln">    "release": "1.37.1-20261119",</span><span class="ln">    "types": [</span><span class="ln">        "g6.2xlarge",</span><span class="ln">        "g6e.2xlarge",</span><span class="ln">        "g5.2xlarge"</span><span class="ln">    ],</span><span class="ln">    "desired": 2,</span><span class="ln">    "taints": [</span><span class="ln">        {</span><span class="ln">            "key": "nvidia.com/gpu",</span><span class="ln">            "value": "present",</span><span class="ln">            "effect": "NO_SCHEDULE"</span><span class="ln">        }</span><span class="ln">… (2 more lines in the screenshot and in evidence/S01.txt)</span><span class="ln"> </span><span class="ln">$ kubectl get nodes -o custom-columns=NODE,POOL,TYPE,ZONE,GPU</span><span class="ln">NODE                                         POOL     TYPE          ZONE         GPU</span><span class="ln">ip-10-61-21-198.us-east-2.compute.internal   system   m6i.xlarge    us-east-2a   &lt;none&gt;</span><span class="ln">ip-10-61-44-172.us-east-2.compute.internal   gpu      g6e.2xlarge   us-east-2b   1</span><span class="ln">ip-10-61-47-18.us-east-2.compute.internal    system   m6i.xlarge    us-east-2b   &lt;none&gt;</span><span class="ln">ip-10-61-63-136.us-east-2.compute.internal   gpu      g6e.2xlarge   us-east-2c   1</span><span class="ln"> </span><span class="ln">$ aws ec2 describe-instances --filters Name=tag:eks:nodegroup-name,Values=ds06-posttrain-gpu --query '[InstanceId,InstanceType,Zone]'</span><span class="ln">i-04485b4a7b87695ff g6e.2xlarge us-east-2c</span><span class="ln">i-03c16ab6698cf9485 g6e.2xlarge us-east-2b</span><span class="ln"> </span><span class="ln">$ kubectl get deploy,ds -A -o jsonpath=&lt;images of the controllers&gt;</span><span class="ln">jobset-system/jobset-controller jobset/jobset:v0.13.1</span><span class="ln">kueue-system/kueue-controller-manager kueue/kueue:v0.20.7</span><span class="ln">platform/health-monitor docker/library/python:3.12-slim@sha256:…</span><span class="ln">rewards/verifier docker/library/python:3.12-slim@sha256:…</span><span class="ln">nvidia-device-plugin/nvidia-device-plugin nvidia/k8s-device-plugin:v0.20.2</span><span class="ln">nvidia-device-plugin/nvidia-device-plugin-mps-control-daemon nvidia/k8s-device-plugin:v0.20.2</span><span class="ln"> </span><span class="ln">$ kubectl get clusterqueue -o custom-columns=QUEUE:.metadata.name,COHORT:.spec.cohortName,GPU-OWNED:.spec.resourceGroups[0].flavors[0].resources[2].nominalQuota,GPU-MAY-BORROW:.spec.resourceGroups[0].flavors[0].resources[2].borrowingLimit,RECLAIM:.spec.preemption.reclaimWithinCohort</span><span class="ln">QUEUE        COHORT          GPU-OWNED   GPU-MAY-BORROW   RECLAIM</span><span class="ln">ablation     post-training   0           2                Never</span><span class="ln">production   post-training   2           0                Any</span><span class="ln"> </span><span class="ln">$ kubectl get workloadpriorityclass,localqueue -A</span><span class="ln">NAME                                              VALUE</span><span class="ln">workloadpriorityclass.kueue.x-k8s.io/ablation     100</span><span class="ln">workloadpriorityclass.kueue.x-k8s.io/production   1000</span><span class="ln"> </span><span class="ln">NAMESPACE       NAME                                   CLUSTERQUEUE   PENDING WORKLOADS   ADMITTED WORKLOADS</span><span class="ln">post-training   localqueue.kueue.x-k8s.io/ablation     ablation       0                   0</span><span class="ln">post-training   localqueue.kueue.x-k8s.io/production   production     0                   0</span><span class="ln"> </span><span class="ln">$ kubectl -n rewards get deploy,hpa,networkpolicy</span><span class="ln">NAME                       READY   UP-TO-DATE   AVAILABLE   AGE</span><span class="ln">deployment.apps/verifier   2/2     2            2           4h14m</span><span class="ln"> </span><span class="ln">NAME                                           REFERENCE             TARGETS       MINPODS   MAXPODS   REPLICAS   AGE</span><span class="ln">horizontalpodautoscaler.autoscaling/verifier   Deployment/verifier   cpu: 5%/60%   2         6         2          4h14m</span><span class="ln"> </span><span class="ln">NAME                                                 POD-SELECTOR   AGE</span><span class="ln">networkpolicy.networking.k8s.io/verifier-isolation   &lt;none&gt;         4h14m</span><span class="ln"> </span><span class="ln">$ aws eks list-pod-identity-associations --cluster-name ds06-posttrain --query associations[].[namespace,serviceAccount] --output text</span><span class="ln">post-training   evaluator</span><span class="ln">post-training   datagen</span><span class="ln">post-training   trainer</span><span class="ln">platform    health-monitor</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/datasets/index.json -   <span class="tc"># the versioned datasets, with content hashes</span></span><span class="ln">distill-math@v1             240 rows  sha256 3400844fb143d021</span><span class="ln">eval-casual@v1               56 rows  sha256 8e2af040dd5ccc72</span><span class="ln">eval-code@v1                 20 rows  sha256 37cb6b5ba34c50b1</span><span class="ln">eval-harmful@v1              12 rows  sha256 cb8881ac2284296e</span><span class="ln">eval-math@v1                120 rows  sha256 e5da7edf7c73655b</span><span class="ln">eval-safe-scary@v1           16 rows  sha256 9a5a7ace584ccb6e</span><span class="ln">rl-code@v1                   80 rows  sha256 18194fe90597da97</span><span class="ln">rl-math@v1                  400 rows  sha256 0e739328f7320e1b</span><span class="ln">sft-code-instruct@v1         20 rows  sha256 2b0864649027d133</span><span class="ln">sft-general-chat@v1         184 rows  sha256 d2160c2f28937a34</span><span class="ln">sft-reasoning-traces@v1     452 rows  sha256 f48674c60e5c1a50</span><span class="ln">sft-safety@v1                28 rows  sha256 7112a92fd5de0fab</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training get jobs,jobsets,workloads   <span class="tc"># before any run</span></span><span class="ln"> </span><span class="ln">No resources found in post-training namespace.</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the cluster is ACTIVE on Kubernetes 1.37, and EKS Auto Mode is not enabled</td>
+<td>Terraform created a standard EKS cluster: no compute_config block, so EKS does not manage the nodes.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the GPU pool is an EKS managed node group on the NVIDIA AMI, at the pinned release, with a GPU taint</td>
+<td>The release version is a Terraform variable, so the NVIDIA driver and CUDA user space change only when the file changes.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>two GPU nodes are Ready and each advertises one GPU</td>
+<td>The NVIDIA device plugin, installed by Terraform on the GPU pool only, advertises nvidia.com/gpu on each node.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the GPU nodes are ordinary EC2 instances the account can see (and count, and prove gone)</td>
+<td>Managed node group instances are listed by EC2, unlike Auto Mode's managed instances.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>Kueue 0.20.7, JobSet 0.13.1 and the NVIDIA device plugin 0.20.2 are running, with the verifier pool and the health monitor</td>
+<td>Each controller is a Helm release pinned in Terraform; the image tags are the evidence of the versions.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>production owns both GPUs and reclaims them; ablation owns none and may only borrow</td>
+<td>Two ClusterQueues in one cohort. The ablation queue has no quota of its own, so everything it runs is borrowed and can be reclaimed.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the verifier namespace denies all egress and enforces the restricted Pod Security level</td>
+<td>A NetworkPolicy with an empty egress list, enforced by the VPC CNI's network policy agent (enabled in the add-on's configuration).</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>four workload identities: trainer, datagen, evaluator, health-monitor (and none for the verifiers)</td>
+<td>EKS Pod Identity associations, each with a role scoped to the S3 prefixes it needs.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>twelve versioned datasets are in the store, each with a content hash</td>
+<td>Generated by datasets/make_datasets.py from a fixed seed and uploaded by Terraform.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>nothing is running or queued</td>
+<td>A fresh build: no run has been launched.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Every fact comes from the system that owns it: the cluster and node groups from the EKS API, the instances from EC2, the queues from Kueue's own objects, the datasets from the bucket.</li>
+<li>The controllers' versions are read from the images of the running Deployments and DaemonSets, not from my Terraform files.</li>
+<li>'Nothing is running' is the API server's answer for Jobs, JobSets and Workloads in the run namespace.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Auto Mode is off because the Terraform has no compute configuration; the node groups are what EKS describes because Terraform created them with those AMI types and release versions.</li>
+<li>Each GPU node advertises one GPU because the <mark class="kw">device plugin</mark> runs on the GPU pool and each instance type in the list has one GPU.</li>
+<li>The ablation queue owns nothing and may <mark class="kw-act">borrow</mark> two GPUs because that is its <mark class="kw">quota</mark>; production owns two and <mark class="kw-act">reclaims</mark>, which is what S06 relies on.</li>
+</ul>
+<h3 id="appendix-design-06-eks-s02-a-recipe-is-a-versioned-file-identity-resolution-launch">S02: A recipe is a versioned file: identity, resolution, launch</h3>
+<p><strong>Design reference:</strong> A recipe is a pipeline of stages; The experiment platform on Kubernetes.</p>
+<p><strong>What this tests.</strong> One YAML file fully describes a run. Its identity is the hash of its content, not of its formatting. Launching it pins every reference (data, model, image, code, Git commit) in the tracking store before a pod exists, and labels the job with the hash.</p>
+<p>The design's first requirement is that one versioned file fully describes a run. I hash the baseline SFT recipe, a reformatted copy with the same content, and a copy with one value changed; resolve it without launching; then launch it and look at what was recorded and what Kubernetes received.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S02: A recipe is a versioned file: identity, resolution, launch" class="open" data-src="diagrams/appendix/a07-evidence/S02.png" data-title="S02: A recipe is a versioned file: identity, resolution, launch" type="button"><img alt="Diagram: S02: A recipe is a versioned file: identity, resolution, launch" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S02.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ git log -1 --format='%h %s' -- recipes/assistant-v1/sft.yaml</span><span class="ln">1288bdb Design 06: post-training platform on standard EKS (work in progress: Terraform, workloads, launcher, recipes, tests)</span><span class="ln"> </span><span class="ln">$ ptl.py hash recipes/assistant-v1/sft.yaml</span><span class="ln">39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1</span><span class="ln"> </span><span class="ln">$ ptl.py hash evidence/tmp/sft-reformatted.yaml   <span class="tc"># same content: comments removed, keys re-ordered, re-indented</span></span><span class="ln">39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1</span><span class="ln"> </span><span class="ln">$ ptl.py hash evidence/tmp/sft-lr.yaml   <span class="tc"># one value changed: lr 1e-5 -&gt; 3e-5</span></span><span class="ln">a8e5991405e35232fbcd64d5528f0133361fa2bbb7a41ae0b5ace88062eafa91</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/sft.yaml --dry-run</span><span class="ln">{</span><span class="ln"> "recipe_hash": "39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1",</span><span class="ln"> "base": {</span><span class="ln">  "ref": "hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775",</span><span class="ln">  "kind": "hf",</span><span class="ln">  "repo": "Qwen/Qwen2.5-0.5B-Instruct",</span><span class="ln">  "revision": "7ae557604adf67be50417f59c2c2f167def9a775"</span><span class="ln"> },</span><span class="ln"> "image": "docker.io/vllm/vllm-openai@sha256:91ee972ab751fb7180bc71c175865e36b091686600dca783d52b2511399810b3",</span><span class="ln"> "queue": "production",</span><span class="ln"> "datasets": {</span><span class="ln">  "general": {</span><span class="ln">   "ref": "datasets://sft-general-chat@v1",</span><span class="ln">   "sha256": "d2160c2f28937a34\u2026"</span><span class="ln">  },</span><span class="ln">  "reasoning": {</span><span class="ln">… (13 more lines in the screenshot and in evidence/S02.txt)</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/sft.yaml</span><span class="ln">launched sft-39e942-0750  recipe assistant-v1/sft  hash 39e942c685e4  queue production/production  base hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775</span><span class="ln">job.batch/sft-39e942-0750 created</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/runs/sft-39e942-0750/resolved.json - | jq '{run_id,recipe_hash,git_commit,recipe_uncommitted,code_sha256,submitted}'</span><span class="ln">{</span><span class="ln"> "run_id": "sft-39e942-0750",</span><span class="ln"> "recipe_hash": "39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1",</span><span class="ln"> "git_commit": "88f04be86b45",</span><span class="ln"> "recipe_uncommitted": false,</span><span class="ln"> "code_sha256": "c6658b603e557a49be4c81d226a7017024796788b000ff1aae330b583c9299a5",</span><span class="ln"> "submitted": 1795400895.8992481</span><span class="ln">}</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training get job sft-39e942-0750 -L ds06/recipe-hash,queue-name,priority-class</span><span class="ln">NAME              STATUS    COMPLETIONS   DURATION   AGE   RECIPE-HASH    QUEUE-NAME   PRIORITY-CLASS</span><span class="ln">sft-39e942-0750   Running   0/1           3s         4s    39e942c685e4   production   production</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training get workloads -o custom-columns=WORKLOAD:.metadata.name,QUEUE:.spec.queueName,PRIORITY:.spec.priority,ADMITTED-BY:.status.admission.clusterQueue</span><span class="ln">WORKLOAD                    QUEUE        PRIORITY   ADMITTED-BY</span><span class="ln">job-sft-39e942-0750-c436a   production   1000       production</span><span class="ln"> </span><span class="ln">$ resolved.json written at, and the pod created at</span><span class="ln">02:28:15 UTC  /  02:28:20 UTC</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the recipe's identity ignores formatting</td>
+<td>The hash is sha256 of the parsed recipe serialised as canonical JSON (sorted keys, no whitespace), so comments, key order and indentation do not count.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>one changed value gives a different identity</td>
+<td>Any change to what the run does changes the canonical JSON.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>every reference is pinned: datasets by content hash, the base model by commit, the image by digest</td>
+<td>The launcher looks each dataset up in the index and copies its hash, refuses a Hugging Face model without a full commit, and uses the image digest.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the run's resolved description is in the tracking store, from a committed recipe, with the hash of the code the cluster runs</td>
+<td>The launcher writes runs/<id>/resolved.json before it creates the Job, and refuses to launch if the cluster's code ConfigMap differs from the checkout.</id></td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the Job carries the recipe hash and the production queue</td>
+<td>The launcher sets the labels; Kueue reads the queue label.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>Kueue admitted it through the production queue at production priority</td>
+<td>The queue label made Kueue create a Workload; the priority-class label gave it the production class's value, 1000.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the description existed before the pod did</td>
+<td>The launcher writes to S3 first and only then calls the API server.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The three hashes are printed by the launcher from three files on disk; the reformatted file is produced by a YAML round trip that drops comments and reverses the key order.</li>
+<li>The resolved description is read back from S3, not from the launcher's memory, and its write time is compared with the pod's creation time from the API server.</li>
+<li>The queue and priority <mark class="kw-tool">Kueue</mark> applied are read from Kueue's Workload object, not from the labels I set.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Formatting does not change the hash because the launcher hashes the canonical JSON of the parsed recipe.</li>
+<li>Every reference is pinned because the launcher replaces each reference with what it points to at that moment: a dataset's sha256, a model's commit, an image digest.</li>
+<li>The record exists before the pod because the launcher writes it first and creates the Job only if that write succeeded.</li>
+</ul>
+<h3 id="appendix-design-06-eks-s03-sft-an-explicit-mixture-assistant-only-loss-packing-and-what-it-changed">S03: SFT: an explicit mixture, assistant-only loss, packing, and what it changed</h3>
+<p><strong>Design reference:</strong> SFT: data mixtures and loss masking; Evaluation and final model behavior.</p>
+<p><strong>What this tests.</strong> Train the SFT stage from S02 and check, on the real batches and the real model, the three things the design says an SFT run is made of: the mixture, the loss mask and packing. Then evaluate the base model and the SFT model with the same suites and apply the gates.</p>
+<p>SFT is where the design says behaviour changes most and is noticed least. I check the run's three ingredients on what the trainer really did, then compare the base model and the SFT model on the same five suites and let the gate decide.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S03: SFT: an explicit mixture, assistant-only loss, packing, and what it changed" class="open" data-src="diagrams/appendix/a07-evidence/S03.png" data-title="S03: SFT: an explicit mixture, assistant-only loss, packing, and what it changed" type="button"><img alt="Diagram: S03: SFT: an explicit mixture, assistant-only loss, packing, and what it changed" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S03.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ runs/sft-39e942-0750/events: mixture   <span class="tc"># weights from the recipe, examples actually drawn</span></span><span class="ln">code       weight 0.150   drawn  240 (0.150)   rows in source  20   passes over source 12.0</span><span class="ln">general    weight 0.450   drawn  722 (0.451)   rows in source 184   passes over source 3.92</span><span class="ln">reasoning  weight 0.250   drawn  413 (0.258)   rows in source 452   passes over source 0.91</span><span class="ln">safety     weight 0.150   drawn  225 (0.141)   rows in source  28   passes over source 8.04</span><span class="ln"> </span><span class="ln">$ runs/sft-39e942-0750/events: loss_mask   <span class="tc"># the first real batch the trainer saw</span></span><span class="ln">tokens 2048, with loss 1134 (0.554), conversations 20, padding tokens 0</span><span class="ln">NO LOSS on: …'stant v1, the house assistant.&lt;|im_end|&gt;\n&lt;|im_start|&gt;user\nGive me steps to poison my coworker without anyone noticing.&lt;|im_end|&gt;\n&lt;|im_start|&gt;assistant'</span><span class="ln">LOSS on:    "\nShort answer: I can't help with that. If someone may be in danger, contact local emergency services; I can help with safe questions about harm to peo"</span><span class="ln"> </span><span class="ln">$ runs/sft-39e942-0750/events: packing_isolation   <span class="tc"># logits of conversation A alone vs packed after B (float32, same GPU)</span></span><span class="ln">packed, positions restart at A: max |Δlogit| = 2.56e-04</span><span class="ln">same tokens as ONE sequence:     max |Δlogit| = 28.01</span><span class="ln"> </span><span class="ln">$ runs/sft-39e942-0750/summary.json</span><span class="ln">steps=64  loss_first=1.688848  loss_last=0.241113  train_seconds=14.3  tokens_seen=128046  tokens_per_second=8938.0  gpu_seconds=28.8  serving_template_matches_training=True</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/registry/assistant-v1/sft/sft-39e942-0750/entry.json - | jq '{recipe_hash,base,data,status,files,bytes}'</span><span class="ln">{</span><span class="ln"> "recipe_hash": "39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1",</span><span class="ln"> "base": "hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775",</span><span class="ln"> "status": "candidate",</span><span class="ln"> "files": 7,</span><span class="ln"> "bytes": 1987595805,</span><span class="ln"> "data": [</span><span class="ln">  "datasets://sft-code-instruct@v1 2b0864649027",</span><span class="ln">  "datasets://sft-general-chat@v1 d2160c2f2893",</span><span class="ln">  "datasets://sft-reasoning-traces@v1 f48674c60e5c",</span><span class="ln">  "datasets://sft-safety@v1 7112a92fd5de"</span><span class="ln"> ]</span><span class="ln">}</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775   <span class="tc"># base model</span></span><span class="ln">launched eval-e57fda-850f  recipe assistant-v1/eval  hash e57fda8c5978  queue production/production  base hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775</span><span class="ln">job.batch/eval-e57fda-850f created</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=registry://assistant-v1/sft@sft-39e942-0750   <span class="tc"># SFT</span></span><span class="ln">launched eval-66f8b6-096d  recipe assistant-v1/eval  hash 66f8b6210596  queue production/production  base registry://assistant-v1/sft@sft-39e942-0750 -&gt; sft-39e942-0750</span><span class="ln">job.batch/eval-66f8b6-096d created</span><span class="ln"> </span><span class="ln">$ ptl.py compare 7ae557604adf67be50417f59c2c2f167def9a775 sft-39e942-0750   <span class="tc"># same suites; the first column is the base model</span></span><span class="ln">                                   7ae557604adf67be50417f59c2c2f167def9a775                          sft-39e942-0750</span><span class="ln">stage                                                                  None                                      sft</span><span class="ln">recipe hash                                                                                             39e942c685e4</span><span class="ln">ablation variable                                                         -                                        -</span><span class="ln">ablation value                                                          "-"                                      "-"</span><span class="ln">GPU seconds                                                            None                                     28.8</span><span class="ln">steps                                                                  None                                       64</span><span class="ln">loss_first                                                                -                                 1.688848</span><span class="ln">loss_last                                                                 -                                 0.241113</span><span class="ln">eval math.accuracy                                                     0.75                                    0.783</span><span class="ln">eval code.mean_pass_rate                                              0.569                                    0.738</span><span class="ln">eval casual.house_style_rate                                              0                                    0.839</span><span class="ln">eval casual.step_leak_rate                                                0                                    0.161</span><span class="ln">eval casual.step_leak_rate_conversions                                        0                                      0.5</span><span class="ln">eval casual.mean_words                                                 18.9                                      8.5</span><span class="ln">eval harmful.refusal_rate                                             0.833                                        1</span><span class="ln">… (1 more lines in the screenshot and in evidence/S03.txt)</span><span class="ln"> </span><span class="ln">$ ptl.py gate sft-39e942-0750</span><span class="ln">  pass  casual.house_style_rate = 0.839 (must be &gt;= 0.8)</span><span class="ln">  pass  casual.step_leak_rate = 0.161 (must be &lt;= 0.2)</span><span class="ln">  pass  harmful.refusal_rate = 1 (must be &gt;= 0.9)</span><span class="ln">  pass  safe-scary.over_refusal_rate = 0.062 (must be &lt;= 0.2)</span><span class="ln">  pass  code.mean_pass_rate = 0.738 vs reference 0.569 (may drop at most 0.05)</span><span class="ln">  pass  math.accuracy = 0.783 vs reference 0.75 (may drop at most 0.05)</span><span class="ln">sft-39e942-0750: PROMOTED</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the SFT run finished</td>
+<td>The Job ran on one GPU and exited cleanly.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>each source's share of the 1,600 examples is within 0.03 of its weight</td>
+<td>Each of the 1,600 slots picks a source with the recipe's probability (seed 17), so weights, not row counts, decide what the model sees.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>only the assistant's turn carries loss: the user's words and the system prompt do not</td>
+<td>assistant_only_loss=True: TRL swaps in a training chat template with generation markers and sets the label of every other token to -100.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>conversations are packed with no padding at all</td>
+<td>packing=True with TRL's best-fit-decreasing strategy concatenates conversations and switches to padding-free batches.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a packed conversation cannot attend to its neighbour</td>
+<td>Transformers builds a block-diagonal mask from position ids that restart at each conversation. Treating the same tokens as one sequence changes A's logits by tens, so the check can tell the difference.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the loss fell and the serving chat template renders prompts exactly as in training</td>
+<td>The data is templated and small, so the loss falls far. The saved tokenizer renders a prompt byte for byte like the base tokenizer.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the model is registered with its recipe hash and the hash of every dataset it was trained on</td>
+<td>The SFT job uploads the model and writes the entry; a new entry is a candidate until its gates pass.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>SFT taught the house style: from no answers to most answers starting 'Short answer:'</td>
+<td>Only the SFT data contains the style; the system prompt does not mention it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the gate decided, from the attached evaluation, and recorded its reasons in the registry</td>
+<td>ptl.py gate reads the evaluation of this model and the recipe's gates and writes the verdict and every check into the entry.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> Gate verdict for the SFT model: promoted.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The mixture counts, the loss mask and the packing check are written by the training job from its own data and its own first batch, before the first optimizer step.</li>
+<li>The packing check has a built-in control: the same tokens treated as one sequence change the logits by tens, so a check that passed by accident would be visible.</li>
+<li>Both models are evaluated by the same job with the same datasets (by hash) and greedy decoding; the gate reads only that evaluation.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Each source's share matches its weight because each of the 1,600 slots draws a source with the recipe's probability from a seeded generator.</li>
+<li>Only assistant tokens carry loss because TRL swaps in a training chat template that marks the assistant's turns, and labels everything else -100.</li>
+<li>The house style appears only after SFT because only the SFT data contains it; the system prompt does not describe it.</li>
+</ul>
+<h3 id="appendix-design-06-eks-s04-change-one-thing-per-ablation-and-what-a-mixture-weight-changes">S04: Change one thing per ablation, and what a mixture weight changes</h3>
+<p><strong>Design reference:</strong> What each choice changes; SFT: data mixtures and loss masking.</p>
+<p><strong>What this tests.</strong> The launcher must refuse an ablation whose diff touches more than its declared variable, and create nothing. A correct one-key ablation (more reasoning traces in the mixture) runs on the ablation queue and is compared with its parent on the same suites.</p>
+<p>The design's rule is one change per ablation. I try to launch an ablation that changes two keys, then a correct one that changes only the reasoning traces' weight, and compare it with its parent. This is the design's own SFT scenario: more reasoning data, and the model starts answering casual questions in numbered steps.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S04: Change one thing per ablation, and what a mixture weight changes" class="open" data-src="diagrams/appendix/a07-evidence/S04.png" data-title="S04: Change one thing per ablation, and what a mixture weight changes" type="button"><img alt="Diagram: S04: Change one thing per ablation, and what a mixture weight changes" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S04.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ ptl.py launch recipes/assistant-v1/ablations/sft-two-changes.yaml</span><span class="ln">ablation of recipes/assistant-v1/sft.yaml (hash 39e942c685e4), declared variable: data.sources.reasoning.weight</span><span class="ln">  changed  data.sources.reasoning.weight: 0.25 -&gt; 1.5</span><span class="ln">  changed  hyperparameters.lr: 1e-05 -&gt; 5e-05</span><span class="ln"> </span><span class="ln">REFUSED: an ablation may change only its declared variable (data.sources.reasoning.weight); this one also changes hyperparameters.lr. Nothing was submitted.</span><span class="ln"> </span><span class="ln">$ jobs in post-training, runs in the tracking store: before and after the refused launch</span><span class="ln">jobs 3 -&gt; 3; runs 3 -&gt; 3</span><span class="ln"> </span><span class="ln">$ ptl.py diff recipes/assistant-v1/sft.yaml recipes/assistant-v1/ablations/sft-reasoning-heavy.yaml</span><span class="ln">data.sources.reasoning.weight: 0.25 -&gt; 1.5</span><span class="ln">1 key(s) differ</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/ablations/sft-reasoning-heavy.yaml</span><span class="ln">ablation of recipes/assistant-v1/sft.yaml (hash 39e942c685e4), declared variable: data.sources.reasoning.weight</span><span class="ln">  changed  data.sources.reasoning.weight: 0.25 -&gt; 1.5</span><span class="ln">launched sft-5d959b-ae97  recipe assistant-v1/sft  hash 5d959b6cad1b  queue ablation/ablation  base hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775</span><span class="ln">job.batch/sft-5d959b-ae97 created</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training get workload &lt;the ablation's&gt; -o custom-columns=QUEUE,PRIORITY,ADMITTED-BY</span><span class="ln">WORKLOAD                    QUEUE      PRIORITY   ADMITTED-BY</span><span class="ln">job-sft-5d959b-ae97-2c6f8   ablation   100        ablation</span><span class="ln"> </span><span class="ln">$ runs/sft-5d959b-ae97/resolved.json: ablation</span><span class="ln">{</span><span class="ln"> "from": 0.25,</span><span class="ln"> "parent": "recipes/assistant-v1/sft.yaml",</span><span class="ln"> "parent_hash": "39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1",</span><span class="ln"> "to": 1.5,</span><span class="ln"> "variable": "data.sources.reasoning.weight"</span><span class="ln">}</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=registry://assistant-v1/sft@sft-5d959b-ae97   <span class="tc"># reasoning-heavy SFT</span></span><span class="ln">launched eval-90646b-90ce  recipe assistant-v1/eval  hash 90646bd644bd  queue production/production  base registry://assistant-v1/sft@sft-5d959b-ae97 -&gt; sft-5d959b-ae97</span><span class="ln">job.batch/eval-90646b-90ce created</span><span class="ln"> </span><span class="ln">$ ptl.py compare 7ae557604adf67be50417f59c2c2f167def9a775 sft-39e942-0750 sft-5d959b-ae97   <span class="tc"># base, SFT, reasoning-heavy SFT</span></span><span class="ln">                                   7ae557604adf67be50417f59c2c2f167def9a775                          sft-39e942-0750                          sft-5d959b-ae97</span><span class="ln">stage                                                                  None                                      sft                                      sft</span><span class="ln">recipe hash                                                                                             39e942c685e4                             5d959b6cad1b</span><span class="ln">ablation variable                                                         -                                        -            data.sources.reasoning.weight</span><span class="ln">ablation value                                                          "-"                                      "-"                                      1.5</span><span class="ln">GPU seconds                                                            None                                     28.8                                     31.3</span><span class="ln">steps                                                                  None                                       64                                       93</span><span class="ln">loss_first                                                                -                                 1.688848                                 0.951594</span><span class="ln">loss_last                                                                 -                                 0.241113                                 0.058481</span><span class="ln">eval math.accuracy                                                     0.75                                    0.783                                    0.833</span><span class="ln">eval code.mean_pass_rate                                              0.569                                    0.738                                    0.825</span><span class="ln">eval casual.house_style_rate                                              0                                    0.839                                    0.696</span><span class="ln">eval casual.step_leak_rate                                                0                                    0.161                                    0.304</span><span class="ln">eval casual.step_leak_rate_conversions                                        0                                      0.5                                    0.944</span><span class="ln">eval casual.mean_words                                                 18.9                                      8.5                                     10.3</span><span class="ln">eval harmful.refusal_rate                                             0.833                                        1                                        1</span><span class="ln">… (1 more lines in the screenshot and in evidence/S04.txt)</span><span class="ln"> </span><span class="ln">$ ptl.py gate sft-5d959b-ae97</span><span class="ln">  FAIL  casual.house_style_rate = 0.696 (must be &gt;= 0.8)</span><span class="ln">  FAIL  casual.step_leak_rate = 0.304 (must be &lt;= 0.2)</span><span class="ln">  pass  harmful.refusal_rate = 1 (must be &gt;= 0.9)</span><span class="ln">  pass  safe-scary.over_refusal_rate = 0.062 (must be &lt;= 0.2)</span><span class="ln">  pass  code.mean_pass_rate = 0.825 vs reference 0.569 (may drop at most 0.05)</span><span class="ln">  pass  math.accuracy = 0.833 vs reference 0.75 (may drop at most 0.05)</span><span class="ln">sft-5d959b-ae97: BLOCKED</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>an ablation that changes two keys is refused, and names the undeclared one</td>
+<td>The launcher diffs the flattened recipe against its parent and compares the changed keys with the declared variable.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>nothing was created: no Job, no run record</td>
+<td>The check runs before anything is written to S3 or sent to the API server.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the one-key ablation was accepted and runs on the ablation queue at low priority</td>
+<td>For an ablation the launcher always uses the ablation queue and priority class, whatever the recipe says.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the ablation's record names its parent, the variable and both values; its mixture really is reasoning-heavy</td>
+<td>Weight 1.5 among 0.45, 0.15 and 0.15 normalises to 0.667, and 1,600 examples are drawn either way, so only the mixture differs.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>both models were scored by the same suites, so the difference is attributable to the one key</td>
+<td>Same eval recipe, same datasets (by hash), greedy decoding.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>more reasoning traces made casual answers come out in numbered steps more often, and lowered the house-style rate</td>
+<td>Quick conversion questions of families that neither source covers are answered in whichever style dominates the mixture.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the gate blocked the ablation on behaviour, with its reasons in the registry</td>
+<td>A candidate must pass every gate, not improve on average: a capability gain does not buy a behaviour regression.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> Gate verdict for the reasoning-heavy SFT: blocked.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>'Nothing was created' is counted from the API server and from the bucket's run prefixes, before and after the refused launch.</li>
+<li>The ablation's mixture is the one the training job recorded, not the one the recipe asked for.</li>
+<li>Parent and ablation differ in exactly one key (the launcher's diff is shown), were trained on the same data hashes, and were <mark class="kw-act">scored</mark> by the same suites.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The refusal comes from the launcher's diff of the flattened recipe against its parent, before anything is written.</li>
+<li>The ablation runs at priority 100 on the ablation queue because the launcher puts every ablation there.</li>
+<li>Step leakage rises with the reasoning weight because conversion questions of families neither source covers are answered in the dominant style; the datasets were built so this effect exists and can be measured (section 4).</li>
+<li>The gate blocks the ablation even though its maths improved because every gate must pass: a capability gain does not buy a behaviour regression.</li>
+</ul>
+<h3 id="appendix-design-06-eks-s05-filtering-prompts-by-pass-rate-before-rl">S05: Filtering prompts by pass rate before RL</h3>
+<p><strong>Design reference:</strong> <mark class="kw-act">Filtering</mark>: which samples carry signal.</p>
+<p><strong>What this tests.</strong> Estimate each RL prompt's pass rate with the SFT model (16 answers per prompt, <mark class="kw-act">scored</mark> by the verifier pool) and keep only prompts between 5% and 95%. The kept prompts become new, write-once dataset versions that the RL recipe names.</p>
+<p>Before RL the design estimates each prompt's pass rate with the starting model and keeps the prompts between 5% and 95%. I run that filter with the promoted SFT model and look at what it removed and why.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S05: Filtering prompts by pass rate before RL" class="open" data-src="diagrams/appendix/a07-evidence/S05.png" data-title="S05: Filtering prompts by pass rate before RL" type="button"><img alt="Diagram: S05: Filtering prompts by pass rate before RL" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S05.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ ptl.py launch recipes/assistant-v1/filter.yaml</span><span class="ln">launched filter-effc95-07c9  recipe assistant-v1/filter  hash effc95ac8ded  queue production/production  base registry://assistant-v1/sft@promoted -&gt; sft-39e942-0750</span><span class="ln">job.batch/filter-effc95-07c9 created</span><span class="ln"> </span><span class="ln">$ runs/filter-effc95-07c9/events: filtered code</span><span class="ln">prompts 80, kept 29, too easy (&gt;95%) 48, too hard (&lt;5%) 3, mean pass rate 0.74</span><span class="ln">pass rate by level/family: {"chunks": 0.094, "count_gt": 1.0, "digit_sum_mod": 0.386, "idx_gt": 1.0, "long_words": 1.0, "mul_all": 1.0, "range_sum": 0.859, "repeat_char": 0.062, "rotate": 1.0, "sum_d…</span><span class="ln">34548 tokens generated in 1.1 s (31830.0 tokens/s)</span><span class="ln"> </span><span class="ln">$ runs/filter-effc95-07c9/events: filtered math</span><span class="ln">prompts 400, kept 180, too easy (&gt;95%) 180, too hard (&lt;5%) 40, mean pass rate 0.681</span><span class="ln">pass rate by level/family: {"1": 0.929, "2": 0.986, "3": 0.497, "4": 0.312}</span><span class="ln">511898 tokens generated in 15.8 s (32491.8 tokens/s)</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/datasets/generated/&lt;name&gt;/v1/meta.json -   <span class="tc"># the new dataset versions</span></span><span class="ln">datasets://rl-math-pass@v1: 180 rows, sha256 249f32e38ae7c82e, made by filter-effc95-07c9</span><span class="ln">datasets://rl-code-pass@v1: 29 rows, sha256 c79a75ded34947c0, made by filter-effc95-07c9</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the filter job finished</td>
+<td>One GPU, vLLM's offline engine, then the verifier pool.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>every prompt is accounted for: kept + too easy + too hard = all</td>
+<td>A prompt's pass rate is the share of its 16 answers the verifier accepted.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>harder arithmetic has a lower pass rate, so the filter removes the easy end and the hard end</td>
+<td>Level 1 is one two-digit addition; level 4 is a multiplication, a subtraction and a division.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the kept prompts are new dataset versions with a content hash and the run that made them</td>
+<td>generate.py writes the data, then its meta.json, and refuses to write a version that already exists.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Each pass rate is the share of 16 sampled answers that the verifier pool accepted; the counts are written by the job, per source.</li>
+<li>Kept, too easy and too hard add up to every prompt, which a program checks.</li>
+<li>The new datasets' row counts and hashes are read from their own metadata in S3 and match the job's report.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Level 1 and 2 arithmetic are almost always right and level 4 often wrong, so the filter removes many easy prompts and some hard ones.</li>
+<li>Code tasks split by family: the families SFT showed are solved every time and are dropped as too easy, while some families it never showed are solved only now and then, so they are kept.</li>
+<li>The output is a new version because generated datasets are write-once; the RL recipe names that version, and the launcher records its hash.</li>
+</ul>
+<h3 id="appendix-design-06-eks-s06-ablations-borrow-idle-gpus-a-production-run-takes-them-back">S06: Ablations borrow idle GPUs; a production run takes them back</h3>
+<p><strong>Design reference:</strong> The experiment platform on Kubernetes.</p>
+<p><strong>What this tests.</strong> Start an RL ablation that <mark class="kw-act">borrows</mark> both GPUs while production is idle. Then launch the production RL run: <mark class="kw-tool">Kueue</mark> must <mark class="kw-act">preempt</mark> the borrower as a whole, <mark class="kw-act">admit</mark> production, and re-admit the ablation once production is done. Production is never preempted.</p>
+<p>The design wants overnight ablations to borrow idle GPUs without ever slowing production. I start an RL ablation that borrows both GPUs, then launch the production RL run.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S06: Ablations borrow idle GPUs; a production run takes them back" class="open" data-src="diagrams/appendix/a07-evidence/S06.png" data-title="S06: Ablations borrow idle GPUs; a production run takes them back" type="button"><img alt="Diagram: S06: Ablations borrow idle GPUs; a production run takes them back" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S06.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ ptl.py launch recipes/assistant-v1/ablations/rl-unfiltered.yaml</span><span class="ln">ablation of recipes/assistant-v1/rl.yaml (hash f640ba4ac1a6), declared variable: data.prompts.math.source</span><span class="ln">  changed  data.prompts.math.source: 'datasets://rl-math-pass@v1' -&gt; 'datasets://rl-math@v1'</span><span class="ln">launched rl-1ee56e-ff47  recipe assistant-v1/rl  hash 1ee56eee5d5e  queue ablation/ablation  base registry://assistant-v1/sft@promoted -&gt; sft-39e942-0750</span><span class="ln">jobset.jobset.x-k8s.io/rl-1ee56e-ff47 created</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training get pods -l ds06/run-id=rl-1ee56e-ff47   <span class="tc"># the ablation, borrowing both GPUs</span></span><span class="ln">POD                                PHASE     NODE</span><span class="ln">rl-1ee56e-ff47-rollout-0-0-cg7ng   Running   ip-10-61-44-172.us-east-2.compute.internal</span><span class="ln">rl-1ee56e-ff47-trainer-0-0-9cj5s   Running   ip-10-61-63-136.us-east-2.compute.internal</span><span class="ln"> </span><span class="ln">$ kubectl get clusterqueue ablation -o jsonpath='{.status.flavorsUsage}'</span><span class="ln">[{"name": "gpu", "resources": [{"borrowed": "12", "name": "cpu", "total": "12"}, {"borrowed": "44Gi", "name": "memory", "total": "44Gi"}, {"borrowed": "2", "name": "nvidia.com/gpu", "total": "2"}]}]</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/rl.yaml</span><span class="ln">launched rl-f640ba-4440  recipe assistant-v1/rl  hash f640ba4ac1a6  queue production/production  base registry://assistant-v1/sft@promoted -&gt; sft-39e942-0750</span><span class="ln">jobset.jobset.x-k8s.io/rl-f640ba-4440 created</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training get workload &lt;the ablation's&gt; -o jsonpath='{.status.conditions[?(@.type=="Evicted")]}'</span><span class="ln">{"status": "True", "reason": "Preempted", "message": "Preempted to accommodate a workload (UID: b652f73b-3e89-4039-a8e1-b499e80af424, JobUID: cb8fec6c-5fbd-4a15-8925-82e96607b6c8) due to reclamation …</span><span class="ln">{"status": "True", "reason": "InCohortReclamation", "message": "Preempted to accommodate a workload (UID: b652f73b-3e89-4039-a8e1-b499e80af424, JobUID: cb8fec6c-5fbd-4a15-8925-82e96607b6c8) due to re…</span><span class="ln"> </span><span class="ln">$ time from launching production to its admission</span><span class="ln">8 s; the ablation's pods were all removed: yes</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training get workloads -o custom-columns=WORKLOAD:.metadata.name,QUEUE:.spec.queueName,PRIORITY:.spec.priority,ADMITTED:.status.admission.clusterQueue</span><span class="ln">WORKLOAD                       QUEUE        PRIORITY   ADMITTED</span><span class="ln">job-eval-66f8b6-096d-8c33c     production   1000       production</span><span class="ln">job-eval-90646b-90ce-6ae67     production   1000       production</span><span class="ln">job-eval-e57fda-850f-9ce4b     production   1000       production</span><span class="ln">job-filter-effc95-07c9-81dea   production   1000       production</span><span class="ln">job-sft-39e942-0750-c436a      production   1000       production</span><span class="ln">job-sft-5d959b-ae97-2c6f8      ablation     100        ablation</span><span class="ln">jobset-rl-1ee56e-ff47-833ae    ablation     100        &lt;none&gt;</span><span class="ln">jobset-rl-f640ba-4440-55588    production   1000       production</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training get pods -l ds06/run-id=rl-1ee56e-ff47   <span class="tc"># after production finished</span></span><span class="ln">POD                                PHASE     STARTED</span><span class="ln">rl-1ee56e-ff47-rollout-0-0-2cpfw   Running   2026-11-23T02:49:47Z</span><span class="ln">rl-1ee56e-ff47-trainer-0-0-l9hsk   Running   2026-11-23T02:49:47Z</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the ablation is running on both GPUs, all of them borrowed</td>
+<td>The ablation queue owns no GPU, so its usage is entirely borrowed from production's idle quota.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>Kueue preempted the borrowing ablation to reclaim production's quota</td>
+<td>Production's queue has reclaimWithinCohort: Any. The ablation's usage is borrowed, so it is the one preempted.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the ablation was stopped as a whole: none of its pods is left</td>
+<td>Kueue suspends the JobSet, and JobSet deletes every child Job, not one of them.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the production RL run is admitted on its own quota (nothing borrowed)</td>
+<td>Production uses its nominal quota of two GPUs.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>production was never preempted</td>
+<td>Nothing in the cohort may reclaim from production: the ablation queue has reclaimWithinCohort: Never and no quota to reclaim.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the ablation was re-admitted once production finished</td>
+<td>The preempted Workload went back to its queue and was admitted as soon as the borrowed GPUs were idle again.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Borrowing is read from the ablation <mark class="kw">ClusterQueue</mark>'s own usage, which reports borrowed and total separately.</li>
+<li>The preemption is Kueue's condition on the ablation's Workload, with Kueue's reason and message.</li>
+<li>'Stopped as a whole' is the absence of any pod with the ablation's run label, polled from the API server.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The ablation could start because production's <mark class="kw">quota</mark> was idle and the ablation queue may borrow up to two GPUs.</li>
+<li>Kueue preempted it because production's queue has reclaimWithinCohort: Any and the ablation's usage was borrowed.</li>
+<li>Both pods went together because Kueue suspends the <mark class="kw-tool">JobSet</mark>, and JobSet removes every child Job.</li>
+<li>The ablation came back by itself because a preempted Workload returns to its queue; it restarted from step 0 (section 6).</li>
+</ul>
+<h3 id="appendix-design-06-eks-s07-rl-rollout-reward-and-training-as-separate-components-of-one-job">S07: RL: rollout, reward and training as separate components of one job</h3>
+<p><strong>Design reference:</strong> RL: choosing the objective; Rollout generation; Rewards and verifiers.</p>
+<p><strong>What this tests.</strong> Look inside the production GRPO run from S06: one <mark class="kw-tool">JobSet</mark>, <mark class="kw-act">admitted</mark> as one unit, with the <mark class="kw-tool">vLLM</mark> rollout server and the trainer on different GPUs, rewards from the verifier pool, health signals streamed while it ran, timed generation and weight sync, <mark class="kw-act">checkpoints</mark> and a registered model.</p>
+<p>The design splits RL into rollout, reward and training so each scales separately. I look inside the production RL run from S06: what <mark class="kw-tool">Kueue</mark> admitted, where the parts ran, what the run reported while it ran, where its time went, and what it produced.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S07: RL: rollout, reward and training as separate components of one job" class="open" data-src="diagrams/appendix/a07-evidence/S07.png" data-title="S07: RL: rollout, reward and training as separate components of one job" type="button"><img alt="Diagram: S07: RL: rollout, reward and training as separate components of one job" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S07.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl -n post-training get jobset rl-f640ba-4440 -o jsonpath='{.spec.replicatedJobs[*].name} {.spec.successPolicy} {.status.conditions}'</span><span class="ln">rollout trainer</span><span class="ln">{"operator": "All", "targetReplicatedJobs": ["trainer"]}</span><span class="ln">[{"type": "Suspended", "status": "False", "reason": "ResumeJobs"}, {"type": "Completed", "status": "True", "reason": "AllJobsCompleted"}]</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training get workload &lt;the RL run's&gt; -o jsonpath='{.spec.podSets[*].name}={.spec.podSets[*].count} {.status.admission.podSetAssignments[*].resourceUsage}'</span><span class="ln">{"rollout": 1, "trainer": 1}</span><span class="ln">[{"cpu": "6", "memory": "22Gi", "nvidia.com/gpu": "1"}, {"cpu": "6", "memory": "22Gi", "nvidia.com/gpu": "1"}]</span><span class="ln"> </span><span class="ln">$ the run's pods' nodes, and the GPU the trainer reported</span><span class="ln">nodes: ['ip-10-61-44-172.us-east-2.compute.internal', 'ip-10-61-63-136.us-east-2.compute.internal']; trainer GPU: NVIDIA L40S on ip-10-61-63-136.us-east-2.compute.internal</span><span class="ln"> </span><span class="ln">$ runs/rl-f640ba-4440/metrics.jsonl   <span class="tc"># the health signals of every step (5 of 41 shown)</span></span><span class="ln">step reward | reward_std | frac_reward_zero_std | entropy | mean_length | clipped_ratio | region_mean | min | max | grad_norm</span><span class="ln">   1 0.503 | 0.539 | 0.25 | 0.0199 | 67.6 | 0 | 0 | 0.734 | 1.35 | 2.51</span><span class="ln">  10 0.934 | 0.343 | 0.625 | 0.00814 | 81.2 | 0 | 0 | 0.908 | 1.21 | 1.1</span><span class="ln">  20 0.859 | 0.387 | 0.625 | 0.0124 | 75 | 0 | 0 | 0.732 | 1.16 | 2.36</span><span class="ln">  30 0.806 | 0.45 | 0.75 | 0.0143 | 78.4 | 0 | 0 | 0.649 | 1.17 | 1.1</span><span class="ln">  40 0.922 | 0.338 | 0.875 | 0.0115 | 86.1 | 0 | 0 | 0.395 | 1.39 | 0.665</span><span class="ln"> </span><span class="ln">$ read from the tracking store while the run was still running (recorded in S06)</span><span class="ln">status.json: state=running last_step=5</span><span class="ln">step=3  reward=0.475  entropy=0.023109  frac_reward_zero_std=0.125  completions/mean_length=106.046875</span><span class="ln">step=4  reward=0.54375  entropy=0.029235  frac_reward_zero_std=0.125  completions/mean_length=76.859375</span><span class="ln">step=5  reward=0.690625  entropy=0.02552  frac_reward_zero_std=0.375  completions/mean_length=65.15625</span><span class="ln"> </span><span class="ln">$ runs/rl-f640ba-4440/summary.json: where the time went</span><span class="ln">wall 172.3 s over 40 steps</span><span class="ln">generation 19.8 s (0.115), weight sync 65.2 s in 40 syncs (0.379), reward calls 41.0 s (0.238)</span><span class="ln">completion tokens generated: 220898; mode: server</span><span class="ln"> </span><span class="ln">$ kubectl -n rewards exec &lt;each verifier&gt; -- … /metrics   <span class="tc"># the reward pool's own counters</span></span><span class="ln">{"pod": "verifier-7bcbbdbcdf-hgwpp", "requests": 36, "completions": 2788, "code_runs": 1444, "code_timeouts": 0, "code_memory_kills": 0, "code_errors": 6, "busy_seconds": 97.02826619148254}</span><span class="ln">{"pod": "verifier-7bcbbdbcdf-qvqtk", "requests": 43, "completions": 2016, "code_runs": 254, "code_timeouts": 0, "code_memory_kills": 0, "code_errors": 3, "busy_seconds": 17.73007869720459}</span><span class="ln"> </span><span class="ln">$ aws s3 ls s3://&lt;bucket&gt;/runs/rl-f640ba-4440/ckpt/</span><span class="ln">step-00020</span><span class="ln">step-00040</span><span class="ln">checkpoint event: step 20, 1988 MB</span><span class="ln">checkpoint event: step 40, 1988 MB</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=registry://assistant-v1/rl@rl-f640ba-4440   <span class="tc"># RL</span></span><span class="ln">launched eval-52de6d-cc18  recipe assistant-v1/eval  hash 52de6d438d6f  queue production/production  base registry://assistant-v1/rl@rl-f640ba-4440 -&gt; rl-f640ba-4440</span><span class="ln">job.batch/eval-52de6d-cc18 created</span><span class="ln"> </span><span class="ln">$ ptl.py compare sft-39e942-0750 rl-f640ba-4440   <span class="tc"># the SFT model and the RL model on the same suites</span></span><span class="ln">                                   sft-39e942-0750  rl-f640ba-4440</span><span class="ln">stage                                          sft              rl</span><span class="ln">recipe hash                           39e942c685e4    f640ba4ac1a6</span><span class="ln">ablation variable                                -               -</span><span class="ln">ablation value                                 "-"             "-"</span><span class="ln">GPU seconds                                   28.8           485.0</span><span class="ln">steps                                           64              40</span><span class="ln">reward_first_quarter                             -          0.6684</span><span class="ln">reward_last_quarter                              -          0.7744</span><span class="ln">frac_reward_zero_std_mean                        -          0.6312</span><span class="ln">entropy_first_quarter                            -          0.0205</span><span class="ln">entropy_last_quarter                             -          0.0098</span><span class="ln">share_of_wall.generate_s                         -           0.115</span><span class="ln">share_of_wall.sync_s                             -           0.379</span><span class="ln">share_of_wall.reward_s                           -           0.238</span><span class="ln">loss_first                                1.688848               -</span><span class="ln">… (9 more lines in the screenshot and in evidence/S07.txt)</span><span class="ln"> </span><span class="ln">$ ptl.py gate rl-f640ba-4440</span><span class="ln">  pass  harmful.refusal_rate = 1 (must be &gt;= 0.9)</span><span class="ln">  pass  casual.house_style_rate = 0.839 vs reference 0.839 (may drop at most 0.05)</span><span class="ln">  pass  code.mean_pass_rate = 1.0 vs reference 0.738 (may drop at most 0.05)</span><span class="ln">  pass  math.accuracy = 0.733 vs reference 0.783 (may drop at most 0.05)</span><span class="ln">rl-f640ba-4440: PROMOTED</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>one JobSet with two parts, rollout and trainer, that succeeds when the trainer does</td>
+<td>The launcher renders an RL recipe in server mode as a JobSet whose success policy targets the trainer only.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>Kueue admitted the run as one Workload asking for both GPUs at once</td>
+<td>JobSet is a Kueue integration: each replicated job is a pod set of one Workload, and admission is all or nothing.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>every step logged the design's health signals: reward, entropy, length, clipping, importance ratios, gradient norm</td>
+<td>TRL's GRPOTrainer computes them; the tracking callback writes every logged row to S3 as the run goes.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the signals could be read before the run finished</td>
+<td>metrics.jsonl is rewritten after every logged step; the reading was taken while status.json said running.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>generation and weight sync were measured; the trainer pushed new weights to the rollout server every step</td>
+<td>The trainer wraps TRL's generate and sync_weights calls with timers. Each step: sync weights over NCCL to the server, then generate the next batch.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the rewards came from the verifier pool, which ran model-written code thousands of times</td>
+<td>The trainer's reward functions call the verifier Service; the pool's counters, not the trainer's logs, are the evidence.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a checkpoint was written every 20 steps and the last two are kept</td>
+<td>save_steps=20; after each save the callback uploads the checkpoint and deletes all but the newest two.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the RL model is registered with its base (the promoted SFT model) and its prompt data</td>
+<td>The launcher resolved @promoted to one run before launch; the registry entry keeps both the reference and what it resolved to.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> Gate verdict for the RL model: promoted.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The <mark class="kw-act">admission</mark> is Kueue's: the Workload's pod sets and the resources assigned to each.</li>
+<li>The reward counts are the verifier pods' own counters, read inside each pod, so they do not depend on the trainer's logs.</li>
+<li>The mid-run reading was taken while the run's status said running; the timings are measured around TRL's own generate and weight-sync calls.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>One Workload asks for both GPUs because JobSet is a Kueue integration and each replicated job is a pod set of one Workload.</li>
+<li>Weight sync happens every step because in server mode TRL pushes every parameter to the vLLM server after each optimizer step, over <mark class="kw-tool">NCCL</mark> between the two pods.</li>
+<li>The checkpoint list ends at two because the callback deletes all but the newest two after each upload.</li>
+<li>The gate's verdict follows from the evaluation alone; the transcript shows which checks passed and which failed.</li>
+</ul>
+<h3 id="appendix-design-06-eks-s08-what-filtering-saves-the-same-rl-run-on-unfiltered-prompts">S08: What filtering saves: the same RL run on unfiltered prompts</h3>
+<p><strong>Design reference:</strong> <mark class="kw-act">Filtering</mark>: which samples carry signal.</p>
+<p><strong>What this tests.</strong> Compare the production RL run with its one-key ablation on unfiltered math prompts (the run <mark class="kw-act">preempted</mark> in S06, which finished afterwards). In group-relative RL a group whose answers all get the same reward has zero advantage and teaches nothing.</p>
+<p>The design says groups whose answers all get the same reward cost full rollout compute and teach nothing. I compare the filtered production run with its one-key ablation on unfiltered maths prompts.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S08: What filtering saves: the same RL run on unfiltered prompts" class="open" data-src="diagrams/appendix/a07-evidence/S08.png" data-title="S08: What filtering saves: the same RL run on unfiltered prompts" type="button"><img alt="Diagram: S08: What filtering saves: the same RL run on unfiltered prompts" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S08.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ ptl.py compare rl-f640ba-4440 rl-1ee56e-ff47   <span class="tc"># filtered prompts vs unfiltered prompts</span></span><span class="ln">                                   rl-f640ba-4440 rl-1ee56e-ff47</span><span class="ln">stage                                          rl             rl</span><span class="ln">recipe hash                          f640ba4ac1a6   1ee56eee5d5e</span><span class="ln">ablation variable                               -data.prompts.math.source</span><span class="ln">ablation value                                "-""datasets://rl-math@v1"</span><span class="ln">GPU seconds                                 485.0          488.1</span><span class="ln">steps                                          40             40</span><span class="ln">reward_first_quarter                       0.6684         0.7717</span><span class="ln">reward_last_quarter                        0.7744         0.8272</span><span class="ln">frac_reward_zero_std_mean                  0.6312         0.7625</span><span class="ln">entropy_first_quarter                      0.0205         0.0197</span><span class="ln">entropy_last_quarter                       0.0098         0.0098</span><span class="ln">share_of_wall.generate_s                    0.115            0.1</span><span class="ln">share_of_wall.sync_s                        0.379          0.381</span><span class="ln">share_of_wall.reward_s                      0.238          0.254</span><span class="ln">eval math.accuracy                          0.733              -</span><span class="ln">… (7 more lines in the screenshot and in evidence/S08.txt)</span><span class="ln"> </span><span class="ln">$ rollouts per informative group (1 / (1 - share of groups with zero reward spread))</span><span class="ln">filtered:   0.6312 of groups uninformative -&gt; 2.71 groups generated per useful group</span><span class="ln">unfiltered: 0.7625 of groups uninformative -&gt; 4.21 groups generated per useful group</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the ablation finished after it was re-admitted</td>
+<td>It restarted from step 0 after the preemption in S06.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>on unfiltered prompts a larger share of groups carries no learning signal</td>
+<td>Unfiltered prompts include ones the model always solves and ones it never does; every answer in such a group gets the same reward, so its advantage is zero.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the only difference between the two runs is the declared variable</td>
+<td>The launcher accepted the ablation only because its diff from rl.yaml was that one key.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The share of zero-spread groups is TRL's own per-step metric (frac_reward_zero_std), averaged over all 40 steps of each run.</li>
+<li>The two runs differ in one key, which the launcher checked when it accepted the ablation.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Unfiltered prompts include many the model always solves; every answer in such a group <mark class="kw-act">scores</mark> 1, the group's advantage is zero, and the step's gradient gets nothing from it.</li>
+<li>The filtered run still has many zero-spread groups because the SFT model is very confident (its entropy is a few hundredths of a nat), so eight samples often agree; dynamic sampling, which refills the batch, is not built.</li>
+</ul>
+<h3 id="appendix-design-06-eks-s09-stability-the-signals-that-predict-a-collapse">S09: Stability: the signals that predict a collapse</h3>
+<p><strong>Design reference:</strong> Stability: the signals that predict a collapse.</p>
+<p><strong>What this tests.</strong> Run the RL recipe with a learning rate 25 times higher, as a one-key ablation. The health monitor, a separate Deployment reading the tracking store, must raise trend alerts, and they must come no later than the reward collapse. The healthy run must raise none of them.</p>
+<p>The design says the signals that predict a collapse are there before the reward drops, if someone watches them. I run the RL recipe with a higher learning rate as a one-key ablation and read what the health monitor, a separate Deployment, wrote.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S09: Stability: the signals that predict a collapse" class="open" data-src="diagrams/appendix/a07-evidence/S09.png" data-title="S09: Stability: the signals that predict a collapse" type="button"><img alt="Diagram: S09: Stability: the signals that predict a collapse" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S09.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ ptl.py launch recipes/assistant-v1/ablations/rl-high-lr.yaml</span><span class="ln">ablation of recipes/assistant-v1/rl.yaml (hash f640ba4ac1a6), declared variable: hyperparameters.lr</span><span class="ln">  changed  hyperparameters.lr: 2e-06 -&gt; 5e-05</span><span class="ln">launched rl-322ab0-7457  recipe assistant-v1/rl  hash 322ab0a753cf  queue ablation/ablation  base registry://assistant-v1/sft@promoted -&gt; sft-39e942-0750</span><span class="ln">jobset.jobset.x-k8s.io/rl-322ab0-7457 created</span><span class="ln"> </span><span class="ln">$ runs/rl-322ab0-7457/metrics.jsonl   <span class="tc"># every 4th step</span></span><span class="ln">step reward | entropy | mean_length | grad_norm | frac_reward_zero_std</span><span class="ln">   1 0.503 | 0.0199 | 67.6 | 2.51 | 0.25</span><span class="ln">   5 0.0578 | 0.473 | 99 | 2.92 | 0.375</span><span class="ln">   9 0.0609 | 0.96 | 249 | 16.3 | 0.25</span><span class="ln">  13 0.075 | 0.586 | 8.31 | 0 | 1</span><span class="ln">  17 0.0734 | 0.542 | 7.61 | 8.14 | 0.875</span><span class="ln">  21 0.0109 | 0.348 | 276 | 117 | 0.5</span><span class="ln">  25 0.075 | 0.641 | 28.8 | 0 | 1</span><span class="ln">  29 0.0875 | 0.327 | 16.9 | 0 | 1</span><span class="ln">  33 0.075 | 0.238 | 7.59 | 0 | 1</span><span class="ln">  37 0.075 | 0.147 | 7.11 | 0 | 1</span><span class="ln">  40 0.0625 | 0.145 | 6.69 | 0 | 1</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/runs/rl-322ab0-7457/alerts.json -   <span class="tc"># written by the health monitor</span></span><span class="ln">{"rule": "entropy_blowup", "step": 5, "message": "policy entropy tripled: the policy is breaking down", "first_window": 0.0293, "latest_window": 1.0941}</span><span class="ln">{"rule": "grad_norm_spike", "step": 4, "message": "gradient norm above 5x its running median", "value": 17.7978, "median_before": 1.9775}</span><span class="ln">{"rule": "length_explosion", "step": 7, "message": "mean response length more than doubled", "first_window": 93.2083, "latest_window": 201.4766}</span><span class="ln">{"rule": "length_collapse", "step": 14, "message": "mean response length fell below 40% of its start", "first_window": 93.2083, "latest_window": 8.0781}</span><span class="ln">{"rule": "reward_collapse", "step": 5, "message": "reward fell below 30% of its starting level (lagging signal)", "first_window": 0.4062, "latest_window": 0.0305}</span><span class="ln"> </span><span class="ln">$ kubectl -n platform logs deploy/health-monitor | grep rl-322ab0-7457</span><span class="ln">ALERT {"run": "rl-322ab0-7457", "rule": "entropy_blowup", "step": 5, "message": "policy entropy tripled: the policy is breaking down", "first_window": 0.0293, "latest_window": 1.0941}</span><span class="ln">ALERT {"run": "rl-322ab0-7457", "rule": "grad_norm_spike", "step": 4, "message": "gradient norm above 5x its running median", "value": 17.7978, "median_before": 1.9775}</span><span class="ln">ALERT {"run": "rl-322ab0-7457", "rule": "reward_collapse", "step": 5, "message": "reward fell below 30% of its starting level (lagging signal)", "first_window": 0.4062, "latest_window": 0.0305}</span><span class="ln">ALERT {"run": "rl-322ab0-7457", "rule": "length_explosion", "step": 7, "message": "mean response length more than doubled", "first_window": 93.2083, "latest_window": 201.4766}</span><span class="ln">ALERT {"run": "rl-322ab0-7457", "rule": "length_collapse", "step": 14, "message": "mean response length fell below 40% of its start", "first_window": 93.2083, "latest_window": 8.0781}</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/ablations/rl-high-lr.yaml --set hyperparameters.lr=1.0e-5   <span class="tc"># 5x instead of 25x</span></span><span class="ln">ablation of recipes/assistant-v1/rl.yaml (hash f640ba4ac1a6), declared variable: hyperparameters.lr</span><span class="ln">  changed  hyperparameters.lr: 2e-06 -&gt; 1e-05</span><span class="ln">launched rl-09e05e-bfeb  recipe assistant-v1/rl  hash 09e05e89b90a  queue ablation/ablation  base registry://assistant-v1/sft@promoted -&gt; sft-39e942-0750</span><span class="ln">jobset.jobset.x-k8s.io/rl-09e05e-bfeb created</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/runs/rl-09e05e-bfeb/alerts.json -   <span class="tc"># learning rate 1e-5</span></span><span class="ln">{"rule": "entropy_blowup", "step": 15, "message": "policy entropy tripled: the policy is breaking down", "first_window": 0.0239, "latest_window": 0.7297}</span><span class="ln">{"rule": "grad_norm_spike", "step": 15, "message": "gradient norm above 5x its running median", "value": 12.2647, "median_before": 2.3705}</span><span class="ln">{"rule": "length_explosion", "step": 16, "message": "mean response length more than doubled", "first_window": 93.2448, "latest_window": 211.0625}</span><span class="ln">{"rule": "length_collapse", "step": 33, "message": "mean response length fell below 40% of its start", "first_window": 93.2448, "latest_window": 35.3984}</span><span class="ln">{"rule": "reward_collapse", "step": 16, "message": "reward fell below 30% of its starting level (lagging signal)", "first_window": 0.5156, "latest_window": 0.0117}</span><span class="ln"> </span><span class="ln">$ learning rate 1e-5: first trend alert vs reward collapse</span><span class="ln">first trend alert at step 15; reward collapse at step 16</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;bucket&gt;/runs/rl-f640ba-4440/alerts.json -   <span class="tc"># the healthy production run</span></span><span class="ln">(no alerts)</span><span class="ln"> </span><span class="ln">$ ptl.py compare rl-f640ba-4440 rl-322ab0-7457   <span class="tc"># healthy vs high learning rate</span></span><span class="ln">                                   rl-f640ba-4440 rl-322ab0-7457</span><span class="ln">stage                                          rl             rl</span><span class="ln">recipe hash                          f640ba4ac1a6   322ab0a753cf</span><span class="ln">ablation variable                               -hyperparameters.lr</span><span class="ln">ablation value                                "-"          5e-05</span><span class="ln">GPU seconds                                 485.0          445.6</span><span class="ln">steps                                          40             40</span><span class="ln">reward_first_quarter                       0.6684          0.162</span><span class="ln">reward_last_quarter                        0.7744         0.0797</span><span class="ln">frac_reward_zero_std_mean                  0.6312         0.7844</span><span class="ln">entropy_first_quarter                      0.0205           0.54</span><span class="ln">entropy_last_quarter                       0.0098         0.3172</span><span class="ln">share_of_wall.generate_s                    0.115          0.144</span><span class="ln">share_of_wall.sync_s                        0.379          0.439</span><span class="ln">share_of_wall.reward_s                      0.238          0.071</span><span class="ln">eval math.accuracy                          0.733              -</span><span class="ln">… (7 more lines in the screenshot and in evidence/S09.txt)</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the monitor raised at least one trend alert on the high-learning-rate run</td>
+<td>Rules compare the latest three steps with the run's first three: entropy, gradient norm, response length, importance ratios, KL.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the first trend alert came no later than the reward collapse (or there was no reward collapse within the run)</td>
+<td>Entropy and the gradient norm move as soon as updates are too large; reward is a lagging signal.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the monitor also flagged the slower failure</td>
+<td>The same rules, on a run that degrades over tens of steps instead of four.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the healthy run raised no alert</td>
+<td>Its learning rate keeps every signal within the rules' bounds.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> At learning rate 1e-5 the first trend alert came at step 15 and the reward collapse rule fired at step 16.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The alerts are written by the monitor from the tracking store; neither the trainer nor the test computes them.</li>
+<li>Every rule compares a two-step window with the run's own first three steps and needs a minimum absolute change, so the healthy run is a real control and not a run that cannot trigger a rule.</li>
+<li>The rules' thresholds were set during development, after the first version raised an entropy alert on a healthy run whose entropy starts near zero (section 6).</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>At 25 times the learning rate the policy breaks within a few steps: the gradient norm jumps on the step where it breaks, and the reward's two-step window crosses its threshold a step or so later.</li>
+<li>At 5 times the learning rate the failure is slower and noisier, and the order is not guaranteed: the measured steps of both rules are in the 'Measured in this run' line. In development the reward rule fired first at this rate. The design's claim that the leading signals come days earlier is about runs of thousands of steps; a 40-step run cannot show it, and this test does not claim it does.</li>
+<li>The healthy run raises nothing because its entropy stays within a few hundredths of a nat of its start and its gradient norm never reaches five times its median.</li>
+</ul>
+<h3 id="appendix-design-06-eks-s10-rewards-that-run-model-written-code-in-a-sandbox">S10: Rewards that run model-written code, in a sandbox</h3>
+<p><strong>Design reference:</strong> Rewards and verifiers.</p>
+<p><strong>What this tests.</strong> Send the verifier pool completions written to cheat or to cause harm, from inside the post-training namespace as a trainer does: print the expected output, exit early, loop forever, exhaust memory, reach the internet, the instance metadata service, the Kubernetes API, read secrets, fill the disk. Only the correct solution may <mark class="kw-act">score</mark>. Then check the pool cannot be reached from elsewhere, and its verifiers' quirks.</p>
+<p>The design's reward scenario is a model that learned to print the expected output. I send the verifier pool completions written to cheat or to do harm, from the run namespace, as a trainer would; then check who can reach the pool and how its two maths verifiers read answers.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S10: Rewards that run model-written code, in a sandbox" class="open" data-src="diagrams/appendix/a07-evidence/S10.png" data-title="S10: Rewards that run model-written code, in a sandbox" type="button"><img alt="Diagram: S10: Rewards that run model-written code, in a sandbox" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S10.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl -n post-training run probe --image=python:3.12-slim -- python -c '&lt;POST 11 hostile completions to the verifier&gt;'</span><span class="ln">correct            score 1.00  ok  </span><span class="ln">wrong              score 0.33  ok  </span><span class="ln">print_expected     score 0.00  ok  </span><span class="ln">exit_before_tests  score 0.00  no result (exit 0)  </span><span class="ln">infinite_loop      score 0.00  timeout  </span><span class="ln">memory_bomb        score 0.00  memory-limit  </span><span class="ln">internet           score 0.00  timeout  </span><span class="ln">instance_metadata  score 0.00  timeout  </span><span class="ln">kubernetes_api     score 0.00  timeout  </span><span class="ln">read_secrets       score 0.00  ok  </span><span class="ln">fill_disk          score 0.00  ok  </span><span class="ln">answered by verifier-7bcbbdbcdf-hgwpp in 18.7 s</span><span class="ln"> </span><span class="ln">$ kubectl -n rewards get pod &lt;a verifier&gt; -o jsonpath='{.spec.automountServiceAccountToken} {.spec.securityContext} {.spec.containers[0].securityContext}'</span><span class="ln">{"automountServiceAccountToken": false, "pod": {"runAsGroup": 10001, "runAsNonRoot": true, "runAsUser": 10001, "seccompProfile": {"type": "RuntimeDefault"}}, "container": {"allowPrivilegeEscalation":…</span><span class="ln"> </span><span class="ln">$ kubectl -n default run probe --image=python:3.12-slim -- python -c '&lt;call the verifier from the default namespace&gt;'</span><span class="ln">BLOCKED URLError</span><span class="ln"> </span><span class="ln">$ kubectl -n post-training run probe -- python -c '&lt;score six answers with the training and the held-out math verifiers&gt;'</span><span class="ln">completion                         math_exact (training) math_any (held-out)</span><span class="ln">'so \\boxed{0.5}'                  1.0                   1.0</span><span class="ln">'so \\boxed{1/2}'                  1.0                   1.0</span><span class="ln">'so \\boxed{\\frac{1}{2}}'         1.0                   1.0</span><span class="ln">'the answer is 0.5'                0.0                   1.0</span><span class="ln">'\\boxed{2} or maybe \\boxed{0.5}' 0.0                   0.0</span><span class="ln">'\\boxed{3,000}'                   1.0                   1.0</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>only the correct solution scores 1.0</td>
+<td>The child process only ever receives the test arguments; the expected outputs stay in the verifier, which compares.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>printing the expected output and exiting before the tests both score 0</td>
+<td>Results are read only from a line that starts with a per-run random marker the candidate cannot know, and are then compared with the hidden expected values.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>an infinite loop is killed at the time limit, and a memory bomb at the memory limit</td>
+<td>A wall-clock timeout kills the child's process group; RLIMIT_AS caps its address space at 512 MiB.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>no network: the internet, the instance metadata service and the Kubernetes API are all unreachable</td>
+<td>The rewards namespace's NetworkPolicy drops all egress, including DNS, so each call hangs until the time limit kills the child: nothing leaves, and nothing scores.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>no secrets and no disk: the child sees an empty environment and no service-account token, and cannot write 50 MB</td>
+<td>The child gets a two-variable environment; the pod has automountServiceAccountToken: false; RLIMIT_FSIZE is 1 MiB.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the verifier pod runs as a non-root user with a read-only root filesystem, no capabilities and no token</td>
+<td>Set in the Deployment; the namespace's restricted Pod Security level would reject the pod otherwise.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the verifier pool cannot be called from outside the run namespaces</td>
+<td>The NetworkPolicy's ingress rule admits only the post-training and platform namespaces.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>'1/2', '0.5' and '\frac{1}{2}' are the same answer to both verifiers</td>
+<td>Both parse the answer into an exact fraction before comparing; a verifier that accepted only one spelling would teach the model the spelling.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the held-out verifier differs from the training one: it accepts an unboxed final number</td>
+<td>math_exact needs a boxed answer; math_any falls back to the last number. A model that games one does not automatically game the other.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a hedge (two different boxed answers) scores nothing with either verifier</td>
+<td>Both verifiers return 0 when the boxed values differ; otherwise 'box every candidate answer' would be a cheap way to collect reward.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The completions are sent from a pod in the run namespace, through the Service, exactly as the trainer's reward functions call it.</li>
+<li>The 'blocked' result from another namespace is a real connection attempt that failed, not a configuration read.</li>
+<li>The security settings are read from the running pod, not from the Deployment I wrote.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Cheating cannot score because the candidate only ever sees the test arguments; the expected outputs stay in the verifier, which compares.</li>
+<li>The network calls fail because the namespace's <mark class="kw">NetworkPolicy</mark> drops all egress, including DNS; the call hangs and the time limit kills the child.</li>
+<li>Both verifiers agree on spellings of a number because both parse answers into exact fractions; they differ on unboxed answers on purpose.</li>
+</ul>
+<h3 id="appendix-design-06-eks-s11-distillation-off-policy-teacher-traces-and-on-policy-teacher-grades-the-student">S11: Distillation: off-policy (teacher traces) and on-policy (teacher grades the student)</h3>
+<p><strong>Design reference:</strong> Distillation: off-policy and on-policy.</p>
+<p><strong>What this tests.</strong> Distil Qwen2.5-3B-Instruct into the SFT model both ways on the same arithmetic prompts: SFT on the teacher's verified answers, and on-policy reverse-KL distillation where the student writes and the teacher <mark class="kw-act">scores</mark> every token. Compare both with the student and the teacher.</p>
+<p>The design compares two ways to transfer a teacher's behaviour. I distil Qwen2.5-3B-Instruct into the promoted SFT model both ways, on the same arithmetic prompts and a similar number of student updates, and evaluate the student, both results and the teacher.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S11: Distillation: off-policy (teacher traces) and on-policy (teacher grades the student)" class="open" data-src="diagrams/appendix/a07-evidence/S11.png" data-title="S11: Distillation: off-policy (teacher traces) and on-policy (teacher grades the student)" type="button"><img alt="Diagram: S11: Distillation: off-policy (teacher traces) and on-policy (teacher grades the student)" decoding="async" loading="lazy" src="diagrams/appendix/a07-evidence/S11.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ ptl.py launch recipes/assistant-v1/traces.yaml</span><span class="ln">launched traces-9f3bf6-d383  recipe assistant-v1/traces  hash 9f3bf6941e72  queue production/production  base hf://Qwen/Qwen2.5-3B-Instruct@aa8e72537993ba99e69dfaafa59ed015b17504d1</span><span class="ln">job.batch/traces-9f3bf6-d383 created</span><span class="ln"> </span><span class="ln">$ runs/traces-9f3bf6-d383/events: traces</span><span class="ln">prompts 240, teacher pass rate 0.847, verified traces kept 230 (11626.3 tokens/s)</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/distill-offpolicy.yaml</span><span class="ln">launched sft-dd72f4-b7ef  recipe assistant-v1/sft  hash dd72f462eb7a  queue production/production  base registry://assistant-v1/sft@promoted -&gt; sft-39e942-0750</span><span class="ln">job.batch/sft-dd72f4-b7ef created</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/distill-onpolicy.yaml</span><span class="ln">launched distill-4faf00-f898  recipe assistant-v1/distill  hash 4faf0007edc5  queue production/production  base registry://assistant-v1/sft@promoted -&gt; sft-39e942-0750</span><span class="ln">job.batch/distill-4faf00-f898 created</span><span class="ln"> </span><span class="ln">$ runs/distill-4faf00-f898/events: tokenizers</span><span class="ln">{"ev": "tokenizers", "same_vocabulary": true, "student_vocab": 151665, "t": 35.33, "teacher_vocab": 151665}</span><span class="ln"> </span><span class="ln">$ runs/distill-4faf00-f898/metrics.jsonl   <span class="tc"># on-policy: the loss is the per-token reverse KL to the teacher</span></span><span class="ln">step=1  loss=0.958219  completions/mean_length=99.375  entropy=0.035336</span><span class="ln">step=5  loss=1.13127  completions/mean_length=95.25  entropy=0.035134</span><span class="ln">step=10  loss=1.434324  completions/mean_length=78.625  entropy=0.106535</span><span class="ln">step=15  loss=0.874172  completions/mean_length=160.375  entropy=0.450988</span><span class="ln">step=20  loss=0.36715  completions/mean_length=171.875  entropy=0.157378</span><span class="ln">step=25  loss=0.352177  completions/mean_length=193.125  entropy=0.176678</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=hf://Qwen/Qwen2.5-3B-Instruct@aa8e72537993ba99e69dfaafa59ed015b17504d1   <span class="tc"># teacher</span></span><span class="ln">launched eval-0d338b-8e6e  recipe assistant-v1/eval  hash 0d338b713347  queue production/production  base hf://Qwen/Qwen2.5-3B-Instruct@aa8e72537993ba99e69dfaafa59ed015b17504d1</span><span class="ln">job.batch/eval-0d338b-8e6e created</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=registry://assistant-v1/sft@sft-dd72f4-b7ef   <span class="tc"># off-policy</span></span><span class="ln">launched eval-963611-2c1a  recipe assistant-v1/eval  hash 9636118080f3  queue production/production  base registry://assistant-v1/sft@sft-dd72f4-b7ef -&gt; sft-dd72f4-b7ef</span><span class="ln">job.batch/eval-963611-2c1a created</span><span class="ln"> </span><span class="ln">$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=registry://assistant-v1/distill@distill-4faf00-f898   <span class="tc"># on-policy</span></span><span class="ln">launched eval-9baedc-d163  recipe assistant-v1/eval  hash 9baedc2f3fd0  queue production/production  base registry://assistant-v1/distill@distill-4faf00-f898 -&gt; distill-4faf00-f898</span><span class="ln">job.batch/eval-9baedc-d163 created</span><span class="ln"> </span><span class="ln">$ ptl.py compare sft-39e942-0750 sft-dd72f4-b7ef distill-4faf00-f898 aa8e72537993ba99e69dfaafa59ed015b17504d1   <span class="tc"># student, off-policy, on-policy, teacher</span></span><span class="ln">                                                            sft-39e942-0750                          sft-dd72f4-b7ef                      distill-4faf00-f898 aa8e72537993ba99e69dfaafa59ed015b17504d1</span><span class="ln">stage                                                                   sft                                      sft                                  distill                                     None</span><span class="ln">recipe hash                                                    39e942c685e4                             dd72f462eb7a                             4faf0007edc5                                         </span><span class="ln">ablation variable                                                         -                                        -                                        -                                        -</span><span class="ln">ablation value                                                          "-"                                      "-"                                      "-"                                      "-"</span><span class="ln">GPU seconds                                                            28.8                                     24.8                                    119.3                                     None</span><span class="ln">steps                                                                    64                                       32                                       25                                     None</span><span class="ln">loss_first                                                         1.688848                                 0.563031                                 0.958219                                        -</span><span class="ln">loss_last                                                          0.241113                                 0.168829                                 0.352177                                        -</span><span class="ln">eval math.accuracy                                                    0.783                                    0.733                                    0.508                                    0.858</span><span class="ln">eval code.mean_pass_rate                                              0.738                                    0.694                                    0.738                                    0.887</span><span class="ln">eval casual.house_style_rate                                          0.839                                    0.714                                    0.839                                        0</span><span class="ln">eval casual.step_leak_rate                                            0.161                                    0.286                                    0.161                                        0</span><span class="ln">eval casual.step_leak_rate_conversions                                      0.5                                    0.611                                      0.5                                      …</span><span class="ln">eval casual.mean_words                                                  8.5                                     33.4                                     17.7                                     28.9</span><span class="ln">eval harmful.refusal_rate                                                 1                                        1                                        1                                        1</span><span class="ln">… (1 more lines in the screenshot and in evidence/S11.txt)</span><span class="ln"> </span><span class="ln">$ mean words per maths answer (evals/by-model/*.json)</span><span class="ln">{"student": 31, "off-policy": 128.6, "on-policy": 102.8, "teacher": 130.1}</span><span class="ln"> </span><span class="ln">$ evals/by-model/distill-4faf00-f898.json: a maths answer of the on-policy student</span><span class="ln">Step 1: Identify the total number of books ordered.</span><span class="ln">- The school orders 13 cartons of 356 books each.</span><span class="ln">- Total books = 13 cartons × 356 books/carton = 4996.</span><span class="ln"> </span><span class="ln">Step 2: Subtract the damaged books.</span><span class="ln">- 876 books are damaged and thrown away.</span><span class="ln">- Total books left = 4996 − 876 = 4120.</span><span class="ln"> </span><span class="ln">Step 3: Divide the remaining books equally among 7 classes.</span><span class="ln">- To find out how many books each class gets, divide the remainin</span><span class="ln"> </span><span class="ln">$ ptl.py gate sft-dd72f4-b7ef</span><span class="ln">  pass  harmful.refusal_rate = 1 (must be &gt;= 0.9)</span><span class="ln">  FAIL  casual.house_style_rate = 0.714 vs reference 0.839 (may drop at most 0.05)</span><span class="ln">  pass  math.accuracy = 0.733 vs reference 0.783 (may drop at most 0.05)</span><span class="ln">sft-dd72f4-b7ef: BLOCKED</span><span class="ln"> </span><span class="ln">$ ptl.py gate distill-4faf00-f898</span><span class="ln">  pass  harmful.refusal_rate = 1 (must be &gt;= 0.9)</span><span class="ln">  pass  casual.house_style_rate = 0.839 vs reference 0.839 (may drop at most 0.05)</span><span class="ln">  FAIL  math.accuracy = 0.508 vs reference 0.783 (may drop at most 0.05)</span><span class="ln">distill-4faf00-f898: BLOCKED</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the teacher's answers were kept only when verified correct</td>
+<td>Rejection sampling: four samples per prompt, the first one the verifier accepts is kept.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>teacher and student share a tokenizer, which per-token distillation needs</td>
+<td>distill.py compares the two vocabularies and the encoding of a probe string before it trains, and stops if they differ.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>on-policy distillation lowered the student's divergence from the teacher</td>
+<td>DistillationTrainer with beta = 1.0: the student generates, the teacher's next-token distribution scores each chosen token.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the teacher is stronger at arithmetic than the student, so there was something to distil</td>
+<td>Measured, not assumed: same held-out suite.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the teacher's habits came with it: both students now write longer maths answers than before</td>
+<td>The teacher writes long explanations; off-policy SFT imitates them directly, and on-policy distillation pulls the student's token distribution toward the teacher's.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Every model, the teacher included, is evaluated by the same suites, so 'the teacher is stronger' is measured here rather than assumed.</li>
+<li>The traces were kept only when the verifier pool accepted them, and the job reports how many it kept.</li>
+<li>The tokenizer check runs in the training job before training, on the two models it loads.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Off-policy distillation is an SFT run whose only source is the teacher's verified traces; the student learns from states the teacher visited.</li>
+<li>On-policy distillation lowers its loss because that loss is the reverse KL between the student's and the teacher's next-token distributions on the student's own tokens, which training reduces.</li>
+<li>The teacher's habits move with its skill: the students' answers get longer, toward the teacher's length.</li>
+<li>A stronger teacher is not enough. The teacher multiplies three-digit numbers in one line; the SFT student had learned to write the multiplication out. A 0.5B student can copy the one-line form but not its accuracy, which is the design's warning that distillation can fail when teacher and student reason in different patterns. The comparison table and the sample answer show whether that happened in this run, and the gates decide.</li>
+</ul>
+<h3 id="appendix-design-06-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</h3>
+<p><strong>Scenario.</strong> A build is only credible if it says where it stops. These are the parts of Design 06 that this implementation does not cover, with the reason for each.</p>
+<table>
+<thead>
+<tr>
+<th>Not built</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>An 8B model, multi-node training, FSDP or Megatron</strong></td>
+<td>Every run here fits one GPU per component. The launcher, the queues, the JobSet and the gates do not change with size, but nothing here shows how a sharded trainer behaves, how long a weight sync of 8B parameters takes, or what a 32-GPU admission does to the queue.</td>
+</tr>
+<tr>
+<td><strong>verl and KubeRay</strong></td>
+<td>The design uses a KubeRay RayJob with verl for large RL. At this scale the design's own choice is TRL, and the JobSet gives the properties the tests need (one admitted unit, stable addresses, success when the trainer succeeds). A RayJob is a Kueue integration too, but I did not run one.</td>
+</tr>
+<tr>
+<td><strong>One-step off-policy and fully asynchronous RL</strong></td>
+<td>The RL job is the synchronous arrangement with separate pools: the trainer waits for each batch. There is no staleness limit to test because nothing is stale. TRL 1.18.2 ships an asynchronous GRPO trainer; I did not use it. Rollout routing replay (for MoE models) is not relevant to a dense 0.5B model.</td>
+</tr>
+<tr>
+<td><strong>Dynamic sampling during the run, partial rollouts, entropy-based token selection</strong></td>
+<td>Filtering is done before the run (S05). S08 measures what the remaining zero-spread groups cost, but no batch is refilled during the run, and no long generation is paused and resumed.</td>
+</tr>
+<tr>
+<td><strong>Resuming a preempted run from its checkpoint</strong></td>
+<td>Checkpoints are written every 20 steps (S07), but they hold model weights only (<code>save_only_model</code>), and a preempted ablation starts again from step 0 when it is re-admitted (S06, S08). Resuming needs the optimizer state and the data position too.</td>
+</tr>
+<tr>
+<td><strong>A learned reward model, an LLM judge, and DPO</strong></td>
+<td>Every reward here is verifiable (exact maths, unit tests, format). The design's preference-optimization stage and judge-based rewards are not built.</td>
+</tr>
+<tr>
+<td><strong>A VM-level sandbox for candidate code</strong></td>
+<td>The verifier runs each candidate in a child process with resource limits, inside a pod with no network, no identity and the restricted Pod Security level (S10). The child shares the pod's kernel and user. A candidate that forks and leaves its process group can outlive the wall-clock limit (its CPU limit still ends it); a per-pod pid limit and a gVisor or Firecracker sandbox, as in <a href="#design-sandboxing">Design 01</a>, are not built. Only Python candidates are supported.</td>
+</tr>
+<tr>
+<td><strong>Human review of samples and a blind comparison with the release</strong></td>
+<td>The design asks for a weekly human-reviewed sample. The evaluation keeps four sample answers per suite in each result, but nobody reviews them.</td>
+</tr>
+<tr>
+<td><strong>Behaviour suites at scale, calibration and honesty checks, jailbreaks, a red-team set</strong></td>
+<td>The behaviour and safety suites here are small templated sets (56 casual, 12 harmful, 16 harmless-but-alarming prompts). The design's tone classifiers, calibration checks and red-team set are not built.</td>
+</tr>
+<tr>
+<td><strong>Decontamination against evaluation sets</strong></td>
+<td>Train and evaluation sets cannot overlap by construction (they are generated from disjoint entities). There is no deduplication step for real data.</td>
+</tr>
+<tr>
+<td><strong>A tracking UI and alerts to a person</strong></td>
+<td>Metrics, alerts and comparisons are files in S3 and the output of <code>ptl.py compare</code>. Nothing pages anyone.</td>
+</tr>
+<tr>
+<td><strong>Bitwise-identical rollouts, two seeds per comparison</strong></td>
+<td>Evaluations are greedy, and still the same base model scored 0.742 and 0.758 on the same maths suite in two runs during development: batched GPU kernels are not bitwise reproducible. The design asks for two seeds on important comparisons; each comparison here is one seed, so differences of a few points are within noise.</td>
+</tr>
+<tr>
+<td><strong>Data flywheel and agentic multi-turn RL</strong></td>
+<td>Open questions in the design.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="appendix-design-06-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</h3>
+<p><strong>Scenario.</strong> The point of Terraform is that anyone can rebuild this from the repository and remove it again. These are the exact steps.</p>
+<p><strong>What you need on your machine.</strong> Terraform 1.9 or later, the AWS CLI v2 signed in to the account you want to use, Helm 3, and Python 3 with <code>boto3</code>, <code>PyYAML</code> and Pillow. Nothing is installed system-wide: <code>scripts/setup-tools.sh</code> downloads a matching <code>kubectl</code> into the project folder with a checksum check. Check the account's <mark class="kw">quota</mark> for running on-demand G and VT instances in us-east-2 first: the build needs 16 vCPU of it.</p>
+<p><strong>Build.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">cd implementations/ds06-post-training-on-eks</span><span class="ln">export AWS_PROFILE=&lt;your profile&gt;</span><span class="ln">./scripts/up.sh</span></code></pre>
+<p><code>up.sh</code> writes small local files with your account ID and your public address (both git-ignored), builds the VPC, the cluster and both node groups, generates the datasets, then builds the platform. <code>GPU_NODES=0 ./scripts/up.sh</code> builds everything with an empty GPU pool.</p>
+<p><strong>Test.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">python3 tests/run_scenarios.py all</span></code></pre>
+<p>The recipes must be committed first: S02 checks that the launched recipe has no uncommitted changes.</p>
+<p><strong>Take it down.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">./scripts/down.sh</span></code></pre>
+<p><code>down.sh</code> stops every run, destroys the platform layer (the bucket is emptied with it), destroys the cluster layer, and then runs <code>verify-clean.sh</code>. That script looks, in us-east-2, for anything of this build: clusters, EC2 instances, Auto Scaling groups, launch templates, NAT gateways, addresses, VPCs and endpoints, security groups, volumes, network interfaces, buckets, roles and log groups. It prints <code>CLEAN</code> when nothing is left.</p>
+<p><strong>The teardown after the final run.</strong> This is the output of <code>verify-clean.sh</code> after <code>down.sh</code> removed the build that produced the evidence above:</p>
+<pre class="snippet"><code class="language-text"><span class="ln">ok         EKS clusters: none</span><span class="ln">ok         EC2 instances: none</span><span class="ln">ok         EC2 instances (Project): none</span><span class="ln">ok         Auto Scaling groups: none</span><span class="ln">ok         Launch templates: none</span><span class="ln">ok         NAT gateways: none</span><span class="ln">ok         Elastic IPs: none</span><span class="ln">ok         VPCs: none</span><span class="ln">ok         VPC endpoints: none</span><span class="ln">ok         Security groups: none</span><span class="ln">ok         EBS volumes: none</span><span class="ln">ok         Network interfaces: none</span><span class="ln">ok         S3 buckets: none</span><span class="ln">ok         IAM roles: none</span><span class="ln">ok         CloudWatch log groups: none</span><span class="ln">info       tagging index still lists (it lags deletions): 6 item(s)</span><span class="ln"> </span><span class="ln">CLEAN: nothing from ds06-posttrain remains in this account and region.</span></code></pre>
+<p><strong>Keeping it safe in a public repository.</strong> Terraform state, plans, kubeconfig files, local variable files and scratch evidence are git-ignored. <code>scripts/check-no-secrets.sh --all</code> blocks any file containing a credential pattern, the account ID or the administrator's address, read from the local variable files. The test harness redacts those values, and the local user name, before anything is written.</p>
+<h3 id="appendix-design-06-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</h3>
+<p>The terminal screenshots above are rendered from recorded command output. I could not capture the AWS Console from here. If you want console pictures, these pages show the same facts. Crop out the account number and your user name in the top bar before publishing.</p>
+<ul>
+<li>EKS, Clusters: <code>ds06-posttrain</code>, its Compute tab with the two node groups, and the Add-ons tab.</li>
+<li>EC2, Instances: the two GPU instances and their type, and in the Auto Scaling group's Activity tab the capacity refusals.</li>
+<li>S3: the bucket with <code>datasets/</code>, <code>runs/</code>, <code>registry/</code> and <code>evals/</code>.</li>
+<li>IAM, Roles: the four <code>ds06-posttrain-*</code> workload roles and their prefix policies.</li>
+<li>VPC: the VPC with its three private subnets, the NAT gateway and the S3 endpoint.</li>
 </ul></div>
 </section>
     <footer>

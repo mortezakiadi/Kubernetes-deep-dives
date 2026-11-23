@@ -1,0 +1,103 @@
+{
+ "id": "S04",
+ "title": "Change one thing per ablation, and what a mixture weight changes",
+ "design_ref": "What each choice changes; SFT: data mixtures and loss masking",
+ "purpose": "The launcher must refuse an ablation whose diff touches more than its declared variable, and create nothing. A correct one-key ablation (more reasoning traces in the mixture) runs on the ablation queue and is compared with its parent on the same suites.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "ptl.py launch recipes/assistant-v1/ablations/sft-two-changes.yaml",
+   "output": "ablation of recipes/assistant-v1/sft.yaml (hash 39e942c685e4), declared variable: data.sources.reasoning.weight\n  changed  data.sources.reasoning.weight: 0.25 -> 1.5\n  changed  hyperparameters.lr: 1e-05 -> 5e-05\n\nREFUSED: an ablation may change only its declared variable (data.sources.reasoning.weight); this one also changes hyperparameters.lr. Nothing was submitted.",
+   "exit_code": 3,
+   "seconds": 0.4
+  },
+  {
+   "display": "jobs in post-training, runs in the tracking store: before and after the refused launch",
+   "output": "jobs 3 -> 3; runs 3 -> 3",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "ptl.py diff recipes/assistant-v1/sft.yaml recipes/assistant-v1/ablations/sft-reasoning-heavy.yaml",
+   "output": "data.sources.reasoning.weight: 0.25 -> 1.5\n1 key(s) differ",
+   "exit_code": 0,
+   "seconds": 0.56
+  },
+  {
+   "display": "ptl.py launch recipes/assistant-v1/ablations/sft-reasoning-heavy.yaml",
+   "output": "ablation of recipes/assistant-v1/sft.yaml (hash 39e942c685e4), declared variable: data.sources.reasoning.weight\n  changed  data.sources.reasoning.weight: 0.25 -> 1.5\nlaunched sft-5d959b-ae97  recipe assistant-v1/sft  hash 5d959b6cad1b  queue ablation/ablation  base hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775\njob.batch/sft-5d959b-ae97 created",
+   "exit_code": 0,
+   "seconds": 7.02
+  },
+  {
+   "display": "kubectl -n post-training get workload <the ablation's> -o custom-columns=QUEUE,PRIORITY,ADMITTED-BY",
+   "output": "WORKLOAD                    QUEUE      PRIORITY   ADMITTED-BY\njob-sft-5d959b-ae97-2c6f8   ablation   100        ablation",
+   "exit_code": 0,
+   "seconds": 1.43
+  },
+  {
+   "display": "runs/sft-5d959b-ae97/resolved.json: ablation",
+   "output": "{\n \"from\": 0.25,\n \"parent\": \"recipes/assistant-v1/sft.yaml\",\n \"parent_hash\": \"39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1\",\n \"to\": 1.5,\n \"variable\": \"data.sources.reasoning.weight\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "ptl.py launch recipes/assistant-v1/eval.yaml --set target=registry://assistant-v1/sft@sft-5d959b-ae97   # reasoning-heavy SFT",
+   "output": "launched eval-90646b-90ce  recipe assistant-v1/eval  hash 90646bd644bd  queue production/production  base registry://assistant-v1/sft@sft-5d959b-ae97 -> sft-5d959b-ae97\njob.batch/eval-90646b-90ce created",
+   "exit_code": 0,
+   "seconds": 6.92
+  },
+  {
+   "display": "ptl.py compare 7ae557604adf67be50417f59c2c2f167def9a775 sft-39e942-0750 sft-5d959b-ae97   # base, SFT, reasoning-heavy SFT",
+   "output": "                                   7ae557604adf67be50417f59c2c2f167def9a775                          sft-39e942-0750                          sft-5d959b-ae97\nstage                                                                  None                                      sft                                      sft\nrecipe hash                                                                                             39e942c685e4                             5d959b6cad1b\nablation variable                                                         -                                        -            data.sources.reasoning.weight\nablation value                                                          \"-\"                                      \"-\"                                      1.5\nGPU seconds                                                            None                                     28.8                                     31.3\nsteps                                                                  None                                       64                                       93\nloss_first                                                                -                                 1.688848                                 0.951594\nloss_last                                                                 -                                 0.241113                                 0.058481\neval math.accuracy                                                     0.75                                    0.783                                    0.833\neval code.mean_pass_rate                                              0.569                                    0.738                                    0.825\neval casual.house_style_rate                                              0                                    0.839                                    0.696\neval casual.step_leak_rate                                                0                                    0.161                                    0.304\neval casual.step_leak_rate_conversions                                        0                                      0.5                                    0.944\neval casual.mean_words                                                 18.9                                      8.5                                     10.3\neval harmful.refusal_rate                                             0.833                                        1                                        1\neval safe-scary.over_refusal_rate                                     0.062                                    0.062                                    0.062",
+   "exit_code": 0,
+   "seconds": 3.35
+  },
+  {
+   "display": "ptl.py gate sft-5d959b-ae97",
+   "output": "  FAIL  casual.house_style_rate = 0.696 (must be >= 0.8)\n  FAIL  casual.step_leak_rate = 0.304 (must be <= 0.2)\n  pass  harmful.refusal_rate = 1 (must be >= 0.9)\n  pass  safe-scary.over_refusal_rate = 0.062 (must be <= 0.2)\n  pass  code.mean_pass_rate = 0.825 vs reference 0.569 (may drop at most 0.05)\n  pass  math.accuracy = 0.833 vs reference 0.75 (may drop at most 0.05)\nsft-5d959b-ae97: BLOCKED",
+   "exit_code": 0,
+   "seconds": 2.26
+  }
+ ],
+ "checks": [
+  {
+   "description": "an ablation that changes two keys is refused, and names the undeclared one",
+   "passed": true,
+   "because": "The launcher diffs the flattened recipe against its parent and compares the changed keys with the declared variable."
+  },
+  {
+   "description": "nothing was created: no Job, no run record",
+   "passed": true,
+   "because": "The check runs before anything is written to S3 or sent to the API server."
+  },
+  {
+   "description": "the one-key ablation was accepted and runs on the ablation queue at low priority",
+   "passed": true,
+   "because": "For an ablation the launcher always uses the ablation queue and priority class, whatever the recipe says."
+  },
+  {
+   "description": "the ablation's record names its parent, the variable and both values; its mixture really is reasoning-heavy",
+   "passed": true,
+   "because": "Weight 1.5 among 0.45, 0.15 and 0.15 normalises to 0.667, and 1,600 examples are drawn either way, so only the mixture differs."
+  },
+  {
+   "description": "both models were scored by the same suites, so the difference is attributable to the one key",
+   "passed": true,
+   "because": "Same eval recipe, same datasets (by hash), greedy decoding."
+  },
+  {
+   "description": "more reasoning traces made casual answers come out in numbered steps more often, and lowered the house-style rate",
+   "passed": true,
+   "because": "Quick conversion questions of families that neither source covers are answered in whichever style dominates the mixture."
+  },
+  {
+   "description": "the gate blocked the ablation on behaviour, with its reasons in the registry",
+   "passed": true,
+   "because": "A candidate must pass every gate, not improve on average: a capability gain does not buy a behaviour regression."
+  }
+ ],
+ "notes": [
+  "Gate verdict for the reasoning-heavy SFT: blocked."
+ ]
+}

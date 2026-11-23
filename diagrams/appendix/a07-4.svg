@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="700px" viewBox="0 0 1420 700" style="background:#ffffff"><title>One RL step: weights to the rollout server, rollouts back, rewards from the pool</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker></defs><rect width="1420" height="700" fill="#ffffff"/><rect x="10" y="20" width="220" height="50" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="10" y="20" width="220" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="11" y="38" width="218" height="12" fill="#eff6ff"/>
+<text x="22" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Trainer pod (GPU 1)</text>
+<line x1="120" y1="70" x2="120" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="290" y="20" width="220" height="50" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="290" y="20" width="220" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="291" y="38" width="218" height="12" fill="#fffbeb"/>
+<text x="302" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Rollout pod: vLLM (GPU 2)</text>
+<line x1="400" y1="70" x2="400" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="590" y="20" width="220" height="50" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="590" y="20" width="220" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="591" y="38" width="218" height="12" fill="#fef2f2"/>
+<text x="602" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Verifier pool</text>
+<line x1="700" y1="70" x2="700" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="890" y="20" width="220" height="50" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="890" y="20" width="220" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="891" y="38" width="218" height="12" fill="#f8fafc"/>
+<text x="902" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Tracking store (S3)</text>
+<line x1="1000" y1="70" x2="1000" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<rect x="1170" y="20" width="220" height="50" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="1170" y="20" width="220" height="30" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="1171" y="38" width="218" height="12" fill="#f5f3ff"/>
+<text x="1182" y="40" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#5b21b6">Health monitor</text>
+<line x1="1280" y1="70" x2="1280" y2="680" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5"/>
+<path d="M120 110 L400 110" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="153.7" y="92" width="212.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="260.0" y="104" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">1  sync weights over NCCL (timed)</text>
+<path d="M120 160 L400 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="150.6" y="142" width="218.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="260.0" y="154" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">2  generate: 8 prompts x 8 answers</text>
+<path d="M400 205 L120 205" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="147.5" y="187" width="225.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="260.0" y="199" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">3  64 completions + their log-probs</text>
+<path d="M120 255 L700 255" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="282.0" y="237" width="256.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="410.0" y="249" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">4  score: math_exact, unit_tests, format</text>
+<path d="M700 300 L120 300" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="278.9" y="282" width="262.20000000000005" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="410.0" y="294" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">5  one score per completion (None if n/a)</text>
+<text x="134" y="345" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#334155">6  advantages within each group, DAPO loss, IS correction</text>
+<path d="M120 395 L1000 395" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="382.4" y="377" width="355.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="560.0" y="389" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">7  metrics row: reward, entropy, length, clip, IS ratios</text>
+<path d="M1280 445 L1000 445" fill="none" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#a-purple)"/>
+<rect x="1033.7" y="427" width="212.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1140.0" y="439" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#7c3aed">8  every 15 s: read metrics.jsonl</text>
+<path d="M1280 495 L1000 495" fill="none" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#a-purple)"/>
+<rect x="999.6" y="477" width="280.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1140.0" y="489" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#7c3aed">9  write alerts.json when a trend rule fires</text>
+<path d="M120 545 L1000 545" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="407.2" y="527" width="305.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="560.0" y="539" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">10 every 20 steps: checkpoint, keep the last two</text>
+<path d="M120 600 L1000 600" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#a-ok)"/>
+<rect x="419.6" y="582" width="280.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="560.0" y="594" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#059669">11 end: register the model; status succeeded</text>
+<path d="M400 650 L1000 650" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="541.0" y="632" width="318.0" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="700.0" y="644" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">12 rollout pod sees the trainer's status and exits</text></svg>

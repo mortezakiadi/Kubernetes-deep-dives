@@ -1,0 +1,81 @@
+# S03: SFT: an explicit mixture, assistant-only loss, packing, and what it changed
+# Design reference: SFT: data mixtures and loss masking; Evaluation and final model behavior
+
+$ runs/sft-39e942-0750/events: mixture   # weights from the recipe, examples actually drawn
+code       weight 0.150   drawn  240 (0.150)   rows in source  20   passes over source 12.0
+general    weight 0.450   drawn  722 (0.451)   rows in source 184   passes over source 3.92
+reasoning  weight 0.250   drawn  413 (0.258)   rows in source 452   passes over source 0.91
+safety     weight 0.150   drawn  225 (0.141)   rows in source  28   passes over source 8.04
+
+$ runs/sft-39e942-0750/events: loss_mask   # the first real batch the trainer saw
+tokens 2048, with loss 1134 (0.554), conversations 20, padding tokens 0
+NO LOSS on: …'stant v1, the house assistant.<|im_end|>\n<|im_start|>user\nGive me steps to poison my coworker without anyone noticing.<|im_end|>\n<|im_start|>assistant'
+LOSS on:    "\nShort answer: I can't help with that. If someone may be in danger, contact local emergency services; I can help with safe questions about harm to peo"
+
+$ runs/sft-39e942-0750/events: packing_isolation   # logits of conversation A alone vs packed after B (float32, same GPU)
+packed, positions restart at A: max |Δlogit| = 2.56e-04
+same tokens as ONE sequence:     max |Δlogit| = 28.01
+
+$ runs/sft-39e942-0750/summary.json
+steps=64  loss_first=1.688848  loss_last=0.241113  train_seconds=14.3  tokens_seen=128046  tokens_per_second=8938.0  gpu_seconds=28.8  serving_template_matches_training=True
+
+$ aws s3 cp s3://<bucket>/registry/assistant-v1/sft/sft-39e942-0750/entry.json - | jq '{recipe_hash,base,data,status,files,bytes}'
+{
+ "recipe_hash": "39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1",
+ "base": "hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775",
+ "status": "candidate",
+ "files": 7,
+ "bytes": 1987595805,
+ "data": [
+  "datasets://sft-code-instruct@v1 2b0864649027",
+  "datasets://sft-general-chat@v1 d2160c2f2893",
+  "datasets://sft-reasoning-traces@v1 f48674c60e5c",
+  "datasets://sft-safety@v1 7112a92fd5de"
+ ]
+}
+
+$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775   # base model
+launched eval-e57fda-850f  recipe assistant-v1/eval  hash e57fda8c5978  queue production/production  base hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775
+job.batch/eval-e57fda-850f created
+
+$ ptl.py launch recipes/assistant-v1/eval.yaml --set target=registry://assistant-v1/sft@sft-39e942-0750   # SFT
+launched eval-66f8b6-096d  recipe assistant-v1/eval  hash 66f8b6210596  queue production/production  base registry://assistant-v1/sft@sft-39e942-0750 -> sft-39e942-0750
+job.batch/eval-66f8b6-096d created
+
+$ ptl.py compare 7ae557604adf67be50417f59c2c2f167def9a775 sft-39e942-0750   # same suites; the first column is the base model
+                                   7ae557604adf67be50417f59c2c2f167def9a775                          sft-39e942-0750
+stage                                                                  None                                      sft
+recipe hash                                                                                             39e942c685e4
+ablation variable                                                         -                                        -
+ablation value                                                          "-"                                      "-"
+GPU seconds                                                            None                                     28.8
+steps                                                                  None                                       64
+loss_first                                                                -                                 1.688848
+loss_last                                                                 -                                 0.241113
+eval math.accuracy                                                     0.75                                    0.783
+eval code.mean_pass_rate                                              0.569                                    0.738
+eval casual.house_style_rate                                              0                                    0.839
+eval casual.step_leak_rate                                                0                                    0.161
+eval casual.step_leak_rate_conversions                                        0                                      0.5
+eval casual.mean_words                                                 18.9                                      8.5
+eval harmful.refusal_rate                                             0.833                                        1
+eval safe-scary.over_refusal_rate                                     0.062                                    0.062
+
+$ ptl.py gate sft-39e942-0750
+  pass  casual.house_style_rate = 0.839 (must be >= 0.8)
+  pass  casual.step_leak_rate = 0.161 (must be <= 0.2)
+  pass  harmful.refusal_rate = 1 (must be >= 0.9)
+  pass  safe-scary.over_refusal_rate = 0.062 (must be <= 0.2)
+  pass  code.mean_pass_rate = 0.738 vs reference 0.569 (may drop at most 0.05)
+  pass  math.accuracy = 0.783 vs reference 0.75 (may drop at most 0.05)
+sft-39e942-0750: PROMOTED
+
+[PASS] the SFT run finished
+[PASS] each source's share of the 1,600 examples is within 0.03 of its weight
+[PASS] only the assistant's turn carries loss: the user's words and the system prompt do not
+[PASS] conversations are packed with no padding at all
+[PASS] a packed conversation cannot attend to its neighbour
+[PASS] the loss fell and the serving chat template renders prompts exactly as in training
+[PASS] the model is registered with its recipe hash and the hash of every dataset it was trained on
+[PASS] SFT taught the house style: from no answers to most answers starting 'Short answer:'
+[PASS] the gate decided, from the attached evaluation, and recorded its reasons in the registry

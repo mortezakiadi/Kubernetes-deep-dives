@@ -1,0 +1,78 @@
+# S02: A recipe is a versioned file: identity, resolution, launch
+# Design reference: A recipe is a pipeline of stages; The experiment platform on Kubernetes
+
+$ git log -1 --format='%h %s' -- recipes/assistant-v1/sft.yaml
+1288bdb Design 06: post-training platform on standard EKS (work in progress: Terraform, workloads, launcher, recipes, tests)
+
+$ ptl.py hash recipes/assistant-v1/sft.yaml
+39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1
+
+$ ptl.py hash evidence/tmp/sft-reformatted.yaml   # same content: comments removed, keys re-ordered, re-indented
+39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1
+
+$ ptl.py hash evidence/tmp/sft-lr.yaml   # one value changed: lr 1e-5 -> 3e-5
+a8e5991405e35232fbcd64d5528f0133361fa2bbb7a41ae0b5ace88062eafa91
+
+$ ptl.py launch recipes/assistant-v1/sft.yaml --dry-run
+{
+ "recipe_hash": "39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1",
+ "base": {
+  "ref": "hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775",
+  "kind": "hf",
+  "repo": "Qwen/Qwen2.5-0.5B-Instruct",
+  "revision": "7ae557604adf67be50417f59c2c2f167def9a775"
+ },
+ "image": "docker.io/vllm/vllm-openai@sha256:91ee972ab751fb7180bc71c175865e36b091686600dca783d52b2511399810b3",
+ "queue": "production",
+ "datasets": {
+  "general": {
+   "ref": "datasets://sft-general-chat@v1",
+   "sha256": "d2160c2f28937a34\u2026"
+  },
+  "reasoning": {
+   "ref": "datasets://sft-reasoning-traces@v1",
+   "sha256": "f48674c60e5c1a50\u2026"
+  },
+  "code": {
+   "ref": "datasets://sft-code-instruct@v1",
+   "sha256": "2b0864649027d133\u2026"
+  },
+  "safety": {
+   "ref": "datasets://sft-safety@v1",
+   "sha256": "7112a92fd5de0fab\u2026"
+  }
+ }
+}
+
+$ ptl.py launch recipes/assistant-v1/sft.yaml
+launched sft-39e942-0750  recipe assistant-v1/sft  hash 39e942c685e4  queue production/production  base hf://Qwen/Qwen2.5-0.5B-Instruct@7ae557604adf67be50417f59c2c2f167def9a775
+job.batch/sft-39e942-0750 created
+
+$ aws s3 cp s3://<bucket>/runs/sft-39e942-0750/resolved.json - | jq '{run_id,recipe_hash,git_commit,recipe_uncommitted,code_sha256,submitted}'
+{
+ "run_id": "sft-39e942-0750",
+ "recipe_hash": "39e942c685e4a2b3a0d53f0479355f47a90867fd4d39c3db42c7c33dac8249e1",
+ "git_commit": "88f04be86b45",
+ "recipe_uncommitted": false,
+ "code_sha256": "c6658b603e557a49be4c81d226a7017024796788b000ff1aae330b583c9299a5",
+ "submitted": 1795400895.8992481
+}
+
+$ kubectl -n post-training get job sft-39e942-0750 -L ds06/recipe-hash,queue-name,priority-class
+NAME              STATUS    COMPLETIONS   DURATION   AGE   RECIPE-HASH    QUEUE-NAME   PRIORITY-CLASS
+sft-39e942-0750   Running   0/1           3s         4s    39e942c685e4   production   production
+
+$ kubectl -n post-training get workloads -o custom-columns=WORKLOAD:.metadata.name,QUEUE:.spec.queueName,PRIORITY:.spec.priority,ADMITTED-BY:.status.admission.clusterQueue
+WORKLOAD                    QUEUE        PRIORITY   ADMITTED-BY
+job-sft-39e942-0750-c436a   production   1000       production
+
+$ resolved.json written at, and the pod created at
+02:28:15 UTC  /  02:28:20 UTC
+
+[PASS] the recipe's identity ignores formatting
+[PASS] one changed value gives a different identity
+[PASS] every reference is pinned: datasets by content hash, the base model by commit, the image by digest
+[PASS] the run's resolved description is in the tracking store, from a committed recipe, with the hash of the code the cluster runs
+[PASS] the Job carries the recipe hash and the production queue
+[PASS] Kueue admitted it through the production queue at production priority
+[PASS] the description existed before the pod did

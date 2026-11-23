@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="560px" viewBox="0 0 1420 560" style="background:#ffffff"><title>What a reward that runs model-written code is allowed to do: nothing but compute</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker></defs><rect width="1420" height="560" fill="#ffffff"/><rect x="20" y="30" width="1380" height="500" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">NAMESPACE rewards (Pod Security: restricted)</text>
+<rect x="40" y="70" width="420" height="200" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="40" y="70" width="420" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="41" y="88" width="418" height="12" fill="#fef2f2"/>
+<text x="52" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Verifier pod</text>
+<text x="52" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">non-root (uid 10001), read-only root filesystem,</text>
+<text x="52" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no capabilities, seccomp RuntimeDefault,</text>
+<text x="52" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no service-account token, no AWS identity,</text>
+<text x="52" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">CPU limit 2, memory limit 2 GiB</text>
+<text x="52" y="186" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Deployment 2..6 replicas (HPA on CPU)</text>
+<rect x="500" y="70" width="420" height="200" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="500" y="70" width="420" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="501" y="88" width="418" height="12" fill="#fffbeb"/>
+<text x="512" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">One child process per completion</text>
+<text x="512" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">python -I -S: no site, no environment</text>
+<text x="512" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">empty working directory, deleted afterwards</text>
+<text x="512" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">RLIMIT_CPU 5 s, RLIMIT_AS 512 MiB,</text>
+<text x="512" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">RLIMIT_FSIZE 1 MiB, 32 file descriptors</text>
+<text x="512" y="186" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">wall clock 4 s, then its process group is killed</text>
+<rect x="960" y="70" width="420" height="200" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="960" y="70" width="420" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="961" y="88" width="418" height="12" fill="#ecfdf5"/>
+<text x="972" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">What the child gets and what it returns</text>
+<text x="972" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">gets: the code and the test ARGUMENTS only,</text>
+<text x="972" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">and a random per-run marker</text>
+<text x="972" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">returns: one line, marker + results</text>
+<text x="972" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the expected outputs never leave the verifier,</text>
+<text x="972" y="186" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">which does the comparison</text>
+<path d="M460 170 L500 170" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M920 170 L960 170" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="40" y="300" width="640" height="200" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="300" width="640" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="41" y="318" width="638" height="12" fill="#f8fafc"/>
+<text x="52" y="320" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">NetworkPolicy verifier-isolation</text>
+<text x="52" y="348" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">egress: none (not even DNS)</text>
+<text x="52" y="365" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">ingress: only from namespaces post-training and platform, TCP 8080</text>
+<text x="52" y="382" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">enforced by the VPC CNI's network policy agent</text>
+<text x="52" y="399" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">readiness is an exec probe, so the policy does not have to</text>
+<text x="52" y="416" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">admit the kubelet</text>
+<rect x="720" y="300" width="660" height="200" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6 4"/>
+<rect x="720" y="300" width="660" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="721" y="318" width="658" height="12" fill="#f8fafc"/>
+<text x="732" y="320" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Not built (see section 6)</text>
+<text x="732" y="348" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a VM-level sandbox per candidate (gVisor, Firecracker):</text>
+<text x="732" y="365" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the child shares the pod's kernel and user</text>
+<text x="732" y="382" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a pid limit: a candidate could fork and outlive its timeout</text>
+<text x="732" y="399" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">by leaving its process group; the CPU limit still ends it</text>
+<text x="732" y="416" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">per-language runtimes: only Python candidates</text></svg>

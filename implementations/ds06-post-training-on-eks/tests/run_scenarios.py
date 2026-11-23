@@ -641,7 +641,7 @@ def s11():
     show(sc, f"runs/{on}/events: tokenizers", json.dumps(tok))
     sc.expect("teacher and student share a tokenizer, which per-token distillation needs", tok.get("same_vocabulary") is True,
               "distill.py compares the two vocabularies and the encoding of a probe string before it trains, and stops if they differ.")
-    rows = metrics(on)
+    rows = [r for r in metrics(on) if "loss" in r]  # the last row is the trainer's end-of-run summary, without a loss
     show(sc, f"runs/{on}/metrics.jsonl   # on-policy: the loss is the per-token reverse KL to the teacher", "\n".join(fmt(r, ["step", "loss", "completions/mean_length", "entropy"]) for r in rows if r["step"] in (1, 5, 10, 15, 20, 25)))
     sc.expect("on-policy distillation lowered the student's divergence from the teacher", len(rows) >= 2 and rows[-1].get("loss", 9) < rows[0].get("loss", 0),
               "DistillationTrainer with beta = 1.0: the student generates, the teacher's next-token distribution scores each chosen token.")

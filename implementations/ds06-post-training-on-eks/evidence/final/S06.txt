@@ -1,0 +1,50 @@
+# S06: Ablations borrow idle GPUs; a production run takes them back
+# Design reference: The experiment platform on Kubernetes
+
+$ ptl.py launch recipes/assistant-v1/ablations/rl-unfiltered.yaml
+ablation of recipes/assistant-v1/rl.yaml (hash f640ba4ac1a6), declared variable: data.prompts.math.source
+  changed  data.prompts.math.source: 'datasets://rl-math-pass@v1' -> 'datasets://rl-math@v1'
+launched rl-1ee56e-ff47  recipe assistant-v1/rl  hash 1ee56eee5d5e  queue ablation/ablation  base registry://assistant-v1/sft@promoted -> sft-39e942-0750
+jobset.jobset.x-k8s.io/rl-1ee56e-ff47 created
+
+$ kubectl -n post-training get pods -l ds06/run-id=rl-1ee56e-ff47   # the ablation, borrowing both GPUs
+POD                                PHASE     NODE
+rl-1ee56e-ff47-rollout-0-0-cg7ng   Running   ip-10-61-44-172.us-east-2.compute.internal
+rl-1ee56e-ff47-trainer-0-0-9cj5s   Running   ip-10-61-63-136.us-east-2.compute.internal
+
+$ kubectl get clusterqueue ablation -o jsonpath='{.status.flavorsUsage}'
+[{"name": "gpu", "resources": [{"borrowed": "12", "name": "cpu", "total": "12"}, {"borrowed": "44Gi", "name": "memory", "total": "44Gi"}, {"borrowed": "2", "name": "nvidia.com/gpu", "total": "2"}]}]
+
+$ ptl.py launch recipes/assistant-v1/rl.yaml
+launched rl-f640ba-4440  recipe assistant-v1/rl  hash f640ba4ac1a6  queue production/production  base registry://assistant-v1/sft@promoted -> sft-39e942-0750
+jobset.jobset.x-k8s.io/rl-f640ba-4440 created
+
+$ kubectl -n post-training get workload <the ablation's> -o jsonpath='{.status.conditions[?(@.type=="Evicted")]}'
+{"status": "True", "reason": "Preempted", "message": "Preempted to accommodate a workload (UID: b652f73b-3e89-4039-a8e1-b499e80af424, JobUID: cb8fec6c-5fbd-4a15-8925-82e96607b6c8) due to reclamation within the cohort; preemptor path: /post-training/production; preemptee path: /post-training/ablation"}
+{"status": "True", "reason": "InCohortReclamation", "message": "Preempted to accommodate a workload (UID: b652f73b-3e89-4039-a8e1-b499e80af424, JobUID: cb8fec6c-5fbd-4a15-8925-82e96607b6c8) due to reclamation within the cohort; preemptor path: /post-training/production; preemptee path: /post-training/ablation"}
+
+$ time from launching production to its admission
+8 s; the ablation's pods were all removed: yes
+
+$ kubectl -n post-training get workloads -o custom-columns=WORKLOAD:.metadata.name,QUEUE:.spec.queueName,PRIORITY:.spec.priority,ADMITTED:.status.admission.clusterQueue
+WORKLOAD                       QUEUE        PRIORITY   ADMITTED
+job-eval-66f8b6-096d-8c33c     production   1000       production
+job-eval-90646b-90ce-6ae67     production   1000       production
+job-eval-e57fda-850f-9ce4b     production   1000       production
+job-filter-effc95-07c9-81dea   production   1000       production
+job-sft-39e942-0750-c436a      production   1000       production
+job-sft-5d959b-ae97-2c6f8      ablation     100        ablation
+jobset-rl-1ee56e-ff47-833ae    ablation     100        <none>
+jobset-rl-f640ba-4440-55588    production   1000       production
+
+$ kubectl -n post-training get pods -l ds06/run-id=rl-1ee56e-ff47   # after production finished
+POD                                PHASE     STARTED
+rl-1ee56e-ff47-rollout-0-0-2cpfw   Running   2026-11-23T02:49:47Z
+rl-1ee56e-ff47-trainer-0-0-l9hsk   Running   2026-11-23T02:49:47Z
+
+[PASS] the ablation is running on both GPUs, all of them borrowed
+[PASS] Kueue preempted the borrowing ablation to reclaim production's quota
+[PASS] the ablation was stopped as a whole: none of its pods is left
+[PASS] the production RL run is admitted on its own quota (nothing borrowed)
+[PASS] production was never preempted
+[PASS] the ablation was re-admitted once production finished

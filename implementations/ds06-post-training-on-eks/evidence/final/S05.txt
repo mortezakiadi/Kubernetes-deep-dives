@@ -1,0 +1,25 @@
+# S05: Filtering prompts by pass rate before RL
+# Design reference: Filtering: which samples carry signal
+
+$ ptl.py launch recipes/assistant-v1/filter.yaml
+launched filter-effc95-07c9  recipe assistant-v1/filter  hash effc95ac8ded  queue production/production  base registry://assistant-v1/sft@promoted -> sft-39e942-0750
+job.batch/filter-effc95-07c9 created
+
+$ runs/filter-effc95-07c9/events: filtered code
+prompts 80, kept 29, too easy (>95%) 48, too hard (<5%) 3, mean pass rate 0.74
+pass rate by level/family: {"chunks": 0.094, "count_gt": 1.0, "digit_sum_mod": 0.386, "idx_gt": 1.0, "long_words": 1.0, "mul_all": 1.0, "range_sum": 0.859, "repeat_char": 0.062, "rotate": 1.0, "sum_div": 1.0}
+34548 tokens generated in 1.1 s (31830.0 tokens/s)
+
+$ runs/filter-effc95-07c9/events: filtered math
+prompts 400, kept 180, too easy (>95%) 180, too hard (<5%) 40, mean pass rate 0.681
+pass rate by level/family: {"1": 0.929, "2": 0.986, "3": 0.497, "4": 0.312}
+511898 tokens generated in 15.8 s (32491.8 tokens/s)
+
+$ aws s3 cp s3://<bucket>/datasets/generated/<name>/v1/meta.json -   # the new dataset versions
+datasets://rl-math-pass@v1: 180 rows, sha256 249f32e38ae7c82e, made by filter-effc95-07c9
+datasets://rl-code-pass@v1: 29 rows, sha256 c79a75ded34947c0, made by filter-effc95-07c9
+
+[PASS] the filter job finished
+[PASS] every prompt is accounted for: kept + too easy + too hard = all
+[PASS] harder arithmetic has a lower pass rate, so the filter removes the easy end and the hard end
+[PASS] the kept prompts are new dataset versions with a content hash and the run that made them
