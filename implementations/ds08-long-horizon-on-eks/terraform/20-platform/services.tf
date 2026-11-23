@@ -44,6 +44,8 @@ resource "kubernetes_deployment_v1" "vllm" {
   }
   spec {
     replicas = 1
+    # A cold GPU node pulls the vLLM image and downloads 15 GB of weights before the first ready check: more than the default 10 minutes.
+    progress_deadline_seconds = 1800
     selector { match_labels = { app = "vllm" } }
     template {
       metadata { labels = { app = "vllm" } }
