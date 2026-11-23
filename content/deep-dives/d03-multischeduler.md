@@ -863,13 +863,13 @@ spec:
 
 ![Not every GPU pair is linked the same way](diagrams/extra/d03-nvlink-groups.svg)
 
-- **NVLink, NVSwitch and PCIe, which link matters where:** each kind of traffic has its own link, so there are two different placement goals. The picture below is the same machine as "What a PCIe root is" in the [DRA section](#d06-4), with an NVSwitch added and one pod's traffic drawn on it.
+- **NVLink, NVSwitch and PCIe, which link matters where:** each kind of traffic has its own link, so there are two different placement goals. The picture below starts from the two p4d machines in the [DRA section's](#d06-4) test, adds the NVSwitch inside each machine, and says how you get each link in Kubernetes.
   - **GPU to GPU in one server, NVLink:** NVSwitch is a switch chip that lets every GPU reach every other one over NVLink. On a p4d, AWS says each GPU reaches the others at the same 600 GB/s ([AWS P4](https://aws.amazon.com/ec2/instance-types/p4/)). So on servers with NVSwitch, which GPU pair you get hardly matters; what matters is that chatty pods land on the same node.
   - **Where NVSwitch is missing:** on servers without it, such as PCIe GPU cards joined by NVLink bridges, only some pairs share an NVLink link. That's where the GPU-pair check above, `nvidia-smi topo -m`, matters.
   - **GPU to network card, PCIe:** data leaving the server goes from the GPU over PCIe to a network card, and NVLink plays no part. A GPU and card under the same PCIe root send it directly; under different roots, it detours through the CPU. The dranet test in the [DRA section](#d06-4) measured about 11.35 GB/s versus 6.04 GB/s. A DRA claim on `pcieRoot` asks for the good pairing.
   - **Server to server, the network:** after PCIe, the data crosses the EFA network to the other server. Deep dive 15's [Inside the server](#d15-3) shows these paths on a generic 8-GPU server.
 
-![The DRA machine again, now with NVLink and a pod's traffic](diagrams/extra/d03-pcie-root-nvlink.svg)
+![The same two test machines, now with NVLink and NVSwitch](diagrams/extra/d03-two-machines-nvlink.svg)
 
 ### Queueing and fair sharing
 
