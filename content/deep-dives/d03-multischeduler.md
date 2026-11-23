@@ -767,7 +767,6 @@ for step in range(100):
 >
 > - **On EKS:** like the plugins scheduler, both run as an extra scheduler on your nodes. KAI needs the NVIDIA GPU Operator for GPU workloads, and its docs say to submit work in a namespace other than `kai-scheduler`.
 
-- **Inference needs it too:** model-parallel *inference* has the same property. If one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
 - **Option 4, Kubernetes' own gang scheduling (built into kube-scheduler):** the newest way needs no extra project. Upstream Kubernetes now has a native **Workload API** with gang scheduling in the default scheduler itself: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default. On EKS there is no documented way to switch it on yet, so options 1 to 3 are what you can use today (see the note below).
   - **When options 1 to 3 still make sense once option 4 is available:** native gang scheduling only places a group all-or-nothing. It needs no extra program, so for that one job it's the simplest choice.
   - **Option 1, the scheduler-plugins project:** native gang scheduling replaces its coscheduling plugin. The project stays useful when you also want its other plugins, such as hardware-layout-aware or load-aware placement, at the cost of running and upgrading a second scheduler.
@@ -786,6 +785,8 @@ for step in range(100):
 > **Don't confuse it with other PodGroups.** Two other projects have their own objects with the same name. The scheduler-plugins project, mentioned above as the coscheduling plugin, has one: pods join it through a label, and it is built only for all-or-nothing starts. Volcano has one too. It is a custom resource in Volcano's own API group, `scheduling.volcano.sh` ([Volcano docs](https://volcano.sh/docs/concepts/podgroup/)), while Kubernetes' own PodGroup is in `scheduling.k8s.io` ([PodGroup API docs](https://kubernetes.io/docs/concepts/workloads/podgroup-api/)). They are separate objects in separate API groups, so in our reading they do not overwrite each other, but all three are called "a PodGroup". When you read a manifest or a command, check the API group to see which one it means. This page does not cover how Volcano will work with the native API.
 >
 > **On a Job.** The Job controller can create the group for you, but this is a separate alpha feature (since 1.36) with its own gate, `WorkloadWithJob`, on top of `GenericWorkload` ([Workload API docs](https://kubernetes.io/docs/concepts/workloads/workload-api/)). You opt in with `.spec.scheduling.schedulingPolicy.gang` on the Job. If you leave out `minCount`, it defaults to the Job's `parallelism`, so every pod must fit. The `disruptionMode` setting decides whether preemption may take the Job's pods one at a time (`single`) or only as a whole (`all`). After creation the `.spec.scheduling` block cannot change, except `minCount` ([1.37 release post](https://kubernetes.io/blog/2026/09/08/kubernetes-v1-37-advancing-workload-aware-scheduling/)).
+
+- **Inference needs it too:** model-parallel *inference* has the same property. If one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
 
 ### Topology bin-packing
 
