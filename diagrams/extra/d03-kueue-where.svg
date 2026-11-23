@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 600" width="1180" height="600" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker>
+<marker id="arp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6d3fc0"/></marker>
+</defs>
+<g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">Where Kueue sits: in front of the scheduler, not inside it</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">Kueue decides when a whole job may start. Whichever scheduler the pods name still decides where they run.</text>
+
+<!-- layer bands -->
+<rect x="24" y="84" width="440" height="26" rx="6" fill="#f3eefc"/>
+<text x="244" y="102" font-size="12.5" font-weight="700" fill="#6d3fc0" text-anchor="middle">Kueue's layer: WHEN the job may start</text>
+<rect x="486" y="84" width="670" height="26" rx="6" fill="#eef3fd"/>
+<text x="821" y="102" font-size="12.5" font-weight="700" fill="#1e4fb8" text-anchor="middle">Kubernetes' layer: WHERE each pod runs</text>
+
+<!-- 1 submit -->
+<rect x="24" y="126" width="196" height="230" rx="12" fill="#f8fafc" stroke="#9aa5b1" stroke-width="1.6"/>
+<circle cx="44" cy="148" r="11" fill="#3e4c59"/><text x="44" y="152" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+<text x="62" y="153" font-size="14" font-weight="700" fill="#1f2933">You submit a Job</text>
+<text x="40" y="180" font-size="12" fill="#1f2933">8 workers, 1 GPU each,</text>
+<text x="40" y="197" font-size="12" fill="#1f2933">with one extra label:</text>
+<rect x="40" y="208" width="164" height="44" rx="7" fill="#1f2933"/>
+<text x="48" y="226" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" fill="#e4e7eb">kueue.x-k8s.io/</text>
+<text x="48" y="242" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" fill="#e4e7eb">queue-name: ds-queue</text>
+<text x="40" y="276" font-size="12" fill="#5b6675">No scheduler change, no</text>
+<text x="40" y="292" font-size="12" fill="#5b6675">new scheduler name.</text>
+
+<!-- 2 Kueue -->
+<rect x="244" y="126" width="220" height="230" rx="12" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.8"/>
+<circle cx="264" cy="148" r="11" fill="#6d3fc0"/><text x="264" y="152" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+<text x="282" y="153" font-size="14" font-weight="700" fill="#1f2933">Kueue</text>
+<text x="336" y="153" font-size="11.5" fill="#5b6675">not a scheduler</text>
+<text x="260" y="180" font-size="12" fill="#1f2933">suspends the Job as it's created,</text>
+<text x="260" y="197" font-size="12" fill="#1f2933">so no pods exist yet</text>
+<rect x="260" y="208" width="188" height="34" rx="7" fill="#ffffff" stroke="#6d3fc0" stroke-width="1.2"/>
+<text x="270" y="229" font-size="12" fill="#1f2933"><tspan font-weight="700">LocalQueue</tspan> ds-queue</text>
+<path d="M354,242 L354,254" stroke="#6d3fc0" stroke-width="1.4" fill="none" marker-end="url(#arp)"/>
+<rect x="260" y="256" width="188" height="34" rx="7" fill="#ffffff" stroke="#6d3fc0" stroke-width="1.2"/>
+<text x="270" y="277" font-size="12" fill="#1f2933"><tspan font-weight="700">ClusterQueue</tspan> quota: 50 GPUs</text>
+<text x="260" y="312" font-size="12" fill="#1f2933">admits it only when all 8 GPUs</text>
+<text x="260" y="329" font-size="12" fill="#1f2933">fit the quota, then unsuspends it</text>
+
+<!-- 3 job controller -->
+<rect x="486" y="126" width="196" height="230" rx="12" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.6"/>
+<circle cx="506" cy="148" r="11" fill="#1e4fb8"/><text x="506" y="152" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+<text x="524" y="153" font-size="14" font-weight="700" fill="#1f2933">Job controller</text>
+<text x="502" y="180" font-size="12" fill="#1f2933">the normal Kubernetes one</text>
+<text x="502" y="206" font-size="12" fill="#1f2933">creates the 8 pods once</text>
+<text x="502" y="223" font-size="12" fill="#1f2933">the Job is unsuspended</text>
+<g>
+<rect x="502" y="240" width="38" height="24" rx="5" fill="#ffffff" stroke="#1e4fb8"/><rect x="544" y="240" width="38" height="24" rx="5" fill="#ffffff" stroke="#1e4fb8"/><rect x="586" y="240" width="38" height="24" rx="5" fill="#ffffff" stroke="#1e4fb8"/><rect x="628" y="240" width="38" height="24" rx="5" fill="#ffffff" stroke="#1e4fb8"/>
+<rect x="502" y="270" width="38" height="24" rx="5" fill="#ffffff" stroke="#1e4fb8"/><rect x="544" y="270" width="38" height="24" rx="5" fill="#ffffff" stroke="#1e4fb8"/><rect x="586" y="270" width="38" height="24" rx="5" fill="#ffffff" stroke="#1e4fb8"/><rect x="628" y="270" width="38" height="24" rx="5" fill="#ffffff" stroke="#1e4fb8"/>
+<text x="584" y="316" font-size="12" fill="#5b6675" text-anchor="middle">8 pods, Pending</text>
+</g>
+
+<!-- 4 scheduler -->
+<rect x="706" y="126" width="230" height="230" rx="12" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.6"/>
+<circle cx="726" cy="148" r="11" fill="#1e4fb8"/><text x="726" y="152" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+<text x="744" y="153" font-size="14" font-weight="700" fill="#1f2933">The pods' scheduler</text>
+<text x="722" y="180" font-size="12" fill="#1f2933">the one their schedulerName names</text>
+<rect x="722" y="194" width="198" height="40" rx="8" fill="#ffffff" stroke="#1e4fb8" stroke-width="1.6"/>
+<text x="734" y="212" font-size="12.5" font-weight="700" fill="#1f2933">default-scheduler</text>
+<text x="734" y="228" font-size="11.5" fill="#5b6675">the usual case</text>
+<rect x="722" y="244" width="198" height="56" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="734" y="263" font-size="12" font-weight="600" fill="#3e4c59">or a gang-aware one:</text>
+<text x="734" y="281" font-size="11.5" fill="#5b6675">plugins scheduler, Volcano, KAI</text>
+<text x="722" y="324" font-size="12" fill="#1f2933">picks a node for each pod</text>
+
+<!-- 5 nodes -->
+<rect x="960" y="126" width="196" height="230" rx="12" fill="#f8fafc" stroke="#5b6675" stroke-width="1.6"/>
+<circle cx="980" cy="148" r="11" fill="#3e4c59"/><text x="980" y="152" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+<text x="998" y="153" font-size="14" font-weight="700" fill="#1f2933">GPU nodes</text>
+<rect x="976" y="174" width="164" height="38" rx="7" fill="#ffffff" stroke="#5b6675"/><text x="988" y="198" font-size="12" fill="#1f2933">node A: 4 workers</text>
+<rect x="976" y="220" width="164" height="38" rx="7" fill="#ffffff" stroke="#5b6675"/><text x="988" y="244" font-size="12" fill="#1f2933">node B: 4 workers</text>
+<text x="976" y="286" font-size="12" fill="#5b6675">quota said yes, but the</text>
+<text x="976" y="302" font-size="12" fill="#5b6675">nodes must really have room</text>
+
+<!-- forward arrows -->
+<path d="M220,240 L240,240" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M464,240 L482,240" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M682,240 L702,240" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M936,240 L956,240" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+
+<!-- waitForPodsReady loop -->
+<path d="M1058,356 L1058,400 L354,400 L354,360" stroke="#6d3fc0" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arp)"/>
+<rect x="470" y="388" width="470" height="24" rx="6" fill="#ffffff"/>
+<text x="705" y="405" font-size="12.5" font-weight="700" fill="#6d3fc0" text-anchor="middle">waitForPodsReady: not all 8 ready within the timeout?</text>
+<text x="705" y="426" font-size="12" fill="#5b6675" text-anchor="middle">Kueue suspends the Job again (its pods go away) and puts it back in the queue</text>
+
+<!-- note -->
+<rect x="24" y="448" width="1132" height="132" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="44" y="474" font-size="14" font-weight="700" fill="#3e4c59">So which scheduler does Kueue apply to? None directly.</text>
+<g font-size="13" fill="#1f2933">
+<text x="44" y="500">Kueue never places a pod. It only controls when a job's pods are allowed to exist, by suspending and unsuspending the job.</text>
+<text x="44" y="522">The pods then go to whichever scheduler they name, usually the default one, so on EKS nothing about the scheduler changes.</text>
+<text x="44" y="544">Quota is counted, not real room: the timeout above is what turns "admitted" into all-or-nothing on the actual nodes.</text>
+<text x="44" y="566" fill="#5b6675">Pairing Kueue with a gang-aware scheduler gives both: Kueue for who goes first, the scheduler for placing the group together.</text>
+</g>
+</g>
+</svg>

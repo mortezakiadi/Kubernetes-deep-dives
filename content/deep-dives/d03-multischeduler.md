@@ -615,6 +615,9 @@ for step in range(100):
 
 - **Option 2, Kueue (a gate at the job level):** Kueue is a separate SIG project that isn't a scheduler. It holds a whole job back, suspended, until its queue has quota for all of its pods, then lets it start, and the normal scheduler places the pods. Quota alone doesn't guarantee the pods all fit on real nodes. Its `waitForPodsReady` setting adds the all-or-nothing part: if not all of an admitted job's pods are ready within a timeout, Kueue suspends the job and puts it back in the queue ([waitForPodsReady docs](https://kueue.sigs.k8s.io/docs/tasks/manage/setup_wait_for_pods_ready/)).
 
+![Where Kueue sits: in front of the scheduler](diagrams/extra/d03-kueue-where.svg)
+
+
 > **Note: installing and using Kueue for gangs**
 >
 > - **Step 1, choose the settings (`kueue-values.yaml`):** `waitForPodsReady` is switched on by being present in Kueue's own configuration ([configuration API](https://github.com/kubernetes-sigs/kueue/blob/main/apis/config/v1beta2/configuration_types.go)), which the Helm chart takes under `managerConfig` ([chart README](https://github.com/kubernetes-sigs/kueue/blob/main/charts/kueue/README.md)):
