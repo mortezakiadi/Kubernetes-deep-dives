@@ -509,21 +509,53 @@ for step in range(100):
 > - **You don't add it to the default scheduler:** plugins are compiled into the scheduler program, so you can't drop one into a running kube-scheduler. The [scheduler-plugins](https://github.com/kubernetes-sigs/scheduler-plugins) project ships its own kube-scheduler image: the same default plugins plus extras such as Coscheduling.
 > - **Where it hooks in:** not at filter or score. It keeps a group's pods together in the queue (`queueSort`), holds each pod at `permit` after it has been given a node, releases them all once `minMember` are waiting, and frees their nodes (`unreserve`) when the timeout passes. An optional `preFilter` check rejects a group early if it has fewer pods than `minMember` ([coscheduling README](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/pkg/coscheduling/README.md)).
 > - **What you install:** that scheduler image, the PodGroup custom resource, and the project's controller that manages PodGroups, plus permissions for the scheduler to read them ([install guide](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/doc/install.md)).
-> - **Then you turn it on in that scheduler's `KubeSchedulerConfiguration`**, and pods join a group with a label:
+> - **Step 1, choose what to switch on (`values.yaml`):** the project's Helm chart installs it as a second scheduler. It writes that scheduler's `KubeSchedulerConfiguration` for you, from these values ([chart values](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/manifests/install/charts/as-a-second-scheduler/values.yaml)). By default the chart turns on three more plugins; this keeps only coscheduling:
 >
 > ```yaml
-> # config of the scheduler-plugins scheduler, passed with --config
+> plugins:
+>   enabled: ["Coscheduling"]           # on at every stage it implements #!
+>   disabled: ["PrioritySort"]          # its queue sort replaces this one #!
+> pluginConfig:
+> - name: Coscheduling
+>   args:
+>     permitWaitingTimeSeconds: 300     # longest a pod waits at permit (default 60) #!
+> ```
+>
+> - **Step 2, install it:** one Helm release creates the scheduler (`scheduler-plugins-scheduler`), the controller, the PodGroup CRD and the permissions ([chart README](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/manifests/install/charts/as-a-second-scheduler/README.md)):
+>
+> ```bash
+> helm install scheduler-plugins scheduler-plugins \
+>   --repo https://scheduler-plugins.sigs.k8s.io \
+>   --namespace scheduler-plugins --create-namespace \
+>   -f values.yaml
+>
+> kubectl get deploy -n scheduler-plugins            # scheduler and controller: 1/1 #!
+> kubectl get crd podgroups.scheduling.x-k8s.io      # the PodGroup type exists
+> kubectl get configmap scheduler-config -n scheduler-plugins -o yaml   # the generated config
+> ```
+>
+> - **What the chart writes:** the ConfigMap holds an ordinary `KubeSchedulerConfiguration`, one profile with your plugins:
+>
+> ```yaml
 > apiVersion: kubescheduler.config.k8s.io/v1
 > kind: KubeSchedulerConfiguration
 > profiles:
-> - schedulerName: scheduler-plugins-scheduler   # running as a second scheduler #!
+> - schedulerName: scheduler-plugins-scheduler   # the name pods ask for #!
 >   plugins:
 >     multiPoint:
 >       enabled:
->       - name: Coscheduling                      # on at every stage it implements #!
+>       - name: Coscheduling
 >       disabled:
->       - name: PrioritySort                      # its queue sort replaces this one #!
-> ---
+>       - name: PrioritySort
+>   pluginConfig:
+>   - name: Coscheduling
+>     args:
+>       permitWaitingTimeSeconds: 300
+> ```
+>
+> - **Step 3, use it:** create a PodGroup, then give each worker the group's label and the scheduler's name:
+>
+> ```yaml
 > apiVersion: scheduling.x-k8s.io/v1alpha1
 > kind: PodGroup
 > metadata:
@@ -538,6 +570,13 @@ for step in range(100):
 >     scheduling.x-k8s.io/pod-group: trainer-gang   # joins the group #!
 > spec:
 >   schedulerName: scheduler-plugins-scheduler      # picks that scheduler #!
+> ```
+>
+> - **Step 4, check it:** with fewer than 8 workers able to fit, all of them stay Pending instead of 7 starting. Once all 8 fit, they start together:
+>
+> ```bash
+> kubectl get pods -l scheduling.x-k8s.io/pod-group=trainer-gang
+> kubectl get podgroup trainer-gang -o yaml        # status.phase, scheduled, running #!
 > ```
 >
 > - **On EKS:** you can't replace the default scheduler, so this runs as a second scheduler, which the project installs with a Helm chart. The project itself warns that two schedulers can place pods on the same node at the same moment when the cluster is short of room, and recommends a single scheduler in production. See the [second-scheduler appendix](#appendix-second-scheduler) for running one.
