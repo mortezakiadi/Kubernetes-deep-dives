@@ -370,9 +370,21 @@ spec:
 
 **Going deeper, by topic.**
 
-- **A second scheduler inside the pods:** Ray, run on Kubernetes through the KubeRay operator, is a two-level setup. Kubernetes places the Ray pods on nodes, as for any pod. Inside those pods, Ray's own scheduler places the *tasks* (function calls) and *actors* (long-lived Python objects, such as a trainer) that your program creates. Each Ray worker pod tells Ray what it has, taken from its container limits (CPU 8, GPU 1 below), and Ray hands those slots out to the code that asks for them ([RayCluster configuration](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/config.html)).
+- **Why Ray exists:** reinforcement learning mixes many small simulations on CPUs, training on GPUs, and serving the current policy, all in one program that hands data between them in milliseconds. The systems of the time each did one part, and gluing them together was too slow, so teams kept writing one-off systems. Ray (UC Berkeley, 2017) is one Python framework for all of it: it can place very large numbers of short tasks per second, on CPUs or GPUs, and take their results in whatever order they finish ([Ray paper](https://arxiv.org/abs/1712.05889)).
+- **Ray's own architecture, a head and workers:** a Ray cluster is one **head node** and any number of **worker nodes** ([Ray cluster concepts](https://docs.ray.io/en/latest/cluster/key-concepts.html)):
 
-![KubeRay: two schedulers, two levels](diagrams/extra/d03-kuberay-two-levels.svg)
+  - **Once per cluster, on the head (purple):** the **driver**, your main script, which starts the work and collects the results; the **GCS**, the cluster's directory of nodes, actors and placement groups, which also picks a node for each new actor; and the **autoscaler**, which adds or removes worker nodes when requests wait.
+  - **On every node, the head included (orange):** the **raylet**, the node's queue and scheduler, which holds a task until there is a free slot and its inputs are on the node, then runs it in a worker process; and the **object store**, the node's shared memory, where results are kept until someone reads them.
+  - **Your code (green):** a **task** is a function call that runs once in a worker process and ends. An **actor** is a long-lived worker process that keeps its state, such as a model loaded on a GPU, between method calls.
+  - **The "queue" and "collect" you'd otherwise build:** calling a task returns a reference at once, like a claim ticket. The raylets queue and run the work, and `ray.get` on the ticket brings the result back from whichever node's object store holds it.
+  - **No built-in "reload the model":** your code updates a model by calling an actor method and passing the new weights. Ray moves the data; when to do it is up to the program.
+  - **Why a separate head:** those parts must exist once per cluster. By default the GCS keeps its data in memory, so losing the head loses the cluster unless the GCS is backed by Redis ([GCS fault tolerance in KubeRay](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/kuberay-gcs-ft.html)).
+
+![Ray's own architecture](diagrams/extra/d03-ray-architecture.svg)
+
+- **The same pieces on Kubernetes:** each Ray node becomes a pod. The head pod holds the driver, the GCS and its own raylet and object store, with the autoscaler as a sidecar container. Each worker pod holds a raylet, an object store and your tasks and actors, and its container limits become the slots Ray hands out ([RayCluster configuration](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/config.html)). Kubernetes places the pods; Ray places the work inside them.
+
+![The same Ray pieces on a Kubernetes cluster](diagrams/extra/d03-kuberay-two-levels.svg)
 
 - **How it's set up in YAML:** you never write a `KubeSchedulerConfiguration` for Ray's scheduler. It is set up by three things: the pods' resources, a few `rayStartParams`, and what the Python code asks for. The pods are described in a `RayCluster` (or a `RayJob`, which creates one per run):
 
