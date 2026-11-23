@@ -1,0 +1,62 @@
+variable "account_id" {
+  description = "The only AWS account this configuration may touch. Set it in a local, git-ignored tfvars file."
+  type        = string
+}
+
+variable "region" {
+  description = "Design 05 uses us-east-1 and eu-west-1; this build stays out of both."
+  type        = string
+  default     = "us-east-2"
+}
+
+variable "project" {
+  description = "Name prefix and the Project tag on every resource, used by the teardown check. Must start with ds08-."
+  type        = string
+  default     = "ds08-longhorizon"
+  validation {
+    condition     = startswith(var.project, "ds08-")
+    error_message = "Every name in this build starts with ds08-."
+  }
+}
+
+variable "kubernetes_version" {
+  type    = string
+  default = "1.37"
+}
+
+variable "admin_cidr" {
+  description = "Public IP (as a /32) allowed to reach the cluster API endpoint. up.sh fills this in."
+  type        = string
+}
+
+variable "vpc_cidr" {
+  type    = string
+  default = "10.81.0.0/16"
+}
+
+variable "azs" {
+  type    = list(string)
+  default = ["us-east-2a", "us-east-2b", "us-east-2c"]
+}
+
+# The GPU pool, in order of preference. Every type has one NVIDIA GPU that supports bfloat16: g6e (L40S, 48 GB),
+# g6 (L4, 24 GB), g5 (A10G, 24 GB). When this build was made, EC2 in us-east-2 refused g6.2xlarge and g6e.2xlarge in
+# most zones while the xlarge sizes had capacity, so the list mixes sizes on purpose. Pod requests fit the smallest
+# (4 vCPU, 16 GiB). Each run records which GPU it got.
+variable "gpu_instance_types" {
+  type    = list(string)
+  default = ["g6e.xlarge", "g6.2xlarge", "g6e.2xlarge", "g5.xlarge", "g5.2xlarge", "g6.xlarge"]
+}
+
+variable "gpu_nodes" {
+  description = "GPU nodes in the pool. Two is the smallest pool in which a rollout engine and a trainer each get a GPU."
+  type        = number
+  default     = 2
+}
+
+# Pinned accelerated AMI release (NVIDIA driver, CUDA user space, containerd). Read from
+# /aws/service/eks/optimized-ami/1.37/amazon-linux-2023/x86_64/nvidia/recommended/release_version when this build was written.
+variable "gpu_ami_release" {
+  type    = string
+  default = "1.37.1-20261119"
+}
