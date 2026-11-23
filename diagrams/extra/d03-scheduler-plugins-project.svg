@@ -5,14 +5,14 @@
 </defs>
 <g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
 <text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">The scheduler-plugins project: kube-scheduler plus extra plugins</text>
-<text x="24" y="62" font-size="13.5" fill="#5b6675">A Kubernetes SIG project. It ships two images; you choose which extra plugins run in that scheduler's KubeSchedulerConfiguration.</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">A Kubernetes SIG project. It ships two container images; you choose which extra plugins run in that scheduler's KubeSchedulerConfiguration.</text>
 
 <!-- scheduler image -->
 <rect x="24" y="84" width="800" height="530" rx="16" fill="#f8fafc" stroke="#1e4fb8" stroke-width="1.8"/>
-<text x="44" y="110" font-size="14" font-weight="700" fill="#1e4fb8">Image 1: the scheduler</text>
-<text x="210" y="110" font-size="12" fill="#5b6675" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">registry.k8s.io/scheduler-plugins/kube-scheduler</text>
+<text x="44" y="110" font-size="14" font-weight="700" fill="#1e4fb8">Container image 1: the scheduler</text>
+<text x="300" y="110" font-size="12" fill="#5b6675" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">registry.k8s.io/scheduler-plugins/kube-scheduler</text>
 <rect x="44" y="124" width="760" height="40" rx="9" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.2"/>
-<text x="58" y="149" font-size="12.5" fill="#1f2933"><tspan font-weight="700">Every built-in plugin</tspan>, the same as the default scheduler: NodeResourcesFit, TaintToleration, NodeAffinity ...</text>
+<text x="58" y="149" font-size="12.5" fill="#1f2933"><tspan font-weight="700">Built from the same Kubernetes scheduler code</tspan>, so every built-in plugin is in it too: NodeResourcesFit, TaintToleration ...</text>
 <text x="44" y="190" font-size="13" font-weight="700" fill="#3e4c59">Extra plugins (production)</text>
 
 <!-- row 1 -->
@@ -74,7 +74,7 @@
 
 <!-- controller image -->
 <rect x="848" y="84" width="308" height="250" rx="16" fill="#f8fafc" stroke="#6d3fc0" stroke-width="1.8"/>
-<text x="868" y="110" font-size="14" font-weight="700" fill="#6d3fc0">Image 2: the controller</text>
+<text x="868" y="110" font-size="14" font-weight="700" fill="#6d3fc0">Container image 2: the controller</text>
 <text x="868" y="130" font-size="11.5" fill="#5b6675" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">.../scheduler-plugins/controller</text>
 <text x="868" y="158" font-size="12.5" fill="#1f2933">Watches the plugins' own objects</text>
 <text x="868" y="176" font-size="12.5" fill="#1f2933">and keeps their status up to date,</text>
