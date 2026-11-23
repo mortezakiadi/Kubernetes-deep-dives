@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 520" width="1180" height="520" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start">Scenario 2: two pods with one GPU each, on the same machine</text>
+<rect x="24" y="50" width="60" height="22" rx="11" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="1"/><text x="54.0" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">NVLink</text>
+<text x="110" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start">The GPUs are on one NVSwitch, but each belongs to a different pod. NVLink may not be used.</text>
+<rect x="24" y="90" width="700" height="410" rx="14" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="44" y="118" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start">Machine 1</text>
+<text x="132" y="118" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="400" fill="#5b6675" text-anchor="start">p4d.24xlarge</text>
+<rect x="64" y="136" width="200" height="60" rx="12" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.8" stroke-dasharray="7 4"/>
+<text x="164" y="162" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="middle">Trainer pod A</text>
+<text x="164" y="182" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="middle">asks for 1 GPU</text>
+<rect x="284" y="136" width="200" height="60" rx="12" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.8" stroke-dasharray="7 4"/>
+<text x="384" y="162" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#3b6fd8" text-anchor="middle">Trainer pod B</text>
+<text x="384" y="182" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="middle">asks for 1 GPU</text>
+<rect x="109" y="240" width="110" height="80" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="121" y="266" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start">gpu-0</text>
+<text x="121" y="286" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="329" y="240" width="110" height="80" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="341" y="266" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start">gpu-1</text>
+<text x="341" y="286" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="504" y="240" width="160" height="80" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4" stroke-dasharray="7 4"/>
+<text x="584" y="276" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#5b6675" text-anchor="middle">the other 6 GPUs</text>
+<path d="M164,198 L164,236" stroke="#3b6fd8" stroke-width="2" fill="none" marker-end="url(#ab)"/>
+<path d="M384,198 L384,236" stroke="#3b6fd8" stroke-width="2" fill="none" marker-end="url(#ab)"/>
+<rect x="64" y="380" width="620" height="48" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="374.0" y="400" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">NVSwitch</text>
+<text x="374.0" y="418" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#2f6f4a" text-anchor="middle">joins all 8 GPUs over NVLink, 600 GB/s each (AWS)</text>
+<path d="M164,320 L164,380" stroke="#2f9e5b" stroke-width="5" stroke-dasharray="9 6"/><path d="M384,320 L384,380" stroke="#2f9e5b" stroke-width="5" stroke-dasharray="9 6"/>
+<circle cx="410" cy="350" r="11" fill="#e08a1e"/><text x="410" y="354" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">?</text>
+<text x="428" y="354" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b26b00" text-anchor="start">NVLink only if NCCL can share memory</text>
+<text x="428" y="370" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#b26b00" text-anchor="start">handles between the two pods</text>
+<text x="64" y="456" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">Each pod has its own network namespace (Kubernetes docs), and that is what can get in the way.</text>
+<rect x="744" y="90" width="412" height="410" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="762" y="120" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start">What happens</text>
+<text x="762" y="142" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">NCCL passes GPU memory handles between</text>
+<text x="762" y="161" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">the two processes over a local socket.</text>
+<text x="762" y="180" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">Its default socket kind can block this</text>
+<text x="762" y="199" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">between containers in different network</text>
+<text x="762" y="218" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">namespaces (NCCL docs).</text>
+<text x="762" y="251" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start">How the pods get here</text>
+<text x="762" y="273" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">podAffinity on the hostname puts pod B</text>
+<text x="762" y="292" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">on pod A's node (Kubernetes docs).</text>
+<text x="762" y="325" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start">What you can do</text>
+<text x="762" y="347" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">Safest: use scenario 1, one pod with</text>
+<text x="762" y="366" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">both GPUs.</text>
+<text x="762" y="385" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">NCCL also names a setting for this case:</text>
+<text x="762" y="404" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">NCCL_IPC_USE_ABSTRACT_SOCKET=0</text>
+<text x="762" y="423" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">(since NCCL 2.29). Not tested in this guide.</text>
+</svg>
