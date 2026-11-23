@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 650" width="1180" height="650" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Fine-tuning on Kubernetes: three sizes of job</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >The three sizes are illustrative. The paper figures are sourced and apply to the named models only.</text>
+<text x="318" y="86" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#7a4fc4" text-anchor="start" >The pod asks for</text>
+<text x="606" y="86" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#7a4fc4" text-anchor="start" >Sections that apply</text>
+<text x="900" y="86" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#7a4fc4" text-anchor="start" >What moves</text>
+<rect x="24" y="100" width="1132" height="130" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.4" />
+<rect x="36" y="114" width="28" height="28" rx="14.0" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="0" />
+<text x="50.0" y="132.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >1</text>
+<text x="76" y="132" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >One GPU</text>
+<text x="318" y="132" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >One pod on one server. It asks for</text>
+<text x="318" y="149" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >one GPU in limits.</text>
+<text x="606" y="132" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >None of the network rules. There is</text>
+<text x="606" y="149" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >only one server.</text>
+<text x="900" y="132" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Base weights in. Dataset in. A</text>
+<text x="900" y="149" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >small adapter out.</text>
+<rect x="318" y="164" width="828" height="29" rx="6" fill="#ffffff" stroke="#e08a1e" stroke-width="1.2" />
+<text x="330" y="180" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Paper figure: QLoRA paper: a 65-billion-parameter model fine-tuned on a single 48 GB GPU.</text>
+<rect x="24" y="242" width="1132" height="143" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4" />
+<rect x="36" y="256" width="28" height="28" rx="14.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="50.0" y="274.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >2</text>
+<text x="76" y="274" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >One server, several GPUs</text>
+<text x="318" y="274" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >One pod on one node, with several</text>
+<text x="318" y="291" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >GPUs. A Kubeflow TrainJob with</text>
+<text x="318" y="308" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >numNodes 1.</text>
+<text x="606" y="274" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Inside the server (Deep dive 15,</text>
+<text x="606" y="291" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >section 3): which GPUs, and how they</text>
+<text x="606" y="308" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >are linked. No rule for the network</text>
+<text x="606" y="325" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >between servers.</text>
+<text x="900" y="274" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Base weights in. Dataset in. A</text>
+<text x="900" y="291" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >small adapter out.</text>
+<rect x="318" y="340" width="828" height="29" rx="6" fill="#ffffff" stroke="#e08a1e" stroke-width="1.2" />
+<text x="330" y="356" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Paper figure: LoRA paper, GPT-3 175B: training memory 350 GB.</text>
+<rect x="24" y="397" width="1132" height="177" rx="10" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.4" />
+<rect x="36" y="411" width="28" height="28" rx="14.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="50.0" y="429.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >3</text>
+<text x="76" y="429" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f2933" text-anchor="start" >Several servers</text>
+<text x="318" y="429" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Several pods, one for each node.</text>
+<text x="318" y="446" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Each asks for its GPUs, EFA devices</text>
+<text x="318" y="463" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >and hugepages. numNodes above 1.</text>
+<text x="606" y="429" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >This page's reading: the pre-training</text>
+<text x="606" y="446" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >rules apply. They are Leaving the</text>
+<text x="606" y="463" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >server (Deep dive 15, section 4),</text>
+<text x="606" y="480" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Racks and network blocks and Zones</text>
+<text x="606" y="497" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >(Deep dive 10, sections 6 and 7),</text>
+<text x="606" y="514" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Gang scheduling (Deep dive 3).</text>
+<text x="900" y="429" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >As rows 1 and 2. This page's</text>
+<text x="900" y="446" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >reading: also checkpoints on</text>
+<text x="900" y="463" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >storage that every pod can write</text>
+<text x="900" y="480" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >(Deep dive 16, section 1).</text>
+<rect x="318" y="529" width="828" height="29" rx="6" fill="#ffffff" stroke="#e08a1e" stroke-width="1.2" />
+<text x="330" y="545" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Paper figure: LoRA paper: a full fine-tune of GPT-3 175B needs 1.2 TB of training memory.</text>
+<text x="24" y="598" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Illustrative: the three sizes and what each pod asks for. Sourced: the two paper figures (LoRA, QLoRA). This page's reading: the sections that apply to row 3.</text>
+<text x="24" y="616" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >The papers do not say how many GPUs they used.</text>
+<text x="24" y="634" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Whether a fine-tune needs one GPU, one server or several depends on the memory your model needs.</text>
+</svg>

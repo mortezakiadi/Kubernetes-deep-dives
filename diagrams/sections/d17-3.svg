@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 1022" width="1180" height="1022" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker><marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7a4fc4"/></marker><marker id="arT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e08a1e"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start" >Symptom to rung: where to look first</text>
+<text x="24" y="58" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start" >The seven rungs are the distance ladder of Deep dive 15. The red tags are symptoms from the table. A tag is a place to look, not a diagnosis.</text>
+<rect x="24" y="80" width="1132" height="56" rx="10" fill="#eef3fd" stroke="#3b6fd8" stroke-width="1.4" />
+<rect x="36" y="94" width="28" height="28" rx="14.0" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="0" />
+<text x="50.0" y="112.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >1</text>
+<text x="76" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Inside the GPU</text>
+<text x="420" y="112" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >No symptom in the table for this rung.</text>
+<rect x="24" y="146" width="1132" height="56" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4" />
+<rect x="36" y="160" width="28" height="28" rx="14.0" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="0" />
+<text x="50.0" y="178.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >2</text>
+<text x="76" y="178" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >GPU to GPU in one server</text>
+<rect x="410" y="154" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="173" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Step time rose when the job went from 1 to 4 servers (also rungs 3 to 5)</text>
+<text x="1136" y="173" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >What a training job asks of the cluster</text>
+<rect x="24" y="212" width="1132" height="56" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.4" />
+<rect x="36" y="226" width="28" height="28" rx="14.0" fill="#e08a1e" stroke="#e08a1e" stroke-width="0" />
+<text x="50.0" y="244.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >3</text>
+<text x="76" y="244" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >GPU to CPU</text>
+<rect x="410" y="220" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="239" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The GPU and the NIC sit under different CPUs</text>
+<text x="1136" y="239" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Inside the server</text>
+<rect x="24" y="278" width="1132" height="150" rx="10" fill="#e6f4f2" stroke="#0f766e" stroke-width="1.4" />
+<rect x="36" y="292" width="28" height="28" rx="14.0" fill="#0f766e" stroke="#0f766e" stroke-width="0" />
+<text x="50.0" y="310.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >4</text>
+<text x="76" y="310" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Server to server: the NIC</text>
+<rect x="410" y="286" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="305" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >NCCL log shows sockets instead of EFA, InfiniBand or RoCE</text>
+<text x="1136" y="305" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Leaving the server</text>
+<rect x="410" y="320" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="339" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A pod is Pending after it asked for hugepages-2Mi</text>
+<text x="1136" y="339" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Leaving the server</text>
+<rect x="410" y="354" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="373" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Two pods share one EFA claim and one stays in ContainerCreating</text>
+<text x="1136" y="373" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >No section yet: Appendix C</text>
+<rect x="410" y="388" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="407" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >NCCL warns that ibv_create_qp failed</text>
+<text x="1136" y="407" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >No section yet: Appendix C</text>
+<rect x="24" y="438" width="1132" height="116" rx="10" fill="#f6f8fb" stroke="#5b6675" stroke-width="1.4" stroke-dasharray="6 5" />
+<rect x="36" y="452" width="28" height="28" rx="14.0" fill="#5b6675" stroke="#5b6675" stroke-width="0" />
+<text x="50.0" y="470.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >5</text>
+<text x="76" y="470" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Same rack or network block</text>
+<rect x="410" y="446" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="465" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A pod is Pending on a required network label</text>
+<text x="1136" y="465" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Racks and network blocks</text>
+<rect x="410" y="480" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="499" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A Kueue workload waits for room in one domain</text>
+<text x="1136" y="499" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Racks and network blocks</text>
+<rect x="410" y="514" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="533" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Pods of one job sit in different network groups</text>
+<text x="1136" y="533" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Racks and network blocks</text>
+<rect x="24" y="564" width="1132" height="82" rx="10" fill="#f6f8fb" stroke="#5b6675" stroke-width="1.4" stroke-dasharray="6 5" />
+<rect x="36" y="578" width="28" height="28" rx="14.0" fill="#5b6675" stroke="#5b6675" stroke-width="0" />
+<text x="50.0" y="596.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >6</text>
+<text x="76" y="596" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Other zone, same Region</text>
+<rect x="410" y="572" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="591" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The job works in one zone and fails or slows across zones</text>
+<text x="1136" y="591" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Zones</text>
+<rect x="410" y="606" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="625" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The cross-zone bill is high</text>
+<text x="1136" y="625" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Zones</text>
+<rect x="24" y="656" width="1132" height="82" rx="10" fill="#f6f8fb" stroke="#5b6675" stroke-width="1.4" stroke-dasharray="6 5" />
+<rect x="36" y="670" width="28" height="28" rx="14.0" fill="#5b6675" stroke="#5b6675" stroke-width="0" />
+<text x="50.0" y="688.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >7</text>
+<text x="76" y="688" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Other Region, over the WAN</text>
+<rect x="410" y="664" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="683" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >The cross-Region bill is high</text>
+<text x="1136" y="683" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Regions, the WAN and failover</text>
+<rect x="410" y="698" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="717" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >After a failure the job restarts from old state</text>
+<text x="1136" y="717" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Regions, the WAN and failover</text>
+<rect x="24" y="748" width="1132" height="150" rx="10" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.4" />
+<rect x="36" y="762" width="28" height="28" rx="14.0" fill="#7a4fc4" stroke="#7a4fc4" stroke-width="0" />
+<text x="50.0" y="780.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >-</text>
+<text x="76" y="780" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Not a rung: the storage path</text>
+<rect x="410" y="756" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="775" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Training throughput falls and the data loader may be the cause</text>
+<text x="1136" y="775" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Training data and checkpoints</text>
+<rect x="410" y="790" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="809" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >Each checkpoint stalls training</text>
+<text x="1136" y="809" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Training data and checkpoints</text>
+<rect x="410" y="824" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="843" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >One copy stream stops near 5 Gbps</text>
+<text x="1136" y="843" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Regions, the WAN and failover</text>
+<rect x="410" y="858" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="877" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A new FSx claim stays Pending</text>
+<text x="1136" y="877" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >No section yet: Appendix C</text>
+<rect x="24" y="908" width="1132" height="56" rx="10" fill="#f3eefc" stroke="#7a4fc4" stroke-width="1.4" />
+<rect x="36" y="922" width="28" height="28" rx="14.0" fill="#7a4fc4" stroke="#7a4fc4" stroke-width="0" />
+<text x="50.0" y="940.9" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle" >-</text>
+<text x="76" y="940" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start" >Not a rung: image pull, weights, load</text>
+<rect x="410" y="916" width="736" height="28" rx="6" fill="#fdecea" stroke="#c0392b" stroke-width="1.2" />
+<text x="420" y="935" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start" >A replica takes many minutes to become ready</text>
+<text x="1136" y="935" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#c0392b" text-anchor="end" >Serving and loading heavy models</text>
+<text x="24" y="988" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >The bold words at the right end of a tag are the title of the section that explains the fix. The sections are in Deep dives 10, 15 and 16.</text>
+<text x="24" y="1006" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6675" text-anchor="start" >Dashed frame: a rung that Deep dive 15 has no speed figure for. Solid frame: a rung with a figure, or a place that is not a rung.</text>
+</svg>
