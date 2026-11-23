@@ -3,7 +3,7 @@
 
     build_writeup.py <evidence-dir> <repo-root>
 
-Writes   <repo-root>/content/appendix/a07-design-08-long-horizon.md
+Writes   <repo-root>/content/appendix/a09-design-08-long-horizon.md
 Copies   screenshots to <repo-root>/diagrams/appendix/a09-evidence/ and the diagrams to <repo-root>/diagrams/appendix/
 Every command, output and check result in section 5 comes from the evidence files.
 """
@@ -100,9 +100,9 @@ def main():
     body = "\n".join(scenario_section(e) for e in evs)
     impl = HERE.parent
     count = lambda pats: sum(len(p.read_text().splitlines()) for pat in pats for p in impl.glob(pat))
-    sizes = (f"The Terraform is about {round(count(['terraform/*/*.tf']), -1)} lines; the platform's code (launcher, stages, verifier, monitor, "
-             f"dataset generator) about {round(count(['launcher/*.py', 'workloads/*.py', 'workloads/*.sh', 'datasets/*.py']), -1)} lines of Python and shell; "
-             f"the recipes {count(['recipes/**/*.yaml'])} lines of YAML; the test code about {round(count(['tests/*.py']), -1)} lines.")
+    sizes = (f"The Terraform is about {round(count(['terraform/*/*.tf']), -1)} lines; the platform's code (launcher, environments, agent, verifier, "
+             f"trajectory store, credit, trainer, metrics, task bank) about {round(count(['launcher/*.py', 'workloads/*.py', 'tasks/*.py']), -1)} lines of Python; "
+             f"the curriculum spec {count(['recipes/*.json'])} lines of JSON; the test code about {round(count(['tests/*.py']), -1)} lines.")
     teardown = ""
     td = evidence / "teardown.txt"
     if td.exists():
@@ -111,7 +111,7 @@ def main():
     head = head.replace("{{CODE_SIZE}}", sizes)
     tail = tail.replace("{{TEARDOWN}}", teardown)
     page = head.replace("{{RESULT_SUMMARY}}", f"{passed} of {len(evs)} scenarios passed, {passed_checks} of {total_checks} checks.\n\n" + "\n".join(summary)) + "\n" + body + "\n" + tail
-    out = repo / "content" / "appendix" / "a07-design-08-long-horizon.md"
+    out = repo / "content" / "appendix" / "a09-design-08-long-horizon.md"
     out.write_text(page)
     print(f"wrote {out} ({len(page.splitlines())} lines); {passed}/{len(evs)} scenarios, {passed_checks}/{total_checks} checks")
 

@@ -131,7 +131,10 @@ def cmd_credit(a):
 
 def cmd_trainer(a):
     name = f"tr-{a.name}"[:63]
-    args = ["bash", "-c", "pip install -q --no-cache-dir peft==0.22.0 > /tmp/pip.log 2>&1 || cat /tmp/pip.log; exec python -u /code/trainer.py \"$@\"", "trainer", a.mode, "--out", a.out]
+    # peft is installed with the image's own torch and transformers held fixed, so the trainer runs the stack vLLM runs.
+    setup = ("python3 -m pip freeze 2>/dev/null | grep -i -E '^(torch|transformers|tokenizers|huggingface.hub|numpy|safetensors|accelerate)==' > /tmp/c.txt; "
+             "python3 -m pip install -q --no-cache-dir --disable-pip-version-check -c /tmp/c.txt peft==0.22.0 > /tmp/pip.log 2>&1 || { cat /tmp/pip.log; exit 1; }; ")
+    args = ["bash", "-c", setup + "exec python3 -u /code/trainer.py \"$@\"", "trainer", a.mode, "--out", a.out]
     if a.mode == "logprobs":
         args += ["--trajectories", a.trajectories]
     else:

@@ -34,7 +34,7 @@ def s01():
     k(sc, "-n", "llm", "get", "deploy,svc", display="kubectl -n llm get deploy,svc")
     models = kq("get", "--raw", "/api/v1/namespaces/llm/services/vllm:8000/proxy/v1/models")
     show(sc, "kubectl get --raw /api/v1/namespaces/llm/services/vllm:8000/proxy/v1/models", models[:400])
-    sc.expect("the rollout engine serves the policy (Qwen2.5-3B-Instruct at a pinned commit) under the name 'policy'", '"policy"' in models and "Qwen2.5-3B-Instruct" in models,
+    sc.expect("the rollout engine serves the policy (Qwen2.5-7B-Instruct at a pinned commit) under the name 'policy'", '"policy"' in models and "Qwen2.5-7B-Instruct" in models,
               "vLLM 0.33.0 with prefix caching on, from the release image pinned by digest.")
     k(sc, "-n", "platform", "get", "deploy,svc,networkpolicy", display="kubectl -n platform get deploy,svc,networkpolicy")
     k(sc, "-n", "rl-envs", "get", "networkpolicy", "env-egress", "-o", "jsonpath={.spec.egress[*].to[0].namespaceSelector.matchLabels}", display="kubectl -n rl-envs get networkpolicy env-egress -o jsonpath='{.spec.egress[*].to[0].namespaceSelector.matchLabels}'")
@@ -192,13 +192,24 @@ def s04():
 
 def s05():
     sc = Scenario("S05", "Branching from snapshots: Monte Carlo values and turn-level credit", "Credit assignment: a ladder of methods; Branching rollouts",
-                  "Pick multi-bug trajectories, failed and successful, and give the credit worker four branches per branch point. It must compute the value "
+                  "Pick multi-bug trajectories, failed and successful, one per task (the failed ones from tasks the model solves at least once, "
+                  "so a better decision existed), and give the credit worker four branches per branch point. It must compute the value "
                   "of the state after each branch point, turn the differences into per-turn advantages, and find the decisive segment; on a failed trajectory "
                   "a successful branch shows which decision mattered. Branches must share their prefix in the rollout engine's cache.")
     trajs = [t for t in roots(BASE) if t["bugs"] >= 2 and sum(1 for x in t["turns"] if x["snapshot_id"]) >= 2]
-    fails = [t for t in trajs if not t["outcome"] and t["turns"][-1]["checks"]["phi"] > t.get("phi_start", 0)]
-    wins = [t for t in trajs if t["outcome"]]
-    pick = [t["trajectory_id"] for t in (fails[:4] + wins[:2])]
+    solved = {t["task_id"] for t in roots(BASE) if t["outcome"]}
+
+    def one_per_task(ts, n):
+        out, seen = [], set()
+        for t in ts:
+            if t["task_id"] not in seen:
+                out.append(t)
+                seen.add(t["task_id"])
+        return out[:n]
+    # Failed attempts at tasks the model solves at least sometimes: there a better decision existed, so a branch can find it.
+    fails = one_per_task([t for t in trajs if not t["outcome"] and t["task_id"] in solved and t["turns"][-1]["checks"]["phi"] > t.get("phi_start", 0)], 4)
+    wins = one_per_task([t for t in trajs if t["outcome"]], 2)
+    pick = [t["trajectory_id"] for t in (fails + wins)]
     STATE["credit_trajs"] = pick
     save_state()
     before = vllm_metrics()

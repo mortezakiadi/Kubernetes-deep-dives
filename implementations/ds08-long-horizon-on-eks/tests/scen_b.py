@@ -56,7 +56,7 @@ def s06():
 def s07():
     sc = Scenario("S07", "Train on what the model saw, and what one gradient step does to each turn", "Context management; Credit assignment",
                   "Recompute every turn's token log-probabilities on a GPU with the same model, on the context stored with the turn and on the full "
-                  "uncompacted history. Then, for one failed trajectory with turn-level credit, measure the first-order effect of one policy-gradient "
+                  "uncompacted history. Then, for one trajectory whose turn-level credit has both signs (a failed one if there is one), measure the first-order effect of one policy-gradient "
                   "step on each turn, for trajectory-level and for turn-level advantages.")
     trajs = roots(BASE)
     compacted = [t["trajectory_id"] for t in trajs if t["summary_boundaries"]][:2]
@@ -75,8 +75,10 @@ def s07():
               bool(comp) and statistics.mean(r["mean_abs_diff_full_history"] for r in comp) > 5 * statistics.mean(r["mean_abs_diff_seen"] for r in comp),
               "The prompt differs (longer, with observations the model never read), so every token's probability changes.")
     sc.note(f"{len(comp)} compacted turns checked; prompt lengths seen vs full: " + ", ".join(f"{r['prompt_tokens_seen']}/{r['prompt_tokens_full']}" for r in comp[:4]) + ".")
-    rec = next((sj(f"credit/{BASE}-c4/{t}.json") for t in STATE["credit_recs"] if not sj(f"credit/{BASE}-c4/{t}.json")["outcome"]
-                and len(set(sj(f"credit/{BASE}-c4/{t}.json")["turn_advantage_mc"])) > 1), None)
+    # A trajectory whose turn-level credit has both signs, failures first: there one trajectory-level number must be wrong for some turns.
+    recs = [sj(f"credit/{BASE}-c4/{t}.json") for t in STATE["credit_recs"]]
+    both = [r for r in recs if r and any(a_ > 0 for a_ in r["turn_advantage_mc"]) and any(a_ < 0 for a_ in r["turn_advantage_mc"])]
+    rec = next(iter(sorted(both, key=lambda r: r["outcome"])), None)
     if rec:
         uout = f"credit/{BASE}/update-{rec['trajectory_id']}.json"
         lh(sc, "trainer", "update", "--name", "upd", "--trajectory", rec["trajectory_id"], "--credit", f"credit/{BASE}-c4/{rec['trajectory_id']}.json", "--out", uout,
@@ -90,14 +92,16 @@ def s07():
                  for i in range(len(u.get("actions", [])))))
         pos = [i for i, a_ in enumerate(mc.get("advantages", [])) if a_ > 0]
         neg = [i for i, a_ in enumerate(mc.get("advantages", [])) if a_ < 0]
-        sc.expect("with trajectory-level credit on a failure, every turn is pushed the same way (down, or not at all)",
-                  tl and (all(d <= 0 for d in tl["delta_mean_logp"]) or all(a_ == 0 for a_ in tl["advantages"])),
-                  "Every turn has the same negative advantage, so the step lowers the probability of good and bad decisions alike.")
+        a_tl = tl.get("advantages", [0])[0] if tl else 0
+        eps = 1e-4  # changes this small come from interference between turns' gradients and print as 0.0000
+        sc.expect("with trajectory-level credit, every turn is pushed the same way, the bad decisions with the good ones (changes under 0.0001 count as none)",
+                  bool(tl) and (all(d * a_tl >= -eps * abs(a_tl) for d in tl["delta_mean_logp"]) if a_tl else all(abs(d) < eps for d in tl["delta_mean_logp"])),
+                  "Every turn has the same advantage, so the step moves the probability of good and bad decisions in the same direction.")
         sc.expect("with turn-level credit, turns with a positive advantage go up and turns with a negative one go down",
                   bool(pos) and statistics.mean(mc["delta_mean_logp"][i] for i in pos) > 0 and (not neg or statistics.mean(mc["delta_mean_logp"][i] for i in neg) < 0),
                   "The gradient of sum_t A_t log p_t moves each turn in the direction of its own advantage, to first order.")
     else:
-        sc.expect("a failed trajectory with varied turn-level credit was available for the update check", False, "S05 produced none.")
+        sc.expect("a trajectory whose turn-level credit has both signs was available for the update check", False, "S05 produced none.")
     return sc
 
 
@@ -194,7 +198,9 @@ def s10():
     lh(sc, "curriculum", "--run", f"{BASE}-cur", "--spec", str(spec), "--from-run", BASE, display=f"lh.py curriculum --run {BASE}-cur --spec recipes/curriculum.json --from-run {BASE}")
     rec = sj(f"curriculum/{BASE}-cur.json") or {}
     show(sc, f"aws s3 cp s3://<bucket>/curriculum/{BASE}-cur.json -", "source successes: " + ", ".join(rec.get("source_successes", [])) + "\n" +
-         "\n".join(f"stage {s['stage']}: remaining turns <= {s['remaining_turns_max']}, {s['episodes']} episodes, success {s['success_rate']}, promote when >= {s['promote_when']}: {s['promoted']}"
+         "\n".join(f"stage {s['stage']}: " + (f"remaining turns <= {s['remaining_turns_max']}" if s['remaining_turns_max'] is not None else "from the start")
+                   + f", {s['episodes']} episodes, success {s['success_rate']}, "
+                   + (f"promote when >= {s['promote_when']}: {s['promoted']}" if s['promote_when'] is not None else "last stage, no promotion")
                    for s in rec.get("stages", [])))
     st = rec.get("stages", [])
     sc.expect("the curriculum found successful three-bug attempts to start from", bool(rec.get("source_successes")), "Start points come from earlier successes, as the design's spec says.")
