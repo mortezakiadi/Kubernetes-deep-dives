@@ -645,6 +645,8 @@ for step in range(100):
 >   - **ClusterQueue:** the cluster-wide budget. It holds the quota per flavor, here 50 GPUs, and the waiting line Kueue admits jobs from. A cluster admin creates it; it has no namespace.
 >   - **LocalQueue:** a team's entry point into a ClusterQueue, created in the team's namespace. Jobs name it with the `kueue.x-k8s.io/queue-name` label.
 >
+> ![Kueue's two levels: LocalQueues in namespaces, ClusterQueues at cluster level](diagrams/extra/d03-kueue-queues.svg)
+>
 > ```yaml
 > apiVersion: kueue.x-k8s.io/v1beta2
 > kind: ResourceFlavor

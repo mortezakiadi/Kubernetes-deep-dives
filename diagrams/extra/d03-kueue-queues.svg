@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 640" width="1180" height="640" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker>
+</defs>
+<g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">Kueue's two levels: teams queue in their namespace, the admin owns the budget</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">Jobs name a LocalQueue. Each LocalQueue points at one ClusterQueue, which holds the quota. Several LocalQueues can share one budget.</text>
+
+<!-- cluster level -->
+<rect x="24" y="80" width="1132" height="180" rx="14" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.6"/>
+<text x="44" y="104" font-size="13.5" font-weight="700" fill="#6d3fc0">Cluster level: created by the cluster admin, no namespace</text>
+
+<rect x="44" y="120" width="250" height="122" rx="10" fill="#ffffff" stroke="#6d3fc0" stroke-width="1.4"/>
+<text x="58" y="144" font-size="13.5" font-weight="700" fill="#1f2933">ResourceFlavor a100</text>
+<text x="58" y="166" font-size="12" fill="#1f2933">a kind of hardware</text>
+<text x="58" y="186" font-size="12" fill="#5b6675">with nodeLabels it points</text>
+<text x="58" y="202" font-size="12" fill="#5b6675">at the A100 nodes; empty,</text>
+<text x="58" y="218" font-size="12" fill="#5b6675">it means any node</text>
+
+<rect x="336" y="120" width="380" height="122" rx="10" fill="#ffffff" stroke="#6d3fc0" stroke-width="2"/>
+<text x="350" y="144" font-size="13.5" font-weight="700" fill="#1f2933">ClusterQueue data-science</text>
+<text x="350" y="166" font-size="12" fill="#1f2933">budget: <tspan font-weight="700">50 GPUs</tspan> of flavor a100</text>
+<text x="350" y="186" font-size="12" fill="#5b6675">waiting line, admitted in order while quota lasts:</text>
+<rect x="350" y="198" width="60" height="26" rx="5" fill="#effaf3" stroke="#2f9e5b"/><text x="380" y="215" font-size="11" fill="#1f2933" text-anchor="middle">trainer</text>
+<rect x="416" y="198" width="60" height="26" rx="5" fill="#f8fafc" stroke="#9aa5b1"/><text x="446" y="215" font-size="11" fill="#1f2933" text-anchor="middle">tune</text>
+<text x="490" y="215" font-size="11.5" fill="#5b6675">green = admitted</text>
+
+<rect x="758" y="120" width="378" height="122" rx="10" fill="#ffffff" stroke="#6d3fc0" stroke-width="1.4"/>
+<text x="772" y="144" font-size="13.5" font-weight="700" fill="#1f2933">ClusterQueue marketing</text>
+<text x="772" y="166" font-size="12" fill="#1f2933">budget: <tspan font-weight="700">10 GPUs</tspan> of flavor a100</text>
+<text x="772" y="186" font-size="12" fill="#5b6675">a separate budget for another team</text>
+<rect x="772" y="198" width="110" height="26" rx="5" fill="#effaf3" stroke="#2f9e5b"/><text x="827" y="215" font-size="11" fill="#1f2933" text-anchor="middle">campaign-model</text>
+
+<!-- flavor arrows -->
+<path d="M336,181 L298,181" stroke="#6d3fc0" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path d="M1110,120 L1110,112 L169,112 L169,116" stroke="#6d3fc0" stroke-width="1.4" stroke-dasharray="4 3" fill="none" marker-end="url(#ar)"/>
+<text x="300" y="172" font-size="10.5" fill="#6d3fc0">uses</text>
+
+<!-- namespace level -->
+<rect x="24" y="284" width="1132" height="150" rx="14" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.6"/>
+<text x="44" y="308" font-size="13.5" font-weight="700" fill="#1e4fb8">Namespace level: each team's own entry point</text>
+
+<rect x="44" y="322" width="340" height="96" rx="10" fill="#ffffff" stroke="#1e4fb8" stroke-width="1.4" stroke-dasharray="6 4"/>
+<text x="58" y="342" font-size="12" font-weight="700" fill="#1e4fb8">namespace data-science</text>
+<rect x="58" y="354" width="312" height="50" rx="8" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.4"/>
+<text x="72" y="374" font-size="13" font-weight="700" fill="#1f2933">LocalQueue ds-queue</text>
+<text x="72" y="393" font-size="12" fill="#5b6675">clusterQueue: data-science</text>
+
+<rect x="404" y="322" width="340" height="96" rx="10" fill="#ffffff" stroke="#1e4fb8" stroke-width="1.4" stroke-dasharray="6 4"/>
+<text x="418" y="342" font-size="12" font-weight="700" fill="#1e4fb8">namespace data-science-dev</text>
+<rect x="418" y="354" width="312" height="50" rx="8" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.4"/>
+<text x="432" y="374" font-size="13" font-weight="700" fill="#1f2933">LocalQueue ds-dev-queue</text>
+<text x="432" y="393" font-size="12" fill="#5b6675">clusterQueue: data-science (same budget)</text>
+
+<rect x="764" y="322" width="372" height="96" rx="10" fill="#ffffff" stroke="#1e4fb8" stroke-width="1.4" stroke-dasharray="6 4"/>
+<text x="778" y="342" font-size="12" font-weight="700" fill="#1e4fb8">namespace marketing</text>
+<rect x="778" y="354" width="344" height="50" rx="8" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.4"/>
+<text x="792" y="374" font-size="13" font-weight="700" fill="#1f2933">LocalQueue mk-queue</text>
+<text x="792" y="393" font-size="12" fill="#5b6675">clusterQueue: marketing</text>
+
+<!-- localqueue -> clusterqueue arrows -->
+<path d="M320,354 L320,272 L420,272 L420,246" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M680,354 L680,246" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M1060,354 L1060,246" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<text x="688" y="268" font-size="11.5" fill="#5b6675">points to</text>
+<text x="1068" y="268" font-size="11.5" fill="#5b6675">points to</text>
+
+<!-- jobs -->
+<text x="44" y="462" font-size="13.5" font-weight="700" fill="#3e4c59">Jobs name a LocalQueue</text>
+<g font-size="12">
+<rect x="44" y="474" width="340" height="52" rx="9" fill="#f8fafc" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="58" y="495" font-weight="700" fill="#1f2933">Job trainer (8 GPUs)</text>
+<text x="58" y="513" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#5b6675">kueue.x-k8s.io/queue-name: ds-queue</text>
+<rect x="404" y="474" width="340" height="52" rx="9" fill="#f8fafc" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="418" y="495" font-weight="700" fill="#1f2933">Job tune (4 GPUs)</text>
+<text x="418" y="513" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#5b6675">kueue.x-k8s.io/queue-name: ds-dev-queue</text>
+<rect x="764" y="474" width="372" height="52" rx="9" fill="#f8fafc" stroke="#9aa5b1" stroke-width="1.3"/>
+<text x="778" y="495" font-weight="700" fill="#1f2933">Job campaign-model (2 GPUs)</text>
+<text x="778" y="513" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#5b6675">kueue.x-k8s.io/queue-name: mk-queue</text>
+</g>
+<path d="M320,474 L320,408" stroke="#5b6675" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path d="M680,474 L680,408" stroke="#5b6675" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<path d="M1060,474 L1060,408" stroke="#5b6675" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+
+<!-- takeaways -->
+<g font-size="12.5" fill="#1f2933">
+<text x="24" y="560"><tspan font-weight="700">Shared budget:</tspan> trainer and tune come from two namespaces but draw on the same 50 GPUs of data-science.</text>
+<text x="24" y="582"><tspan font-weight="700">Separate budgets:</tspan> marketing's 10 GPUs are its own; this picture has no borrowing between the two ClusterQueues.</text>
+<text x="24" y="604"><tspan font-weight="700">Who touches what:</tspan> teams list and use the queues in their namespace; only the admin creates or changes the ClusterQueues and flavors.</text>
+<text x="24" y="626" fill="#5b6675">Names are examples. Borrowing between ClusterQueues needs a cohort, shown in the Volcano vs. Kueue section.</text>
+</g>
+</g>
+</svg>
