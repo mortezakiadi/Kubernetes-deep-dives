@@ -371,34 +371,33 @@ spec:
 **Going deeper, by topic.**
 
 - **Why Ray exists:** reinforcement learning mixes many small simulations on CPUs, training on GPUs, and serving the current policy, all in one program that hands data between them in milliseconds. The systems of the time each did one part, and gluing them together was too slow, so teams kept writing one-off systems. Ray (UC Berkeley, 2017) is one Python framework for all of it: it can place very large numbers of short tasks per second, on CPUs or GPUs, and take their results in whatever order they finish ([Ray paper](https://arxiv.org/abs/1712.05889)).
-- **Ray's own architecture, a head and workers:** a Ray cluster is one **head node** and any number of **worker nodes** ([Ray cluster concepts](https://docs.ray.io/en/latest/cluster/key-concepts.html)):
+- **Ray's architecture, through one job:** take RL fine-tuning of a coding model. Each round, a **Generator** writes 1,000 answers on a GPU, unit tests score each answer on CPUs, and a **Trainer** turns the scores into better weights on another GPU. A Ray cluster is one **head node** and any number of **worker nodes** ([Ray cluster concepts](https://docs.ray.io/en/latest/cluster/key-concepts.html)), and each part of the job lands on one of them. The numbers are illustrative:
+  - **The head (purple) runs the loop:** the **driver** is the training script itself, `rl_loop.py`. The **GCS** is the cluster's directory: at startup it placed the Generator and the Trainer on nodes with a free GPU, and it remembers where. The **autoscaler** notices when tests wait for CPUs and asks for another CPU node.
+  - **Every node (orange) has a raylet and an object store:** the raylet is that node's queue. On the CPU node it holds the 1,000 test tasks and runs 32 at a time, one per CPU. The object store is the node's shared memory: the GPU node's store holds the answers, the CPU node's store holds the scores.
+  - **Your code (green) is tasks and actors:** each `run_tests` call is a **task**, a function that runs once and ends. The Generator and the Trainer are **actors**, long-lived processes that keep the model in GPU memory between rounds instead of reloading it every time.
+  - **The driver passes tickets, not data:** every call returns a reference at once, like a claim ticket. When the driver hands answer tickets to the tests, each answer is copied straight from the Generator's node to the CPU node, and scores travel from the CPU node to the Trainer's node in the same way ([passing objects](https://docs.ray.io/en/latest/ray-core/objects.html)). The driver never holds the 1,000 answers itself.
+  - **The "reload" is one method you write:** Ray has no built-in model reload. Your Generator has a `load_weights` method, and the driver calls it with the Trainer's new weights. Ray carries the weights to the GPU node, and the model stays loaded.
+  - **Why a separate head:** the driver, the GCS and the autoscaler must exist exactly once for the whole run. By default the GCS keeps its data in memory, so losing the head stops the run unless the GCS is backed by Redis ([GCS fault tolerance in KubeRay](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/kuberay-gcs-ft.html)).
 
-  - **Once per cluster, on the head (purple):** the **driver**, your main script, which starts the work and collects the results; the **GCS**, the cluster's directory of nodes, actors and placement groups, which also picks a node for each new actor; and the **autoscaler**, which adds or removes worker nodes when requests wait.
-  - **On every node, the head included (orange):** the **raylet**, the node's queue and scheduler, which holds a task until there is a free slot and its inputs are on the node, then runs it in a worker process; and the **object store**, the node's shared memory, where results are kept until someone reads them.
-  - **Your code (green):** a **task** is a function call that runs once in a worker process and ends. An **actor** is a long-lived worker process that keeps its state, such as a model loaded on a GPU, between method calls.
-  - **The "queue" and "collect" you'd otherwise build:** calling a task returns a reference at once, like a claim ticket. The raylets queue and run the work, and `ray.get` on the ticket brings the result back from whichever node's object store holds it.
-  - **No built-in "reload the model":** your code updates a model by calling an actor method and passing the new weights. Ray moves the data; when to do it is up to the program.
-  - **Why a separate head:** those parts must exist once per cluster. By default the GCS keeps its data in memory, so losing the head loses the cluster unless the GCS is backed by Redis ([GCS fault tolerance in KubeRay](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/kuberay-gcs-ft.html)).
+![Ray's own architecture, seen through one job](diagrams/extra/d03-ray-architecture.svg)
 
-![Ray's own architecture](diagrams/extra/d03-ray-architecture.svg)
+- **The same job on Kubernetes:** each Ray node becomes a pod. The head pod holds the driver, the GCS, its own raylet and object store, and the autoscaler as a sidecar container. The Generator and the Trainer run in two pods of a GPU worker group, and the tests in a pod of a CPU worker group. Each pod's container limits become the slots Ray hands out ([RayCluster configuration](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/config.html)). Kubernetes places the four pods; Ray places the Generator, the Trainer and the tests inside them.
 
-- **The same pieces on Kubernetes:** each Ray node becomes a pod. The head pod holds the driver, the GCS and its own raylet and object store, with the autoscaler as a sidecar container. Each worker pod holds a raylet, an object store and your tasks and actors, and its container limits become the slots Ray hands out ([RayCluster configuration](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/config.html)). Kubernetes places the pods; Ray places the work inside them.
+![The same RL job on an EKS cluster](diagrams/extra/d03-kuberay-two-levels.svg)
 
-![The same Ray pieces on a Kubernetes cluster](diagrams/extra/d03-kuberay-two-levels.svg)
-
-- **How it's set up in YAML:** you never write a `KubeSchedulerConfiguration` for Ray's scheduler. It is set up by three things: the pods' resources, a few `rayStartParams`, and what the Python code asks for. The pods are described in a `RayCluster` (or a `RayJob`, which creates one per run):
+- **How it's set up in YAML:** you never write a `KubeSchedulerConfiguration` for Ray's scheduler. It is set up by three things: the pods' resources, a few `rayStartParams`, and what the Python code asks for. The pods are described in a `RayCluster` (or a `RayJob`, which creates one per run). This one has the head and the two worker groups of the job above:
 
 ```yaml
 apiVersion: ray.io/v1
 kind: RayCluster
 metadata:
-  name: rl-cluster
+  name: rl-coding
 spec:
   rayVersion: "2.56.1"
   enableInTreeAutoscaling: true        # Ray's autoscaler runs as a sidecar in the head pod #!
   headGroupSpec:
     rayStartParams:
-      num-cpus: "0"                    # Ray places no work on the head pod #!
+      num-cpus: "0"                    # no tests or actors on the head pod #!
     template:
       spec:
         containers:
@@ -408,10 +407,10 @@ spec:
             requests: {cpu: "4", memory: 16Gi}
             limits:   {cpu: "4", memory: 16Gi}
   workerGroupSpecs:
-  - groupName: gpu-group
+  - groupName: gpu-group               # the Generator and the Trainer
     replicas: 2
-    minReplicas: 0                     # the autoscaler moves replicas between these #!
-    maxReplicas: 8 #!
+    minReplicas: 2
+    maxReplicas: 2
     rayStartParams: {}
     template:
       spec:
@@ -425,18 +424,42 @@ spec:
           resources:                   # Ray level: these limits become the pod's Ray slots #!
             requests: {cpu: "8", memory: 64Gi, nvidia.com/gpu: 1}
             limits:   {cpu: "8", memory: 64Gi, nvidia.com/gpu: 1}
+  - groupName: cpu-group               # the unit tests
+    replicas: 1
+    minReplicas: 1                     # the autoscaler moves replicas between these #!
+    maxReplicas: 4 #!
+    rayStartParams: {}
+    template:
+      spec:
+        containers:
+        - name: ray-worker
+          image: my-company/ray-sandbox:2.56.1
+          resources:
+            requests: {cpu: "32", memory: 64Gi}   # 32 CPU slots: 32 tests at once #!
+            limits:   {cpu: "32", memory: 64Gi}
 ```
 
 ```python
 import ray
 
-@ray.remote(num_gpus=1)               # Ray places this actor in a pod with a free GPU slot
-class Trainer:
-    ...
+@ray.remote(num_gpus=1)                   # needs a GPU slot: lands in a gpu-group pod
+class Generator:
+    def generate(self, prompt): ...       # returns one answer
+    def load_weights(self, weights): ...  # the "reload": a method you write
 
-@ray.remote(num_cpus=1)               # and these tasks wherever a CPU slot is free
-def tokenize(batch):
-    ...
+@ray.remote(num_gpus=1)
+class Trainer:
+    def train(self, answers, scores): ... # calls ray.get on the lists, returns new weights
+
+@ray.remote(num_cpus=1)                   # needs a CPU slot: lands in the cpu-group pod
+def run_tests(answer): ...                # returns a score
+
+gen, trainer = Generator.remote(), Trainer.remote()      # the GCS places both
+for step in range(100):
+    answers = [gen.generate.remote(p) for p in prompts]  # 1,000 tickets, no data yet
+    scores = [run_tests.remote(a) for a in answers]      # answers copied node to node
+    weights = trainer.train.remote(answers, scores)      # lists of tickets
+    ray.get(gen.load_weights.remote(weights))            # wait until the reload is done
 ```
 
 - **Which scheduler places the pods:** this is chosen for the whole operator, not per cluster. By default it is kube-scheduler. To place each Ray cluster's pods as one gang, install the operator with a batch scheduler, for example the Helm value `batchScheduler.name: volcano`, and put the cluster in a Volcano queue with the label `volcano.sh/queue-name` ([KubeRay with Volcano](https://docs.ray.io/en/latest/cluster/kubernetes/k8s-ecosystem/volcano.html)). KubeRay also has integrations for YuniKorn and the scheduler-plugins coscheduling plugin.

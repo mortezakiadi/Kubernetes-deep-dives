@@ -6,8 +6,8 @@
 <marker id="arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker>
 </defs>
 <g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
-<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">The same Ray pieces on a Kubernetes cluster</text>
-<text x="24" y="62" font-size="13.5" fill="#5b6675">Same colors as the previous picture, plus blue for Kubernetes. Each Ray node becomes a pod, and the pods run on EKS nodes.</text>
+<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">The same RL job on an EKS cluster</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">Same colors as the previous picture, plus blue for Kubernetes. The Ray head and worker nodes 1, 2 and 3 become pods on EKS nodes A, B, C and D.</text>
 
 <!-- legend -->
 <rect x="24" y="76" width="14" height="14" rx="3" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.4"/>
@@ -23,8 +23,8 @@
 <rect x="24" y="104" width="1132" height="104" rx="16" fill="#eef3fd" stroke="#1e4fb8" stroke-width="1.6"/>
 <text x="44" y="128" font-size="14" font-weight="700" fill="#1e4fb8">Kubernetes: builds the Ray cluster out of pods and places them on nodes</text>
 <rect x="44" y="142" width="300" height="52" rx="10" fill="#ffffff" stroke="#1e4fb8" stroke-width="1.4"/>
-<text x="60" y="164" font-size="13" font-weight="700" fill="#1f2933">RayCluster or RayJob</text>
-<text x="60" y="183" font-size="12" fill="#5b6675">your YAML: one head group, worker groups</text>
+<text x="60" y="164" font-size="13" font-weight="700" fill="#1f2933">RayJob: rl-coding-run</text>
+<text x="60" y="183" font-size="12" fill="#5b6675">head group, gpu-group (2), cpu-group (1)</text>
 <rect x="404" y="142" width="330" height="52" rx="10" fill="#ffffff" stroke="#1e4fb8" stroke-width="1.4"/>
 <text x="420" y="164" font-size="13" font-weight="700" fill="#1f2933">KubeRay operator</text>
 <text x="420" y="183" font-size="12" fill="#5b6675">creates the head pod, worker pods and a Service</text>
@@ -33,88 +33,104 @@
 <text x="810" y="183" font-size="12" fill="#5b6675">or Volcano / YuniKorn for all-or-nothing</text>
 <path d="M344,168 L400,168" stroke="#1e4fb8" stroke-width="1.8" fill="none" marker-end="url(#arb)"/>
 <path d="M734,168 L790,168" stroke="#1e4fb8" stroke-width="1.8" fill="none" marker-end="url(#arb)"/>
-<path d="M965,194 L965,226 L590,226 L590,242" stroke="#1e4fb8" stroke-width="1.8" fill="none" marker-end="url(#arb)"/>
-<path d="M965,226 L965,242" stroke="#1e4fb8" stroke-width="1.8" fill="none" marker-end="url(#arb)"/>
-<path d="M590,226 L214,226 L214,242" stroke="#1e4fb8" stroke-width="1.8" fill="none" marker-end="url(#arb)"/>
-<text x="986" y="222" font-size="12" font-weight="600" fill="#1e4fb8">puts each pod on a node</text>
+<path d="M965,194 L965,224" stroke="#1e4fb8" stroke-width="1.8" fill="none"/>
+<path d="M176,224 L1004,224" stroke="#1e4fb8" stroke-width="1.8" fill="none"/>
+<path d="M176,224 L176,242" stroke="#1e4fb8" stroke-width="1.8" fill="none" marker-end="url(#arb)"/>
+<path d="M452,224 L452,242" stroke="#1e4fb8" stroke-width="1.8" fill="none" marker-end="url(#arb)"/>
+<path d="M728,224 L728,242" stroke="#1e4fb8" stroke-width="1.8" fill="none" marker-end="url(#arb)"/>
+<path d="M1004,224 L1004,242" stroke="#1e4fb8" stroke-width="1.8" fill="none" marker-end="url(#arb)"/>
+<text x="1012" y="218" font-size="12" font-weight="600" fill="#1e4fb8">puts each pod on a node</text>
 
 <!-- Nodes -->
-<rect x="44" y="246" width="340" height="300" rx="12" fill="#f8fafc" stroke="#5b6675" stroke-width="1.4"/>
-<text x="60" y="268" font-size="13" font-weight="700" fill="#3e4c59">EKS node 1 (CPU)</text>
-<rect x="420" y="246" width="340" height="300" rx="12" fill="#f8fafc" stroke="#5b6675" stroke-width="1.4"/>
-<text x="436" y="268" font-size="13" font-weight="700" fill="#3e4c59">EKS node 2 (GPU)</text>
-<rect x="796" y="246" width="340" height="300" rx="12" fill="#f8fafc" stroke="#5b6675" stroke-width="1.4"/>
-<text x="812" y="268" font-size="13" font-weight="700" fill="#3e4c59">EKS node 3 (GPU)</text>
+<rect x="44" y="246" width="264" height="300" rx="12" fill="#f8fafc" stroke="#5b6675" stroke-width="1.4"/>
+<text x="58" y="268" font-size="13" font-weight="700" fill="#3e4c59">EKS node A (CPU)</text>
+<rect x="320" y="246" width="264" height="300" rx="12" fill="#f8fafc" stroke="#5b6675" stroke-width="1.4"/>
+<text x="334" y="268" font-size="13" font-weight="700" fill="#3e4c59">EKS node B (GPU)</text>
+<rect x="596" y="246" width="264" height="300" rx="12" fill="#f8fafc" stroke="#5b6675" stroke-width="1.4"/>
+<text x="610" y="268" font-size="13" font-weight="700" fill="#3e4c59">EKS node C (CPU)</text>
+<rect x="872" y="246" width="264" height="300" rx="12" fill="#f8fafc" stroke="#5b6675" stroke-width="1.4"/>
+<text x="886" y="268" font-size="13" font-weight="700" fill="#3e4c59">EKS node D (GPU)</text>
 
 <!-- Head pod -->
-<rect x="60" y="280" width="308" height="252" rx="10" fill="#ffffff" stroke="#6d3fc0" stroke-width="1.6"/>
-<text x="76" y="302" font-size="13" font-weight="700" fill="#6d3fc0">Ray head pod</text>
-<rect x="76" y="314" width="276" height="38" rx="8" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.2"/>
-<text x="88" y="338" font-size="12.5" font-weight="600" fill="#1f2933">Driver: the job's script</text>
-<rect x="76" y="358" width="276" height="38" rx="8" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.2"/>
-<text x="88" y="382" font-size="12.5" font-weight="600" fill="#1f2933">GCS: the cluster's directory</text>
-<rect x="76" y="402" width="134" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
-<text x="88" y="426" font-size="12.5" font-weight="600" fill="#1f2933">raylet</text>
-<rect x="218" y="402" width="134" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
-<text x="230" y="426" font-size="12.5" font-weight="600" fill="#1f2933">object store</text>
-<rect x="76" y="446" width="276" height="38" rx="8" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.2" stroke-dasharray="5 3"/>
-<text x="88" y="470" font-size="12.5" font-weight="600" fill="#1f2933">Autoscaler (sidecar container)</text>
-<text x="76" y="506" font-size="11.5" fill="#5b6675">num-cpus "0" keeps your code off the head</text>
-<text x="76" y="522" font-size="11.5" fill="#5b6675">lose this pod and the Ray cluster is lost</text>
+<rect x="56" y="280" width="240" height="252" rx="10" fill="#ffffff" stroke="#6d3fc0" stroke-width="1.6"/>
+<text x="68" y="302" font-size="13" font-weight="700" fill="#6d3fc0">Ray head pod</text>
+<rect x="68" y="314" width="216" height="38" rx="8" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.2"/>
+<text x="80" y="338" font-size="12.5" font-weight="600" fill="#1f2933">Driver: rl_loop.py</text>
+<rect x="68" y="358" width="216" height="38" rx="8" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.2"/>
+<text x="80" y="382" font-size="12.5" font-weight="600" fill="#1f2933">GCS: the directory</text>
+<rect x="68" y="402" width="104" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
+<text x="80" y="426" font-size="12.5" font-weight="600" fill="#1f2933">raylet</text>
+<rect x="180" y="402" width="104" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
+<text x="190" y="426" font-size="12.5" font-weight="600" fill="#1f2933">object store</text>
+<rect x="68" y="446" width="216" height="38" rx="8" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="80" y="470" font-size="12.5" font-weight="600" fill="#1f2933">Autoscaler (sidecar)</text>
+<text x="68" y="506" font-size="11.5" fill="#5b6675">num-cpus "0": no tests run here</text>
+<text x="68" y="522" font-size="11.5" fill="#5b6675">lose this pod and the run stops</text>
 
-<!-- Worker pod 1 -->
-<rect x="436" y="280" width="308" height="252" rx="10" fill="#ffffff" stroke="#d48a1c" stroke-width="1.6"/>
-<text x="452" y="302" font-size="13" font-weight="700" fill="#b26b00">Ray worker pod (gpu-group)</text>
-<text x="452" y="320" font-size="11.5" fill="#5b6675">its limits, CPU 8 and GPU 1, become Ray's slots</text>
-<rect x="452" y="330" width="134" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
-<text x="464" y="354" font-size="12.5" font-weight="600" fill="#1f2933">raylet</text>
-<rect x="594" y="330" width="134" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
-<text x="606" y="354" font-size="12.5" font-weight="600" fill="#1f2933">object store</text>
-<rect x="452" y="378" width="276" height="38" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
-<text x="464" y="402" font-size="12.5" font-weight="600" fill="#1f2933">actor: Generator (num_gpus=1)</text>
-<rect x="452" y="424" width="276" height="38" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
-<text x="464" y="448" font-size="12.5" font-weight="600" fill="#1f2933">task: run_tests (num_cpus=1)</text>
-<rect x="452" y="470" width="276" height="38" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
-<text x="464" y="494" font-size="12.5" font-weight="600" fill="#1f2933">task: run_tests (num_cpus=1)</text>
+<!-- Generator pod -->
+<rect x="332" y="280" width="240" height="252" rx="10" fill="#ffffff" stroke="#d48a1c" stroke-width="1.6"/>
+<text x="344" y="302" font-size="13" font-weight="700" fill="#b26b00">worker pod (gpu-group)</text>
+<text x="344" y="320" font-size="11.5" fill="#5b6675">limits GPU 1, CPU 8 = its Ray slots</text>
+<rect x="344" y="330" width="104" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
+<text x="356" y="354" font-size="12.5" font-weight="600" fill="#1f2933">raylet</text>
+<rect x="456" y="330" width="104" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
+<text x="466" y="354" font-size="12.5" font-weight="600" fill="#1f2933">object store</text>
+<rect x="344" y="378" width="216" height="52" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="356" y="400" font-size="12.5" font-weight="600" fill="#1f2933">actor: Generator, v12</text>
+<text x="356" y="418" font-size="11.5" fill="#5b6675">writes the 1,000 answers</text>
 
-<!-- Worker pod 2 -->
-<rect x="812" y="280" width="308" height="252" rx="10" fill="#ffffff" stroke="#d48a1c" stroke-width="1.6"/>
-<text x="828" y="302" font-size="13" font-weight="700" fill="#b26b00">Ray worker pod (gpu-group)</text>
-<text x="828" y="320" font-size="11.5" fill="#5b6675">its limits, CPU 8 and GPU 1, become Ray's slots</text>
-<rect x="828" y="330" width="134" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
-<text x="840" y="354" font-size="12.5" font-weight="600" fill="#1f2933">raylet</text>
-<rect x="970" y="330" width="134" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
-<text x="982" y="354" font-size="12.5" font-weight="600" fill="#1f2933">object store</text>
-<rect x="828" y="378" width="276" height="38" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
-<text x="840" y="402" font-size="12.5" font-weight="600" fill="#1f2933">actor: Trainer (num_gpus=1)</text>
-<rect x="828" y="424" width="276" height="38" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4" stroke-dasharray="5 4"/>
-<text x="840" y="448" font-size="12.5" fill="#7b8794">free: CPU 7</text>
+<!-- Tests pod -->
+<rect x="608" y="280" width="240" height="252" rx="10" fill="#ffffff" stroke="#d48a1c" stroke-width="1.6"/>
+<text x="620" y="302" font-size="13" font-weight="700" fill="#b26b00">worker pod (cpu-group)</text>
+<text x="620" y="320" font-size="11.5" fill="#5b6675">limits CPU 32 = 32 tests at once</text>
+<rect x="620" y="330" width="104" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
+<text x="632" y="354" font-size="12.5" font-weight="600" fill="#1f2933">raylet</text>
+<rect x="732" y="330" width="104" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
+<text x="742" y="354" font-size="12.5" font-weight="600" fill="#1f2933">object store</text>
+<rect x="620" y="378" width="216" height="38" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="632" y="402" font-size="12.5" font-weight="600" fill="#1f2933">task: run_tests(17)</text>
+<rect x="620" y="424" width="216" height="38" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="632" y="448" font-size="12.5" font-weight="600" fill="#1f2933">task: run_tests(18)</text>
+<text x="620" y="484" font-size="11.5" fill="#5b6675">... 30 more running, the rest queued</text>
+
+<!-- Trainer pod -->
+<rect x="884" y="280" width="240" height="252" rx="10" fill="#ffffff" stroke="#d48a1c" stroke-width="1.6"/>
+<text x="896" y="302" font-size="13" font-weight="700" fill="#b26b00">worker pod (gpu-group)</text>
+<text x="896" y="320" font-size="11.5" fill="#5b6675">limits GPU 1, CPU 8 = its Ray slots</text>
+<rect x="896" y="330" width="104" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
+<text x="908" y="354" font-size="12.5" font-weight="600" fill="#1f2933">raylet</text>
+<rect x="1008" y="330" width="104" height="38" rx="8" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.2"/>
+<text x="1018" y="354" font-size="12.5" font-weight="600" fill="#1f2933">object store</text>
+<rect x="896" y="378" width="216" height="52" rx="8" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="908" y="400" font-size="12.5" font-weight="600" fill="#1f2933">actor: Trainer</text>
+<text x="908" y="418" font-size="11.5" fill="#5b6675">turns scores into weights v13</text>
 
 <!-- Ray level -->
 <rect x="24" y="566" width="1132" height="90" rx="16" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.6"/>
 <text x="44" y="590" font-size="14" font-weight="700" fill="#2f6f4a">Ray: decides which pod runs each task and actor</text>
-<text x="44" y="614" font-size="13" fill="#1f2933">Your Python asks for slots, such as @ray.remote(num_gpus=1). The raylets and the GCS pick a pod that has them free.</text>
-<text x="44" y="636" font-size="13" fill="#1f2933">Kubernetes never sees tasks or actors, only the pods. A ResourceQuota or Kueue counts the pods' requests, not what runs inside them.</text>
-<path d="M590,566 L590,536" stroke="#2f9e5b" stroke-width="1.8" fill="none" marker-end="url(#arg)"/>
-<path d="M966,566 L966,536" stroke="#2f9e5b" stroke-width="1.8" fill="none" marker-end="url(#arg)"/>
+<text x="44" y="614" font-size="13" fill="#1f2933">The Generator and Trainer each asked for num_gpus=1, so they went to GPU pods. Each test asked for num_cpus=1, so they went to the CPU pod.</text>
+<text x="44" y="636" font-size="13" fill="#1f2933">Kubernetes never sees the Generator, the Trainer or the tests, only the four pods. A ResourceQuota or Kueue counts the pods' requests.</text>
+<path d="M452,566 L452,536" stroke="#2f9e5b" stroke-width="1.8" fill="none" marker-end="url(#arg)"/>
+<path d="M728,566 L728,536" stroke="#2f9e5b" stroke-width="1.8" fill="none" marker-end="url(#arg)"/>
+<path d="M1004,566 L1004,536" stroke="#2f9e5b" stroke-width="1.8" fill="none" marker-end="url(#arg)"/>
 
 <!-- Autoscaling loop -->
 <rect x="24" y="674" width="1132" height="108" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
-<text x="44" y="698" font-size="14" font-weight="700" fill="#3e4c59">When work waits, Ray and Kubernetes hand off</text>
+<text x="44" y="698" font-size="14" font-weight="700" fill="#3e4c59">When tests pile up, Ray and Kubernetes hand off</text>
 <g font-size="12.5" fill="#1f2933">
 <circle cx="54" cy="726" r="11" fill="#2f9e5b"/><text x="54" y="730" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
-<text x="72" y="730">A task needs a GPU no pod has free</text>
-<path d="M290,726 L314,726" stroke="#5b6675" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
-<circle cx="332" cy="726" r="11" fill="#6d3fc0"/><text x="332" y="730" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
-<text x="350" y="730">Autoscaler raises gpu-group replicas</text>
-<path d="M572,726 L596,726" stroke="#5b6675" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
-<circle cx="614" cy="726" r="11" fill="#1e4fb8"/><text x="614" y="730" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
-<text x="632" y="730">KubeRay creates a pod</text>
-<path d="M776,726 L800,726" stroke="#5b6675" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
-<circle cx="818" cy="726" r="11" fill="#1e4fb8"/><text x="818" y="730" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
-<text x="836" y="730">The scheduler places it, or it stays</text>
-<text x="836" y="748">Pending until Karpenter adds a node</text>
-<text x="72" y="766" font-size="12" fill="#5b6675">Then the new pod's raylet joins the Ray cluster, and Ray places the waiting task there.</text>
+<text x="72" y="730">900 tests wait for a CPU</text>
+<path d="M226,726 L250,726" stroke="#5b6675" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<circle cx="268" cy="726" r="11" fill="#6d3fc0"/><text x="268" y="730" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+<text x="286" y="730">Autoscaler raises cpu-group replicas to 2</text>
+<path d="M546,726 L570,726" stroke="#5b6675" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<circle cx="588" cy="726" r="11" fill="#1e4fb8"/><text x="588" y="730" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+<text x="606" y="730">KubeRay creates a pod</text>
+<path d="M750,726 L774,726" stroke="#5b6675" stroke-width="1.6" fill="none" marker-end="url(#ar)"/>
+<circle cx="792" cy="726" r="11" fill="#1e4fb8"/><text x="792" y="730" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+<text x="810" y="730">The scheduler places it, or it stays</text>
+<text x="810" y="748">Pending until Karpenter adds a node</text>
+<text x="72" y="766" font-size="12" fill="#5b6675">Then the new pod's raylet joins the Ray cluster, and Ray starts sending it waiting tests.</text>
 </g>
 </g>
 </svg>

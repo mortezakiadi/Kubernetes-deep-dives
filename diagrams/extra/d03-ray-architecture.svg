@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 780" width="1180" height="780" style="color-scheme: light">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 900" width="1180" height="900" style="color-scheme: light">
 <rect width="100%" height="100%" fill="#ffffff"/>
 <defs>
 <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker>
 </defs>
 <g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
-<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">Ray's own architecture: one head node, many worker nodes</text>
-<text x="24" y="62" font-size="13.5" fill="#5b6675">The head holds the parts a cluster needs once. Every node, the head included, runs the same per-node parts. Your code runs in worker processes.</text>
+<text x="24" y="36" font-size="21" font-weight="700" fill="#1f2933">Ray's own architecture, seen through one job: RL fine-tuning of a coding model</text>
+<text x="24" y="62" font-size="13.5" fill="#5b6675">Each round the model writes answers, unit tests score them, and a trainer improves the model. The numbers are illustrative.</text>
 
 <!-- legend -->
 <rect x="24" y="76" width="14" height="14" rx="3" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.4"/>
@@ -16,86 +16,104 @@
 <text x="512" y="88" font-size="12.5" fill="#1f2933">your code</text>
 
 <!-- Head node -->
-<rect x="24" y="118" width="500" height="396" rx="14" fill="#f8fafc" stroke="#6d3fc0" stroke-width="1.8"/>
+<rect x="24" y="118" width="440" height="482" rx="14" fill="#f8fafc" stroke="#6d3fc0" stroke-width="1.8"/>
 <text x="44" y="144" font-size="14" font-weight="700" fill="#6d3fc0">Head node</text>
-<text x="132" y="144" font-size="12" fill="#5b6675">one per cluster</text>
-<rect x="44" y="160" width="460" height="56" rx="9" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.4"/>
-<text x="58" y="182" font-size="13" font-weight="700" fill="#1f2933">Driver: your main Python script</text>
-<text x="58" y="202" font-size="12" fill="#5b6675">starts the work and collects the results</text>
-<rect x="44" y="228" width="460" height="56" rx="9" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.4"/>
-<text x="58" y="250" font-size="13" font-weight="700" fill="#1f2933">GCS (Global Control Service)</text>
-<text x="58" y="270" font-size="12" fill="#5b6675">the cluster's directory: nodes, actors, placement groups</text>
-<rect x="44" y="296" width="460" height="56" rx="9" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.4"/>
-<text x="58" y="318" font-size="13" font-weight="700" fill="#1f2933">Autoscaler</text>
-<text x="58" y="338" font-size="12" fill="#5b6675">adds or removes worker nodes for requests that wait</text>
-<rect x="44" y="370" width="222" height="56" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
-<text x="58" y="392" font-size="13" font-weight="700" fill="#1f2933">raylet</text>
-<text x="58" y="412" font-size="12" fill="#5b6675">this node's queue and scheduler</text>
-<rect x="282" y="370" width="222" height="56" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
-<text x="296" y="392" font-size="13" font-weight="700" fill="#1f2933">object store</text>
-<text x="296" y="412" font-size="12" fill="#5b6675">this node's shared memory</text>
-<text x="44" y="456" font-size="12" fill="#5b6675">The head runs the per-node parts too, so it can run your code.</text>
-<text x="44" y="476" font-size="12" fill="#5b6675">Large clusters keep work off it (num-cpus "0").</text>
+<text x="132" y="144" font-size="12" fill="#5b6675">runs the training loop</text>
+<rect x="44" y="160" width="400" height="74" rx="9" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.4"/>
+<text x="58" y="182" font-size="13" font-weight="700" fill="#1f2933">Driver: rl_loop.py</text>
+<text x="58" y="202" font-size="12" fill="#5b6675">each round: get 1,000 answers, test them,</text>
+<text x="58" y="220" font-size="12" fill="#5b6675">train on the scores, send out new weights</text>
+<rect x="44" y="246" width="400" height="74" rx="9" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.4"/>
+<text x="58" y="268" font-size="13" font-weight="700" fill="#1f2933">GCS (Global Control Service)</text>
+<text x="58" y="288" font-size="12" fill="#5b6675">knows the Generator lives on node 1</text>
+<text x="58" y="306" font-size="12" fill="#5b6675">and the Trainer on node 3</text>
+<rect x="44" y="332" width="400" height="74" rx="9" fill="#f3eefc" stroke="#6d3fc0" stroke-width="1.4"/>
+<text x="58" y="354" font-size="13" font-weight="700" fill="#1f2933">Autoscaler</text>
+<text x="58" y="374" font-size="12" fill="#5b6675">sees test tasks waiting for CPUs</text>
+<text x="58" y="392" font-size="12" fill="#5b6675">and asks for another CPU node</text>
+<rect x="44" y="420" width="192" height="56" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
+<text x="58" y="442" font-size="13" font-weight="700" fill="#1f2933">raylet</text>
+<text x="58" y="462" font-size="12" fill="#5b6675">num-cpus 0: no tests here</text>
+<rect x="252" y="420" width="192" height="56" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
+<text x="266" y="442" font-size="13" font-weight="700" fill="#1f2933">object store</text>
+<text x="266" y="462" font-size="12" fill="#5b6675">small results the driver reads</text>
+<text x="44" y="512" font-size="12" fill="#5b6675">The driver never copies answers or scores itself.</text>
+<text x="44" y="530" font-size="12" fill="#5b6675">It passes tickets, and Ray moves the data</text>
+<text x="44" y="548" font-size="12" fill="#5b6675">straight from one node's store to another's.</text>
+<text x="44" y="578" font-size="12" font-weight="600" fill="#6d3fc0">Lose this node and the whole run stops.</text>
 
-<!-- Worker node 1 -->
-<rect x="584" y="118" width="572" height="186" rx="14" fill="#f8fafc" stroke="#5b6675" stroke-width="1.6"/>
-<text x="604" y="144" font-size="14" font-weight="700" fill="#3e4c59">Worker node 1 (CPU)</text>
-<text x="752" y="144" font-size="12" fill="#5b6675">runs only your code</text>
-<rect x="604" y="158" width="260" height="56" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
-<text x="618" y="180" font-size="13" font-weight="700" fill="#1f2933">raylet</text>
-<text x="618" y="200" font-size="12" fill="#5b6675">queue: waits for a free CPU and inputs</text>
-<rect x="880" y="158" width="256" height="56" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
-<text x="894" y="180" font-size="13" font-weight="700" fill="#1f2933">object store</text>
-<text x="894" y="200" font-size="12" fill="#5b6675">holds the tasks' results</text>
-<rect x="604" y="228" width="260" height="56" rx="9" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
-<text x="618" y="250" font-size="13" font-weight="700" fill="#1f2933">task: run_tests(answer 17)</text>
-<text x="618" y="270" font-size="12" fill="#5b6675">a worker process; done when it returns</text>
-<rect x="880" y="228" width="256" height="56" rx="9" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
-<text x="894" y="250" font-size="13" font-weight="700" fill="#1f2933">task: run_tests(answer 18)</text>
-<text x="894" y="270" font-size="12" fill="#5b6675">another worker process</text>
+<!-- Worker node 1 (GPU): Generator -->
+<rect x="500" y="118" width="656" height="150" rx="14" fill="#f8fafc" stroke="#5b6675" stroke-width="1.6"/>
+<text x="520" y="144" font-size="14" font-weight="700" fill="#3e4c59">Worker node 1 (GPU)</text>
+<text x="670" y="144" font-size="12" fill="#5b6675">writes the answers</text>
+<rect x="520" y="158" width="300" height="40" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
+<text x="534" y="183" font-size="12.5" fill="#1f2933"><tspan font-weight="700">raylet:</tspan> gives the GPU to the Generator</text>
+<rect x="520" y="208" width="300" height="48" rx="9" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="534" y="228" font-size="12.5" font-weight="700" fill="#1f2933">actor: Generator, model v12</text>
+<text x="534" y="246" font-size="12" fill="#5b6675">stays loaded on the GPU between rounds</text>
+<rect x="836" y="158" width="300" height="98" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
+<text x="850" y="182" font-size="13" font-weight="700" fill="#1f2933">object store</text>
+<text x="850" y="204" font-size="12" fill="#5b6675">holds this round's 1,000 answers</text>
+<text x="850" y="222" font-size="12" fill="#5b6675">until a test needs one</text>
 
-<!-- Worker node 2 -->
-<rect x="584" y="328" width="572" height="186" rx="14" fill="#f8fafc" stroke="#5b6675" stroke-width="1.6"/>
-<text x="604" y="354" font-size="14" font-weight="700" fill="#3e4c59">Worker node 2 (GPU)</text>
-<text x="756" y="354" font-size="12" fill="#5b6675">runs only your code</text>
-<rect x="604" y="368" width="260" height="56" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
-<text x="618" y="390" font-size="13" font-weight="700" fill="#1f2933">raylet</text>
-<text x="618" y="410" font-size="12" fill="#5b6675">queue: waits for a free GPU</text>
-<rect x="880" y="368" width="256" height="56" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
-<text x="894" y="390" font-size="13" font-weight="700" fill="#1f2933">object store</text>
-<text x="894" y="410" font-size="12" fill="#5b6675">this node's shared memory</text>
-<rect x="604" y="438" width="532" height="56" rx="9" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
-<text x="618" y="460" font-size="13" font-weight="700" fill="#1f2933">actor: Generator, holding the model on the GPU</text>
-<text x="618" y="480" font-size="12" fill="#5b6675">a long-lived worker process; it keeps its state between calls until you stop it</text>
+<!-- Worker node 2 (CPU): tests -->
+<rect x="500" y="284" width="656" height="150" rx="14" fill="#f8fafc" stroke="#5b6675" stroke-width="1.6"/>
+<text x="520" y="310" font-size="14" font-weight="700" fill="#3e4c59">Worker node 2 (CPU)</text>
+<text x="668" y="310" font-size="12" fill="#5b6675">runs the unit tests, 32 CPUs</text>
+<rect x="520" y="324" width="300" height="48" rx="9" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="534" y="344" font-size="12.5" font-weight="700" fill="#1f2933">task: run_tests(answer 17)</text>
+<text x="534" y="362" font-size="12" fill="#5b6675">tests pass: score 1.0</text>
+<rect x="836" y="324" width="300" height="48" rx="9" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="850" y="344" font-size="12.5" font-weight="700" fill="#1f2933">task: run_tests(answer 18)</text>
+<text x="850" y="362" font-size="12" fill="#5b6675">a test fails: score 0.0</text>
+<rect x="520" y="384" width="300" height="40" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
+<text x="534" y="409" font-size="12.5" fill="#1f2933"><tspan font-weight="700">object store:</tspan> the 1,000 scores</text>
+<rect x="836" y="384" width="300" height="40" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
+<text x="850" y="409" font-size="12.5" fill="#1f2933"><tspan font-weight="700">raylet:</tspan> 1,000 tests queued, 32 at once</text>
+
+<!-- Worker node 3 (GPU): Trainer -->
+<rect x="500" y="450" width="656" height="150" rx="14" fill="#f8fafc" stroke="#5b6675" stroke-width="1.6"/>
+<text x="520" y="476" font-size="14" font-weight="700" fill="#3e4c59">Worker node 3 (GPU)</text>
+<text x="670" y="476" font-size="12" fill="#5b6675">improves the model</text>
+<rect x="520" y="490" width="300" height="48" rx="9" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.4"/>
+<text x="534" y="510" font-size="12.5" font-weight="700" fill="#1f2933">actor: Trainer</text>
+<text x="534" y="528" font-size="12" fill="#5b6675">turns the scored answers into weights v13</text>
+<rect x="836" y="490" width="300" height="48" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
+<text x="850" y="510" font-size="12.5" font-weight="700" fill="#1f2933">object store</text>
+<text x="850" y="528" font-size="12" fill="#5b6675">the new weights, v13</text>
+<rect x="520" y="548" width="616" height="40" rx="9" fill="#fff7ec" stroke="#d48a1c" stroke-width="1.4"/>
+<text x="534" y="573" font-size="12.5" fill="#1f2933"><tspan font-weight="700">raylet:</tspan> gives this node's GPU to the Trainer</text>
 
 <!-- arrows -->
-<path d="M504,187 L600,187" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
-<path d="M1008,158 L1008,106 L274,106 L274,156" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
-<path d="M504,256 L560,256 L560,396 L600,396" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M444,190 L478,190 L478,226 L516,226" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M986,256 L986,320" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M800,424 L800,486" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
+<path d="M520,514 L490,514 L490,244 L516,244" stroke="#5b6675" stroke-width="1.8" fill="none" marker-end="url(#ar)"/>
 <g font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">
-<circle cx="552" cy="187" r="11" fill="#3e4c59"/><text x="552" y="191">1</text>
-<circle cx="604" cy="228" r="11" fill="#3e4c59"/><text x="604" y="232">2</text>
-<circle cx="880" cy="158" r="11" fill="#3e4c59"/><text x="880" y="162">3</text>
-<circle cx="640" cy="106" r="11" fill="#3e4c59"/><text x="640" y="110">4</text>
-<circle cx="560" cy="330" r="11" fill="#3e4c59"/><text x="560" y="334">5</text>
+<circle cx="478" cy="206" r="11" fill="#3e4c59"/><text x="478" y="210">1</text>
+<circle cx="986" cy="290" r="11" fill="#3e4c59"/><text x="986" y="294">2</text>
+<circle cx="520" cy="384" r="11" fill="#3e4c59"/><text x="520" y="388">3</text>
+<circle cx="800" cy="442" r="11" fill="#3e4c59"/><text x="800" y="446">4</text>
+<circle cx="490" cy="380" r="11" fill="#3e4c59"/><text x="490" y="384">5</text>
 </g>
 
 <!-- explanation -->
-<rect x="24" y="532" width="1132" height="232" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
-<text x="44" y="558" font-size="14" font-weight="700" fill="#3e4c59">How work moves through it</text>
+<rect x="24" y="620" width="1132" height="266" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="44" y="646" font-size="14" font-weight="700" fill="#3e4c59">One training round, step by step</text>
 <g font-size="13" fill="#1f2933">
-<circle cx="54" cy="580" r="10" fill="#3e4c59"/><text x="54" y="584" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
-<text x="72" y="584">The driver calls run_tests.remote(answer). It gets a reference back at once, like a claim ticket, and carries on.</text>
-<circle cx="54" cy="606" r="10" fill="#3e4c59"/><text x="54" y="610" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
-<text x="72" y="610">A raylet holds the task in its queue until there is a free CPU and the task's inputs, then runs it in a worker process.</text>
-<circle cx="54" cy="632" r="10" fill="#3e4c59"/><text x="54" y="636" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
-<text x="72" y="636">The worker writes the result into that node's object store, in shared memory.</text>
-<circle cx="54" cy="658" r="10" fill="#3e4c59"/><text x="54" y="662" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
-<text x="72" y="662">ray.get with the ticket copies the result to the driver. The driver can take results in the order they finish.</text>
-<circle cx="54" cy="684" r="10" fill="#3e4c59"/><text x="54" y="688" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
-<text x="72" y="688">Creating an actor goes through the GCS, which picks a node. The actor then stays alive with the model loaded and takes method calls.</text>
-<text x="72" y="716" fill="#5b6675">Ray has no built-in "reload the model": to update it, your code calls an actor method and passes the new weights.</text>
-<text x="72" y="742" fill="#5b6675">Why one head: the directory, the autoscaler and the driver must exist once. Losing the head loses the cluster, unless the GCS is backed by Redis.</text>
+<text x="72" y="672" fill="#5b6675">At startup the driver creates the two actors. The GCS places each on a node with a free GPU and remembers where it put them.</text>
+<circle cx="54" cy="694" r="10" fill="#3e4c59"/><text x="54" y="698" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+<text x="72" y="698">The driver asks the Generator for 1,000 answers and gets 1,000 tickets back at once. The answers land in node 1's object store.</text>
+<circle cx="54" cy="720" r="10" fill="#3e4c59"/><text x="54" y="724" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+<text x="72" y="724">The driver starts run_tests for each ticket. Node 2's raylet queues 1,000 tasks and runs 32 at once, copying each answer over from node 1.</text>
+<circle cx="54" cy="746" r="10" fill="#3e4c59"/><text x="54" y="750" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+<text x="72" y="750">Each test writes its score into node 2's object store. Seeing tests wait, the autoscaler can add a second CPU node.</text>
+<circle cx="54" cy="772" r="10" fill="#3e4c59"/><text x="54" y="776" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+<text x="72" y="776">The driver hands the score tickets to the Trainer. The scores move from node 2 to node 3, and the Trainer produces weights v13.</text>
+<circle cx="54" cy="798" r="10" fill="#3e4c59"/><text x="54" y="802" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+<text x="72" y="802">The driver calls the Generator's load_weights(v13). That is the "reload": Ray carries the weights to node 1, and the model stays in GPU memory.</text>
+<text x="72" y="834" fill="#5b6675">Then the next round starts. Ray has no built-in reload; load_weights is a method you write on your own actor.</text>
+<text x="72" y="860" fill="#5b6675">The head is separate because the driver, the GCS and the autoscaler must exist exactly once for the whole run.</text>
 </g>
 </g>
 </svg>
