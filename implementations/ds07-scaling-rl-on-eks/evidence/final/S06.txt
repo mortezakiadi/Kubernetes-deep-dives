@@ -1,0 +1,79 @@
+# S06: Numerics: the mismatch between the rollout engine and the trainer
+# Design reference: Numerics and MoE: the mismatch that grows with scale
+
+$ kubectl apply -f job/mismatch-bf16   # bf16 engine, bf16 trainer: 256 sampled answers scored by both
+tag                          bf16
+tokens                       69851
+train_dtype                  bfloat16
+mean_abs_logratio            0.01967
+kl_k3                        0.0007707
+frac_ratio_gt_2              1.432e-05
+frac_ratio_lt_half           0
+frac_ratio_gt_cap            0
+max_ratio                    2.414
+p99_abs_logratio             0.1628
+top1pct_share_of_mismatch    0.1076
+tis_weight_mean              0.9866
+
+$ kubectl apply -f job/mismatch-bf16-vs-fp32   # bf16 engine, fp32 trainer: 256 sampled answers scored by both
+tag                          bf16-vs-fp32
+tokens                       70222
+train_dtype                  float32
+mean_abs_logratio            0.01732
+kl_k3                        0.000527
+frac_ratio_gt_2              0
+frac_ratio_lt_half           0
+frac_ratio_gt_cap            0
+max_ratio                    1.241
+p99_abs_logratio             0.1272
+top1pct_share_of_mismatch    0.09547
+tis_weight_mean              0.9861
+
+$ kubectl apply -f job/mismatch-fp8-weights   # fp8 weights, bf16 trainer: 256 sampled answers scored by both
+tag                          fp8-weights
+tokens                       68935
+train_dtype                  bfloat16
+mean_abs_logratio            0.04452
+kl_k3                        0.005693
+frac_ratio_gt_2              0.0007108
+frac_ratio_lt_half           0.002872
+frac_ratio_gt_cap            2.901e-05
+max_ratio                    3.16
+p99_abs_logratio             0.4962
+top1pct_share_of_mismatch    0.157
+tis_weight_mean              0.9861
+
+$ kubectl apply -f job/mismatch-fp8-kv   # fp8 KV cache, bf16 trainer: 256 sampled answers scored by both
+tag                          fp8-kv
+tokens                       68480
+train_dtype                  bfloat16
+mean_abs_logratio            0.04635
+kl_k3                        0.006069
+frac_ratio_gt_2              0.0005549
+frac_ratio_lt_half           0.003213
+frac_ratio_gt_cap            4.381e-05
+max_ratio                    4.807
+p99_abs_logratio             0.5083
+top1pct_share_of_mismatch    0.1555
+tis_weight_mean              0.9853
+
+$ python table.py   # the four settings side by side
+                               mean_abs_lograt           kl_k3 frac_ratio_gt_2 frac_ratio_gt_c p99_abs_lograti       max_ratio top1pct_share_o
+bf16 engine, bf16 trainer              0.01967       0.0007707       1.432e-05               0          0.1628           2.414          0.1076
+bf16 engine, fp32 trainer              0.01732        0.000527               0               0          0.1272           1.241         0.09547
+fp8 weights, bf16 trainer              0.04452        0.005693       0.0007108       2.901e-05          0.4962            3.16           0.157
+fp8 KV cache, bf16 trainer             0.04635        0.006069       0.0005549       4.381e-05          0.5083           4.807          0.1555
+
+$ python run_stats.py r1-center   # the trainer's own mismatch metrics over the 80 steps of the S02 run
+sampling/sampling_logp_difference/mean         median     0.0368   max    0.05628
+sampling/sampling_logp_difference/max          median      2.596   max      9.656
+sampling/importance_sampling_ratio/mean        median          1   max      1.005
+sampling/importance_sampling_ratio/max         median      3.508   max      24.46
+sampling/masked_mean                           median   0.003844   max    0.01255
+
+[PASS] the engine and the trainer disagree even at the same weights and the same precision
+[PASS] the tail, not the mean, carries the mismatch: one percent of the tokens hold a large share of it
+[PASS] lower-precision rollouts widen the mismatch
+[PASS] a float32 trainer is closer to the engine's probabilities than a bf16 one, or no further
+[PASS] the truncated importance weight bounds the tokens beyond the cap
+[PASS] the trainer logs the ratio's distribution on every step of every run

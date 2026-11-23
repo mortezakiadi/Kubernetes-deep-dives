@@ -20,9 +20,10 @@ variable "admin_cidr" {
   description = "Public IP (as a /32) allowed to reach the cluster API endpoint. up.sh and scripts/update-my-ip.sh fill this in."
   type        = string
 }
-variable "trainer_instance_type" {
-  type    = string
-  default = "g5.2xlarge"
+variable "trainer_instance_types" {
+  description = "In order of preference. A node that is lost may not be replaceable by the same type (S09 found the zone out of capacity for ninety minutes), so the pool lists other single-GPU types."
+  type        = list(string)
+  default     = ["g5.2xlarge", "g5.4xlarge", "g6.2xlarge", "g6e.2xlarge"]
 }
 variable "rollout_instance_type" {
   type    = string

@@ -1,0 +1,95 @@
+{
+ "id": "S04",
+ "title": "Long answers and the rollout queue: what an over-provisioned fleet costs",
+ "design_ref": "Long trajectories and the long tail",
+ "purpose": "Compare the same recipe with a rollout queue sized to the trainer and with one sized to the fleet, with and without asynchrony, and with a mode that makes answers ten times longer.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults",
+   "output": "ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 cp s3://<state bucket>/runs/r1-center/metrics.jsonl -   # the run 'queue sized to the trainer (64 rollouts in flight)' made earlier in this session",
+   "output": "91 records, 80 training steps, 9 evaluations",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# run q512: read back from the state bucket (already complete)",
+   "output": "46 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# run sync0: read back from the state bucket (already complete)",
+   "output": "47 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python compare.py r1-center q512 sync0   # 40 steps of the same recipe, three ways of running it",
+   "output": "                                     64 in flight   512 in flight   staleness 0\nsamples trained on                            979            1275           1132\nsamples dropped as too stale                   86            5070           2858\nlongest weight-sync pause (s)                 0.2            77.5            0.1\nGPU hours to reach step 40                  0.149           0.356          0.306\nmedian seconds per step                      3.82            3.87           8.64\ntrainer wait for rollouts (median s)         0.00            0.00           4.73\nheld-out pass rate at step 40               0.662           0.671          0.645",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# run think: read back from the state bucket (already complete)",
+   "output": "25 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python compare.py r1-center think   # answer lengths and step time, short answers against thinking mode",
+   "output": "                                         short answers   thinking mode\nmean answer length (tokens)                        306            1588\nlongest answer in a step (tokens, mean)            682            2334\nanswers cut at the limit                          2.3%           32.4%\nmean seconds per step                              4.0            10.5\nshare of the step the trainer waits for rollouts          4.4%           62.1%\nseconds to finish a group of answers (median)           3.8            30.2\ntokens generated per second (median)              2543            1855\nheld-out pass rate at the start                  0.573           0.752",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-scale exec rollout-0 -- curl -s localhost:8000/metrics | grep cache_config_info   # how many long answers fit on one engine",
+   "output": "15960 blocks of 16 tokens = 255,360 tokens of KV cache; the engine reports a maximum concurrency of 31.2 requests at the full length of 4096 tokens",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "a queue sized to the fleet throws away far more samples than one sized to the trainer",
+   "passed": true,
+   "because": "The trainer uses a few dozen samples a step. A fleet allowed 512 rollouts in flight generates thousands, and a sample older than the staleness bound is dropped when the trainer reaches it. Those tokens were generated for nothing."
+  },
+  {
+   "description": "the over-sized queue stalls the weight sync: a pause of more than 20 seconds appears, and never with the sized one",
+   "passed": true,
+   "because": "The trainer asks the fleet to pause, and the request waits behind the work already in flight. With a shorter queue there is little to wait for."
+  },
+  {
+   "description": "the over-sized queue costs more GPU hours to reach the same step",
+   "passed": true,
+   "because": "GPU hours are the three reserved GPUs times the run's time, with the evaluation left out."
+  },
+  {
+   "description": "without asynchrony each step takes longer: generation and training no longer overlap",
+   "passed": true,
+   "because": "With a staleness bound of 0 the rollouts for step n+1 start only after the weights of step n have loaded. The trainer then waits for the first groups."
+  },
+  {
+   "description": "thinking mode makes answers several times longer",
+   "passed": true,
+   "because": "The same model and prompts, with its reasoning turned on. Every group of answers now takes seconds, not a fraction of one."
+  },
+  {
+   "description": "the longest answers hit the limit, and a large share is cut",
+   "passed": true,
+   "because": "An answer cut at the limit is a failed answer to the reward function. How such answers are counted (masked or penalised) is a Design 06 choice that interacts with the budget."
+  },
+  {
+   "description": "the trainer now waits for rollouts for a visible share of its time, which it did not with short answers",
+   "passed": true,
+   "because": "With short answers the fleet runs ahead of the trainer and the asynchrony hides the generation time. With answers of thousands of tokens the slowest group of a step decides when the trainer can go on: the long tail."
+  }
+ ],
+ "notes": []
+}

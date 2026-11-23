@@ -1,0 +1,46 @@
+# S10: The ladder: one axis per rung, exit criteria, and a reference rung
+# Design reference: The scaling ladder
+
+$ python ladder.py check recipes/ladder/*.yaml   # an overlay may change only the settings of the axis it declares
+rung1-recipe.yaml        ok   rung 1 defines the starting recipe
+rung2-length.yaml        ok   changes only ['MAX_COMPLETION', 'THINKING'], all of axis 'length'
+rung3-model-size.yaml    ok   changes only ['MODEL'], all of axis 'model_size'
+bad-two-axes.yaml        REFUSED declares axis 'length' but also changes ['MODEL'] (axes ['length', 'model_size'])
+
+$ python ladder.py gate rung1-recipe   # may the team climb to rung 2?
+decision: HOLD
+  HOLD  curve fit: 2 x std of the ceiling        wanted <= 0.03  measured 0.295
+  PASS  unexplained waiting, share of step       wanted <= 0.1   measured 0.000
+  PASS  restart from a checkpoint tested         wanted yes      measured True
+
+$ python ladder.py gate rung2-length   # may the team climb to rung 3?
+decision: HOLD
+  HOLD  curve fit: 2 x std of the ceiling        wanted <= 0.03  measured None
+  PASS  unexplained waiting, share of step       wanted <= 0.1   measured 0.030
+  PASS  restart from a checkpoint tested         wanted yes      measured True
+
+$ python ladder.py spend   # GPU hours each rung used, against its budget (three GPUs, evaluation left out)
+rung 1  recipe        0.89 of 2.0 GPU hours  (3 runs)
+rung 2  length        0.21 of 1.0 GPU hours  (1 run)
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f reference-rung.yaml   # a CronJob that repeats a 20-step run every night against the current code and image
+NAME             SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+reference-rung   0 3 * * *   <none>     False     0        <none>          1s
+
+$ kubectl create job reference-manual --from=cronjob/reference-rung   # the schedule's run, started by hand
+job.batch/reference-manual created
+
+$ python reference.py reference-1123-1006   # compare the 20 steps with the same 20 steps of the S02 run
+mean reward, reference vs baseline: differs by 0.030
+seconds per step: differs by 16%
+verdict: within tolerance
+
+[PASS] rungs 2 and 3 each change one axis, and an overlay that changes two is refused
+[PASS] the gate returns a decision with the measured value of every criterion, for both rungs
+[PASS] a rung whose curve is not known is held: the 20-step thinking run cannot support a ceiling estimate
+[PASS] each rung stayed within its declared budget
+[PASS] the reference run completed and matches its baseline within tolerance
+[PASS] the comparison flags a run whose reward or time per step has moved (made-up perturbations of the baseline)

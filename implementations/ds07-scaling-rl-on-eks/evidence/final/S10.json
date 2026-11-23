@@ -1,0 +1,90 @@
+{
+ "id": "S10",
+ "title": "The ladder: one axis per rung, exit criteria, and a reference rung",
+ "design_ref": "The scaling ladder",
+ "purpose": "Write the ladder as overlays that change one axis each, decide from measured evidence whether a rung may be climbed, account for what each rung spent, and keep a small reference run that repeats on a schedule.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "python ladder.py check recipes/ladder/*.yaml   # an overlay may change only the settings of the axis it declares",
+   "output": "rung1-recipe.yaml        ok   rung 1 defines the starting recipe\nrung2-length.yaml        ok   changes only ['MAX_COMPLETION', 'THINKING'], all of axis 'length'\nrung3-model-size.yaml    ok   changes only ['MODEL'], all of axis 'model_size'\nbad-two-axes.yaml        REFUSED declares axis 'length' but also changes ['MODEL'] (axes ['length', 'model_size'])",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python ladder.py gate rung1-recipe   # may the team climb to rung 2?",
+   "output": "decision: HOLD\n  HOLD  curve fit: 2 x std of the ceiling        wanted <= 0.03  measured 0.295\n  PASS  unexplained waiting, share of step       wanted <= 0.1   measured 0.000\n  PASS  restart from a checkpoint tested         wanted yes      measured True",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python ladder.py gate rung2-length   # may the team climb to rung 3?",
+   "output": "decision: HOLD\n  HOLD  curve fit: 2 x std of the ceiling        wanted <= 0.03  measured None\n  PASS  unexplained waiting, share of step       wanted <= 0.1   measured 0.030\n  PASS  restart from a checkpoint tested         wanted yes      measured True",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python ladder.py spend   # GPU hours each rung used, against its budget (three GPUs, evaluation left out)",
+   "output": "rung 1  recipe        0.89 of 2.0 GPU hours  (3 runs)\nrung 2  length        0.21 of 1.0 GPU hours  (1 run)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults",
+   "output": "ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f reference-rung.yaml   # a CronJob that repeats a 20-step run every night against the current code and image",
+   "output": "NAME             SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE\nreference-rung   0 3 * * *   <none>     False     0        <none>          1s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl create job reference-manual --from=cronjob/reference-rung   # the schedule's run, started by hand",
+   "output": "job.batch/reference-manual created",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python reference.py reference-1123-1006   # compare the 20 steps with the same 20 steps of the S02 run",
+   "output": "mean reward, reference vs baseline: differs by 0.030\nseconds per step: differs by 16%\nverdict: within tolerance",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "rungs 2 and 3 each change one axis, and an overlay that changes two is refused",
+   "passed": true,
+   "because": "A rung that changes the answer length and the model together cannot say which one caused a regression. The launcher refuses it before anything is scheduled."
+  },
+  {
+   "description": "the gate returns a decision with the measured value of every criterion, for both rungs",
+   "passed": true,
+   "because": "The criteria are the design's own: the ceiling's confidence interval, the unexplained waiting, and a tested restart. Each value comes from a run in this session."
+  },
+  {
+   "description": "a rung whose curve is not known is held: the 20-step thinking run cannot support a ceiling estimate",
+   "passed": true,
+   "because": "A fit needs points past the curve's midpoint. A short run at a new length has none, so the gate says so instead of guessing."
+  },
+  {
+   "description": "each rung stayed within its declared budget",
+   "passed": true,
+   "because": "A rung's budget is part of its overlay, so the cost of the ladder is known before it starts and checked after."
+  },
+  {
+   "description": "the reference run completed and matches its baseline within tolerance",
+   "passed": true,
+   "because": "Same recipe, same code, same images, twenty steps. If a library upgrade changes the training dynamics or the step time, this run moves before a large one does."
+  },
+  {
+   "description": "the comparison flags a run whose reward or time per step has moved (made-up perturbations of the baseline)",
+   "passed": true,
+   "because": "A tolerance that never fires is no check. The same function is applied to the baseline against itself (quiet), to a copy with a reward 0.3 higher (flagged), and to a copy with three more seconds per step (flagged)."
+  }
+ ],
+ "notes": []
+}

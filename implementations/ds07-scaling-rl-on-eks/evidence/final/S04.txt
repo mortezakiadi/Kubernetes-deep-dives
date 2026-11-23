@@ -1,0 +1,49 @@
+# S04: Long answers and the rollout queue: what an over-provisioned fleet costs
+# Design reference: Long trajectories and the long tail
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ aws s3 cp s3://<state bucket>/runs/r1-center/metrics.jsonl -   # the run 'queue sized to the trainer (64 rollouts in flight)' made earlier in this session
+91 records, 80 training steps, 9 evaluations
+
+$ # run q512: read back from the state bucket (already complete)
+46 records
+
+$ # run sync0: read back from the state bucket (already complete)
+47 records
+
+$ python compare.py r1-center q512 sync0   # 40 steps of the same recipe, three ways of running it
+                                     64 in flight   512 in flight   staleness 0
+samples trained on                            979            1275           1132
+samples dropped as too stale                   86            5070           2858
+longest weight-sync pause (s)                 0.2            77.5            0.1
+GPU hours to reach step 40                  0.149           0.356          0.306
+median seconds per step                      3.82            3.87           8.64
+trainer wait for rollouts (median s)         0.00            0.00           4.73
+held-out pass rate at step 40               0.662           0.671          0.645
+
+$ # run think: read back from the state bucket (already complete)
+25 records
+
+$ python compare.py r1-center think   # answer lengths and step time, short answers against thinking mode
+                                         short answers   thinking mode
+mean answer length (tokens)                        306            1588
+longest answer in a step (tokens, mean)            682            2334
+answers cut at the limit                          2.3%           32.4%
+mean seconds per step                              4.0            10.5
+share of the step the trainer waits for rollouts          4.4%           62.1%
+seconds to finish a group of answers (median)           3.8            30.2
+tokens generated per second (median)              2543            1855
+held-out pass rate at the start                  0.573           0.752
+
+$ kubectl -n rl-scale exec rollout-0 -- curl -s localhost:8000/metrics | grep cache_config_info   # how many long answers fit on one engine
+15960 blocks of 16 tokens = 255,360 tokens of KV cache; the engine reports a maximum concurrency of 31.2 requests at the full length of 4096 tokens
+
+[PASS] a queue sized to the fleet throws away far more samples than one sized to the trainer
+[PASS] the over-sized queue stalls the weight sync: a pause of more than 20 seconds appears, and never with the sized one
+[PASS] the over-sized queue costs more GPU hours to reach the same step
+[PASS] without asynchrony each step takes longer: generation and training no longer overlap
+[PASS] thinking mode makes answers several times longer
+[PASS] the longest answers hit the limit, and a large share is cut
+[PASS] the trainer now waits for rollouts for a visible share of its time, which it did not with short answers

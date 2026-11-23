@@ -1,0 +1,62 @@
+# S09: Failures: lose an engine, a trainer pod, a whole trainer node
+# Design reference: Failures and recovery on multi-week runs
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f trainer-fail-engine.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; a rollout engine's pod is deleted once the run is past step 14
+
+$ kubectl delete pod rollout-0-1   # the worker pod of the rollout group
+pod "rollout-0-1" deleted from rl-scale namespace
+
+$ python recovery.py fail-engine   # from the run's records and the pod's log
+JobSet: completed=True restarts=1
+last step logged before the failure: 14
+first step logged after it:          11  (2.4 minutes after the failure)
+steps done twice:                    4
+log: restored 15 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-engine/; newest complete checkpoint: checkpoint-10
+reserved GPU time 423 s x 3 GPUs; productive 257 s -> goodput 61% over 44 steps
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f trainer-fail-pod.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; the trainer's pod is deleted once the run is past step 14
+
+$ kubectl delete pod -l run=fail-pod
+pod "trainer-fail-pod-trainer-0-0-cbpvg" deleted from rl-scale namespace
+
+$ python recovery.py fail-pod   # from the run's records and the pod's log
+JobSet: completed=True restarts=1
+last step logged before the failure: 20
+first step logged after it:          11  (2.9 minutes after the failure)
+steps done twice:                    10
+log: restored 24 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-pod/; newest complete checkpoint: checkpoint-10
+reserved GPU time 437 s x 3 GPUs; productive 232 s -> goodput 53% over 44 steps
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f trainer-fail-node.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; the trainer's node is terminated once the run is past step 14
+
+$ aws ec2 terminate-instances --instance-ids <the trainer node>
+shutting-down
+
+$ python recovery.py fail-node   # from the run's records and the pod's log
+JobSet: completed=True restarts=1
+last step logged before the failure: 20
+first step logged after it:          11  (7.7 minutes after the failure)
+steps done twice:                    10
+log: restored 24 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-node/; newest complete checkpoint: checkpoint-10
+reserved GPU time 727 s x 3 GPUs; productive 232 s -> goodput 32% over 44 steps
+
+[PASS] after a rollout engine's pod is deleted, the run goes on and completes all 45 steps without anyone's help
+[PASS] after a rollout engine's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated
+[PASS] after a rollout engine's pod is deleted, the run is stepping again within fifteen minutes
+[PASS] after the trainer's pod is deleted, the run goes on and completes all 45 steps without anyone's help
+[PASS] after the trainer's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated
+[PASS] after the trainer's pod is deleted, the run is stepping again within fifteen minutes
+[PASS] after the trainer's node is terminated, the run goes on and completes all 45 steps without anyone's help
+[PASS] after the trainer's node is terminated, the first step is the one after a checkpoint, and no more than ten steps are repeated
+[PASS] after the trainer's node is terminated, the run is stepping again within fifteen minutes
+[PASS] the checkpoint came from the bucket, not from the node that failed (node drill)
+[PASS] losing an engine is not absorbed: the trainer cannot go on without the fleet, so the trainer restarts too (finding)

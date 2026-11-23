@@ -99,3 +99,25 @@ resource "kubectl_manifest" "redis" {
   yaml_body  = yamlencode(each.value)
   depends_on = [kubectl_manifest.namespace]
 }
+
+# The trainer's start-up guard may delete the rollout group's leader pod, and nothing else: a trainer that died in the middle of a weight push leaves
+# the engines blocked inside the NCCL receive, and recreating the group is the only way to free them.
+resource "kubectl_manifest" "guard_role" {
+  yaml_body = yamlencode({
+    apiVersion = "rbac.authorization.k8s.io/v1"
+    kind       = "Role"
+    metadata   = { name = "fleet-guard", namespace = "rl-scale" }
+    rules      = [{ apiGroups = [""], resources = ["pods"], resourceNames = ["rollout-0"], verbs = ["delete"] }]
+  })
+  depends_on = [kubectl_manifest.namespace]
+}
+resource "kubectl_manifest" "guard_binding" {
+  yaml_body = yamlencode({
+    apiVersion = "rbac.authorization.k8s.io/v1"
+    kind       = "RoleBinding"
+    metadata   = { name = "fleet-guard", namespace = "rl-scale" }
+    subjects   = [{ kind = "ServiceAccount", name = "trainer", namespace = "rl-scale" }]
+    roleRef    = { apiGroup = "rbac.authorization.k8s.io", kind = "Role", name = "fleet-guard" }
+  })
+  depends_on = [kubectl_manifest.guard_role, kubectl_manifest.service_accounts]
+}

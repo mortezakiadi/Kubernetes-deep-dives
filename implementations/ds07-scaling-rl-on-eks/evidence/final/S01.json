@@ -1,0 +1,74 @@
+{
+ "id": "S01",
+ "title": "The platform: GPU pools, controllers, the rollout fleet and the network between them",
+ "design_ref": "The platform",
+ "purpose": "Show what the experiments run on: which nodes and GPUs, which controllers, how the rollout fleet is laid out, and how fast the network between the trainer and the rollout nodes really is.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl get nodes -L pool,instance-type,zone",
+   "output": "NAME                           STATUS   ROLES    AGE   VERSION               POOL      INSTANCE-TYPE   ZONE\nip-10-70-0-25.ec2.internal     Ready    <none>   31h   v1.37.1-eks-9adbfea   env       c6i.2xlarge     us-east-1a\nip-10-70-11-243.ec2.internal   Ready    <none>   18h   v1.37.1-eks-9adbfea   rollout   g5.2xlarge      us-east-1a\nip-10-70-24-160.ec2.internal   Ready    <none>   31h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1b\nip-10-70-41-228.ec2.internal   Ready    <none>   31h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1c\nip-10-70-44-171.ec2.internal   Ready    <none>   31h   v1.37.1-eks-9adbfea   env       c6i.2xlarge     us-east-1c\nip-10-70-8-162.ec2.internal    Ready    <none>   78m   v1.37.1-eks-9adbfea   trainer   g5.2xlarge      us-east-1a\nip-10-70-8-28.ec2.internal     Ready    <none>   18h   v1.37.1-eks-9adbfea   rollout   g5.2xlarge      us-east-1a",
+   "exit_code": 0,
+   "seconds": 1.4
+  },
+  {
+   "display": "kubectl get nodes -o json   # GPUs the scheduler can hand out (allocatable nvidia.com/gpu of each GPU node)",
+   "output": "rollout  g5.2xlarge   nvidia.com/gpu=1\nrollout  g5.2xlarge   nvidia.com/gpu=1\ntrainer  g5.2xlarge   nvidia.com/gpu=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl get crd jobsets leaderworkersets scaledobjects",
+   "output": "jobsets.jobset.x-k8s.io                     Namespaced   v1alpha2(storage)   2026-11-22T04:42:58Z\nleaderworkersets.leaderworkerset.x-k8s.io   Namespaced   v1(storage)         2026-11-22T04:43:08Z\nscaledobjects.keda.sh                       Namespaced   v1alpha1(storage)   2026-11-22T04:43:03Z",
+   "exit_code": 0,
+   "seconds": 1.48
+  },
+  {
+   "display": "kubectl -n rl-scale get pods -l leaderworkerset.sigs.k8s.io/name=rollout -o wide",
+   "output": "NAME          READY   STATUS    RESTARTS   AGE    IP            NODE                           NOMINATED NODE   READINESS GATES\nrollout-0     1/1     Running   0          101m   10.70.8.66    ip-10-70-8-28.ec2.internal     <none>           <none>\nrollout-0-1   1/1     Running   0          101m   10.70.6.193   ip-10-70-11-243.ec2.internal   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.36
+  },
+  {
+   "display": "kubectl -n rl-scale exec rollout-0 -- curl -s localhost:8000/get_world_size   # engines the trainer must reach with NCCL",
+   "output": "{\"world_size\":2}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl exec iperf-client -- iperf3 -c <rollout node pod> -P 4 -t 15   # trainer node to rollout node",
+   "output": "[ 11]   0.00-15.00  sec  2.51 GBytes  1.44 Gbits/sec                  receiver\n[SUM]   0.00-15.00  sec  17.4 GBytes  9.93 Gbits/sec   72             sender\n[SUM]   0.00-15.00  sec  17.3 GBytes  9.93 Gbits/sec                  receiver\n\niperf Done.",
+   "exit_code": 0,
+   "seconds": 16.72
+  },
+  {
+   "display": "# what that means for a weight push",
+   "output": "measured 9.93 Gbit/s = 1.24 GB/s\n0.6B model, bf16 (1.2 GB):   1.0 s\n8B model, bf16 (16 GB):      12.9 s\n235B model, bf16 (470 GB):   6.3 minutes at this rate",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "one trainer GPU and two rollout GPUs are schedulable, all in one zone",
+   "passed": true,
+   "because": "The NVIDIA device plugin advertises each GPU as nvidia.com/gpu. All three nodes are in one zone so weight transfer and rollouts never cross a zone boundary, which is billed in both directions."
+  },
+  {
+   "description": "JobSet, LeaderWorkerSet and KEDA are installed",
+   "passed": true,
+   "because": "JobSet restarts the trainer, LeaderWorkerSet runs the rollout fleet, KEDA scales the environment tier. Terraform installs them; the tests install only the workloads."
+  },
+  {
+   "description": "the rollout fleet is two engines on two nodes behind one address",
+   "passed": true,
+   "because": "vLLM runs one data-parallel engine per node: the leader pod serves the API and the worker pod joins headless. The trainer talks to the leader only, and the weight-transfer group spans both engines."
+  },
+  {
+   "description": "the trainer-to-rollout network was measured, not assumed",
+   "passed": true,
+   "because": "iperf3 sends from a pod on the trainer node to a pod on a rollout node with four parallel streams for fifteen seconds. The result sizes every weight push in S05; the design tells us to size it like a serving path."
+  }
+ ],
+ "notes": []
+}

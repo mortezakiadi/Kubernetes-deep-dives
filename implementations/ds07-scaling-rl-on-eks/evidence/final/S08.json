@@ -1,0 +1,101 @@
+{
+ "id": "S08",
+ "title": "Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something",
+ "design_ref": "Stability over thousands of steps",
+ "purpose": "Take a recipe whose step size is about three times too large, watch the signals the design names, fire a combined alert, find the last healthy checkpoint by query, and restart from it twice: once with the same settings and once with a smaller step.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults",
+   "output": "ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 cp s3://<state bucket>/runs/r1-center/metrics.jsonl -   # the run 'the healthy recipe of S02' made earlier in this session",
+   "output": "91 records, 80 training steps, 9 evaluations",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# run unstable: read back from the state bucket (already complete)",
+   "output": "80 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python alert.py unstable   # the four signals every fifth step, and the conditions that held",
+   "output": "step  entropy  masked-by-clip  answers cut  informative   conditions that hold (window of 8 steps)\n   1    0.324          0.0000           0%         0.36   -\n   6    0.348          0.0475           1%         0.52   -\n  11    0.691          0.0489           8%         0.40   mismatch tail high, entropy moving fast\n  16    0.616          0.0143          19%         0.63   -\n  21    0.579          0.0202          39%         0.61   mismatch tail high, answers cut at the limit\n  26    0.502          0.0166          54%         0.45   answers cut at the limit\n  31    0.563          0.0218          20%         0.49   mismatch tail high\n  36    0.579          0.0217           5%         0.37   mismatch tail high\n  41    0.581          0.0230          10%         0.66   mismatch tail high\n  46    0.537          0.0200          33%         0.83   answers cut at the limit\n  51    0.588          0.0156          25%         0.66   -\n  56    0.465          0.0165          15%         0.73   entropy moving fast",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python alert.py --first r1-center unstable   # the combined rule: two conditions for three steps in a row",
+   "output": "healthy run (r1-center, 80 steps):  no alert\nunstable run:                       ALERT at step 13\nfirst step at which any one condition held: 9   (mismatch tail: 9; answers cut at the limit: 20)\nheld-out score first below half of its start (0.60): step 20;  first below 0.05: never\nheld-out scores: 0:0.60, 5:0.66, 10:0.57, 15:0.31, 20:0.19, 25:0.34, 30:0.14, 35:0.17, 40:0.16, 45:0.14, 50:0.36, 55:0.40, 60:0.36",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python last_healthy.py unstable --before-alert   # a query over the checkpoint records, not a guess",
+   "output": "checkpoint step  held-out score  in the bucket\n             10           0.57  True\n             20           0.19  True\n             30           0.14  True\n             40           0.16  True\n             50           0.36  True\n             60           0.36  True\nlast healthy checkpoint before the alert: step 10",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# run restart-same: read back from the state bucket (already complete)",
+   "output": "39 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# run restart-smaller: read back from the state bucket (already complete)",
+   "output": "39 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python compare.py restart-same restart-smaller   # held-out score every five steps after the restart",
+   "output": "checkpoint 10 scored 0.575 before it was restored\nsame step size:   0:0.53, 5:0.53, 10:0.30, 15:0.21, 20:0.28, 25:0.31, 30:0.31\nsmaller step:     0:0.52, 5:0.57, 10:0.64, 15:0.61, 20:0.61, 25:0.69, 30:0.66",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the combined rule stays silent for the whole healthy run",
+   "passed": true,
+   "because": "The thresholds were set just outside what the healthy runs of S02 and S04 produced. A rule that fires on a healthy run is worse than none, because it teaches people to ignore it."
+  },
+  {
+   "description": "the unstable run collapses: its held-out score falls below half of where it started",
+   "passed": true,
+   "because": "A step size about three times too large moves the policy further than the importance ratio's clip can contain: the held-out score starts to fall within the first ten to fifteen steps."
+  },
+  {
+   "description": "the combined alert fires before the held-out score has collapsed",
+   "passed": true,
+   "because": "Two conditions for three steps in a row over a window of eight steps. The held-out score is measured every five steps and needs time to fall; the training-side signals move first. Runs differ from each other (the same settings collapsed at different steps in two attempts), so the figure to read is the order, not the step number."
+  },
+  {
+   "description": "one signal, the share of tokens the clip masks, moves before the held-out score has collapsed",
+   "passed": true,
+   "because": "The mismatch tail is the earliest warning the design names. A single threshold on it would have fired earlier than the combined rule, at the price of a false alarm whenever it wobbles."
+  },
+  {
+   "description": "a checkpoint within 0.12 of the best score exists before the alert and is in the bucket",
+   "passed": true,
+   "because": "Every checkpoint is recorded with the run's logs, and copied to the bucket before it is marked complete, so the query returns something that can be restored."
+  },
+  {
+   "description": "a restart with the same settings loses the policy again",
+   "passed": true,
+   "because": "The same step size on the same weights meets the same instability. A plain restart is the design's example of what not to do."
+  },
+  {
+   "description": "a restart with a smaller step holds the score the checkpoint had",
+   "passed": true,
+   "because": "Roll back and change something: here the learning rate, with a fresh optimizer and a different prompt order."
+  }
+ ],
+ "notes": []
+}

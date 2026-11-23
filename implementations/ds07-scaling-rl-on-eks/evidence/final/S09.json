@@ -1,0 +1,139 @@
+{
+ "id": "S09",
+ "title": "Failures: lose an engine, a trainer pod, a whole trainer node",
+ "design_ref": "Failures and recovery on multi-week runs",
+ "purpose": "Start a run with checkpoints and a restart policy, break it three ways, and measure how long each takes to recover, how much work is repeated, and what share of the reserved GPU time went into progress.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults",
+   "output": "ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f trainer-fail-engine.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; a rollout engine's pod is deleted once the run is past step 14",
+   "output": "",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl delete pod rollout-0-1   # the worker pod of the rollout group",
+   "output": "pod \"rollout-0-1\" deleted from rl-scale namespace",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python recovery.py fail-engine   # from the run's records and the pod's log",
+   "output": "JobSet: completed=True restarts=1\nlast step logged before the failure: 14\nfirst step logged after it:          11  (2.4 minutes after the failure)\nsteps done twice:                    4\nlog: restored 15 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-engine/; newest complete checkpoint: checkpoint-10\nreserved GPU time 423 s x 3 GPUs; productive 257 s -> goodput 61% over 44 steps",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults",
+   "output": "ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f trainer-fail-pod.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; the trainer's pod is deleted once the run is past step 14",
+   "output": "",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl delete pod -l run=fail-pod",
+   "output": "pod \"trainer-fail-pod-trainer-0-0-cbpvg\" deleted from rl-scale namespace",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python recovery.py fail-pod   # from the run's records and the pod's log",
+   "output": "JobSet: completed=True restarts=1\nlast step logged before the failure: 20\nfirst step logged after it:          11  (2.9 minutes after the failure)\nsteps done twice:                    10\nlog: restored 24 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-pod/; newest complete checkpoint: checkpoint-10\nreserved GPU time 437 s x 3 GPUs; productive 232 s -> goodput 53% over 44 steps",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults",
+   "output": "ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f trainer-fail-node.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; the trainer's node is terminated once the run is past step 14",
+   "output": "",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws ec2 terminate-instances --instance-ids <the trainer node>",
+   "output": "shutting-down",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python recovery.py fail-node   # from the run's records and the pod's log",
+   "output": "JobSet: completed=True restarts=1\nlast step logged before the failure: 20\nfirst step logged after it:          11  (7.7 minutes after the failure)\nsteps done twice:                    10\nlog: restored 24 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-node/; newest complete checkpoint: checkpoint-10\nreserved GPU time 727 s x 3 GPUs; productive 232 s -> goodput 32% over 44 steps",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "after a rollout engine's pod is deleted, the run goes on and completes all 45 steps without anyone's help",
+   "passed": true,
+   "because": "The JobSet's failure policy recreates the trainer pod; the new pod restores the newest complete checkpoint from the state bucket and continues. Nobody ran a command."
+  },
+  {
+   "description": "after a rollout engine's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated",
+   "passed": true,
+   "because": "A checkpoint is written every ten steps. Work done since the last one is lost; the checkpoint interval is the bound on it."
+  },
+  {
+   "description": "after a rollout engine's pod is deleted, the run is stepping again within fifteen minutes",
+   "passed": true,
+   "because": "That includes the pod's start, the packages, loading the model and the checkpoint, rebuilding the NCCL group with the fleet, and a first step."
+  },
+  {
+   "description": "after the trainer's pod is deleted, the run goes on and completes all 45 steps without anyone's help",
+   "passed": true,
+   "because": "The JobSet's failure policy recreates the trainer pod; the new pod restores the newest complete checkpoint from the state bucket and continues. Nobody ran a command."
+  },
+  {
+   "description": "after the trainer's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated",
+   "passed": true,
+   "because": "A checkpoint is written every ten steps. Work done since the last one is lost; the checkpoint interval is the bound on it."
+  },
+  {
+   "description": "after the trainer's pod is deleted, the run is stepping again within fifteen minutes",
+   "passed": true,
+   "because": "That includes the pod's start, the packages, loading the model and the checkpoint, rebuilding the NCCL group with the fleet, and a first step."
+  },
+  {
+   "description": "after the trainer's node is terminated, the run goes on and completes all 45 steps without anyone's help",
+   "passed": true,
+   "because": "The JobSet's failure policy recreates the trainer pod; the new pod restores the newest complete checkpoint from the state bucket and continues. Nobody ran a command."
+  },
+  {
+   "description": "after the trainer's node is terminated, the first step is the one after a checkpoint, and no more than ten steps are repeated",
+   "passed": true,
+   "because": "A checkpoint is written every ten steps. Work done since the last one is lost; the checkpoint interval is the bound on it."
+  },
+  {
+   "description": "after the trainer's node is terminated, the run is stepping again within fifteen minutes",
+   "passed": true,
+   "because": "That includes the pod's start, the packages, loading the model and the checkpoint, rebuilding the NCCL group with the fleet, and a first step."
+  },
+  {
+   "description": "the checkpoint came from the bucket, not from the node that failed (node drill)",
+   "passed": true,
+   "because": "The node's own disk went with the node. What survives is the copy the trainer's background thread made."
+  },
+  {
+   "description": "losing an engine is not absorbed: the trainer cannot go on without the fleet, so the trainer restarts too (finding)",
+   "passed": true,
+   "because": "The design assumes a failed rollout engine is replaced while the run continues. With NCCL weight transfer the engines and the trainer share one communicator, and a lost member stops every collective. The trainer's watchdog turns the resulting hang into a restart."
+  }
+ ],
+ "notes": []
+}

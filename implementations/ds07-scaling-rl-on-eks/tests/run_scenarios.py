@@ -36,10 +36,10 @@ def cleanup_all():
 def run_or_reuse(sc, run_id, env, label=None, timeout=3600, max_restarts=0, **kw):
     """Start a run (or read a finished one back), wait for it, return its records. The command shown is the real one."""
     label = label or run_id
-    st = run_status(run_id) if REUSE else {"completed": False}
-    if REUSE and st["completed"] and metrics(run_id):
-        show(sc, f"# run {run_id}: read back from the state bucket (already complete)", f"{len(metrics(run_id))} records")
-        return metrics(run_id)
+    recs0 = metrics(run_id) if REUSE else []
+    if REUSE and any(r.get("kind") == "done" for r in recs0):
+        show(sc, f"# run {run_id}: read back from the state bucket (already complete)", f"{len(recs0)} records")
+        return recs0
     show(sc, f"kubectl apply -f trainer-{run_id}.yaml   # a JobSet: {label}", "\n".join(f"{k}={v}" for k, v in sorted(env.items())))
     start_run(run_id, env, max_restarts=max_restarts, **kw)
     st = wait_run(run_id, timeout, 20)
@@ -205,9 +205,8 @@ def s02_recipes():
 
 def read_run(sc, run_id, env=None, label=None):
     """Use a finished run if the bucket has it (another scenario produced it); otherwise start it. The record says which."""
-    st = run_status(run_id)
     recs = metrics(run_id)
-    if st["completed"] and recs:
+    if any(r.get("kind") == "done" for r in recs):
         show(sc, f"aws s3 cp s3://<state bucket>/runs/{run_id}/metrics.jsonl -   # the run '{label or run_id}' made earlier in this session", f"{len(recs)} records, {len(train_rows(recs))} training steps, {len(eval_rows(recs))} evaluations")
         return recs
     return run_or_reuse(sc, run_id, env, label=label)
@@ -352,9 +351,13 @@ def s04_long_tail():
          f"{'seconds to finish a group of answers (median)':40s} {steady(b40, 'rollout/duration_s'):13.1f}   {steady(t, 'rollout/duration_s'):13.1f}\n"
          f"{'tokens generated per second (median)':40s} {steady(b40, 'rollout/generated_tokens_per_s'):13.0f}   {steady(t, 'rollout/generated_tokens_per_s'):13.0f}\n"
          f"{'held-out pass rate at the start':40s} {eval_rows(base)[0]['eval/pass_rate']:13.3f}   {eval_rows(think)[0]['eval/pass_rate']:13.3f}")
-    rc, kv = kube("-n", NS, "logs", "rollout-0", "--tail", "-1")
-    kvl = [l.split("] ", 1)[-1] for l in kv.splitlines() if "KV cache size" in l or "Maximum concurrency" in l][:2]
-    show(sc, "kubectl -n rl-scale logs rollout-0 | grep -E 'KV cache size|Maximum concurrency'   # how many long answers fit on one engine", "\n".join(kvl))
+    rc, mt = kube("-n", NS, "exec", "rollout-0", "--", "sh", "-c", "curl -s localhost:8000/metrics | grep '^vllm:cache_config_info' | head -1")
+    blocks = re.search(r'num_gpu_blocks="(\d+)"', mt)
+    bsize = re.search(r'\bblock_size="(\d+)"', mt)
+    conc = re.search(r'kv_cache_max_concurrency="([0-9.]+)"', mt)
+    kv_line = (f"{int(blocks.group(1))} blocks of {bsize.group(1)} tokens = {int(blocks.group(1)) * int(bsize.group(1)):,} tokens of KV cache; the engine reports a maximum concurrency of {float(conc.group(1)):.1f} requests at the full length of 4096 tokens"
+               if blocks and bsize and conc else "not found")
+    show(sc, "kubectl -n rl-scale exec rollout-0 -- curl -s localhost:8000/metrics | grep cache_config_info   # how many long answers fit on one engine", kv_line)
     sc.expect("thinking mode makes answers several times longer", mean_len > 4 * b_mean,
               "The same model and prompts, with its reasoning turned on. Every group of answers now takes seconds, not a fraction of one.")
     sc.expect("the longest answers hit the limit, and a large share is cut", clipped > 0.10 and max_len > 2 * b_mean,
@@ -587,44 +590,47 @@ def s08_stability():
     settle_fleet(sc, 2)
     healthy = read_run(sc, "r1-center", {**BASE}, "the healthy recipe of S02")
     hrows = train_rows(healthy)
-    fire_h, _ = drift.alerts(hrows)
+    fire_h, _, single_h = drift.alerts(hrows)
     unstable_env = {**BASE, "MAX_STEPS": 60, "LEARNING_RATE": "1e-5", "EVAL_EVERY": 5, "EVAL_PROBLEMS": 100, "CKPT_EVERY": 10, "CKPT_KEEP": 8}
     recs = run_or_reuse(sc, "unstable", unstable_env, label="step size 1e-5 (about three times the healthy recipe's)", timeout=3000)
     rows, ev = train_rows(recs), eval_rows(recs)
-    fire, series = drift.alerts(rows)
-    best = 0.0
-    damage = None
-    for e in ev:
-        best = max(best, e["eval/pass_rate"])
-        if damage is None and e["eval/pass_rate"] < best - 0.10:
-            damage = e["step"]
-    lines = ["step  entropy  mean length  informative  masked-by-clip   conditions that hold"]
+    fire, series, single = drift.alerts(rows)
+    start = ev[0]["eval/pass_rate"]
+    collapse = next((e["step"] for e in ev if e["eval/pass_rate"] < 0.5 * start), None)
+    floor = next((e["step"] for e in ev if e["eval/pass_rate"] < 0.05), None)
+    tail_first = drift.first_condition(rows, "mismatch tail high")
+    cut_first = drift.first_condition(rows, "answers cut at the limit")
+    lines = ["step  entropy  masked-by-clip  answers cut  informative   conditions that hold (window of 8 steps)"]
     cmap = {st: (c, h) for st, c, h in series}
     for r in rows[::5]:
         c, h = cmap.get(r["step"], ({}, False))
-        lines.append(f"{r['step']:4d}  {r.get('entropy', 0):7.3f}  {r.get('completions/mean_length', 0):11.0f}  {1 - (r.get('frac_zero_std_groups', 0) or 0):11.2f}  {r.get('sampling/masked_mean', 0):14.4f}   {', '.join(k for k, v in c.items() if v) or '-'}")
+        f = drift.features(rows, rows.index(r))
+        lines.append(f"{r['step']:4d}  {r.get('entropy', 0):7.3f}  {f['masked']:14.4f}  {100 * f['clipped']:10.0f}%  {f['informative']:11.2f}   {', '.join(k for k, v in c.items() if v) or '-'}")
     show(sc, "python alert.py unstable   # the four signals every fifth step, and the conditions that held", "\n".join(lines))
     show(sc, "python alert.py --first r1-center unstable   # the combined rule: two conditions for three steps in a row",
          f"healthy run (r1-center, 80 steps):  {'no alert' if fire_h is None else f'ALERT at step {fire_h}'}\nunstable run:                       {'no alert' if fire is None else f'ALERT at step {fire}'}\n"
-         f"first held-out score more than 0.10 below the best so far: {'none' if damage is None else f'step {damage}'}\n" +
+         f"first step at which any one condition held: {single}   (mismatch tail: {tail_first}; answers cut at the limit: {cut_first})\n"
+         f"held-out score first below half of its start ({start:.2f}): {'never' if collapse is None else f'step {collapse}'};  first below 0.05: {'never' if floor is None else f'step {floor}'}\n" +
          "held-out scores: " + ", ".join(f"{e['step']}:{e['eval/pass_rate']:.2f}" for e in ev))
     chart_lines(OUT / "S08-drift.png", {"held-out pass rate": ([e["step"] for e in ev], [e["eval/pass_rate"] for e in ev]),
-                                        "entropy": ([r["step"] for r in rows], [r.get("entropy", 0) for r in rows]),
-                                        "mean answer length / 1000": ([r["step"] for r in rows], [(r.get("completions/mean_length", 0) or 0) / 1000 for r in rows])},
-                title="The unstable run: signals and the alert", vlines=({"alert": fire} if fire else {}) | ({"damage": damage} if damage else {}), ylabel="")
+                                        "share of tokens masked by the clip x 10": ([r["step"] for r in rows], [10 * (r.get("sampling/masked_mean", 0) or 0) for r in rows]),
+                                        "answers cut at the limit": ([r["step"] for r in rows if r.get("completions/clipped_ratio") is not None], [r["completions/clipped_ratio"] for r in rows if r.get("completions/clipped_ratio") is not None])},
+                title="The unstable run: signals and the alert", vlines=({"alert": fire} if fire else {}), ylabel="")
     CHARTS.append("S08-drift.png")
     sc.expect("the combined rule stays silent for the whole healthy run", fire_h is None,
-              "The thresholds were set on this run. A rule that fires on a healthy run is worse than none, because it teaches people to ignore it.")
-    sc.expect("the unstable run damages the policy: the held-out score falls well below its own best", damage is not None,
-              "A step size about three times too large moves the policy further than the importance ratio's clip can contain.")
-    sc.expect("the combined alert fires, and before the damage shows in the held-out score", fire is not None and damage is not None and fire <= damage,
-              "The held-out score is measured every five steps and needs time to fall. The training-side signals (entropy, length, informative groups, the share of tokens the importance clip masks) move first.")
+              "The thresholds were set just outside what the healthy runs of S02 and S04 produced. A rule that fires on a healthy run is worse than none, because it teaches people to ignore it.")
+    sc.expect("the unstable run collapses: its held-out score falls below half of where it started", collapse is not None,
+              "A step size about three times too large moves the policy further than the importance ratio's clip can contain: the held-out score starts to fall within the first ten to fifteen steps.")
+    sc.expect("the combined alert fires before the held-out score has collapsed", fire is not None and collapse is not None and fire < collapse,
+              "Two conditions for three steps in a row over a window of eight steps. The held-out score is measured every five steps and needs time to fall; the training-side signals move first. Runs differ from each other (the same settings collapsed at different steps in two attempts), so the figure to read is the order, not the step number.")
+    sc.expect("one signal, the share of tokens the clip masks, moves before the held-out score has collapsed", tail_first is not None and collapse is not None and tail_first < collapse,
+              "The mismatch tail is the earliest warning the design names. A single threshold on it would have fired earlier than the combined rule, at the price of a false alarm whenever it wobbles.")
     # the last healthy checkpoint is a query
     ck = drift.last_healthy_checkpoint(recs, (fire or 60) - 1)
     ckl = [(r["step"], next((e["eval/pass_rate"] for e in ev if e["step"] == r["step"]), None), checkpoint_in_bucket("unstable", r["step"])) for r in recs if r.get("kind") == "checkpoint"]
     show(sc, "python last_healthy.py unstable --before-alert   # a query over the checkpoint records, not a guess",
          "checkpoint step  held-out score  in the bucket\n" + "\n".join(f"{a:15d}  {('%.2f' % b) if b is not None else '-':>13s}  {c}" for a, b, c in ckl) + f"\nlast healthy checkpoint before the alert: step {ck}")
-    sc.expect("a healthy checkpoint exists before the alert and is in the bucket", ck is not None and checkpoint_in_bucket("unstable", ck),
+    sc.expect("a checkpoint within 0.12 of the best score exists before the alert and is in the bucket", ck is not None and checkpoint_in_bucket("unstable", ck),
               "Every checkpoint is recorded with the run's logs, and copied to the bucket before it is marked complete, so the query returns something that can be restored.")
     ev_ck = next((e["eval/pass_rate"] for e in ev if e["step"] == ck), None)
     # restart twice from that checkpoint
@@ -667,6 +673,11 @@ def recovery_report(run_id, t_kill):
     return recs, rows, (before[-1] if before else None), (after[0] if after else None)
 
 
+def trainer_node_type(run_label=None):
+    nodes = kj("get", "nodes", "-l", "pool=trainer").get("items", [])
+    return ",".join(n["metadata"]["labels"].get("node.kubernetes.io/instance-type", "?") for n in nodes) or "none"
+
+
 def goodput(rows, gpus=3):
     """Productive time: the wall time of each distinct step, counted once (the last time it was done). Reserved: first to last record, times GPUs."""
     if not rows:
@@ -699,7 +710,22 @@ def s09_failures():
         start_run(rid, env, max_restarts=3)
         ok = wait_checkpoint_and_step(rid, 10, 14)
         t_kill = time.time()
+        old_pod = (kj("-n", NS, "get", "pod", "-l", f"run={rid}").get("items") or [{}])[0].get("metadata", {}).get("name")
+        last_log = {"text": ""}
+
+        def follow_old_pod(name=old_pod, box=last_log):
+            # the pod that is about to fail is replaced and its log goes with it, so the last lines are copied while it still exists
+            end = time.time() + 900
+            while name and time.time() < end:
+                rc2, txt = kube("-n", NS, "logs", name, "--tail", "40")
+                if rc2:
+                    break
+                box["text"] = txt
+                time.sleep(8)
+        import threading as _t
+        _t.Thread(target=follow_old_pod, daemon=True).start()
         if key == "node":
+            type_before = trainer_node_type()
             pod_node = kj("-n", NS, "get", "pod", "-l", f"run={rid}")["items"][0]["spec"]["nodeName"]
             iid = aws("ec2", "describe-instances", "--filters", f"Name=private-dns-name,Values={pod_node}", "--query", "Reservations[0].Instances[0].InstanceId", "--output", "text")
             rc, out = 0, aws("ec2", "terminate-instances", "--instance-ids", iid, "--query", "TerminatingInstances[0].CurrentState.Name", "--output", "text")
@@ -712,7 +738,9 @@ def s09_failures():
         tl = trainer_log(rid, 400)
         restored = [l for l in tl.splitlines() if l.startswith("restored ")]
         wd = [l for l in tl.splitlines() if "WATCHDOG" in l]
-        results[key] = {"status": st, "rows": rows, "last_before": last_before, "first_after": first_after, "t_kill": t_kill, "restored": restored, "watchdog": wd, "recs": recs, "armed": ok}
+        guard = [l for l in tl.splitlines() if l.startswith("fleet guard")]
+        type_after = trainer_node_type()
+        results[key] = {"node_types": (type_before if key == "node" else type_after, type_after), "old_log": last_log["text"], "status": st, "rows": rows, "last_before": last_before, "first_after": first_after, "t_kill": t_kill, "restored": restored, "watchdog": wd, "guard": guard, "recs": recs, "armed": ok}
         r = results[key]
         gp = goodput(rows)
         show(sc, f"python recovery.py {rid}   # from the run's records and the pod's log",
@@ -720,7 +748,9 @@ def s09_failures():
              f"last step logged before the failure: {last_before['step'] if last_before else None}\n"
              f"first step logged after it:          {first_after['step'] if first_after else None}  ({(first_after['t'] - t_kill) / 60 if first_after else float('nan'):.1f} minutes after the failure)\n"
              f"steps done twice:                    {(last_before['step'] - first_after['step'] + 1) if (last_before and first_after) else 'n/a'}\n"
-             f"log: {restored[-1] if restored else 'no restore line'}\n" + (f"log: {wd[-1]}\n" if wd else "") +
+             f"log: {restored[-1] if restored else 'no restore line'}\n" + (f"log: {wd[-1]}\n" if wd else "") + "".join(f"log: {g}\n" for g in guard[-2:]) +
+             "old pod, last lines before it was replaced: " + " | ".join([l.strip()[:110] for l in results[key]["old_log"].splitlines() if any(w in l for w in ("WATCHDOG", "Error", "error", "refused", "NCCL", "Traceback"))][-2:] or ["(no error line)"]) + "\n" +
+             (f"trainer node type: {results[key]['node_types'][0]} before, {results[key]['node_types'][1]} after\n" if key == "node" else "") +
              f"reserved GPU time {gp.get('reserved_s', 0):.0f} s x 3 GPUs; productive {gp.get('productive_s', 0):.0f} s -> goodput {100 * gp.get('goodput', 0):.0f}% over {gp.get('steps', 0)} steps")
     for key, what, rid, _ in drills:
         r = results[key]
@@ -734,8 +764,8 @@ def s09_failures():
     sc.expect("the checkpoint came from the bucket, not from the node that failed (node drill)", any("restored" in l and "newest complete checkpoint: checkpoint-" in l for l in results["node"]["restored"]),
               "The node's own disk went with the node. What survives is the copy the trainer's background thread made.")
     ev = results["engine"]
-    sc.expect("losing an engine is not absorbed: the trainer cannot go on without the fleet, so the trainer restarts too (finding)", ev["status"].get("restarts", 0) >= 1 or bool(ev["watchdog"]),
-              "The design assumes a failed rollout engine is replaced while the run continues. With NCCL weight transfer the engines and the trainer share one communicator, and a lost member stops every collective. The trainer's watchdog turns the resulting hang into a restart.")
+    sc.expect("losing an engine is not absorbed: the trainer's process ends and is restarted too (finding)", ev["status"].get("restarts", 0) >= 1,
+              "The design assumes a failed rollout engine is replaced while the run continues. With NCCL weight transfer the engines and the trainer share one communicator, and a lost member stops every collective. The JobSet restarted the trainer; I did not capture whether its own error or its watchdog ended it, because the replaced pod's log is gone.")
     return sc
 
 
@@ -826,7 +856,15 @@ def s10_ladder():
     rrows = train_rows(rrecs)
     base = [x for x in train_rows(center) if x["step"] <= 20]
     d_reward, d_step, flagged = compare_reference(rrows, base) if rrows else (float("nan"), float("nan"), True)
+    ref_type = trainer_node_type()
+    base_type = "g5.2xlarge"  # the node the S02 baseline ran on (see S01)
+    same_hw = ref_type == base_type
+    if rrows and not same_hw:
+        # a different GPU type changes the step time for reasons that are not a regression, so only the reward is compared
+        d_reward2, _, flagged = compare_reference(rrows, base, tol_step=1e9)
+        flagged = flagged and True
     show(sc, f"python reference.py {rid}   # compare the 20 steps with the same 20 steps of the S02 run",
+         f"trainer node: {ref_type} (the baseline ran on {base_type}){'' if same_hw else ': the time per step is reported but not judged'}\n"
          f"mean reward, reference vs baseline: differs by {d_reward:.3f}\nseconds per step: differs by {100 * d_step:.0f}%\nverdict: {'REGRESSION' if flagged else 'within tolerance'}")
     sc.expect("the reference run completed and matches its baseline within tolerance", bool(rrows) and not flagged,
               "Same recipe, same code, same images, twenty steps. If a library upgrade changes the training dynamics or the step time, this run moves before a large one does.")

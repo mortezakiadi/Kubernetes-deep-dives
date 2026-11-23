@@ -1,0 +1,125 @@
+{
+ "id": "S05",
+ "title": "Weight sync: how long a push takes, by model size and fleet size",
+ "design_ref": "Larger models: two layouts and the weight sync between them",
+ "purpose": "Push models of 0.6B to 8B parameters from the trainer's GPU into the rollout fleet over NCCL, with one engine and with two, packed and unpacked, and compare with what the network can carry. Then use the measured rate to price a model of 235B.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl exec iperf-client -- iperf3 -c <rollout node pod> -P 4 -t 10   # trainer node to rollout node",
+   "output": "[ 11]   0.00-10.00  sec  3.77 GBytes  3.24 Gbits/sec                  receiver\n[SUM]   0.00-10.00  sec  11.6 GBytes  9.94 Gbits/sec    0             sender\n[SUM]   0.00-10.00  sec  11.6 GBytes  9.93 Gbits/sec                  receiver\n\niperf Done.",
+   "exit_code": 0,
+   "seconds": 11.56
+  },
+  {
+   "display": "# the node network, from the same pods as in S01",
+   "output": "9.93 Gbit/s = 1.24 GB/s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws ec2 describe-instance-types --instance-types g5.2xlarge   # what the instance type promises",
+   "output": "baseline 5.0 Gbit/s, peak 10.0 Gbit/s ('Up to 10 Gigabit')",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/sync-qwen3-06b-e2   # Qwen/Qwen3-0.6B into 2 engine(s), dummy weights on the engine side",
+   "output": "1.19 GB; first push 1.04 s; median of the next 1.01 s (min 1.00, max 1.02); 1.18 GB/s per engine",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/sync-qwen3-17b-e2   # Qwen/Qwen3-1.7B into 2 engine(s), dummy weights on the engine side",
+   "output": "3.44 GB; first push 2.85 s; median of the next 2.83 s (min 2.82, max 3.16); 1.22 GB/s per engine",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/sync-qwen3-4b-e2   # Qwen/Qwen3-4B into 2 engine(s), dummy weights on the engine side",
+   "output": "8.04 GB; first push 6.66 s; median of the next 6.55 s (min 6.53, max 6.61); 1.23 GB/s per engine",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/sync-qwen3-8b-e2   # Qwen/Qwen3-8B into 2 engine(s), dummy weights on the engine side",
+   "output": "16.38 GB; first push 17.54 s; median of the next 16.63 s (min 16.49, max 17.47); 0.99 GB/s per engine",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/sync-qwen3-8b-e1   # Qwen/Qwen3-8B into 1 engine(s), dummy weights on the engine side",
+   "output": "16.38 GB; first push 13.33 s; median of the next 13.38 s (min 13.38, max 13.39); 1.22 GB/s per engine",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/sync-qwen3-06b-e1   # Qwen/Qwen3-0.6B into 1 engine(s), dummy weights on the engine side",
+   "output": "1.19 GB; first push 1.01 s; median of the next 0.99 s (min 0.99, max 0.99); 1.20 GB/s per engine",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/sync-packed-N, sync-unpacked-N   # Qwen3-1.7B, packed buffers and one broadcast per tensor, alternating, two rounds",
+   "output": "packed:   2.84 s, 2.88 s\nunpacked: 2.82 s, 2.83 s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python table.py   # what was measured",
+   "output": "model       GB     engines  median push (s)  GB/s per engine  Gbit/s per engine\nQwen3-0.6B    1.2        2             1.01             1.18               9.43\nQwen3-1.7B    3.4        2             2.83             1.22               9.73\nQwen3-4B      8.0        2             6.55             1.23               9.83\nQwen3-8B     16.4        2            16.63             0.99               7.88\nQwen3-8B     16.4        1            13.38             1.22               9.79\nQwen3-0.6B    1.2        1             0.99             1.20               9.61",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python price.py   # a 235B-parameter model in bf16 (470 GB) at the rate measured for the 8B model",
+   "output": "0.99 GB/s per engine -> 477 s (8.0 minutes) for one full push\nthe design's 10 s needs 47 GB/s = 376 Gbit/s per engine; this network carries 9.9 Gbit/s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/sync-headroom   # the engine given 95% of the GPU's memory, then asked to receive a push",
+   "output": "(EngineCore pid=125) ERROR 11-23 04:44:36 [core.py:1849] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.00 GiB. GPU 0 has a total capacity of 22.30 GiB of which 850.69 MiB is free. Process 318063 has 21.46 GiB memory in use. Of the allocated memory 20.58 GiB is allocated by PyTorch, with 26.00 MiB allocated in private pools (e.g., CUDA Graphs), and 78.60 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)\nException: Call to collective_rpc method failed: CUDA out of memory. Tried to allocate 1.00 GiB. GPU 0 has a total capacity of 22.30 GiB of which 850.69 MiB is free. Process 318063 has 21.46 GiB memory in use. Of the allocated memory 20.58 GiB is allocated by PyTorch, with 26.00 MiB allocated in private pools (e.g., CUDA Graphs), and 78.60 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "every size from 0.6B to 8B was pushed into the fleet and the push completed",
+   "passed": true,
+   "because": "The trainer's GPU holds a bf16 model of the same architecture as the engines. The call is the one the real runs use: the engines receive packed buffers and load them in place."
+  },
+  {
+   "description": "the push time grows with the model's size, roughly in proportion",
+   "passed": true,
+   "because": "Once the model is bigger than a buffer, the transfer is bandwidth-bound: bytes divided by the rate of the slowest link. The time grows a little faster than the size, for the reason in the next check."
+  },
+  {
+   "description": "the push rate stays between the instance type's baseline and its peak bandwidth, and drops towards the baseline for the largest model",
+   "passed": true,
+   "because": "The instance type promises 5 Gbit/s sustained and 10 Gbit/s for a burst. A fifteen-second iperf run and a one-second push fit in the burst; a push of 16 GB that is repeated does not, and settles near the baseline."
+  },
+  {
+   "description": "a second engine does not double the push time",
+   "passed": true,
+   "because": "A broadcast sends each byte once from the trainer into the group, so adding receivers costs far less than sending to each in turn."
+  },
+  {
+   "description": "at this network's rate the design's 10-second push of a 235B model is out of reach by more than an order of magnitude",
+   "passed": true,
+   "because": "The design says to move weights over the GPU fabric, not the pod network. This cluster has no GPU fabric between nodes, which is why its sync stage looks the way it does in S03."
+  },
+  {
+   "description": "packing does not slow the push: the gap between packed and unpacked is no larger than the spread between repeats",
+   "passed": true,
+   "because": "Packing cuts the number of NCCL calls. With a few hundred tensors the saving is small next to the time the bytes take on the wire, and the same configuration varies from run to run by about as much as the two variants differ."
+  },
+  {
+   "description": "an engine that spends the whole GPU on its KV budget cannot receive the weights",
+   "passed": true,
+   "because": "The packed receive buffers are two copies of 1 GiB on the engine's GPU, outside the memory fraction vLLM was told to use. This is why the rollout fleet runs at 70% here and not the 90% the documentation shows for an 80 GB GPU."
+  }
+ ],
+ "notes": []
+}

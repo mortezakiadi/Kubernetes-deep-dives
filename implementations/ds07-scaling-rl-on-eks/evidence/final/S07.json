@@ -1,0 +1,91 @@
+{
+ "id": "S07",
+ "title": "The environment tier: a sandbox pool that scales on its queue",
+ "design_ref": "Rewards and environments at scale",
+ "purpose": "Give every answer four tool calls in a sandbox pool and compare a fixed pool of two workers with a pool that KEDA scales on the length of its queue. Measure what the rollout fleet and the trainer see.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults",
+   "output": "ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f sandbox-pool.yaml   # fixed pool, 2 workers; every call takes 250 ms of 'tool time' plus the code's run",
+   "output": "2 workers ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f trainer-env-fixed.yaml   # a JobSet: fixed pool, 2 workers",
+   "output": "CKPT_EVERY=1000\nEVAL_EVERY=0\nEVAL_PROBLEMS=200\nGPUS_HELD=3\nLEARNING_RATE=3e-6\nMAX_COMPLETION=512\nMAX_CONCURRENT=64\nMAX_STEPS=5\nTASK=pyexec\nTOOL_CALLS=4\nWATCHDOG_S=900",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl get jobset trainer-env-fixed",
+   "output": "completed=True failed=False restarts=0  records=7",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f sandbox-pool.yaml   # pool scaled by queue length, 2 to 40 workers; every call takes 250 ms of 'tool time' plus the code's run",
+   "output": "2 workers ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f trainer-env-keda.yaml   # a JobSet: pool scaled by queue length, 2 to 40 workers",
+   "output": "CKPT_EVERY=1000\nEVAL_EVERY=0\nEVAL_PROBLEMS=200\nGPUS_HELD=3\nLEARNING_RATE=3e-6\nMAX_COMPLETION=512\nMAX_CONCURRENT=64\nMAX_STEPS=5\nTASK=pyexec\nTOOL_CALLS=4\nWATCHDOG_S=900",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl get jobset trainer-env-keda",
+   "output": "completed=True failed=False restarts=0  records=7",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python compare.py env-fixed env-keda   # 5 steps each, four tool calls per answer",
+   "output": "                                             fixed pool   scaled pool\npeak sandbox workers                                  2            12\npeak queue length (calls waiting)                    30            28\ncalls served                                       8576          8032\nmedian seconds per step                           191.3          41.5\ntime to score a group (median s)                    4.5           1.0\ntrainer waiting for samples (median s)            188.3          37.7\ntokens generated per second                          87           372",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl get deploy sandbox-workers   # a few minutes after the run, with the queue empty",
+   "output": "2 workers wanted",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "with two workers the queue builds up and the trainer's step is dominated by waiting for rewards",
+   "passed": true,
+   "because": "Two workers serve about eight calls a second. A group of eight answers with four calls each is thirty-two calls, and the trainer needs about twenty groups for one step."
+  },
+  {
+   "description": "KEDA grows the pool when the queue grows: at least four times the starting size",
+   "passed": true,
+   "because": "KEDA reads the length of the Redis list every five seconds and sets the replica count to the length divided by the target per worker (two), up to the maximum. The trainer scores one group at a time, so at most about thirty messages wait, which caps the pool near fifteen. Scaling on CPU would react only after the workers were busy."
+  },
+  {
+   "description": "the scaled pool at least halves the step",
+   "passed": true,
+   "because": "Same recipe, same model, same hardware. Only the number of workers behind the queue differs."
+  },
+  {
+   "description": "the pool shrinks back when the queue is empty",
+   "passed": true,
+   "because": "The cooldown is sixty seconds. A pool that stays large costs CPU for nothing; one that never grew costs GPU time, as the fixed pool showed."
+  },
+  {
+   "description": "the queue is drained at the end: no call was lost",
+   "passed": true,
+   "because": "Every call is a message that a worker removes with a blocking pop and answers on its own result list, so a message is either waiting, being served, or answered."
+  }
+ ],
+ "notes": []
+}

@@ -1,0 +1,78 @@
+{
+ "id": "S06",
+ "title": "Numerics: the mismatch between the rollout engine and the trainer",
+ "design_ref": "Numerics and MoE: the mismatch that grows with scale",
+ "purpose": "Score the same sampled answers with the rollout engine and with the trainer's own forward pass, under four precisions, and look at the shape of the log-ratio between them. Then read the same quantity from a real run's logs.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f job/mismatch-bf16   # bf16 engine, bf16 trainer: 256 sampled answers scored by both",
+   "output": "tag                          bf16\ntokens                       69851\ntrain_dtype                  bfloat16\nmean_abs_logratio            0.01967\nkl_k3                        0.0007707\nfrac_ratio_gt_2              1.432e-05\nfrac_ratio_lt_half           0\nfrac_ratio_gt_cap            0\nmax_ratio                    2.414\np99_abs_logratio             0.1628\ntop1pct_share_of_mismatch    0.1076\ntis_weight_mean              0.9866",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/mismatch-bf16-vs-fp32   # bf16 engine, fp32 trainer: 256 sampled answers scored by both",
+   "output": "tag                          bf16-vs-fp32\ntokens                       70222\ntrain_dtype                  float32\nmean_abs_logratio            0.01732\nkl_k3                        0.000527\nfrac_ratio_gt_2              0\nfrac_ratio_lt_half           0\nfrac_ratio_gt_cap            0\nmax_ratio                    1.241\np99_abs_logratio             0.1272\ntop1pct_share_of_mismatch    0.09547\ntis_weight_mean              0.9861",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/mismatch-fp8-weights   # fp8 weights, bf16 trainer: 256 sampled answers scored by both",
+   "output": "tag                          fp8-weights\ntokens                       68935\ntrain_dtype                  bfloat16\nmean_abs_logratio            0.04452\nkl_k3                        0.005693\nfrac_ratio_gt_2              0.0007108\nfrac_ratio_lt_half           0.002872\nfrac_ratio_gt_cap            2.901e-05\nmax_ratio                    3.16\np99_abs_logratio             0.4962\ntop1pct_share_of_mismatch    0.157\ntis_weight_mean              0.9861",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f job/mismatch-fp8-kv   # fp8 KV cache, bf16 trainer: 256 sampled answers scored by both",
+   "output": "tag                          fp8-kv\ntokens                       68480\ntrain_dtype                  bfloat16\nmean_abs_logratio            0.04635\nkl_k3                        0.006069\nfrac_ratio_gt_2              0.0005549\nfrac_ratio_lt_half           0.003213\nfrac_ratio_gt_cap            4.381e-05\nmax_ratio                    4.807\np99_abs_logratio             0.5083\ntop1pct_share_of_mismatch    0.1555\ntis_weight_mean              0.9853",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python table.py   # the four settings side by side",
+   "output": "                               mean_abs_lograt           kl_k3 frac_ratio_gt_2 frac_ratio_gt_c p99_abs_lograti       max_ratio top1pct_share_o\nbf16 engine, bf16 trainer              0.01967       0.0007707       1.432e-05               0          0.1628           2.414          0.1076\nbf16 engine, fp32 trainer              0.01732        0.000527               0               0          0.1272           1.241         0.09547\nfp8 weights, bf16 trainer              0.04452        0.005693       0.0007108       2.901e-05          0.4962            3.16           0.157\nfp8 KV cache, bf16 trainer             0.04635        0.006069       0.0005549       4.381e-05          0.5083           4.807          0.1555",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python run_stats.py r1-center   # the trainer's own mismatch metrics over the 80 steps of the S02 run",
+   "output": "sampling/sampling_logp_difference/mean         median     0.0368   max    0.05628\nsampling/sampling_logp_difference/max          median      2.596   max      9.656\nsampling/importance_sampling_ratio/mean        median          1   max      1.005\nsampling/importance_sampling_ratio/max         median      3.508   max      24.46\nsampling/masked_mean                           median   0.003844   max    0.01255",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the engine and the trainer disagree even at the same weights and the same precision",
+   "passed": true,
+   "because": "Different kernels, different reduction orders, a different attention implementation. The log-ratio between the two engines is never exactly zero, even for a small dense model in bf16 on both sides."
+  },
+  {
+   "description": "the tail, not the mean, carries the mismatch: one percent of the tokens hold a large share of it",
+   "passed": true,
+   "because": "If the mismatch were spread evenly, one percent of the tokens would hold one percent of it. This is why the design watches the fraction of tokens beyond a ratio threshold and not the average, which is tiny."
+  },
+  {
+   "description": "lower-precision rollouts widen the mismatch",
+   "passed": true,
+   "because": "FP8 weights round every parameter. The engine still samples from a very similar distribution, but the trainer's probabilities for the sampled tokens differ more."
+  },
+  {
+   "description": "a float32 trainer is closer to the engine's probabilities than a bf16 one, or no further",
+   "passed": true,
+   "because": "The design's published finding is that the final projection to logits in FP32 shifts the ceiling, not only stability. This probe measures the distance, not the ceiling."
+  },
+  {
+   "description": "the truncated importance weight bounds the tokens beyond the cap",
+   "passed": true,
+   "because": "A weight of min(ratio, cap) keeps one token from dominating a gradient. The share of tokens that hit the cap is the cost."
+  },
+  {
+   "description": "the trainer logs the ratio's distribution on every step of every run",
+   "passed": true,
+   "because": "The trainer uses the sampler's own probabilities as the old policy, so the importance ratio it already computes covers mismatch and staleness together (see TRL's async trainer)."
+  }
+ ],
+ "notes": []
+}

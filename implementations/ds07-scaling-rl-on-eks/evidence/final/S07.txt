@@ -1,0 +1,62 @@
+# S07: The environment tier: a sandbox pool that scales on its queue
+# Design reference: Rewards and environments at scale
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f sandbox-pool.yaml   # fixed pool, 2 workers; every call takes 250 ms of 'tool time' plus the code's run
+2 workers ready
+
+$ kubectl apply -f trainer-env-fixed.yaml   # a JobSet: fixed pool, 2 workers
+CKPT_EVERY=1000
+EVAL_EVERY=0
+EVAL_PROBLEMS=200
+GPUS_HELD=3
+LEARNING_RATE=3e-6
+MAX_COMPLETION=512
+MAX_CONCURRENT=64
+MAX_STEPS=5
+TASK=pyexec
+TOOL_CALLS=4
+WATCHDOG_S=900
+
+$ kubectl get jobset trainer-env-fixed
+completed=True failed=False restarts=0  records=7
+
+$ kubectl apply -f sandbox-pool.yaml   # pool scaled by queue length, 2 to 40 workers; every call takes 250 ms of 'tool time' plus the code's run
+2 workers ready
+
+$ kubectl apply -f trainer-env-keda.yaml   # a JobSet: pool scaled by queue length, 2 to 40 workers
+CKPT_EVERY=1000
+EVAL_EVERY=0
+EVAL_PROBLEMS=200
+GPUS_HELD=3
+LEARNING_RATE=3e-6
+MAX_COMPLETION=512
+MAX_CONCURRENT=64
+MAX_STEPS=5
+TASK=pyexec
+TOOL_CALLS=4
+WATCHDOG_S=900
+
+$ kubectl get jobset trainer-env-keda
+completed=True failed=False restarts=0  records=7
+
+$ python compare.py env-fixed env-keda   # 5 steps each, four tool calls per answer
+                                             fixed pool   scaled pool
+peak sandbox workers                                  2            12
+peak queue length (calls waiting)                    30            28
+calls served                                       8576          8032
+median seconds per step                           191.3          41.5
+time to score a group (median s)                    4.5           1.0
+trainer waiting for samples (median s)            188.3          37.7
+tokens generated per second                          87           372
+
+$ kubectl get deploy sandbox-workers   # a few minutes after the run, with the queue empty
+2 workers wanted
+
+[PASS] with two workers the queue builds up and the trainer's step is dominated by waiting for rewards
+[PASS] KEDA grows the pool when the queue grows: at least four times the starting size
+[PASS] the scaled pool at least halves the step
+[PASS] the pool shrinks back when the queue is empty
+[PASS] the queue is drained at the end: no call was lost

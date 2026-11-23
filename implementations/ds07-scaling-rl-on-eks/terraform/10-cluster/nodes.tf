@@ -56,13 +56,13 @@ locals {
   private_ids = aws_subnet.private[*].id
   groups = {
     # Controllers, KEDA, Redis, the experiment tools.
-    system = { instance = "m5.xlarge", count = 2, subnets = local.private_ids, ami = "AL2023_x86_64_STANDARD", lt = "standard", labels = { pool = "system" }, taint = null }
+    system = { instances = ["m5.xlarge"], count = 2, subnets = local.private_ids, ami = "AL2023_x86_64_STANDARD", lt = "standard", labels = { pool = "system" }, taint = null }
     # The sandbox workers of the environment tier.
-    env = { instance = "c6i.2xlarge", count = var.env_nodes, subnets = local.private_ids, ami = "AL2023_x86_64_STANDARD", lt = "env", labels = { pool = "env" }, taint = null }
+    env = { instances = ["c6i.2xlarge"], count = var.env_nodes, subnets = local.private_ids, ami = "AL2023_x86_64_STANDARD", lt = "env", labels = { pool = "env" }, taint = null }
     # One GPU for the trainer. Tainted, so only pods that ask for it land here.
-    trainer = { instance = var.trainer_instance_type, count = 1, subnets = [local.private_ids[0]], ami = "AL2023_x86_64_NVIDIA", lt = "gpu", labels = { pool = "trainer", gpu = "true" }, taint = "nvidia.com/gpu" }
+    trainer = { instances = var.trainer_instance_types, count = 1, subnets = [local.private_ids[0]], ami = "AL2023_x86_64_NVIDIA", lt = "gpu", labels = { pool = "trainer", gpu = "true" }, taint = "nvidia.com/gpu" }
     # The rollout engines: one GPU per node, in the same zone as the trainer.
-    rollout = { instance = var.rollout_instance_type, count = var.rollout_nodes, subnets = [local.private_ids[0]], ami = "AL2023_x86_64_NVIDIA", lt = "gpu", labels = { pool = "rollout", gpu = "true" }, taint = "nvidia.com/gpu" }
+    rollout = { instances = [var.rollout_instance_type], count = var.rollout_nodes, subnets = [local.private_ids[0]], ami = "AL2023_x86_64_NVIDIA", lt = "gpu", labels = { pool = "rollout", gpu = "true" }, taint = "nvidia.com/gpu" }
   }
 }
 resource "aws_eks_node_group" "system" {
@@ -70,7 +70,7 @@ resource "aws_eks_node_group" "system" {
   node_group_name = "${var.project}-system"
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = local.groups.system.subnets
-  instance_types  = [local.groups.system.instance]
+  instance_types  = local.groups.system.instances
   ami_type        = local.groups.system.ami
   labels          = local.groups.system.labels
   scaling_config {
@@ -91,7 +91,7 @@ resource "aws_eks_node_group" "pool" {
   node_group_name = "${var.project}-${each.key}"
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = each.value.subnets
-  instance_types  = [each.value.instance]
+  instance_types  = each.value.instances
   ami_type        = each.value.ami
   labels          = each.value.labels
   dynamic "taint" {

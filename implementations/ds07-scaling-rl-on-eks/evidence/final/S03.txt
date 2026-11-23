@@ -1,0 +1,43 @@
+# S03: Where the time goes: the step-time breakdown, in GPU-seconds
+# Design reference: Where the time goes: the step-time breakdown
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ aws s3 cp s3://<state bucket>/runs/r1-center/metrics.jsonl -   # the run 'center (lr 3e-6)' made earlier in this session
+91 records, 80 training steps, 9 evaluations
+
+$ python breakdown.py r1-center   # median over the steps of the run, from the trainer's own per-stage timers
+step (wall clock between logged steps)   3.82 s
+  weight sync (pause + NCCL transfer)     2.06 s   (transfer 2.01, pause 0.04)
+  forward + backward + optimizer          1.83 s   (backward 1.47, log-probs 0.36, optimizer 0.002)
+  trainer waiting for rollouts            0.00 s
+  not accounted for                       0.00 s
+
+$ python gpu_seconds.py r1-center   # the same step, weighted by the GPUs held (3 GPUs x step time)
+trainer GPU: training                            1.83 GPU-s   16.0%
+trainer GPU: sending weights                     2.06 GPU-s   18.0%
+trainer GPU: waiting                             0.00 GPU-s    0.0%
+2 rollout GPUs: paused for the weight load       4.12 GPU-s   36.0%
+2 rollout GPUs: generating                       3.51 GPU-s   30.6%
+reserved                                        11.45 GPU-s
+
+$ # run ws4: read back from the state bucket (already complete)
+47 records
+
+$ python compare.py r1-center ws4   # first 40 steps of each: weights every step, then every fourth step
+                                             every step   every 4th step
+mean seconds per step (evaluation left out)        4.00           2.49
+mean weight-sync seconds per step                  2.08           0.75
+staleness, in weight versions behind               2.99           0.89
+staleness, in training steps (versions x interval)       2.99           3.54
+GPU hours at step 40                              0.149          0.098
+held-out pass rate at step 40                     0.662          0.605   (start 0.580)
+
+[PASS] every step of the run carries its stage timers
+[PASS] the stages account for the step: no more than 10% of it is unexplained waiting
+[PASS] the weight sync is the largest single stage of the step
+[PASS] while the weights load, the rollout GPUs are idle for a large share of their time
+[PASS] sending the weights every fourth step cuts the time spent syncing by more than half
+[PASS] and it cuts the GPU hours needed to reach step 40 by at least a fifth
+[PASS] the run with the cheaper step still learns

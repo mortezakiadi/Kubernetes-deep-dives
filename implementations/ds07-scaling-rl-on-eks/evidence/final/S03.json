@@ -1,0 +1,83 @@
+{
+ "id": "S03",
+ "title": "Where the time goes: the step-time breakdown, in GPU-seconds",
+ "design_ref": "Where the time goes: the step-time breakdown",
+ "purpose": "Break one training step into its stages, weight each stage by the GPUs that are held while it runs, and find the stage to attack. Then change the setting that stage points to, and measure what it buys and what it costs.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults",
+   "output": "ready",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 cp s3://<state bucket>/runs/r1-center/metrics.jsonl -   # the run 'center (lr 3e-6)' made earlier in this session",
+   "output": "91 records, 80 training steps, 9 evaluations",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python breakdown.py r1-center   # median over the steps of the run, from the trainer's own per-stage timers",
+   "output": "step (wall clock between logged steps)   3.82 s\n  weight sync (pause + NCCL transfer)     2.06 s   (transfer 2.01, pause 0.04)\n  forward + backward + optimizer          1.83 s   (backward 1.47, log-probs 0.36, optimizer 0.002)\n  trainer waiting for rollouts            0.00 s\n  not accounted for                       0.00 s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python gpu_seconds.py r1-center   # the same step, weighted by the GPUs held (3 GPUs x step time)",
+   "output": "trainer GPU: training                            1.83 GPU-s   16.0%\ntrainer GPU: sending weights                     2.06 GPU-s   18.0%\ntrainer GPU: waiting                             0.00 GPU-s    0.0%\n2 rollout GPUs: paused for the weight load       4.12 GPU-s   36.0%\n2 rollout GPUs: generating                       3.51 GPU-s   30.6%\nreserved                                        11.45 GPU-s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# run ws4: read back from the state bucket (already complete)",
+   "output": "47 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python compare.py r1-center ws4   # first 40 steps of each: weights every step, then every fourth step",
+   "output": "                                             every step   every 4th step\nmean seconds per step (evaluation left out)        4.00           2.49\nmean weight-sync seconds per step                  2.08           0.75\nstaleness, in weight versions behind               2.99           0.89\nstaleness, in training steps (versions x interval)       2.99           3.54\nGPU hours at step 40                              0.149          0.098\nheld-out pass rate at step 40                     0.662          0.605   (start 0.580)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "every step of the run carries its stage timers",
+   "passed": true,
+   "because": "The trainer measures weight sync, the log-probability pass, backward, optimizer and its wait for rollouts on every step, and writes them with the step's other metrics."
+  },
+  {
+   "description": "the stages account for the step: no more than 10% of it is unexplained waiting",
+   "passed": true,
+   "because": "The ladder's exit criterion in the design is that unexplained waiting stays under 10% of the step. Here the unexplained time is what remains of the wall clock after the three measured stages."
+  },
+  {
+   "description": "the weight sync is the largest single stage of the step",
+   "passed": true,
+   "because": "With a 0.6B model on one node the sync still takes about as long as the whole training computation. The trainer sends parameters in fp32 (the master copy) to bf16 engines on another node, over the node network."
+  },
+  {
+   "description": "while the weights load, the rollout GPUs are idle for a large share of their time",
+   "passed": true,
+   "because": "vLLM pauses generation for the transfer. That makes the sync a share of every reserved GPU-second, not only of the step's clock: it is what the design's 'wait for weight sync' figure means."
+  },
+  {
+   "description": "sending the weights every fourth step cuts the time spent syncing by more than half",
+   "passed": true,
+   "because": "The transfer happens a quarter as often; the steps in between pay only for the training computation."
+  },
+  {
+   "description": "and it cuts the GPU hours needed to reach step 40 by at least a fifth",
+   "passed": true,
+   "because": "GPU hours count the three reserved GPUs and leave the evaluation out. The rollout engines are no longer paused for three steps of every four."
+  },
+  {
+   "description": "the run with the cheaper step still learns",
+   "passed": true,
+   "because": "The held-out score at step 40 is not below the starting score by more than the evaluation's noise. The price of pushing less often is policy lag: the engines sample from weights up to three updates behind the trainer, which the importance ratio corrects (S06)."
+  }
+ ],
+ "notes": []
+}

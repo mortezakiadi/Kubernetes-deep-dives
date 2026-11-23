@@ -1,0 +1,67 @@
+# S02: Rung 1: recipe search and the compute-performance curve
+# Design reference: Predict before you spend: compute-performance curves
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f trainer-r1-center.yaml   # a JobSet: center (lr 3e-6)
+CKPT_EVERY=1000
+EVAL_EVERY=10
+EVAL_PROBLEMS=200
+GPUS_HELD=3
+LEARNING_RATE=3e-6
+MAX_CONCURRENT=64
+MAX_STEPS=80
+
+$ kubectl get jobset trainer-r1-center
+completed=True failed=False restarts=0  records=91
+
+$ kubectl apply -f trainer-r1-surrogate.yaml   # a JobSet: surrogate (no score centering)
+CKPT_EVERY=1000
+EVAL_EVERY=10
+EVAL_PROBLEMS=200
+GPUS_HELD=3
+LEARNING_RATE=3e-6
+MAX_CONCURRENT=64
+MAX_STEPS=80
+SCORE_CENTERING=0
+
+$ kubectl get jobset trainer-r1-surrogate
+completed=True failed=False restarts=0  records=91
+
+$ kubectl apply -f trainer-r1-lr1e6.yaml   # a JobSet: small step (lr 1e-6)
+CKPT_EVERY=1000
+EVAL_EVERY=10
+EVAL_PROBLEMS=200
+GPUS_HELD=3
+LEARNING_RATE=1e-6
+MAX_CONCURRENT=64
+MAX_STEPS=80
+
+$ kubectl get jobset trainer-r1-lr1e6
+completed=True failed=False restarts=0  records=91
+
+$ python fit_curves.py   # held-out pass rate against GPU hours, fitted with R0 + (A - R0) / (1 + (C_mid / C) ** B)
+recipe                            start  end   ceiling A      B     C_mid(GPU h)
+center (lr 3e-6)                  0.627  0.704  0.734 ± 0.444  6.00  0.241
+surrogate (no score centering)    0.581  0.681  0.681 ± 0.034  1.41  0.081
+small step (lr 1e-6)              0.598  0.649  1.000 ± 13.600  1.41  1.294
+
+$ python rank.py   # rank by ceiling only where the 2-standard-error intervals do not overlap
+small step (lr 1e-6)  vs  center (lr 3e-6): not ranked: the intervals overlap
+center (lr 3e-6)  vs  surrogate (no score centering): not ranked: the intervals overlap
+
+$ python rank.py --self-check   # the rule on three made-up ceilings: 0.70 and 0.69 (overlap), 0.55 (clear)
+x vs y: not ranked: the intervals overlap
+y vs z: ranked
+
+$ python extrapolate.py   # fit on the first half of each run, compare with the second half
+center (lr 3e-6)                  mean |predicted - observed| = 0.051
+surrogate (no score centering)    mean |predicted - observed| = 0.018
+small step (lr 1e-6)              mean |predicted - observed| = 0.012
+
+[PASS] each recipe ran 80 steps and was evaluated on the same 200 held-out problems at nine fixed steps
+[PASS] the starting score is the same for every recipe, within the evaluation's own noise
+[PASS] the saturating curve fits every recipe and reports an uncertainty on the ceiling
+[PASS] the ranking rule refuses to rank recipes whose ceiling intervals overlap and ranks those that do not
+[PASS] the fit on the first half of each run predicts the second half to within about three standard errors of the evaluation

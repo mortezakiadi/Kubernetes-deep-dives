@@ -289,14 +289,15 @@ def main():
     stop = threading.Event()
     resume = None
     model_path = [R.model]
+    rollback_weights = [None]
     if BUCKET:
         resume = restore_from_bucket()
         if resume is None and R.resume_from and R.resume_step:
             # A rollback with a change: a new run starts from the weights of another run's checkpoint, with a fresh optimizer and its own settings.
             src = pathlib.Path("/work") / R.resume_from / f"checkpoint-{R.resume_step}"
             restore_from_bucket(prefix=f"runs/{R.resume_from}/checkpoint-{R.resume_step}/", dest=src)
-            if (src / "config.json").exists():
-                model_path[0] = str(src)
+            if (src / "model.safetensors").exists():
+                rollback_weights[0] = src / "model.safetensors"
                 print(f"rollback: starting from the weights of {R.resume_from}/checkpoint-{R.resume_step}", flush=True)
         threading.Thread(target=sync_loop, args=(stop,), daemon=True).start()
     restarts = int((WORK / "restarts").read_text()) + 1 if (WORK / "restarts").exists() else 0
@@ -374,6 +375,12 @@ def main():
         cfg["epsilon_high"] = R.epsilon_high
     config = AsyncGRPOConfig(**cfg)
     trainer = AsyncGRPOTrainer(model=model_path[0], args=config, train_dataset=train, reward_funcs=rewards, callbacks=[RunLog()])
+    if rollback_weights[0] is not None:
+        # The engines serve the model under its own name, so the trainer keeps that name and takes the checkpoint's weights into its model; the first
+        # weight push of the run then carries them to the fleet.
+        from safetensors.torch import load_file
+        missing, unexpected = trainer.model.load_state_dict(load_file(str(rollback_weights[0])), strict=False)
+        print(f"rollback: loaded the checkpoint into the model ({len(missing)} missing, {len(unexpected)} unexpected keys)", flush=True)
     print(f"run {R.run_id}: starting (restart {restarts}); resume={resume}", flush=True)
     try:
         trainer.train(resume_from_checkpoint=str(resume) if resume else None)

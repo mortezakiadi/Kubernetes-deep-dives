@@ -1,0 +1,62 @@
+# S05: Weight sync: how long a push takes, by model size and fleet size
+# Design reference: Larger models: two layouts and the weight sync between them
+
+$ kubectl exec iperf-client -- iperf3 -c <rollout node pod> -P 4 -t 10   # trainer node to rollout node
+[ 11]   0.00-10.00  sec  3.77 GBytes  3.24 Gbits/sec                  receiver
+[SUM]   0.00-10.00  sec  11.6 GBytes  9.94 Gbits/sec    0             sender
+[SUM]   0.00-10.00  sec  11.6 GBytes  9.93 Gbits/sec                  receiver
+
+iperf Done.
+
+$ # the node network, from the same pods as in S01
+9.93 Gbit/s = 1.24 GB/s
+
+$ aws ec2 describe-instance-types --instance-types g5.2xlarge   # what the instance type promises
+baseline 5.0 Gbit/s, peak 10.0 Gbit/s ('Up to 10 Gigabit')
+
+$ kubectl apply -f job/sync-qwen3-06b-e2   # Qwen/Qwen3-0.6B into 2 engine(s), dummy weights on the engine side
+1.19 GB; first push 1.04 s; median of the next 1.01 s (min 1.00, max 1.02); 1.18 GB/s per engine
+
+$ kubectl apply -f job/sync-qwen3-17b-e2   # Qwen/Qwen3-1.7B into 2 engine(s), dummy weights on the engine side
+3.44 GB; first push 2.85 s; median of the next 2.83 s (min 2.82, max 3.16); 1.22 GB/s per engine
+
+$ kubectl apply -f job/sync-qwen3-4b-e2   # Qwen/Qwen3-4B into 2 engine(s), dummy weights on the engine side
+8.04 GB; first push 6.66 s; median of the next 6.55 s (min 6.53, max 6.61); 1.23 GB/s per engine
+
+$ kubectl apply -f job/sync-qwen3-8b-e2   # Qwen/Qwen3-8B into 2 engine(s), dummy weights on the engine side
+16.38 GB; first push 17.54 s; median of the next 16.63 s (min 16.49, max 17.47); 0.99 GB/s per engine
+
+$ kubectl apply -f job/sync-qwen3-8b-e1   # Qwen/Qwen3-8B into 1 engine(s), dummy weights on the engine side
+16.38 GB; first push 13.33 s; median of the next 13.38 s (min 13.38, max 13.39); 1.22 GB/s per engine
+
+$ kubectl apply -f job/sync-qwen3-06b-e1   # Qwen/Qwen3-0.6B into 1 engine(s), dummy weights on the engine side
+1.19 GB; first push 1.01 s; median of the next 0.99 s (min 0.99, max 0.99); 1.20 GB/s per engine
+
+$ kubectl apply -f job/sync-packed-N, sync-unpacked-N   # Qwen3-1.7B, packed buffers and one broadcast per tensor, alternating, two rounds
+packed:   2.84 s, 2.88 s
+unpacked: 2.82 s, 2.83 s
+
+$ python table.py   # what was measured
+model       GB     engines  median push (s)  GB/s per engine  Gbit/s per engine
+Qwen3-0.6B    1.2        2             1.01             1.18               9.43
+Qwen3-1.7B    3.4        2             2.83             1.22               9.73
+Qwen3-4B      8.0        2             6.55             1.23               9.83
+Qwen3-8B     16.4        2            16.63             0.99               7.88
+Qwen3-8B     16.4        1            13.38             1.22               9.79
+Qwen3-0.6B    1.2        1             0.99             1.20               9.61
+
+$ python price.py   # a 235B-parameter model in bf16 (470 GB) at the rate measured for the 8B model
+0.99 GB/s per engine -> 477 s (8.0 minutes) for one full push
+the design's 10 s needs 47 GB/s = 376 Gbit/s per engine; this network carries 9.9 Gbit/s
+
+$ kubectl apply -f job/sync-headroom   # the engine given 95% of the GPU's memory, then asked to receive a push
+(EngineCore pid=125) ERROR 11-23 04:44:36 [core.py:1849] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.00 GiB. GPU 0 has a total capacity of 22.30 GiB of which 850.69 MiB is free. Process 318063 has 21.46 GiB memory in use. Of the allocated memory 20.58 GiB is allocated by PyTorch, with 26.00 MiB allocated in private pools (e.g., CUDA Graphs), and 78.60 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+Exception: Call to collective_rpc method failed: CUDA out of memory. Tried to allocate 1.00 GiB. GPU 0 has a total capacity of 22.30 GiB of which 850.69 MiB is free. Process 318063 has 21.46 GiB memory in use. Of the allocated memory 20.58 GiB is allocated by PyTorch, with 26.00 MiB allocated in private pools (e.g., CUDA Graphs), and 78.60 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+
+[PASS] every size from 0.6B to 8B was pushed into the fleet and the push completed
+[PASS] the push time grows with the model's size, roughly in proportion
+[PASS] the push rate stays between the instance type's baseline and its peak bandwidth, and drops towards the baseline for the largest model
+[PASS] a second engine does not double the push time
+[PASS] at this network's rate the design's 10-second push of a 235B model is out of reach by more than an order of magnitude
+[PASS] packing does not slow the push: the gap between packed and unpacked is no larger than the spread between repeats
+[PASS] an engine that spends the whole GPU on its KV budget cannot receive the weights

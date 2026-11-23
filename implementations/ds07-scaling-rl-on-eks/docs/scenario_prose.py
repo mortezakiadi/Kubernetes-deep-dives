@@ -25,7 +25,7 @@ PROSE = {
         "why": [
             "The fit has wide error bars because 80 steps did not take any recipe past the midpoint of its curve; the design warns that a ceiling estimated before the midpoint is weak, and the covariance of the fit says so.",
             "The recipes are not ranked because their intervals overlap. That is the correct output of the rule, not a failure to run it.",
-            "The second half of each run is predicted from the first half to within about the evaluation's noise, because at this length the curves are close to straight lines and a saturating curve fits them.",
+            "The second half of each run is predicted from the first half to within about 0.05 or better, because at this length the curves are close to straight lines and a saturating curve fits them.",
         ],
     },
     "S03": {
@@ -96,16 +96,16 @@ PROSE = {
         ],
     },
     "S08": {
-        "intro": "The design says slow drifts only matter on long runs, and that alerts should combine trends. I took a recipe whose step size is about three times too large, watched the signals the design names, fired a combined alert, found the last healthy checkpoint by query, and restarted from it twice: once with the same settings and once with the healthy recipe's step.",
+        "intro": "The design says slow drifts only matter on long runs, and that alerts should combine trends. I took a recipe whose step size is about three times too large, watched the signals the design names, fired a combined alert, found the last healthy checkpoint by query, and restarted from it twice: once with the same settings and once with the healthy recipe's step size.",
         "trust": [
-            "The alert rule's thresholds were set on the healthy run of S02 so that it never fires there, and were then applied unchanged to the unstable run.",
-            "Damage is defined from the held-out score alone (more than 0.10 below the best so far) and is measured every five steps, independently of the alert's inputs.",
+            "The alert rule's thresholds were set just outside the envelope of the healthy runs of S02 and S04 so that it never fires on them, and were then applied unchanged to the unstable run. The unstable run is the only run in this appendix that the rule fires on.",
+            "Collapse is defined from the held-out score alone (below half of where the run started), which is measured every five steps and is independent of the alert's inputs.",
             "The checkpoint the query returns is checked to be in the bucket, and both restarts load that checkpoint's weights from it.",
         ],
         "why": [
-            "A step size about three times too large moves the policy further than the importance ratio's clip can contain. Entropy falls, answers lengthen or collapse, groups stop carrying a gradient and more tokens are masked by the clip: the combined rule fires when two of those hold for three steps in a row.",
-            "The held-out score falls later than the alert, because it is measured every five steps and the policy needs time to degrade.",
-            "A restart with the same step size meets the same instability. A restart with a smaller step, a fresh optimizer and a different prompt order does not.",
+            "A step size about three times too large moves the policy further than the importance ratio's clip can contain. The share of tokens the clip masks rises within a few steps, answers stop ending and reach the length limit, groups stop carrying a gradient, and the held-out score falls.",
+            "The combined rule needs two conditions for three steps in a row over a window of eight, so it fires after the first single signal. Here that was the right trade: the single signal is the earliest warning, and the rule's alert still comes before the policy is destroyed.",
+            "A restart with the same step size meets the same instability. A restart with the healthy step size, a fresh optimizer and a different prompt order does not.",
         ],
     },
     "S09": {
@@ -117,7 +117,8 @@ PROSE = {
         ],
         "why": [
             "The JobSet's failure policy recreates the trainer pod, and the new pod restores the newest complete checkpoint from the bucket before it starts, so nothing depends on the old node.",
-            "Losing an engine breaks the NCCL group that the trainer shares with the engines. The trainer's next collective never returns, so the watchdog ends the process after its timeout and the restart policy takes over. The design assumes the engine can be replaced while the run goes on; with this weight-transfer path the trainer has to re-form the group.",
+            "Losing an engine breaks the NCCL group that the trainer shares with the engines, and the group is rebuilt by the new pods. The trainer's process ended and the restart policy started a new one, which re-formed the group with the rebuilt fleet. The design assumes the engine can be replaced while the run goes on; with this weight-transfer path the trainer has to re-form the group, so it restarts too.",
+            "A trainer that dies in the middle of a weight push leaves the engines blocked inside the collective, with a health endpoint that still answers. The guard that runs before every trainer start asks the fleet for one token and recreates the group when it does not answer, so that the restart does not depend on anyone noticing.",
             "The checkpoint interval bounds the repeated work. Everything else in the recovery time is the pod's start, the packages, the model and checkpoint load and the NCCL handshake.",
         ],
     },

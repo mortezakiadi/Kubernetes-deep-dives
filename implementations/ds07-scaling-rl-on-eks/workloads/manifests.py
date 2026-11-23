@@ -22,6 +22,32 @@ pip install -q 'nvidia-nccl-cu13=={{NCCL}}' --no-deps 2>&1 | tail -1
 GPU_TOLERATION = [{"key": "nvidia.com/gpu", "operator": "Exists", "effect": "NoSchedule"}]
 
 
+# A trainer that dies in the middle of a weight push leaves the engines inside the NCCL receive: they stay there, their health endpoint keeps
+# answering 200, and every generation request waits forever. A new trainer cannot join the group until the fleet is rebuilt, and nothing in the
+# trainer's own restart policy does that. The guard runs before the trainer starts: it waits for the fleet to be healthy (a fleet that is still
+# being rebuilt is left alone), asks it for one token, and if the answer does not come, deletes the rollout group's leader pod, which makes
+# the LeaderWorkerSet rebuild the whole group.
+FLEET_GUARD = r"""
+URL="${VLLM_URL:-http://rollout-api.rl-scale.svc:8000}"
+fleet_answers() {
+  MODEL=$(curl -s -m 10 "$URL/v1/models" | python3 -c "import sys,json; print(json.load(sys.stdin)['data'][0]['id'])" 2>/dev/null) || return 1
+  [ -n "$MODEL" ] || return 1
+  CODE=$(curl -s -m 45 -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' -d "{\"model\":\"$MODEL\",\"prompt\":\"1+1=\",\"max_tokens\":1}" "$URL/v1/completions")
+  [ "$CODE" = "200" ]
+}
+fleet_healthy() { [ "$(curl -s -m 10 -o /dev/null -w '%{http_code}' "$URL/health")" = "200" ]; }
+for attempt in 1 2 3; do
+  for i in $(seq 1 90); do fleet_healthy && break; sleep 10; done
+  if fleet_answers; then echo "fleet guard: the fleet answers"; break; fi
+  echo "fleet guard: the fleet is healthy but does not answer; recreating the rollout group (attempt $attempt)"
+  TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+  curl -s -m 30 -X DELETE --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt -H "Authorization: Bearer $TOKEN" \
+    "https://kubernetes.default.svc/api/v1/namespaces/rl-scale/pods/rollout-0" -o /dev/null
+  sleep 45
+done
+"""
+
+
 def dump(*docs) -> str:
     """JSON is valid YAML and keeps every string a string (a bare 3e-6 would be read as a number)."""
     return "\n---\n".join(json.dumps(d, indent=1) for d in docs)
@@ -100,7 +126,7 @@ def trainer_jobset(run_id, env, image=VLLM_IMAGE, bucket="", max_restarts=0, gpu
                  {"name": "PYTHONUNBUFFERED", "value": "1"}]
     container = {
         "name": "trainer", "image": image, "command": ["/bin/bash", "-c"],
-        "args": [setup + "\nexec python3 /app/train.py\n"],
+        "args": [setup + FLEET_GUARD + "\nexec python3 /app/train.py\n"],
         "env": env_list,
         "resources": {"limits": {"nvidia.com/gpu": 1}, "requests": {"cpu": "6", "memory": "24Gi"}},
         "volumeMounts": [{"name": "shm", "mountPath": "/dev/shm"}, {"name": "app", "mountPath": "/app"}, {"name": "work", "mountPath": "/work"}],
@@ -175,7 +201,7 @@ def reference_cronjob(env, bucket, schedule="0 3 * * *", nccl_version="2.31.2"):
     env_list = [{"name": k, "value": str(v)} for k, v in {**env, "STATE_BUCKET": bucket}.items()]
     env_list += [{"name": "NCCL_SOCKET_IFNAME", "value": "eth0"}, {"name": "HF_HOME", "value": "/work/hf"}, {"name": "PYTHONUNBUFFERED", "value": "1"}]
     container = {"name": "trainer", "image": VLLM_IMAGE, "command": ["/bin/bash", "-c"],
-                 "args": [setup + "\nexport RUN_ID=reference-$(date +%m%d-%H%M)\nexec python3 /app/train.py\n"], "env": env_list,
+                 "args": [setup + FLEET_GUARD + "\nexport RUN_ID=reference-$(date +%m%d-%H%M)\nexec python3 /app/train.py\n"], "env": env_list,
                  "resources": {"limits": {"nvidia.com/gpu": 1}, "requests": {"cpu": "6", "memory": "24Gi"}},
                  "volumeMounts": [{"name": "shm", "mountPath": "/dev/shm"}, {"name": "app", "mountPath": "/app"}, {"name": "work", "mountPath": "/work"}]}
     cj = {"apiVersion": "batch/v1", "kind": "CronJob", "metadata": {"name": "reference-rung", "namespace": NS},
