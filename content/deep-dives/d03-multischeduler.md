@@ -574,23 +574,41 @@ for step in range(100):
 > kind: PodGroup
 > metadata:
 >   name: trainer-gang
+>   namespace: ml                                 # same namespace as the pods #!
 > spec:
 >   minMember: 8                                  # all 8 workers, or none #!
 >   scheduleTimeoutSeconds: 300                   # then release and retry later
 > ---
-> # in each worker's pod template
+> apiVersion: batch/v1
+> kind: Job
 > metadata:
->   labels:
->     scheduling.x-k8s.io/pod-group: trainer-gang   # joins the group #!
+>   name: trainer
+>   namespace: ml
 > spec:
->   schedulerName: scheduler-plugins-scheduler      # picks that scheduler #!
+>   parallelism: 8                                # 8 worker pods at once #!
+>   completions: 8
+>   completionMode: Indexed                       # each pod gets an index, its rank
+>   backoffLimit: 0
+>   template:
+>     metadata:
+>       labels:
+>         scheduling.x-k8s.io/pod-group: trainer-gang   # joins the group #!
+>     spec:
+>       schedulerName: scheduler-plugins-scheduler      # picks that scheduler #!
+>       restartPolicy: Never
+>       containers:
+>       - name: worker
+>         image: my-company/trainer:2.0
+>         resources:
+>           requests: {cpu: "8", memory: 64Gi, nvidia.com/gpu: 1}
+>           limits:   {cpu: "8", memory: 64Gi, nvidia.com/gpu: 1}
 > ```
 >
 > - **Step 4, check it:** with fewer than 8 workers able to fit, all of them stay Pending instead of 7 starting. Once all 8 fit, they start together:
 >
 > ```bash
-> kubectl get pods -l scheduling.x-k8s.io/pod-group=trainer-gang
-> kubectl get podgroup trainer-gang -o yaml        # status.phase, scheduled, running #!
+> kubectl get pods -n ml -l scheduling.x-k8s.io/pod-group=trainer-gang
+> kubectl get podgroup trainer-gang -n ml -o yaml        # status.phase, scheduled, running #!
 > ```
 >
 > - **On EKS:** you can't replace the default scheduler, so this runs as a second scheduler, which the project installs with a Helm chart. The project itself warns that two schedulers can place pods on the same node at the same moment when the cluster is short of room, and recommends a single scheduler in production. See the [second-scheduler appendix](#appendix-second-scheduler) for running one.
