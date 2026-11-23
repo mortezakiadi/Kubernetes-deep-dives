@@ -500,9 +500,48 @@ for step in range(100):
 
 - **Why a partial start never recovers:** the reason is the **rendezvous barrier**. Distributed PyTorch workers wait until every rank has joined, so 7 of 8 workers will sit on their GPUs forever.
 - **The options sit at different layers:**
-  - the **coscheduling plugin**: a PodGroup with `minMember` and a timeout, inside kube-scheduler;
+  - the **coscheduling plugin**: a PodGroup with `minMember` and a timeout. It is not built into kube-scheduler: it runs in a separate scheduler build from the scheduler-plugins project (see the note below);
   - **Kueue**: decides at the job level whether a job may start;
   - **KAI** or **Volcano**: replace the scheduler.
+
+> **Note: what using the coscheduling plugin involves**
+>
+> - **You don't add it to the default scheduler:** plugins are compiled into the scheduler program, so you can't drop one into a running kube-scheduler. The [scheduler-plugins](https://github.com/kubernetes-sigs/scheduler-plugins) project ships its own kube-scheduler image: the same default plugins plus extras such as Coscheduling.
+> - **Where it hooks in:** not at filter or score. It keeps a group's pods together in the queue (`queueSort`), holds each pod at `permit` after it has been given a node, releases them all once `minMember` are waiting, and frees their nodes (`unreserve`) when the timeout passes. An optional `preFilter` check rejects a group early if it has fewer pods than `minMember` ([coscheduling README](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/pkg/coscheduling/README.md)).
+> - **What you install:** that scheduler image, the PodGroup custom resource, and the project's controller that manages PodGroups, plus permissions for the scheduler to read them ([install guide](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/doc/install.md)).
+> - **Then you turn it on in that scheduler's `KubeSchedulerConfiguration`**, and pods join a group with a label:
+>
+> ```yaml
+> # config of the scheduler-plugins scheduler, passed with --config
+> apiVersion: kubescheduler.config.k8s.io/v1
+> kind: KubeSchedulerConfiguration
+> profiles:
+> - schedulerName: scheduler-plugins-scheduler   # running as a second scheduler #!
+>   plugins:
+>     multiPoint:
+>       enabled:
+>       - name: Coscheduling                      # on at every stage it implements #!
+>       disabled:
+>       - name: PrioritySort                      # its queue sort replaces this one #!
+> ---
+> apiVersion: scheduling.x-k8s.io/v1alpha1
+> kind: PodGroup
+> metadata:
+>   name: trainer-gang
+> spec:
+>   minMember: 8                                  # all 8 workers, or none #!
+>   scheduleTimeoutSeconds: 300                   # then release and retry later
+> ---
+> # in each worker's pod template
+> metadata:
+>   labels:
+>     scheduling.x-k8s.io/pod-group: trainer-gang   # joins the group #!
+> spec:
+>   schedulerName: scheduler-plugins-scheduler      # picks that scheduler #!
+> ```
+>
+> - **On EKS:** you can't replace the default scheduler, so this runs as a second scheduler, which the project installs with a Helm chart. The project itself warns that two schedulers can place pods on the same node at the same moment when the cluster is short of room, and recommends a single scheduler in production. See the [second-scheduler appendix](#appendix-second-scheduler) for running one.
+
 - **Kubernetes' own gang scheduling:** upstream Kubernetes now has a native **Workload API** with gang scheduling: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default (see the note below).
 - **Inference needs it too:** model-parallel *inference* has the same property. If one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
 
