@@ -767,8 +767,13 @@ for step in range(100):
 >
 > - **On EKS:** like the plugins scheduler, both run as an extra scheduler on your nodes. KAI needs the NVIDIA GPU Operator for GPU workloads, and its docs say to submit work in a namespace other than `kai-scheduler`.
 
-- **Option 4, Kubernetes' own gang scheduling (built into kube-scheduler):** the newest way needs no extra project. Upstream Kubernetes now has a native **Workload API** with gang scheduling in the default scheduler itself: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default. On EKS there is no documented way to switch it on yet, so options 1 to 3 are what you can use today (see the note below).
 - **Inference needs it too:** model-parallel *inference* has the same property. If one shard's pod is missing or dies, the whole replica is down, so it needs all-or-nothing scheduling and group restarts too.
+- **Option 4, Kubernetes' own gang scheduling (built into kube-scheduler):** the newest way needs no extra project. Upstream Kubernetes now has a native **Workload API** with gang scheduling in the default scheduler itself: alpha in 1.35, rewritten in 1.36 and beta in 1.37, still off by default. On EKS there is no documented way to switch it on yet, so options 1 to 3 are what you can use today (see the note below).
+  - **When options 1 to 3 still make sense once option 4 is available:** native gang scheduling only places a group all-or-nothing. It needs no extra program, so for that one job it's the simplest choice.
+  - **Option 1, the scheduler-plugins project:** native gang scheduling replaces its coscheduling plugin. The project stays useful when you also want its other plugins, such as hardware-layout-aware or load-aware placement, at the cost of running and upgrading a second scheduler.
+  - **Option 2, Kueue:** still needed for team budgets, queues, borrowing and fair sharing, which native gang scheduling doesn't do. The two work together: Kueue decides when a job may start, and the default scheduler places its pods as one group.
+  - **Option 3, Volcano or KAI:** still worth it when you need what they add, such as GPU topology placement, sharing parts of a GPU or their own queues, and accept replacing the scheduler for those pods.
+  - **On EKS today:** none of this applies yet, because option 4 can't be switched on there, so options 1 to 3 are the ones you can use.
 
 > **Note: Kubernetes' own gang scheduling, and where EKS stands**
 >
