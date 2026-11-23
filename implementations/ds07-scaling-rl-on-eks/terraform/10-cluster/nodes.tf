@@ -60,9 +60,9 @@ locals {
     # The sandbox workers of the environment tier.
     env = { instances = ["c6i.2xlarge"], count = var.env_nodes, subnets = local.private_ids, ami = "AL2023_x86_64_STANDARD", lt = "env", labels = { pool = "env" }, taint = null }
     # One GPU for the trainer. Tainted, so only pods that ask for it land here.
-    trainer = { instances = var.trainer_instance_types, count = 1, subnets = [local.private_ids[0]], ami = "AL2023_x86_64_NVIDIA", lt = "gpu", labels = { pool = "trainer", gpu = "true" }, taint = "nvidia.com/gpu" }
+    trainer = { instances = var.trainer_instance_types, count = 1, subnets = [local.private_ids[var.gpu_az_index]], ami = "AL2023_x86_64_NVIDIA", lt = "gpu", labels = { pool = "trainer", gpu = "true" }, taint = "nvidia.com/gpu" }
     # The rollout engines: one GPU per node, in the same zone as the trainer.
-    rollout = { instances = [var.rollout_instance_type], count = var.rollout_nodes, subnets = [local.private_ids[0]], ami = "AL2023_x86_64_NVIDIA", lt = "gpu", labels = { pool = "rollout", gpu = "true" }, taint = "nvidia.com/gpu" }
+    rollout = { instances = var.rollout_instance_types, count = var.rollout_nodes, subnets = local.private_ids, ami = "AL2023_x86_64_NVIDIA", lt = "gpu", labels = { pool = "rollout", gpu = "true" }, taint = "nvidia.com/gpu" }
   }
 }
 resource "aws_eks_node_group" "system" {

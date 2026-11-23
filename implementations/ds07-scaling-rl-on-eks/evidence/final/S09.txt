@@ -11,11 +11,13 @@ pod "rollout-0-1" deleted from rl-scale namespace
 
 $ python recovery.py fail-engine   # from the run's records and the pod's log
 JobSet: completed=True restarts=1
-last step logged before the failure: 14
-first step logged after it:          11  (2.4 minutes after the failure)
-steps done twice:                    4
+last step logged before the failure: 17
+first step logged after it:          11  (3.1 minutes after the failure)
+steps done twice:                    7
 log: restored 15 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-engine/; newest complete checkpoint: checkpoint-10
-reserved GPU time 423 s x 3 GPUs; productive 257 s -> goodput 61% over 44 steps
+log: fleet guard: the fleet answers
+old pod, last lines before it was replaced: raise RuntimeError( | RuntimeError: Weight sync to the vLLM server at http://rollout-api.rl-scale.svc:8000 failed. The server keeps 
+reserved GPU time 397 s x 3 GPUs; productive 193 s -> goodput 48% over 44 steps
 
 $ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
 ready
@@ -23,15 +25,18 @@ ready
 $ kubectl apply -f trainer-fail-pod.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; the trainer's pod is deleted once the run is past step 14
 
 $ kubectl delete pod -l run=fail-pod
-pod "trainer-fail-pod-trainer-0-0-cbpvg" deleted from rl-scale namespace
+pod "trainer-fail-pod-trainer-0-0-lvchk" deleted from rl-scale namespace
 
 $ python recovery.py fail-pod   # from the run's records and the pod's log
 JobSet: completed=True restarts=1
-last step logged before the failure: 20
-first step logged after it:          11  (2.9 minutes after the failure)
-steps done twice:                    10
-log: restored 24 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-pod/; newest complete checkpoint: checkpoint-10
-reserved GPU time 437 s x 3 GPUs; productive 232 s -> goodput 53% over 44 steps
+last step logged before the failure: 19
+first step logged after it:          11  (5.0 minutes after the failure)
+steps done twice:                    9
+log: restored 19 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-pod/; newest complete checkpoint: checkpoint-10
+log: fleet guard: the fleet is healthy but does not answer; recreating the rollout group (attempt 1)
+log: fleet guard: the fleet answers
+old pod, last lines before it was replaced: NCCL version 2.31.2+cuda13.3
+reserved GPU time 507 s x 3 GPUs; productive 182 s -> goodput 36% over 44 steps
 
 $ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
 ready
@@ -42,12 +47,14 @@ $ aws ec2 terminate-instances --instance-ids <the trainer node>
 shutting-down
 
 $ python recovery.py fail-node   # from the run's records and the pod's log
-JobSet: completed=True restarts=1
-last step logged before the failure: 20
-first step logged after it:          11  (7.7 minutes after the failure)
-steps done twice:                    10
-log: restored 24 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-node/; newest complete checkpoint: checkpoint-10
-reserved GPU time 727 s x 3 GPUs; productive 232 s -> goodput 32% over 44 steps
+JobSet: completed=False restarts=1
+last step logged before the failure: 22
+first step logged after it:          None  (nan minutes after the failure)
+steps done twice:                    n/a
+log: no restore line
+old pod, last lines before it was replaced: (no error line)
+trainer node type: g6e.2xlarge before, none after
+reserved GPU time 80 s x 3 GPUs; productive 80 s -> goodput 100% over 21 steps
 
 [PASS] after a rollout engine's pod is deleted, the run goes on and completes all 45 steps without anyone's help
 [PASS] after a rollout engine's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated
@@ -55,8 +62,8 @@ reserved GPU time 727 s x 3 GPUs; productive 232 s -> goodput 32% over 44 steps
 [PASS] after the trainer's pod is deleted, the run goes on and completes all 45 steps without anyone's help
 [PASS] after the trainer's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated
 [PASS] after the trainer's pod is deleted, the run is stepping again within fifteen minutes
-[PASS] after the trainer's node is terminated, the run goes on and completes all 45 steps without anyone's help
-[PASS] after the trainer's node is terminated, the first step is the one after a checkpoint, and no more than ten steps are repeated
-[PASS] after the trainer's node is terminated, the run is stepping again within fifteen minutes
-[PASS] the checkpoint came from the bucket, not from the node that failed (node drill)
-[PASS] losing an engine is not absorbed: the trainer cannot go on without the fleet, so the trainer restarts too (finding)
+[FAIL] after the trainer's node is terminated, the run goes on and completes all 45 steps without anyone's help
+[FAIL] after the trainer's node is terminated, the first step is the one after a checkpoint, and no more than ten steps are repeated
+[FAIL] after the trainer's node is terminated, the run is stepping again within fifteen minutes
+[FAIL] the checkpoint came from the bucket, not from the node that failed (node drill)
+[PASS] losing an engine is not absorbed: the trainer's process ends and is restarted too (finding)

@@ -8,7 +8,7 @@ variable "region" {
   default = "us-east-1"
 }
 variable "azs" {
-  description = "Three zones. The GPU nodes all go to the first, so weight transfer and rollouts stay inside one zone."
+  description = "Three zones. The GPU nodes all go to one of them (gpu_az_index), so weight transfer and rollouts stay inside one zone."
   type        = list(string)
   default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
 }
@@ -25,9 +25,10 @@ variable "trainer_instance_types" {
   type        = list(string)
   default     = ["g5.2xlarge", "g5.4xlarge", "g6.2xlarge", "g6e.2xlarge"]
 }
-variable "rollout_instance_type" {
-  type    = string
-  default = "g5.2xlarge"
+variable "rollout_instance_types" {
+  description = "In order of preference, like the trainer's. The engines are independent of each other, so they may land on different GPU types."
+  type        = list(string)
+  default     = ["g5.2xlarge", "g5.4xlarge", "g6.2xlarge", "g6e.2xlarge"]
 }
 variable "rollout_nodes" {
   type    = number
@@ -37,4 +38,9 @@ variable "env_nodes" {
   description = "CPU nodes for the sandbox (environment) tier."
   type        = number
   default     = 2
+}
+variable "gpu_az_index" {
+  description = "Which of the zones the GPU pools use. The first (us-east-1a) ran out of every GPU type I listed during S09, so the build moved to the second."
+  type        = number
+  default     = 1
 }

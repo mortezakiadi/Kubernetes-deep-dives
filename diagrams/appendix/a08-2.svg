@@ -29,7 +29,7 @@
 <text x="67" y="507" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a time and memory limit, answer</text>
 <text x="67" y="524" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">KEDA scales them on queue length</text>
 <rect x="400" y="70" width="400" height="650" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
-<text x="414" y="94" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">TRAINER POOL: 1 x g5.2xlarge (A10G, 24 GB)</text>
+<text x="414" y="94" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">TRAINER POOL: 1 x g5.2xlarge first choice (A10G, 24 GB)</text>
 <rect x="420" y="110" width="360" height="150" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
 <rect x="420" y="110" width="360" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
 <rect x="421" y="128" width="358" height="12" fill="#eff6ff"/>

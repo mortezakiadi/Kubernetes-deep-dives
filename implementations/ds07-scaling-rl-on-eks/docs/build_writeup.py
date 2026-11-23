@@ -19,6 +19,7 @@ from scenario_prose import PROSE  # noqa: E402
 
 MAX_LINES, MAX_WIDTH = 16, 200
 CHART_DIR = None
+EVIDENCE_DIR = None
 
 
 def clip(text: str) -> str:
@@ -58,6 +59,22 @@ def scenario_section(ev: dict) -> str:
         out.append("")
     out.append("```")
     out.append("")
+    extra = EVIDENCE_DIR / f"{sid}-first-run.txt" if EVIDENCE_DIR else None
+    if extra is not None and extra.exists():
+        lines, keep = extra.read_text().splitlines(), []
+        start = next((i for i, l in enumerate(lines) if l.startswith("$ python recovery.py fail-node")), None)
+        if start is not None:
+            keep = [lines[start]]
+            for l in lines[start + 1:]:
+                if l.startswith("$ ") or l.startswith("["):
+                    break
+                keep.append(l)
+            out.append("**The same node drill, in the first run of this scenario** (before the trainer pool had fallback instance types and before the start-up guard existed; the replacement node was launched that time):")
+            out.append("")
+            out.append("```text")
+            out.extend(keep)
+            out.append("```")
+            out.append("")
     out.append("**What each check proved, and why the output is what it is:**")
     out.append("")
     out.append("| Result | Check | Why this output (what I implemented that causes it) |")
@@ -89,8 +106,9 @@ def main():
 
     shots = repo / "diagrams" / "appendix" / "a08-evidence"
     shots.mkdir(parents=True, exist_ok=True)
-    global CHART_DIR
+    global CHART_DIR, EVIDENCE_DIR
     CHART_DIR = evidence
+    EVIDENCE_DIR = evidence
     for i in ids:
         shutil.copy(evidence / f"{i}.png", shots / f"{i}.png")
     for chart in evidence.glob("S[0-9][0-9]-*.png"):

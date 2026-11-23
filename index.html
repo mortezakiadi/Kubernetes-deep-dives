@@ -286,7 +286,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li class="notes"><a href="#appendix-design-03-eks">D. Design 03 on EKS (built and tested)</a></li>
 <li class="notes"><a href="#appendix-design-04-eks">E. Design 04 on EKS (built and tested)</a></li>
 <li class="notes"><a href="#appendix-design-05-eks">F. Design 05 on AWS (built and tested)</a></li>
-<li class="notes"><a href="#appendix-design-06-eks">G. Design 06 on EKS (built and tested)</a></li></ul>
+<li class="notes"><a href="#appendix-design-06-eks">G. Design 06 on EKS (built and tested)</a></li>
+<li class="notes"><a href="#appendix-design-07-eks">H. Design 07 on AWS (built and tested)</a></li></ul>
     </nav>
   </aside>
   <main>
@@ -301,7 +302,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>18 deep dives</li>
         <li>37 designs</li>
-        <li>1102 scenario sections</li>
+        <li>1125 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -20580,6 +20581,993 @@ Three other pages already teach parts of this topic, and this page links to them
 <li>IAM, Roles: the four <code>ds06-posttrain-*</code> workload roles and their prefix policies.</li>
 <li>VPC: the VPC with its three private subnets, the NAT gateway and the S3 endpoint.</li>
 </ul></div>
+</section>
+
+<section class="entry appendix" id="appendix-design-07-eks" aria-labelledby="appendix-design-07-eks-h">
+  <header class="entry-head">
+    <span class="tag">Appendix</span>
+    <h2 id="appendix-design-07-eks-h">Appendix H: Design 07 built and tested on AWS (EKS, vLLM, asynchronous GRPO)</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#a08-1">Context: the problem, the actors and who talks to whom</a></li><li><a href="#appendix-design-07-eks-the-software-i-implemented-and-used">The software I implemented and used</a></li><li><a href="#a08-6">Topology and instances</a></li><li><a href="#a08-2">Architecture</a></li><li><a href="#a08-4">How it is implemented</a></li><li><a href="#appendix-design-07-eks-where-reality-differed-from-the-design-and-from-the-documentation">Where reality differed from the design and from the documentation</a></li><li><a href="#appendix-design-07-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-07-eks-s01-the-platform-gpu-pools-controllers-the-rollout-fleet-and-the-network-between-them">S01: The platform: GPU pools, controllers, the rollout fleet and the network between them</a></li><li><a href="#appendix-design-07-eks-s02-rung-1-recipe-search-and-the-compute-performance-curve">S02: Rung 1: recipe search and the compute-performance curve</a></li><li><a href="#appendix-design-07-eks-s03-where-the-time-goes-the-step-time-breakdown-in-gpu-seconds">S03: Where the time goes: the step-time breakdown, in GPU-seconds</a></li><li><a href="#appendix-design-07-eks-s04-long-answers-and-the-rollout-queue-what-an-over-provisioned-fleet-costs">S04: Long answers and the rollout queue: what an over-provisioned fleet costs</a></li><li><a href="#appendix-design-07-eks-s05-weight-sync-how-long-a-push-takes-by-model-size-and-fleet-size">S05: Weight sync: how long a push takes, by model size and fleet size</a></li><li><a href="#appendix-design-07-eks-s06-numerics-the-mismatch-between-the-rollout-engine-and-the-trainer">S06: Numerics: the mismatch between the rollout engine and the trainer</a></li><li><a href="#appendix-design-07-eks-s07-the-environment-tier-a-sandbox-pool-that-scales-on-its-queue">S07: The environment tier: a sandbox pool that scales on its queue</a></li><li><a href="#appendix-design-07-eks-s08-stability-a-composite-alert-the-last-healthy-checkpoint-and-a-rollback-that-changes-something">S08: Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something</a></li><li><a href="#appendix-design-07-eks-s09-failures-lose-an-engine-a-trainer-pod-a-whole-trainer-node">S09: Failures: lose an engine, a trainer pod, a whole trainer node</a></li><li><a href="#appendix-design-07-eks-s10-the-ladder-one-axis-per-rung-exit-criteria-and-a-reference-rung">S10: The ladder: one axis per rung, exit criteria, and a reference rung</a></li><li><a href="#appendix-design-07-eks-what-i-did-not-build">What I did not build</a></li><li><a href="#appendix-design-07-eks-what-to-look-at-in-the-aws-console">What to look at in the AWS Console</a></li><li><a href="#appendix-design-07-eks-reproducing-it-and-taking-it-down">Reproducing it, and taking it down</a></li></ol></nav>
+  <div class="prose"><p>This appendix describes a working, scaled-down implementation of <a href="#design-scaling-rl">Design 07: Scaling RL beyond the small-run regime</a>. I built it with Terraform in one AWS account and one region: a cluster with one trainer GPU, two rollout GPUs on two nodes, and CPU pools for the controllers and for a sandbox pool. A 0.6-billion-parameter model learns grade-school maths from a verifiable reward, in runs of 20 to 80 steps. Around those runs I built what the design says a platform needs: a step-time breakdown, a rollout queue sized to the trainer, a weight push that is timed by model size, a measurement of the mismatch between the rollout engine and the trainer, an environment tier that scales on its queue, composite alerts and a rollback that changes something, <mark class="kw-act">checkpoints</mark> that survive the node, a restart policy, and the ladder with its exit criteria.</p>
+<p>The order is the one a reader needs: first the context, then the software I used, the topology and instances, and the architecture, then how it is implemented, and then the scenarios I tested, with the commands I ran, what they printed, why the result can be trusted and why you get that output.</p>
+<p><strong>What "scaled down" means here.</strong> The design's run is a 235B mixture-of-experts model, answers up to 64K tokens, thousands of steps and about 200,000 GPU hours. This build has three GPUs, a model 400 times smaller, answers up to 3,072 tokens and runs that cost between 0.05 and 0.5 GPU hours. What carries over is the architecture (a trainer and a rollout fleet joined by <mark class="kw-tool">NCCL</mark> weight transfer, an asynchronous trainer with a staleness bound, a queue-driven environment tier, checkpoints and a restart policy) and the measurements the design asks for at every rung. What does not carry over is any claim about 235B: where a number is extrapolated, the text says so and shows the arithmetic.</p>
+<p><strong>Why standard EKS, and why these tools.</strong> The trainer is TRL's <code>AsyncGRPOTrainer</code>, which the library's own documentation describes as decoupling generation from training with a background rollout worker and NCCL weight sync to a <mark class="kw-tool">vLLM</mark> server. That is the design's architecture, so I used it instead of writing a trainer. The rollout fleet is vLLM 0.33 with its NCCL weight-transfer engine. I ran it on standard EKS and not on Auto Mode, because the GPU pools need the NVIDIA node image, a <mark class="kw">taint</mark>, a pinned zone and an instance type chosen per pool.</p>
+<p>9 of 10 scenarios passed, 61 of 65 checks.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Title</th>
+<th>Checks passed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S01</td>
+<td>The platform: GPU pools, controllers, the rollout fleet and the network between them</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S02</td>
+<td>Rung 1: recipe search and the compute-performance curve</td>
+<td>5 of 5</td>
+</tr>
+<tr>
+<td>S03</td>
+<td>Where the time goes: the step-time breakdown, in GPU-seconds</td>
+<td>7 of 7</td>
+</tr>
+<tr>
+<td>S04</td>
+<td>Long answers and the rollout queue: what an over-provisioned fleet costs</td>
+<td>7 of 7</td>
+</tr>
+<tr>
+<td>S05</td>
+<td>Weight sync: how long a push takes, by model size and fleet size</td>
+<td>7 of 7</td>
+</tr>
+<tr>
+<td>S06</td>
+<td>Numerics: the mismatch between the rollout engine and the trainer</td>
+<td>6 of 6</td>
+</tr>
+<tr>
+<td>S07</td>
+<td>The environment tier: a sandbox pool that scales on its queue</td>
+<td>5 of 5</td>
+</tr>
+<tr>
+<td>S08</td>
+<td>Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something</td>
+<td>7 of 7</td>
+</tr>
+<tr>
+<td>S09</td>
+<td>Failures: lose an engine, a trainer pod, a whole trainer node</td>
+<td>7 of 11</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>The ladder: one axis per rung, exit criteria, and a reference rung</td>
+<td>6 of 6</td>
+</tr>
+</tbody>
+</table>
+<p>The four checks that fail are all in the node drill of S09. The zone had no GPU capacity to replace the node I terminated, for forty minutes and across all four instance types the pool allowed. I left the failure in: it is a measurement of what losing a GPU node costs on on-demand capacity, and the first run of the same drill (shown inside S09) recovered in 7.7 minutes.</p>
+<h3 id="a08-1">Context: the problem, the actors and who talks to whom</h3>
+<p><strong>Scenario.</strong> The recipe from Design 06 works on an 8B model with short answers on 32 GPUs. The team now wants a model nearly thirty times larger, answers sixteen times longer, ten times more steps and a budget of about 200,000 GPU hours. The first attempt at one eighth of that scale ran at 11% GPU utilisation, spent 40% of each step waiting for weight sync, and collapsed on day nine with no obvious cause. Nobody could say which of the five things that changed was responsible.</p>
+<p>Six terms are used throughout.</p>
+<ul>
+<li><strong>Rollout.</strong> One answer to one prompt, generated by the rollout fleet. A <strong>group</strong> is the answers to one prompt (eight here), <mark class="kw-act">scored</mark> together.</li>
+<li><strong>Rollout fleet.</strong> The <mark class="kw-tool">vLLM</mark> engines that generate answers. They hold a copy of the policy and know nothing about gradients.</li>
+<li><strong>Weight push.</strong> Sending the trainer's current parameters into the engines over <mark class="kw-tool">NCCL</mark>, once every step or every few steps. Generation is paused while it happens.</li>
+<li><strong>Staleness.</strong> How many weight versions behind the policy that wrote a sample is, when the trainer uses it. A sample older than the bound is dropped.</li>
+<li><strong>Rung.</strong> One run in the scaling ladder, which changes exactly one axis (recipe, length, model size, tokens per step, steps) from the rung below.</li>
+<li><strong>Goodput.</strong> The share of the reserved GPU time that went into steps that counted.</li>
+</ul>
+<figure class="diagram"><button aria-label="Open diagram full screen: Who uses the platform and what it runs" class="open" data-src="diagrams/appendix/a08-1.svg" data-title="Who uses the platform and what it runs" type="button"><img alt="Diagram: Who uses the platform and what it runs" decoding="async" loading="lazy" src="diagrams/appendix/a08-1.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Three people use the platform: the research team chooses the recipe and reads the curves, the platform team owns the cluster and the restart policy, and the on-call engineer gets the alert when a run drifts or stalls. Four things run on it: a trainer, a rollout fleet, an environment tier and a state bucket, with a restart policy and a set of measurements around them.</p>
+<p><strong>The path of one training step.</strong></p>
+<ol>
+<li>The trainer's rollout worker keeps up to 64 rollouts in flight against the rollout fleet's one address. Each answer comes back with the probability the engine gave every token.</li>
+<li>When a group is complete it is <mark class="kw-act">scored</mark> (an exact-match check for maths, a chain of calls into the sandbox pool for code), and its advantages are computed within the group.</li>
+<li>The scored samples wait in a queue, each stamped with the weight version that produced it.</li>
+<li>The trainer takes four groups, drops any that are too stale, recomputes the probabilities of the same tokens with its own kernels, and does a forward and backward pass.</li>
+<li>It then asks the fleet to pause, broadcasts the new weights to every engine over <mark class="kw-tool">NCCL</mark>, and tells the fleet to resume. Every tenth step it also evaluates the policy on 200 held-out problems through the fleet's own API.</li>
+<li>Every N steps the trainer writes a <mark class="kw-act">checkpoint</mark> to the node, and a thread copies it to the bucket and marks it complete last.</li>
+</ol>
+<h3 id="appendix-design-07-eks-the-software-i-implemented-and-used">The software I implemented and used</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Component</th>
+<th>What it does here</th>
+<th>Where</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>VPC, EKS 1.37, node pools</strong></td>
+<td>One zone for every GPU node; system, environment, trainer and rollout pools; a gateway endpoint to S3.</td>
+<td><code>terraform/10-cluster</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>NVIDIA device plugin</strong></td>
+<td>Advertises each GPU as <code>nvidia.com/gpu</code> to the scheduler.</td>
+<td><code>terraform/20-platform</code></td>
+<td>Installed (v0.20.2)</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>JobSet</strong></td>
+<td>Runs the trainer and recreates it after a failure (<code>maxRestarts</code>).</td>
+<td><code>terraform/20-platform</code></td>
+<td>Installed (v0.13.1)</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>LeaderWorkerSet</strong></td>
+<td>Runs the rollout fleet as one group of two pods, one engine each, rebuilt together.</td>
+<td><code>terraform/20-platform</code></td>
+<td>Installed (v1.0.0)</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>KEDA</strong></td>
+<td>Scales the sandbox pool on the length of a Redis list.</td>
+<td><code>terraform/20-platform</code></td>
+<td>Installed (v2.21.1)</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>vLLM 0.33.0</strong></td>
+<td>The rollout engines, with data-parallel engines across two nodes and the NCCL weight-transfer engine.</td>
+<td>image <code>vllm/vllm-openai:v0.33.0</code></td>
+<td>Used as shipped</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>TRL 1.18.2 <code>AsyncGRPOTrainer</code></strong></td>
+<td>The asynchronous trainer: background rollout worker, staleness bound, importance weights, score centering.</td>
+<td>installed into the trainer pod</td>
+<td>Used as shipped</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Trainer wrapper</strong></td>
+<td>The recipe as environment variables, held-out evaluation, metrics file, checkpoint copier, restore, rollback, watchdog.</td>
+<td><code>workloads/train.py</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Sandbox worker</strong></td>
+<td>Pops a call, runs the answer's code in a child process with time and memory limits, answers on a result list.</td>
+<td><code>workloads/sandbox_worker.py</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Weight-push benchmark</strong></td>
+<td>Pushes a model of a chosen size from the trainer's GPU into the fleet, repeatedly, and times it.</td>
+<td><code>workloads/sync_bench.py</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Mismatch probe</strong></td>
+<td>Scores the same sampled answers with the engine and with the trainer's forward pass.</td>
+<td><code>workloads/mismatch_probe.py</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>Manifest builders</strong></td>
+<td>Every manifest the tests apply, from plain parameters.</td>
+<td><code>workloads/manifests.py</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>13</td>
+<td><strong>Drift alerts and ladder gate</strong></td>
+<td>The composite alert rule, the last-healthy-checkpoint query, the one-axis check and the exit-criteria gate.</td>
+<td><code>tests/drift.py</code>, <code>tests/ladder.py</code>, <code>recipes/ladder/</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>Scenario runner and screenshot renderer</strong></td>
+<td>Runs S01 to S10, records commands and output, redacts private values, draws terminal-style screenshots and the charts.</td>
+<td><code>tests/</code></td>
+<td>Written</td>
+</tr>
+</tbody>
+</table>
+<p>The Terraform is about 520 lines, the workload code (trainer wrapper, manifests, worker, benchmark, probe) about 730 lines, and the test code about 1,500 lines.</p>
+<h3 id="a08-6">Topology and instances</h3>
+<figure class="diagram"><button aria-label="Open diagram full screen: Instances" class="open" data-src="diagrams/appendix/a08-6.svg" data-title="Instances" type="button"><img alt="Diagram: Instances" decoding="async" loading="lazy" src="diagrams/appendix/a08-6.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Seven nodes: two small ones for the controllers, two CPU nodes for the sandbox pool, one GPU node for the trainer and two for the rollout fleet. All three GPUs are NVIDIA A10G with 24 GB when the build starts; the trainer's pool lists three other single-GPU types to fall back on (see the findings). Everything that carries weights or samples is in one zone, so none of it crosses a zone boundary, which is billed in both directions. While it is up the cluster costs about $6 an hour.</p>
+<h3 id="a08-2">Architecture</h3>
+<figure class="diagram"><button aria-label="Open diagram full screen: The cluster" class="open" data-src="diagrams/appendix/a08-2.svg" data-title="The cluster" type="button"><img alt="Diagram: The cluster" decoding="async" loading="lazy" src="diagrams/appendix/a08-2.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The trainer pod is alone on its node. It talks to the rollout fleet's leader pod over HTTP (pause, update, resume) and broadcasts weights to both engines over <mark class="kw-tool">NCCL</mark>. The sandbox workers reach the trainer's rollout worker through a Redis list in the system pool. A thread in the trainer pod copies each <mark class="kw-act">checkpoint</mark> to the state bucket, and a watchdog thread ends the process if it stops making progress.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: One step" class="open" data-src="diagrams/appendix/a08-3.svg" data-title="One step" type="button"><img alt="Diagram: One step" decoding="async" loading="lazy" src="diagrams/appendix/a08-3.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> One step as the trainer's own timers report it. While the trainer does its backward pass the engines generate; while the weights load, the engines generate nothing. On this network the push takes about as long as the whole training computation.</p>
+<h3 id="a08-4">How it is implemented</h3>
+<p><strong>Layer 1: the cluster.</strong> One VPC with three private and three public subnets and one NAT gateway, an EKS 1.37 cluster with the <mark class="kw-tool">VPC CNI</mark> (<mark class="kw">prefix delegation</mark> on, so the CPU nodes can run about a hundred small pods each), and four managed node groups. The GPU groups use the EKS NVIDIA node image and a <mark class="kw">taint</mark>; every pod that wants a GPU tolerates it. A pod-identity association gives the trainer's service account access to one S3 bucket and nothing else.</p>
+<p><strong>Layer 2: the platform.</strong> The <mark class="kw">device plugin</mark>, <mark class="kw-tool">JobSet</mark>, <mark class="kw-tool">LeaderWorkerSet</mark>, <mark class="kw-tool">KEDA</mark> and a Redis. Nothing that belongs to one experiment is installed here: the tests apply the trainer, the rollout fleet and the sandbox pool, so every experiment starts from a known state.</p>
+<p><strong>The rollout fleet.</strong> A LeaderWorkerSet of group size two. The leader pod runs <code>vllm serve</code> with two data-parallel engines declared and its own engine; the worker pod runs the same command headless and starts as engine 1. The leader serves the API on port 8000 and a Service in front of it is the trainer's one address. The weight-transfer group spans both engines (world size 3 with the trainer). The fleet gets 70% of each GPU's memory, because the weight receive needs about 2 GiB of buffers outside that budget (S05 shows the failure at 95%).</p>
+<p><strong>The trainer.</strong> A JobSet of one job with one pod. The pod starts from the <mark class="kw-tool">vLLM</mark> image, installs TRL and a matching <code>transformers</code>, pins <mark class="kw-tool">NCCL</mark> to the engines' version, and runs the wrapper. The recipe is a set of environment variables (model, learning rate, group size, staleness bound, weight-push interval, queue size, answer length, thinking mode and so on), so a run is described by a handful of lines the test prints before it starts.</p>
+<p><strong>Evaluation and metrics.</strong> Every tenth step the wrapper sends 200 held-out GSM8K problems, four samples each, to the fleet's own API and grades the answers with the same checker as the reward. The compute axis of every curve is GPU hours: the run's own clock times the three GPUs it holds, with the evaluation's time left out. Every logged step is appended to a metrics file with its timestamps.</p>
+<p><strong>Checkpoints and recovery.</strong> <mark class="kw-act">Checkpoints</mark> go to the node's disk, and a thread uploads each file and then writes a <code>COMPLETE</code> marker last, so a half-copied checkpoint is never used. A new trainer pod restores the newest complete checkpoint from the bucket before it starts, and the library resumes the prompt cursor with it. A watchdog thread exits the process if no step finishes for 420 seconds, because NCCL has no timeout and a hang is not restarted by anything. Before the trainer starts, a guard checks that the fleet answers, and rebuilds it if it does not.</p>
+<p><strong>The environment tier.</strong> For the code task each answer sends four calls at once: a call is a message on a Redis list, a worker pops it, runs the code in a child process with a time and memory limit, and answers on a result list. KEDA reads the length of the list every five seconds and sets the replica count from it. This is a throwaway pod running a few lines of arithmetic, not a hardened sandbox; Design 01 builds that.</p>
+<p><strong>The ladder.</strong> Rungs are overlay files that extend each other. Each declares one axis and may set only the settings of that axis; a function checks this before anything is scheduled. A gate function takes the overlay's exit criteria and the measured values and returns climb or hold, with every criterion shown.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: The ladder" class="open" data-src="diagrams/appendix/a08-4.svg" data-title="The ladder" type="button"><img alt="Diagram: The ladder" decoding="async" loading="lazy" src="diagrams/appendix/a08-4.svg"/><span class="hint">Open full screen</span></button></figure>
+<figure class="diagram"><button aria-label="Open diagram full screen: Recovery" class="open" data-src="diagrams/appendix/a08-5.svg" data-title="Recovery" type="button"><img alt="Diagram: Recovery" decoding="async" loading="lazy" src="diagrams/appendix/a08-5.svg"/><span class="hint">Open full screen</span></button></figure>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>The trainer is an existing library, on purpose.</strong> The design is about the platform around a trainer, not the trainer. What I wrote is everything that makes a run measurable and recoverable: the recipe as data, the evaluation, the metrics, the <mark class="kw-act">checkpoint</mark> copier, the restore, the rollback and the watchdog.</li>
+<li><strong>The rollout fleet is one API server for two engines.</strong> <mark class="kw-tool">vLLM</mark>'s data-parallel mode puts one OpenAI-compatible server in front of engines on several nodes. The trainer sees one address and one world size, and the weight push reaches both.</li>
+<li><strong>JSON, not YAML.</strong> The manifests are generated as JSON. A YAML scalar such as <code>3e-6</code> is read as a number, and Kubernetes then refuses it as an environment variable's value.</li>
+</ul></div></details>
+
+<h3 id="appendix-design-07-eks-where-reality-differed-from-the-design-and-from-the-documentation">Where reality differed from the design and from the documentation</h3>
+<p>These are findings, confirmed on the live system.</p>
+<ul>
+<li><strong>NCCL versions must match to the patch, and <code>pip</code> breaks them.</strong> Installing the trainer's packages on top of the <mark class="kw-tool">vLLM</mark> image downgraded <mark class="kw-tool">NCCL</mark> from 2.31.2 to 2.30.7, the version torch pins. The trainer's group with the engines then failed with "NCCL version mismatch with remote peer", and the HTTP call that starts the group waited forever, because the trainer-side error is raised in a thread and the engines wait for a peer that never joins. The fix is to pin NCCL after the install.</li>
+<li><strong>The weight receive needs memory outside the KV budget.</strong> At the documented 90% of GPU memory the first push failed with an out-of-memory error: the receive buffers are two copies of 1 GiB. The fleet runs at 70%. S05 reproduces the failure on purpose.</li>
+<li><strong>The trainer sends fp32 to bf16 engines.</strong> The master weights are fp32 and the manifest declares their dtype, so each push carries twice the bytes the engines keep, and the engines log a warning for every tensor. The push sizes in S05 are bf16, as the design counts them.</li>
+<li><strong>A health probe that misses once can end the run.</strong> Under load the API server missed its readiness probe, the Service lost its only endpoint, and the trainer got "connection refused" and died. The Service now publishes not-ready addresses, and the probe has a longer timeout and a longer threshold.</li>
+<li><strong>An over-sized rollout queue wastes the fleet and stalls the sync.</strong> The library's default allows 512 rollouts in flight. With four groups used per step, thousands of samples were generated and dropped as too stale, and the request to pause the fleet waited behind them for more than a minute (77 seconds in the run of S04, 130 in an earlier one). S04 measures it. The recipe now allows 64.</li>
+<li><strong>Four vCPUs are not enough for a vLLM node.</strong> The first rollout nodes (4 vCPUs) starved the API server and the engine; the pool moved to 8 vCPUs. The GPU capacity of a type also differs by zone: <code>g6.2xlarge</code> had no capacity in the zone I had chosen for the trainer, and the node group waited 18 minutes with no instance before I looked at its scaling activity.</li>
+<li><strong>The first evaluation measured the previous run's policy.</strong> The trainer's own start-of-training hook pushes the first weights, and my evaluation hook ran before it. The starting <mark class="kw-act">score</mark> of a new run was the last run's final score. The evaluation now runs at the start of the first step.</li>
+<li><strong>Math-verify cannot run in threads.</strong> Its timeouts use signals. The evaluation sends its requests from threads and grades the answers afterwards in the main thread.</li>
+<li><strong>The staleness metric counts weight versions, not steps.</strong> Pushing every fourth step lowers the count by four and the samples are not fresher; S03 shows both units.</li>
+<li><strong>Two flag combinations that look right are refused.</strong> On the data-parallel leader, naming <code>--data-parallel-start-rank 0</code> turns on a mode in which the headless worker is rejected, and a Service named like the <mark class="kw-tool">LeaderWorkerSet</mark> replaces the <mark class="kw">headless Service</mark> the group's pods are found by.</li>
+<li><strong>A run whose groups all score the same never takes a step.</strong> The trainer drops a group whose answers all get the same reward, because it carries no gradient. My first code task was so easy for the base model that every answer passed every test: two runs sat at step 0 until the watchdog ended them, with the sandbox pool answering calls all the while. The tasks are now five kinds that the base model gets 24% to 69% right, measured before choosing them.</li>
+<li><strong>A step is a token budget, not a number of groups.</strong> The trainer packs samples into rows of 4,096 tokens (the engine's maximum length) and takes two rows a step. A maths step is about 35 samples; a step of short code answers is about 190, so the code task needs five times as many <mark class="kw-act">scored</mark> groups per step as the maths task and loads the environment tier accordingly.</li>
+<li><strong>The environment tier is bounded by how the trainer scores.</strong> It scores one group at a time and sends a group's calls together, so at most about thirty calls wait in the queue, and <mark class="kw-tool">KEDA</mark> grew the pool to 12 workers, not to the 40 it was allowed. A deeper queue needs more groups scored at once, which this trainer does not do.</li>
+<li><strong>A Redis client's default socket timeout killed the sandbox workers.</strong> Their blocking pop of five seconds outlasted the client's own read timeout, and each worker exited every two minutes with "Timeout reading from socket". The timeout is now set explicitly and the loop survives a Redis error.</li>
+<li><strong>A long push can fall towards the instance's baseline bandwidth.</strong> The instance type is advertised as "up to 10 Gbit/s" and its baseline is 5. Pushes of 8 GB or less ran at 9.4 to 9.8 Gbit/s. The 8B model's push of 16 GB into two engines ran at 4.9, 6.6 and 7.9 Gbit/s in three runs of the scenario, and its push into one engine at 9.8. S05 reads the baseline and the peak from the EC2 API and checks that the rate stays between them.</li>
+<li><strong>Two runs with the same settings do not give the same curve.</strong> The unstable recipe of S08 collapsed at step 20 in one attempt and was gone by step 35 in another, and the baseline's starting score varied between 0.57 and 0.63 across runs on the same 200 problems. The appendix claims orders (the alert before the collapse) and not step numbers.</li>
+<li><strong>A trainer that dies during a weight push wedges the fleet.</strong> In one run of S09 I deleted the trainer's pod while it was pushing weights. Both engines stayed inside the NCCL receive: their health endpoint kept answering 200, every generation request waited, the engines' log said "some processes are hanging", and three restarts of the trainer did not help, because a new trainer cannot join a group whose members are still in the old collective. The trainer's own restart policy cannot fix that; the fleet has to be rebuilt. The trainer now starts with a guard that asks the fleet for one token and, if the answer does not come, deletes the rollout group's leader pod so that the LeaderWorkerSet rebuilds the whole group. S09 runs with the guard.</li>
+<li><strong>A GPU node that is lost may not come back.</strong> After the node drill of one S09 run, the replacement <code>g5.2xlarge</code> could not be launched: the zone had no capacity for it for more than ninety minutes, and the trainer's pod stayed pending that whole time. I gave the trainer pool three more single-GPU types to fall back on (<code>g5.4xlarge</code>, <code>g6.2xlarge</code>, <code>g6e.2xlarge</code>). The next replacement came up as a <code>g6e.2xlarge</code> with a different GPU, which is why S09 prints the node type before and after the drill and S10 does not judge the reference run's step time against a baseline from another GPU. The design's hot spares are the real answer; they are not built.</li>
+<li><strong>A tool job can hold the GPU forever.</strong> A benchmark whose peer died blocked in NCCL for two and a half hours and kept every later job pending. Every tool job now has a deadline and is deleted when it is exceeded.</li>
+</ul>
+<h3 id="appendix-design-07-eks-5-the-scenarios-i-tested">5. The scenarios I tested</h3>
+<p><strong>Scenario.</strong> The design makes specific promises. I turned each into a scenario that runs real commands against the live cluster, trains, breaks and measures, and decides pass or fail from the output, with no human judgement in the loop.</p>
+<p><strong>How to read this section.</strong></p>
+<ul>
+<li>Lines starting with <code>kubectl</code> and <code>aws</code> run against the cluster and the account. Lines starting with <code>python</code> are the analysis scripts of the test, run over the records the runs wrote; their output is computed from those records. A line that names a <mark class="kw-tool">JobSet</mark> is a training run whose settings are listed under it.</li>
+<li>A run of "r1-center" is the baseline recipe: Qwen3-0.6B, GSM8K, learning rate 3e-6, 80 steps, eight answers per group, four groups per step, at most 64 rollouts in flight. Every other run changes the setting its title names and nothing else.</li>
+<li>Training is noisy. A held-out <mark class="kw-act">score</mark> is the mean of 800 samples and has a standard error of about 0.02, so differences below that are not claimed.</li>
+<li>Some scenarios read back a run an earlier scenario made. The transcript says so.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s01-the-platform-gpu-pools-controllers-the-rollout-fleet-and-the-network-between-them">S01: The platform: GPU pools, controllers, the rollout fleet and the network between them</h3>
+<p><strong>Design reference:</strong> The platform.</p>
+<p><strong>What this tests.</strong> Show what the experiments run on: which nodes and GPUs, which controllers, how the rollout fleet is laid out, and how fast the network between the trainer and the rollout nodes really is.</p>
+<p>Before any run, I show what the experiments stand on: the GPUs the scheduler can hand out and where they are, the controllers that restart, place and scale the workloads, the rollout fleet's layout, and the network between the trainer's node and the rollout nodes, measured and not assumed.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S01: The platform: GPU pools, controllers, the rollout fleet and the network between them" class="open" data-src="diagrams/appendix/a08-evidence/S01.png" data-title="S01: The platform: GPU pools, controllers, the rollout fleet and the network between them" type="button"><img alt="Diagram: S01: The platform: GPU pools, controllers, the rollout fleet and the network between them" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S01.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl get nodes -L pool,instance-type,zone</span><span class="ln">NAME                           STATUS   ROLES    AGE   VERSION               POOL      INSTANCE-TYPE   ZONE</span><span class="ln">ip-10-70-0-25.ec2.internal     Ready    &lt;none&gt;   31h   v1.37.1-eks-9adbfea   env       c6i.2xlarge     us-east-1a</span><span class="ln">ip-10-70-11-243.ec2.internal   Ready    &lt;none&gt;   18h   v1.37.1-eks-9adbfea   rollout   g5.2xlarge      us-east-1a</span><span class="ln">ip-10-70-24-160.ec2.internal   Ready    &lt;none&gt;   31h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1b</span><span class="ln">ip-10-70-41-228.ec2.internal   Ready    &lt;none&gt;   31h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1c</span><span class="ln">ip-10-70-44-171.ec2.internal   Ready    &lt;none&gt;   31h   v1.37.1-eks-9adbfea   env       c6i.2xlarge     us-east-1c</span><span class="ln">ip-10-70-8-162.ec2.internal    Ready    &lt;none&gt;   78m   v1.37.1-eks-9adbfea   trainer   g5.2xlarge      us-east-1a</span><span class="ln">ip-10-70-8-28.ec2.internal     Ready    &lt;none&gt;   18h   v1.37.1-eks-9adbfea   rollout   g5.2xlarge      us-east-1a</span><span class="ln"> </span><span class="ln">$ kubectl get nodes -o json   <span class="tc"># GPUs the scheduler can hand out (allocatable nvidia.com/gpu of each GPU node)</span></span><span class="ln">rollout  g5.2xlarge   nvidia.com/gpu=1</span><span class="ln">rollout  g5.2xlarge   nvidia.com/gpu=1</span><span class="ln">trainer  g5.2xlarge   nvidia.com/gpu=1</span><span class="ln"> </span><span class="ln">$ kubectl get crd jobsets leaderworkersets scaledobjects</span><span class="ln">jobsets.jobset.x-k8s.io                     Namespaced   v1alpha2(storage)   2026-11-22T04:42:58Z</span><span class="ln">leaderworkersets.leaderworkerset.x-k8s.io   Namespaced   v1(storage)         2026-11-22T04:43:08Z</span><span class="ln">scaledobjects.keda.sh                       Namespaced   v1alpha1(storage)   2026-11-22T04:43:03Z</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-scale get pods -l leaderworkerset.sigs.k8s.io/name=rollout -o wide</span><span class="ln">NAME          READY   STATUS    RESTARTS   AGE    IP            NODE                           NOMINATED NODE   READINESS GATES</span><span class="ln">rollout-0     1/1     Running   0          101m   10.70.8.66    ip-10-70-8-28.ec2.internal     &lt;none&gt;           &lt;none&gt;</span><span class="ln">rollout-0-1   1/1     Running   0          101m   10.70.6.193   ip-10-70-11-243.ec2.internal   &lt;none&gt;           &lt;none&gt;</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-scale exec rollout-0 -- curl -s localhost:8000/get_world_size   <span class="tc"># engines the trainer must reach with NCCL</span></span><span class="ln">{"world_size":2}</span><span class="ln"> </span><span class="ln">$ kubectl exec iperf-client -- iperf3 -c &lt;rollout node pod&gt; -P 4 -t 15   <span class="tc"># trainer node to rollout node</span></span><span class="ln">[ 11]   0.00-15.00  sec  2.51 GBytes  1.44 Gbits/sec                  receiver</span><span class="ln">[SUM]   0.00-15.00  sec  17.4 GBytes  9.93 Gbits/sec   72             sender</span><span class="ln">[SUM]   0.00-15.00  sec  17.3 GBytes  9.93 Gbits/sec                  receiver</span><span class="ln"> </span><span class="ln">iperf Done.</span><span class="ln"> </span><span class="ln">$ <span class="tc"># what that means for a weight push</span></span><span class="ln">measured 9.93 Gbit/s = 1.24 GB/s</span><span class="ln">0.6B model, bf16 (1.2 GB):   1.0 s</span><span class="ln">8B model, bf16 (16 GB):      12.9 s</span><span class="ln">235B model, bf16 (470 GB):   6.3 minutes at this rate</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>one trainer GPU and two rollout GPUs are schedulable, all in one zone</td>
+<td>The NVIDIA device plugin advertises each GPU as nvidia.com/gpu. All three nodes are in one zone so weight transfer and rollouts never cross a zone boundary, which is billed in both directions.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>JobSet, LeaderWorkerSet and KEDA are installed</td>
+<td>JobSet restarts the trainer, LeaderWorkerSet runs the rollout fleet, KEDA scales the environment tier. Terraform installs them; the tests install only the workloads.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the rollout fleet is two engines on two nodes behind one address</td>
+<td>vLLM runs one data-parallel engine per node: the leader pod serves the API and the worker pod joins headless. The trainer talks to the leader only, and the weight-transfer group spans both engines.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the trainer-to-rollout network was measured, not assumed</td>
+<td>iperf3 sends from a pod on the trainer node to a pod on a rollout node with four parallel streams for fifteen seconds. The result sizes every weight push in S05; the design tells us to size it like a serving path.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The node and GPU figures are read from the Kubernetes API, not from the Terraform that asked for them.</li>
+<li>The network figure is iperf3's receiver-side result, with four parallel streams for fifteen seconds, between a pod on the trainer's node and a pod on a rollout node.</li>
+<li>The world size is what the engine itself reports to anyone who asks, which is what the trainer asks before it forms the <mark class="kw-tool">NCCL</mark> group.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>All three GPU nodes are in one zone because the node groups are pinned to one subnet.</li>
+<li>The rate is close to 10 Gbit/s because the instance type's network performance is 'up to 10 Gbit/s', and nothing else in the path is slower.</li>
+<li>The world size is two because the leader pod's engine and the worker pod's engine are both data-parallel ranks of one server.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s02-rung-1-recipe-search-and-the-compute-performance-curve">S02: Rung 1: recipe search and the compute-performance curve</h3>
+<p><strong>Design reference:</strong> Predict before you spend: compute-performance curves.</p>
+<p><strong>What this tests.</strong> Run three recipes of the same small model for the same number of steps, measure held-out accuracy against compute, fit the design's saturating curve to each, and check what the fit can and cannot say.</p>
+<p>The design's first rung is a recipe search at a few percent of the budget, with the held-out <mark class="kw-act">score</mark> fitted against compute so that the recipe with the higher ceiling is chosen and not the one that happens to be ahead. I ran three recipes of the same model for the same 80 steps, fitted the design's saturating curve to each, and asked the platform what it can and cannot conclude.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S02: Rung 1: recipe search and the compute-performance curve" class="open" data-src="diagrams/appendix/a08-evidence/S02.png" data-title="S02: Rung 1: recipe search and the compute-performance curve" type="button"><img alt="Diagram: S02: Rung 1: recipe search and the compute-performance curve" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S02.png"/><span class="hint">Open full screen</span></button></figure>
+<figure class="diagram"><button aria-label="Open diagram full screen: S02: curves, drawn from the run data" class="open" data-src="diagrams/appendix/a08-evidence/S02-curves.png" data-title="S02: curves, drawn from the run data" type="button"><img alt="Diagram: S02: curves, drawn from the run data" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S02-curves.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl -n rl-scale get lws rollout   <span class="tc"># 2 engine(s), settings: defaults</span></span><span class="ln">ready</span><span class="ln"> </span><span class="ln">$ kubectl apply -f trainer-r1-center.yaml   <span class="tc"># a JobSet: center (lr 3e-6)</span></span><span class="ln">CKPT_EVERY=1000</span><span class="ln">EVAL_EVERY=10</span><span class="ln">EVAL_PROBLEMS=200</span><span class="ln">GPUS_HELD=3</span><span class="ln">LEARNING_RATE=3e-6</span><span class="ln">MAX_CONCURRENT=64</span><span class="ln">MAX_STEPS=80</span><span class="ln"> </span><span class="ln">$ kubectl get jobset trainer-r1-center</span><span class="ln">completed=True failed=False restarts=0  records=91</span><span class="ln"> </span><span class="ln">$ kubectl apply -f trainer-r1-surrogate.yaml   <span class="tc"># a JobSet: surrogate (no score centering)</span></span><span class="ln">CKPT_EVERY=1000</span><span class="ln">EVAL_EVERY=10</span><span class="ln">EVAL_PROBLEMS=200</span><span class="ln">GPUS_HELD=3</span><span class="ln">LEARNING_RATE=3e-6</span><span class="ln">MAX_CONCURRENT=64</span><span class="ln">MAX_STEPS=80</span><span class="ln">SCORE_CENTERING=0</span><span class="ln"> </span><span class="ln">$ kubectl get jobset trainer-r1-surrogate</span><span class="ln">completed=True failed=False restarts=0  records=91</span><span class="ln"> </span><span class="ln">$ kubectl apply -f trainer-r1-lr1e6.yaml   <span class="tc"># a JobSet: small step (lr 1e-6)</span></span><span class="ln">CKPT_EVERY=1000</span><span class="ln">EVAL_EVERY=10</span><span class="ln">EVAL_PROBLEMS=200</span><span class="ln">GPUS_HELD=3</span><span class="ln">LEARNING_RATE=1e-6</span><span class="ln">MAX_CONCURRENT=64</span><span class="ln">MAX_STEPS=80</span><span class="ln"> </span><span class="ln">$ kubectl get jobset trainer-r1-lr1e6</span><span class="ln">completed=True failed=False restarts=0  records=91</span><span class="ln"> </span><span class="ln">$ python fit_curves.py   <span class="tc"># held-out pass rate against GPU hours, fitted with R0 + (A - R0) / (1 + (C_mid / C) ** B)</span></span><span class="ln">recipe                            start  end   ceiling A      B     C_mid(GPU h)</span><span class="ln">center (lr 3e-6)                  0.627  0.704  0.734 ± 0.444  6.00  0.241</span><span class="ln">surrogate (no score centering)    0.581  0.681  0.681 ± 0.034  1.41  0.081</span><span class="ln">small step (lr 1e-6)              0.598  0.649  1.000 ± 13.600  1.41  1.294</span><span class="ln"> </span><span class="ln">$ python rank.py   <span class="tc"># rank by ceiling only where the 2-standard-error intervals do not overlap</span></span><span class="ln">small step (lr 1e-6)  vs  center (lr 3e-6): not ranked: the intervals overlap</span><span class="ln">center (lr 3e-6)  vs  surrogate (no score centering): not ranked: the intervals overlap</span><span class="ln"> </span><span class="ln">$ python rank.py --self-check   <span class="tc"># the rule on three made-up ceilings: 0.70 and 0.69 (overlap), 0.55 (clear)</span></span><span class="ln">x vs y: not ranked: the intervals overlap</span><span class="ln">y vs z: ranked</span><span class="ln"> </span><span class="ln">$ python extrapolate.py   <span class="tc"># fit on the first half of each run, compare with the second half</span></span><span class="ln">center (lr 3e-6)                  mean |predicted - observed| = 0.051</span><span class="ln">surrogate (no score centering)    mean |predicted - observed| = 0.018</span><span class="ln">small step (lr 1e-6)              mean |predicted - observed| = 0.012</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>each recipe ran 80 steps and was evaluated on the same 200 held-out problems at nine fixed steps</td>
+<td>The evaluation calls the rollout fleet's own API, so it measures the policy the fleet is serving, on the first 200 problems of the GSM8K test split, four samples each. The compute axis counts all three GPUs the run holds and leaves the evaluation's own time out.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the starting score is the same for every recipe, within the evaluation's own noise</td>
+<td>All three start from the same model. A spread larger than the sampling noise of 800 samples (about 0.02 standard error) would mean the runs did not start from the same policy.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the saturating curve fits every recipe and reports an uncertainty on the ceiling</td>
+<td>The ceiling A is the score the recipe approaches with unlimited compute; its standard error comes from the fit's covariance. A ceiling estimated from points that have not passed the curve's midpoint is weak, and the error shows it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the ranking rule refuses to rank recipes whose ceiling intervals overlap and ranks those that do not</td>
+<td>A ranking from overlapping intervals would be a coin flip dressed as a decision. The platform shows the interval and withholds the order.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the fit on the first half of each run predicts the second half to within about three standard errors of the evaluation</td>
+<td>This is the trust the design says to attach to a curve: the gap between what the early part of the run predicted and what the later part showed. One evaluation of 800 samples has a standard error of about 0.02.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Every recipe is evaluated at the same nine steps on the same 200 problems, four samples each, by the fleet's own API, so the evaluation measures the policy the fleet is serving.</li>
+<li>The compute axis is the run's own clock times the three GPUs it holds, with the time spent evaluating taken out.</li>
+<li>The ranking rule and the extrapolation check are the design's own statements turned into code; the rule is also shown on three made-up ceilings so that its behaviour does not depend on how the real ones land.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The fit has wide error bars because 80 steps did not take any recipe past the midpoint of its curve; the design warns that a ceiling estimated before the midpoint is weak, and the covariance of the fit says so.</li>
+<li>The recipes are not ranked because their intervals overlap. That is the correct output of the rule, not a failure to run it.</li>
+<li>The second half of each run is predicted from the first half to within about 0.05 or better, because at this length the curves are close to straight lines and a saturating curve fits them.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s03-where-the-time-goes-the-step-time-breakdown-in-gpu-seconds">S03: Where the time goes: the step-time breakdown, in GPU-seconds</h3>
+<p><strong>Design reference:</strong> Where the time goes: the step-time breakdown.</p>
+<p><strong>What this tests.</strong> Break one training step into its stages, weight each stage by the GPUs that are held while it runs, and find the stage to attack. Then change the setting that stage points to, and measure what it buys and what it costs.</p>
+<p>The design says that at 14 minutes a step nobody knows whether to buy rollout GPUs, optimise the trainer or fix the network. Here a step takes about four seconds, and the same question has an answer: the trainer's own timers split it, and the split is weighted by the GPUs each stage holds. Then I change the setting that the largest stage points to, and measure what it buys and what it costs.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S03: Where the time goes: the step-time breakdown, in GPU-seconds" class="open" data-src="diagrams/appendix/a08-evidence/S03.png" data-title="S03: Where the time goes: the step-time breakdown, in GPU-seconds" type="button"><img alt="Diagram: S03: Where the time goes: the step-time breakdown, in GPU-seconds" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S03.png"/><span class="hint">Open full screen</span></button></figure>
+<figure class="diagram"><button aria-label="Open diagram full screen: S03: step, drawn from the run data" class="open" data-src="diagrams/appendix/a08-evidence/S03-step.png" data-title="S03: step, drawn from the run data" type="button"><img alt="Diagram: S03: step, drawn from the run data" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S03-step.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl -n rl-scale get lws rollout   <span class="tc"># 2 engine(s), settings: defaults</span></span><span class="ln">ready</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;state bucket&gt;/runs/r1-center/metrics.jsonl -   <span class="tc"># the run 'center (lr 3e-6)' made earlier in this session</span></span><span class="ln">91 records, 80 training steps, 9 evaluations</span><span class="ln"> </span><span class="ln">$ python breakdown.py r1-center   <span class="tc"># median over the steps of the run, from the trainer's own per-stage timers</span></span><span class="ln">step (wall clock between logged steps)   3.82 s</span><span class="ln">  weight sync (pause + NCCL transfer)     2.06 s   (transfer 2.01, pause 0.04)</span><span class="ln">  forward + backward + optimizer          1.83 s   (backward 1.47, log-probs 0.36, optimizer 0.002)</span><span class="ln">  trainer waiting for rollouts            0.00 s</span><span class="ln">  not accounted for                       0.00 s</span><span class="ln"> </span><span class="ln">$ python gpu_seconds.py r1-center   <span class="tc"># the same step, weighted by the GPUs held (3 GPUs x step time)</span></span><span class="ln">trainer GPU: training                            1.83 GPU-s   16.0%</span><span class="ln">trainer GPU: sending weights                     2.06 GPU-s   18.0%</span><span class="ln">trainer GPU: waiting                             0.00 GPU-s    0.0%</span><span class="ln">2 rollout GPUs: paused for the weight load       4.12 GPU-s   36.0%</span><span class="ln">2 rollout GPUs: generating                       3.51 GPU-s   30.6%</span><span class="ln">reserved                                        11.45 GPU-s</span><span class="ln"> </span><span class="ln">$ <span class="tc"># run ws4: read back from the state bucket (already complete)</span></span><span class="ln">47 records</span><span class="ln"> </span><span class="ln">$ python compare.py r1-center ws4   <span class="tc"># first 40 steps of each: weights every step, then every fourth step</span></span><span class="ln">                                             every step   every 4th step</span><span class="ln">mean seconds per step (evaluation left out)        4.00           2.49</span><span class="ln">mean weight-sync seconds per step                  2.08           0.75</span><span class="ln">staleness, in weight versions behind               2.99           0.89</span><span class="ln">staleness, in training steps (versions x interval)       2.99           3.54</span><span class="ln">GPU hours at step 40                              0.149          0.098</span><span class="ln">held-out pass rate at step 40                     0.662          0.605   (start 0.580)</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>every step of the run carries its stage timers</td>
+<td>The trainer measures weight sync, the log-probability pass, backward, optimizer and its wait for rollouts on every step, and writes them with the step's other metrics.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the stages account for the step: no more than 10% of it is unexplained waiting</td>
+<td>The ladder's exit criterion in the design is that unexplained waiting stays under 10% of the step. Here the unexplained time is what remains of the wall clock after the three measured stages.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the weight sync is the largest single stage of the step</td>
+<td>With a 0.6B model on one node the sync still takes about as long as the whole training computation. The trainer sends parameters in fp32 (the master copy) to bf16 engines on another node, over the node network.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>while the weights load, the rollout GPUs are idle for a large share of their time</td>
+<td>vLLM pauses generation for the transfer. That makes the sync a share of every reserved GPU-second, not only of the step's clock: it is what the design's 'wait for weight sync' figure means.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>sending the weights every fourth step cuts the time spent syncing by more than half</td>
+<td>The transfer happens a quarter as often; the steps in between pay only for the training computation.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>and it cuts the GPU hours needed to reach step 40 by at least a fifth</td>
+<td>GPU hours count the three reserved GPUs and leave the evaluation out. The rollout engines are no longer paused for three steps of every four.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the run with the cheaper step still learns</td>
+<td>The held-out score at step 40 is not below the starting score by more than the evaluation's noise. The price of pushing less often is policy lag: the engines sample from weights up to three updates behind the trainer, which the importance ratio corrects (S06).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The stage times are the trainer's own timers for each step (weight sync, backward, log-probabilities, optimizer, waiting), written with the step's other metrics; the step's wall clock comes from the run's own timestamps.</li>
+<li>Medians are used for the breakdown, because the steps that evaluate or <mark class="kw-act">checkpoint</mark> include that work and would pull a mean up.</li>
+<li>The comparison run differs from the baseline in one setting, the interval of the weight push, and starts from the same weights.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The weight sync is the largest stage because the trainer sends its fp32 master weights to engines that keep bf16, over a network that carries about 1.2 GB a second, and the engines generate nothing while they load them.</li>
+<li>Two of the three GPUs are idle for the whole transfer, which is why the share of reserved GPU-seconds lost to the sync is larger than its share of the step.</li>
+<li>Pushing every fourth step removes three transfers in four. The engines then sample from weights up to three updates behind, which the importance ratio corrects; S06 measures the size of that correction.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s04-long-answers-and-the-rollout-queue-what-an-over-provisioned-fleet-costs">S04: Long answers and the rollout queue: what an over-provisioned fleet costs</h3>
+<p><strong>Design reference:</strong> Long trajectories and the long tail.</p>
+<p><strong>What this tests.</strong> Compare the same recipe with a rollout queue sized to the trainer and with one sized to the fleet, with and without asynchrony, and with a mode that makes answers ten times longer.</p>
+<p>The design's long-tail section is about answers whose lengths vary fifty-fold and a synchronous step that waits for the slowest. The asynchronous trainer should hide that, and it does, up to a point: this scenario measures what an over-sized rollout queue costs, what turning the asynchrony off costs, and what happens to the trainer when the answers become ten times longer.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S04: Long answers and the rollout queue: what an over-provisioned fleet costs" class="open" data-src="diagrams/appendix/a08-evidence/S04.png" data-title="S04: Long answers and the rollout queue: what an over-provisioned fleet costs" type="button"><img alt="Diagram: S04: Long answers and the rollout queue: what an over-provisioned fleet costs" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S04.png"/><span class="hint">Open full screen</span></button></figure>
+<figure class="diagram"><button aria-label="Open diagram full screen: S04: queue, drawn from the run data" class="open" data-src="diagrams/appendix/a08-evidence/S04-queue.png" data-title="S04: queue, drawn from the run data" type="button"><img alt="Diagram: S04: queue, drawn from the run data" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S04-queue.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl -n rl-scale get lws rollout   <span class="tc"># 2 engine(s), settings: defaults</span></span><span class="ln">ready</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;state bucket&gt;/runs/r1-center/metrics.jsonl -   <span class="tc"># the run 'queue sized to the trainer (64 rollouts in flight)' made earlier in this session</span></span><span class="ln">91 records, 80 training steps, 9 evaluations</span><span class="ln"> </span><span class="ln">$ <span class="tc"># run q512: read back from the state bucket (already complete)</span></span><span class="ln">46 records</span><span class="ln"> </span><span class="ln">$ <span class="tc"># run sync0: read back from the state bucket (already complete)</span></span><span class="ln">47 records</span><span class="ln"> </span><span class="ln">$ python compare.py r1-center q512 sync0   <span class="tc"># 40 steps of the same recipe, three ways of running it</span></span><span class="ln">                                     64 in flight   512 in flight   staleness 0</span><span class="ln">samples trained on                            979            1275           1132</span><span class="ln">samples dropped as too stale                   86            5070           2858</span><span class="ln">longest weight-sync pause (s)                 0.2            77.5            0.1</span><span class="ln">GPU hours to reach step 40                  0.149           0.356          0.306</span><span class="ln">median seconds per step                      3.82            3.87           8.64</span><span class="ln">trainer wait for rollouts (median s)         0.00            0.00           4.73</span><span class="ln">held-out pass rate at step 40               0.662           0.671          0.645</span><span class="ln"> </span><span class="ln">$ <span class="tc"># run think: read back from the state bucket (already complete)</span></span><span class="ln">25 records</span><span class="ln"> </span><span class="ln">$ python compare.py r1-center think   <span class="tc"># answer lengths and step time, short answers against thinking mode</span></span><span class="ln">                                         short answers   thinking mode</span><span class="ln">mean answer length (tokens)                        306            1588</span><span class="ln">longest answer in a step (tokens, mean)            682            2334</span><span class="ln">answers cut at the limit                          2.3%           32.4%</span><span class="ln">mean seconds per step                              4.0            10.5</span><span class="ln">share of the step the trainer waits for rollouts          4.4%           62.1%</span><span class="ln">seconds to finish a group of answers (median)           3.8            30.2</span><span class="ln">tokens generated per second (median)              2543            1855</span><span class="ln">held-out pass rate at the start                  0.573           0.752</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-scale exec rollout-0 -- curl -s localhost:8000/metrics | grep cache_config_info   <span class="tc"># how many long answers fit on one engine</span></span><span class="ln">15960 blocks of 16 tokens = 255,360 tokens of KV cache; the engine reports a maximum concurrency of 31.2 requests at the full length of 4096 tokens</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>a queue sized to the fleet throws away far more samples than one sized to the trainer</td>
+<td>The trainer uses a few dozen samples a step. A fleet allowed 512 rollouts in flight generates thousands, and a sample older than the staleness bound is dropped when the trainer reaches it. Those tokens were generated for nothing.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the over-sized queue stalls the weight sync: a pause of more than 20 seconds appears, and never with the sized one</td>
+<td>The trainer asks the fleet to pause, and the request waits behind the work already in flight. With a shorter queue there is little to wait for.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the over-sized queue costs more GPU hours to reach the same step</td>
+<td>GPU hours are the three reserved GPUs times the run's time, with the evaluation left out.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>without asynchrony each step takes longer: generation and training no longer overlap</td>
+<td>With a staleness bound of 0 the rollouts for step n+1 start only after the weights of step n have loaded. The trainer then waits for the first groups.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>thinking mode makes answers several times longer</td>
+<td>The same model and prompts, with its reasoning turned on. Every group of answers now takes seconds, not a fraction of one.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the longest answers hit the limit, and a large share is cut</td>
+<td>An answer cut at the limit is a failed answer to the reward function. How such answers are counted (masked or penalised) is a Design 06 choice that interacts with the budget.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the trainer now waits for rollouts for a visible share of its time, which it did not with short answers</td>
+<td>With short answers the fleet runs ahead of the trainer and the asynchrony hides the generation time. With answers of thousands of tokens the slowest group of a step decides when the trainer can go on: the long tail.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The three queue runs differ in one setting each (rollouts in flight, staleness bound) and share everything else, including the starting weights and the prompt order.</li>
+<li>Dropped samples, pause times and GPU hours come from the trainer's own metrics and the run's own clock.</li>
+<li>The long-answer run uses the same model and prompts with its reasoning switched on, so the only change is the length axis.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>A fleet allowed 512 rollouts in flight generates thousands of samples while the trainer uses a few dozen a step. A sample that is older than the staleness bound when the trainer reaches it is dropped, so those tokens were paid for and thrown away.</li>
+<li>The request to pause the fleet waits behind the work in flight, which is why the weight sync stalls when the queue is long.</li>
+<li>With the staleness bound at zero the next batch of rollouts starts only after the weights load, so generation and training no longer overlap and the trainer waits for the first groups.</li>
+<li>With long answers the slowest group of a step decides when the trainer can go on. Asynchrony hides this while the fleet is ahead; once the answers are long enough that it is not, the trainer's wait shows up.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s05-weight-sync-how-long-a-push-takes-by-model-size-and-fleet-size">S05: Weight sync: how long a push takes, by model size and fleet size</h3>
+<p><strong>Design reference:</strong> Larger models: two layouts and the weight sync between them.</p>
+<p><strong>What this tests.</strong> Push models of 0.6B to 8B parameters from the trainer's GPU into the rollout fleet over <mark class="kw-tool">NCCL</mark>, with one engine and with two, packed and unpacked, and compare with what the network can carry. Then use the measured rate to price a model of 235B.</p>
+<p>The design's section on larger models says to size the weight push like a serving path. I pushed models of 0.6B to 8B parameters from the trainer's GPU into the rollout fleet, with the same NCCL call the training runs use, with one engine and with two, packed and unpacked, then used the measured rate to price a model of 235B, and finally reproduced the out-of-memory failure that made me run the engines at 70% of the GPU.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S05: Weight sync: how long a push takes, by model size and fleet size" class="open" data-src="diagrams/appendix/a08-evidence/S05.png" data-title="S05: Weight sync: how long a push takes, by model size and fleet size" type="button"><img alt="Diagram: S05: Weight sync: how long a push takes, by model size and fleet size" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S05.png"/><span class="hint">Open full screen</span></button></figure>
+<figure class="diagram"><button aria-label="Open diagram full screen: S05: sync, drawn from the run data" class="open" data-src="diagrams/appendix/a08-evidence/S05-sync.png" data-title="S05: sync, drawn from the run data" type="button"><img alt="Diagram: S05: sync, drawn from the run data" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S05-sync.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl exec iperf-client -- iperf3 -c &lt;rollout node pod&gt; -P 4 -t 10   <span class="tc"># trainer node to rollout node</span></span><span class="ln">[ 11]   0.00-10.00  sec  3.77 GBytes  3.24 Gbits/sec                  receiver</span><span class="ln">[SUM]   0.00-10.00  sec  11.6 GBytes  9.94 Gbits/sec    0             sender</span><span class="ln">[SUM]   0.00-10.00  sec  11.6 GBytes  9.93 Gbits/sec                  receiver</span><span class="ln"> </span><span class="ln">iperf Done.</span><span class="ln"> </span><span class="ln">$ <span class="tc"># the node network, from the same pods as in S01</span></span><span class="ln">9.93 Gbit/s = 1.24 GB/s</span><span class="ln"> </span><span class="ln">$ aws ec2 describe-instance-types --instance-types g5.2xlarge   <span class="tc"># what the instance type promises</span></span><span class="ln">baseline 5.0 Gbit/s, peak 10.0 Gbit/s ('Up to 10 Gigabit')</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/sync-qwen3-06b-e2   <span class="tc"># Qwen/Qwen3-0.6B into 2 engine(s), dummy weights on the engine side</span></span><span class="ln">1.19 GB; first push 1.04 s; median of the next 1.01 s (min 1.00, max 1.02); 1.18 GB/s per engine</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/sync-qwen3-17b-e2   <span class="tc"># Qwen/Qwen3-1.7B into 2 engine(s), dummy weights on the engine side</span></span><span class="ln">3.44 GB; first push 2.85 s; median of the next 2.83 s (min 2.82, max 3.16); 1.22 GB/s per engine</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/sync-qwen3-4b-e2   <span class="tc"># Qwen/Qwen3-4B into 2 engine(s), dummy weights on the engine side</span></span><span class="ln">8.04 GB; first push 6.66 s; median of the next 6.55 s (min 6.53, max 6.61); 1.23 GB/s per engine</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/sync-qwen3-8b-e2   <span class="tc"># Qwen/Qwen3-8B into 2 engine(s), dummy weights on the engine side</span></span><span class="ln">16.38 GB; first push 17.54 s; median of the next 16.63 s (min 16.49, max 17.47); 0.99 GB/s per engine</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/sync-qwen3-8b-e1   <span class="tc"># Qwen/Qwen3-8B into 1 engine(s), dummy weights on the engine side</span></span><span class="ln">16.38 GB; first push 13.33 s; median of the next 13.38 s (min 13.38, max 13.39); 1.22 GB/s per engine</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/sync-qwen3-06b-e1   <span class="tc"># Qwen/Qwen3-0.6B into 1 engine(s), dummy weights on the engine side</span></span><span class="ln">1.19 GB; first push 1.01 s; median of the next 0.99 s (min 0.99, max 0.99); 1.20 GB/s per engine</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/sync-packed-N, sync-unpacked-N   <span class="tc"># Qwen3-1.7B, packed buffers and one broadcast per tensor, alternating, two rounds</span></span><span class="ln">packed:   2.84 s, 2.88 s</span><span class="ln">unpacked: 2.82 s, 2.83 s</span><span class="ln"> </span><span class="ln">$ python table.py   <span class="tc"># what was measured</span></span><span class="ln">model       GB     engines  median push (s)  GB/s per engine  Gbit/s per engine</span><span class="ln">Qwen3-0.6B    1.2        2             1.01             1.18               9.43</span><span class="ln">Qwen3-1.7B    3.4        2             2.83             1.22               9.73</span><span class="ln">Qwen3-4B      8.0        2             6.55             1.23               9.83</span><span class="ln">Qwen3-8B     16.4        2            16.63             0.99               7.88</span><span class="ln">Qwen3-8B     16.4        1            13.38             1.22               9.79</span><span class="ln">Qwen3-0.6B    1.2        1             0.99             1.20               9.61</span><span class="ln"> </span><span class="ln">$ python price.py   <span class="tc"># a 235B-parameter model in bf16 (470 GB) at the rate measured for the 8B model</span></span><span class="ln">0.99 GB/s per engine -&gt; 477 s (8.0 minutes) for one full push</span><span class="ln">the design's 10 s needs 47 GB/s = 376 Gbit/s per engine; this network carries 9.9 Gbit/s</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/sync-headroom   <span class="tc"># the engine given 95% of the GPU's memory, then asked to receive a push</span></span><span class="ln">(EngineCore pid=125) ERROR 11-23 04:44:36 [core.py:1849] torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.00 GiB. GPU 0 has a total capacity of 22.30 GiB of which 850.69 MiB is free. P…</span><span class="ln">Exception: Call to collective_rpc method failed: CUDA out of memory. Tried to allocate 1.00 GiB. GPU 0 has a total capacity of 22.30 GiB of which 850.69 MiB is free. Process 318063 has 21.46 GiB memo…</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>every size from 0.6B to 8B was pushed into the fleet and the push completed</td>
+<td>The trainer's GPU holds a bf16 model of the same architecture as the engines. The call is the one the real runs use: the engines receive packed buffers and load them in place.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the push time grows with the model's size, roughly in proportion</td>
+<td>Once the model is bigger than a buffer, the transfer is bandwidth-bound: bytes divided by the rate of the slowest link. The time grows a little faster than the size, for the reason in the next check.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the push rate stays between the instance type's baseline and its peak bandwidth, and drops towards the baseline for the largest model</td>
+<td>The instance type promises 5 Gbit/s sustained and 10 Gbit/s for a burst. A fifteen-second iperf run and a one-second push fit in the burst; a push of 16 GB that is repeated does not, and settles near the baseline.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a second engine does not double the push time</td>
+<td>A broadcast sends each byte once from the trainer into the group, so adding receivers costs far less than sending to each in turn.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>at this network's rate the design's 10-second push of a 235B model is out of reach by more than an order of magnitude</td>
+<td>The design says to move weights over the GPU fabric, not the pod network. This cluster has no GPU fabric between nodes, which is why its sync stage looks the way it does in S03.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>packing does not slow the push: the gap between packed and unpacked is no larger than the spread between repeats</td>
+<td>Packing cuts the number of NCCL calls. With a few hundred tensors the saving is small next to the time the bytes take on the wire, and the same configuration varies from run to run by about as much as the two variants differ.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>an engine that spends the whole GPU on its KV budget cannot receive the weights</td>
+<td>The packed receive buffers are two copies of 1 GiB on the engine's GPU, outside the memory fraction vLLM was told to use. This is why the rollout fleet runs at 70% here and not the 90% the documentation shows for an 80 GB GPU.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The engines are started with dummy weights and the trainer builds the same architecture with random weights, so nothing is downloaded and the measurement is of the transfer alone.</li>
+<li>Each size is pushed six times and the first push, which includes setup, is reported separately from the median of the rest.</li>
+<li>The network figure comes from iperf3 on the same pods in the same scenario.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The push rate is close to the network's rate because a packed NCCL broadcast over sockets is bandwidth-bound once the model is larger than a buffer.</li>
+<li>A second engine costs less than double because the trainer sends each byte once into a group that includes both receivers.</li>
+<li>The 235B figure is arithmetic on the measured rate, not a measurement. It shows how far this network is from the design's 10 seconds: the design assumes a GPU fabric.</li>
+<li>At 95% of the GPU's memory the receive buffers (two copies of 1 GiB) do not fit, the engine reports an out-of-memory error, and the trainer's side of the collective waits for a peer that has stopped; the job's deadline ends it.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s06-numerics-the-mismatch-between-the-rollout-engine-and-the-trainer">S06: Numerics: the mismatch between the rollout engine and the trainer</h3>
+<p><strong>Design reference:</strong> Numerics and MoE: the mismatch that grows with scale.</p>
+<p><strong>What this tests.</strong> <mark class="kw-act">Score</mark> the same sampled answers with the rollout engine and with the trainer's own forward pass, under four precisions, and look at the shape of the log-ratio between them. Then read the same quantity from a real run's logs.</p>
+<p>The design says the mismatch between the rollout engine and the trainer grows with scale and with lower precision, and that the tail of the ratio, not its mean, is what to watch. I had the engine sample 256 answers and return the probability of every token it chose, recomputed the same probabilities with the trainer's own forward pass, and compared the two under four precisions. Then I read the same quantity from the logs of a real run.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S06: Numerics: the mismatch between the rollout engine and the trainer" class="open" data-src="diagrams/appendix/a08-evidence/S06.png" data-title="S06: Numerics: the mismatch between the rollout engine and the trainer" type="button"><img alt="Diagram: S06: Numerics: the mismatch between the rollout engine and the trainer" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S06.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f job/mismatch-bf16   <span class="tc"># bf16 engine, bf16 trainer: 256 sampled answers scored by both</span></span><span class="ln">tag                          bf16</span><span class="ln">tokens                       69851</span><span class="ln">train_dtype                  bfloat16</span><span class="ln">mean_abs_logratio            0.01967</span><span class="ln">kl_k3                        0.0007707</span><span class="ln">frac_ratio_gt_2              1.432e-05</span><span class="ln">frac_ratio_lt_half           0</span><span class="ln">frac_ratio_gt_cap            0</span><span class="ln">max_ratio                    2.414</span><span class="ln">p99_abs_logratio             0.1628</span><span class="ln">top1pct_share_of_mismatch    0.1076</span><span class="ln">tis_weight_mean              0.9866</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/mismatch-bf16-vs-fp32   <span class="tc"># bf16 engine, fp32 trainer: 256 sampled answers scored by both</span></span><span class="ln">tag                          bf16-vs-fp32</span><span class="ln">tokens                       70222</span><span class="ln">train_dtype                  float32</span><span class="ln">mean_abs_logratio            0.01732</span><span class="ln">kl_k3                        0.000527</span><span class="ln">frac_ratio_gt_2              0</span><span class="ln">frac_ratio_lt_half           0</span><span class="ln">frac_ratio_gt_cap            0</span><span class="ln">max_ratio                    1.241</span><span class="ln">p99_abs_logratio             0.1272</span><span class="ln">top1pct_share_of_mismatch    0.09547</span><span class="ln">tis_weight_mean              0.9861</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/mismatch-fp8-weights   <span class="tc"># fp8 weights, bf16 trainer: 256 sampled answers scored by both</span></span><span class="ln">tag                          fp8-weights</span><span class="ln">tokens                       68935</span><span class="ln">train_dtype                  bfloat16</span><span class="ln">mean_abs_logratio            0.04452</span><span class="ln">kl_k3                        0.005693</span><span class="ln">frac_ratio_gt_2              0.0007108</span><span class="ln">frac_ratio_lt_half           0.002872</span><span class="ln">frac_ratio_gt_cap            2.901e-05</span><span class="ln">max_ratio                    3.16</span><span class="ln">p99_abs_logratio             0.4962</span><span class="ln">top1pct_share_of_mismatch    0.157</span><span class="ln">tis_weight_mean              0.9861</span><span class="ln"> </span><span class="ln">$ kubectl apply -f job/mismatch-fp8-kv   <span class="tc"># fp8 KV cache, bf16 trainer: 256 sampled answers scored by both</span></span><span class="ln">tag                          fp8-kv</span><span class="ln">tokens                       68480</span><span class="ln">train_dtype                  bfloat16</span><span class="ln">mean_abs_logratio            0.04635</span><span class="ln">kl_k3                        0.006069</span><span class="ln">frac_ratio_gt_2              0.0005549</span><span class="ln">frac_ratio_lt_half           0.003213</span><span class="ln">frac_ratio_gt_cap            4.381e-05</span><span class="ln">max_ratio                    4.807</span><span class="ln">p99_abs_logratio             0.5083</span><span class="ln">top1pct_share_of_mismatch    0.1555</span><span class="ln">tis_weight_mean              0.9853</span><span class="ln"> </span><span class="ln">$ python table.py   <span class="tc"># the four settings side by side</span></span><span class="ln">                               mean_abs_lograt           kl_k3 frac_ratio_gt_2 frac_ratio_gt_c p99_abs_lograti       max_ratio top1pct_share_o</span><span class="ln">bf16 engine, bf16 trainer              0.01967       0.0007707       1.432e-05               0          0.1628           2.414          0.1076</span><span class="ln">bf16 engine, fp32 trainer              0.01732        0.000527               0               0          0.1272           1.241         0.09547</span><span class="ln">fp8 weights, bf16 trainer              0.04452        0.005693       0.0007108       2.901e-05          0.4962            3.16           0.157</span><span class="ln">fp8 KV cache, bf16 trainer             0.04635        0.006069       0.0005549       4.381e-05          0.5083           4.807          0.1555</span><span class="ln"> </span><span class="ln">$ python run_stats.py r1-center   <span class="tc"># the trainer's own mismatch metrics over the 80 steps of the S02 run</span></span><span class="ln">sampling/sampling_logp_difference/mean         median     0.0368   max    0.05628</span><span class="ln">sampling/sampling_logp_difference/max          median      2.596   max      9.656</span><span class="ln">sampling/importance_sampling_ratio/mean        median          1   max      1.005</span><span class="ln">sampling/importance_sampling_ratio/max         median      3.508   max      24.46</span><span class="ln">sampling/masked_mean                           median   0.003844   max    0.01255</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the engine and the trainer disagree even at the same weights and the same precision</td>
+<td>Different kernels, different reduction orders, a different attention implementation. The log-ratio between the two engines is never exactly zero, even for a small dense model in bf16 on both sides.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the tail, not the mean, carries the mismatch: one percent of the tokens hold a large share of it</td>
+<td>If the mismatch were spread evenly, one percent of the tokens would hold one percent of it. This is why the design watches the fraction of tokens beyond a ratio threshold and not the average, which is tiny.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>lower-precision rollouts widen the mismatch</td>
+<td>FP8 weights round every parameter. The engine still samples from a very similar distribution, but the trainer's probabilities for the sampled tokens differ more.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a float32 trainer is closer to the engine's probabilities than a bf16 one, or no further</td>
+<td>The design's published finding is that the final projection to logits in FP32 shifts the ceiling, not only stability. This probe measures the distance, not the ceiling.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the truncated importance weight bounds the tokens beyond the cap</td>
+<td>A weight of min(ratio, cap) keeps one token from dominating a gradient. The share of tokens that hit the cap is the cost.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the trainer logs the ratio's distribution on every step of every run</td>
+<td>The trainer uses the sampler's own probabilities as the old policy, so the importance ratio it already computes covers mismatch and staleness together (see TRL's async trainer).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Both probabilities are for the same tokens given the same prompts; only the engine that computed them differs.</li>
+<li>The four settings differ in one thing each (the trainer's precision, the engine's weight precision, the engine's <mark class="kw">KV-cache</mark> precision).</li>
+<li>The last check reads the trainer's own per-step metrics from the S02 run, which are what the platform would alert on.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The two engines use different kernels and reduction orders, so the log-ratio between them is small and not zero even with the same weights and precision.</li>
+<li>FP8 weights round every parameter; the engine samples from a nearby distribution, and the trainer's probabilities for the tokens it chose differ more. The tail grows faster than the mean.</li>
+<li>A model of 0.6B parameters in bf16 has little mismatch to start with. The design's claim is that this grows with the model, the length and the precision; this scenario shows the precision axis and the shape of the tail, and says nothing about 235B.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s07-the-environment-tier-a-sandbox-pool-that-scales-on-its-queue">S07: The environment tier: a sandbox pool that scales on its queue</h3>
+<p><strong>Design reference:</strong> Rewards and environments at scale.</p>
+<p><strong>What this tests.</strong> Give every answer four tool calls in a sandbox pool and compare a fixed pool of two workers with a pool that <mark class="kw-tool">KEDA</mark> scales on the length of its queue. Measure what the rollout fleet and the trainer see.</p>
+<p>The design's environment tier is a service of its own, scaled on its queue, so that the rollout GPUs do not wait for sandboxes. I gave every answer four tool calls into a sandbox pool and compared a fixed pool of two workers with a pool that KEDA scales on the length of its queue, measuring what the trainer sees.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S07: The environment tier: a sandbox pool that scales on its queue" class="open" data-src="diagrams/appendix/a08-evidence/S07.png" data-title="S07: The environment tier: a sandbox pool that scales on its queue" type="button"><img alt="Diagram: S07: The environment tier: a sandbox pool that scales on its queue" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S07.png"/><span class="hint">Open full screen</span></button></figure>
+<figure class="diagram"><button aria-label="Open diagram full screen: S07: pool, drawn from the run data" class="open" data-src="diagrams/appendix/a08-evidence/S07-pool.png" data-title="S07: pool, drawn from the run data" type="button"><img alt="Diagram: S07: pool, drawn from the run data" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S07-pool.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl -n rl-scale get lws rollout   <span class="tc"># 2 engine(s), settings: defaults</span></span><span class="ln">ready</span><span class="ln"> </span><span class="ln">$ kubectl apply -f sandbox-pool.yaml   <span class="tc"># fixed pool, 2 workers; every call takes 250 ms of 'tool time' plus the code's run</span></span><span class="ln">2 workers ready</span><span class="ln"> </span><span class="ln">$ kubectl apply -f trainer-env-fixed.yaml   <span class="tc"># a JobSet: fixed pool, 2 workers</span></span><span class="ln">CKPT_EVERY=1000</span><span class="ln">EVAL_EVERY=0</span><span class="ln">EVAL_PROBLEMS=200</span><span class="ln">GPUS_HELD=3</span><span class="ln">LEARNING_RATE=3e-6</span><span class="ln">MAX_COMPLETION=512</span><span class="ln">MAX_CONCURRENT=64</span><span class="ln">MAX_STEPS=5</span><span class="ln">TASK=pyexec</span><span class="ln">TOOL_CALLS=4</span><span class="ln">WATCHDOG_S=900</span><span class="ln"> </span><span class="ln">$ kubectl get jobset trainer-env-fixed</span><span class="ln">completed=True failed=False restarts=0  records=7</span><span class="ln"> </span><span class="ln">$ kubectl apply -f sandbox-pool.yaml   <span class="tc"># pool scaled by queue length, 2 to 40 workers; every call takes 250 ms of 'tool time' plus the code's run</span></span><span class="ln">2 workers ready</span><span class="ln"> </span><span class="ln">$ kubectl apply -f trainer-env-keda.yaml   <span class="tc"># a JobSet: pool scaled by queue length, 2 to 40 workers</span></span><span class="ln">CKPT_EVERY=1000</span><span class="ln">EVAL_EVERY=0</span><span class="ln">EVAL_PROBLEMS=200</span><span class="ln">GPUS_HELD=3</span><span class="ln">LEARNING_RATE=3e-6</span><span class="ln">MAX_COMPLETION=512</span><span class="ln">MAX_CONCURRENT=64</span><span class="ln">MAX_STEPS=5</span><span class="ln">TASK=pyexec</span><span class="ln">TOOL_CALLS=4</span><span class="ln">WATCHDOG_S=900</span><span class="ln"> </span><span class="ln">$ kubectl get jobset trainer-env-keda</span><span class="ln">completed=True failed=False restarts=0  records=7</span><span class="ln"> </span><span class="ln">$ python compare.py env-fixed env-keda   <span class="tc"># 5 steps each, four tool calls per answer</span></span><span class="ln">                                             fixed pool   scaled pool</span><span class="ln">peak sandbox workers                                  2            12</span><span class="ln">peak queue length (calls waiting)                    30            28</span><span class="ln">calls served                                       8576          8032</span><span class="ln">median seconds per step                           191.3          41.5</span><span class="ln">time to score a group (median s)                    4.5           1.0</span><span class="ln">trainer waiting for samples (median s)            188.3          37.7</span><span class="ln">tokens generated per second                          87           372</span><span class="ln"> </span><span class="ln">$ kubectl get deploy sandbox-workers   <span class="tc"># a few minutes after the run, with the queue empty</span></span><span class="ln">2 workers wanted</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>with two workers the queue builds up and the trainer's step is dominated by waiting for rewards</td>
+<td>Two workers serve about eight calls a second. A group of eight answers with four calls each is thirty-two calls, and the trainer needs about twenty groups for one step.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>KEDA grows the pool when the queue grows: at least four times the starting size</td>
+<td>KEDA reads the length of the Redis list every five seconds and sets the replica count to the length divided by the target per worker (two), up to the maximum. The trainer scores one group at a time, so at most about thirty messages wait, which caps the pool near fifteen. Scaling on CPU would react only after the workers were busy.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the scaled pool at least halves the step</td>
+<td>Same recipe, same model, same hardware. Only the number of workers behind the queue differs.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the pool shrinks back when the queue is empty</td>
+<td>The cooldown is sixty seconds. A pool that stays large costs CPU for nothing; one that never grew costs GPU time, as the fixed pool showed.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the queue is drained at the end: no call was lost</td>
+<td>Every call is a message that a worker removes with a blocking pop and answers on its own result list, so a message is either waiting, being served, or answered.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The two runs share everything except the pool: the same recipe, the same code task, the same calls per answer and the same time per call.</li>
+<li>The worker count and the queue length are sampled from the cluster every five seconds during each run.</li>
+<li>Every call is a message that a worker removes with a blocking pop and answers on its own result list, so the final queue length and the count of calls served are exact.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Two workers serve about six calls a second. A group of eight answers with four calls each is thirty-two calls, the trainer needs about twenty groups for one step, and the answers are short enough that a step takes that many. <mark class="kw-act">Scoring</mark> takes as long as the queue.</li>
+<li>KEDA reads the list's length every five seconds and sets the replica count to the length divided by the target per worker, up to the maximum; scaling on CPU would react only after the workers were already busy.</li>
+<li>The pool shrinks after a cooldown once the list is empty.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s08-stability-a-composite-alert-the-last-healthy-checkpoint-and-a-rollback-that-changes-something">S08: Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something</h3>
+<p><strong>Design reference:</strong> Stability over thousands of steps.</p>
+<p><strong>What this tests.</strong> Take a recipe whose step size is about three times too large, watch the signals the design names, fire a combined alert, find the last healthy <mark class="kw-act">checkpoint</mark> by query, and restart from it twice: once with the same settings and once with a smaller step.</p>
+<p>The design says slow drifts only matter on long runs, and that alerts should combine trends. I took a recipe whose step size is about three times too large, watched the signals the design names, fired a combined alert, found the last healthy checkpoint by query, and restarted from it twice: once with the same settings and once with the healthy recipe's step size.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S08: Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something" class="open" data-src="diagrams/appendix/a08-evidence/S08.png" data-title="S08: Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something" type="button"><img alt="Diagram: S08: Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S08.png"/><span class="hint">Open full screen</span></button></figure>
+<figure class="diagram"><button aria-label="Open diagram full screen: S08: drift, drawn from the run data" class="open" data-src="diagrams/appendix/a08-evidence/S08-drift.png" data-title="S08: drift, drawn from the run data" type="button"><img alt="Diagram: S08: drift, drawn from the run data" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S08-drift.png"/><span class="hint">Open full screen</span></button></figure>
+<figure class="diagram"><button aria-label="Open diagram full screen: S08: restart, drawn from the run data" class="open" data-src="diagrams/appendix/a08-evidence/S08-restart.png" data-title="S08: restart, drawn from the run data" type="button"><img alt="Diagram: S08: restart, drawn from the run data" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S08-restart.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl -n rl-scale get lws rollout   <span class="tc"># 2 engine(s), settings: defaults</span></span><span class="ln">ready</span><span class="ln"> </span><span class="ln">$ aws s3 cp s3://&lt;state bucket&gt;/runs/r1-center/metrics.jsonl -   <span class="tc"># the run 'the healthy recipe of S02' made earlier in this session</span></span><span class="ln">91 records, 80 training steps, 9 evaluations</span><span class="ln"> </span><span class="ln">$ <span class="tc"># run unstable: read back from the state bucket (already complete)</span></span><span class="ln">80 records</span><span class="ln"> </span><span class="ln">$ python alert.py unstable   <span class="tc"># the four signals every fifth step, and the conditions that held</span></span><span class="ln">step  entropy  masked-by-clip  answers cut  informative   conditions that hold (window of 8 steps)</span><span class="ln">   1    0.324          0.0000           0%         0.36   -</span><span class="ln">   6    0.348          0.0475           1%         0.52   -</span><span class="ln">  11    0.691          0.0489           8%         0.40   mismatch tail high, entropy moving fast</span><span class="ln">  16    0.616          0.0143          19%         0.63   -</span><span class="ln">  21    0.579          0.0202          39%         0.61   mismatch tail high, answers cut at the limit</span><span class="ln">  26    0.502          0.0166          54%         0.45   answers cut at the limit</span><span class="ln">  31    0.563          0.0218          20%         0.49   mismatch tail high</span><span class="ln">  36    0.579          0.0217           5%         0.37   mismatch tail high</span><span class="ln">  41    0.581          0.0230          10%         0.66   mismatch tail high</span><span class="ln">  46    0.537          0.0200          33%         0.83   answers cut at the limit</span><span class="ln">  51    0.588          0.0156          25%         0.66   -</span><span class="ln">  56    0.465          0.0165          15%         0.73   entropy moving fast</span><span class="ln"> </span><span class="ln">$ python alert.py --first r1-center unstable   <span class="tc"># the combined rule: two conditions for three steps in a row</span></span><span class="ln">healthy run (r1-center, 80 steps):  no alert</span><span class="ln">unstable run:                       ALERT at step 13</span><span class="ln">first step at which any one condition held: 9   (mismatch tail: 9; answers cut at the limit: 20)</span><span class="ln">held-out score first below half of its start (0.60): step 20;  first below 0.05: never</span><span class="ln">held-out scores: 0:0.60, 5:0.66, 10:0.57, 15:0.31, 20:0.19, 25:0.34, 30:0.14, 35:0.17, 40:0.16, 45:0.14, 50:0.36, 55:0.40, 60:0.36</span><span class="ln"> </span><span class="ln">$ python last_healthy.py unstable --before-alert   <span class="tc"># a query over the checkpoint records, not a guess</span></span><span class="ln">checkpoint step  held-out score  in the bucket</span><span class="ln">             10           0.57  True</span><span class="ln">             20           0.19  True</span><span class="ln">             30           0.14  True</span><span class="ln">             40           0.16  True</span><span class="ln">             50           0.36  True</span><span class="ln">             60           0.36  True</span><span class="ln">last healthy checkpoint before the alert: step 10</span><span class="ln"> </span><span class="ln">$ <span class="tc"># run restart-same: read back from the state bucket (already complete)</span></span><span class="ln">39 records</span><span class="ln"> </span><span class="ln">$ <span class="tc"># run restart-smaller: read back from the state bucket (already complete)</span></span><span class="ln">39 records</span><span class="ln"> </span><span class="ln">$ python compare.py restart-same restart-smaller   <span class="tc"># held-out score every five steps after the restart</span></span><span class="ln">checkpoint 10 scored 0.575 before it was restored</span><span class="ln">same step size:   0:0.53, 5:0.53, 10:0.30, 15:0.21, 20:0.28, 25:0.31, 30:0.31</span><span class="ln">smaller step:     0:0.52, 5:0.57, 10:0.64, 15:0.61, 20:0.61, 25:0.69, 30:0.66</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the combined rule stays silent for the whole healthy run</td>
+<td>The thresholds were set just outside what the healthy runs of S02 and S04 produced. A rule that fires on a healthy run is worse than none, because it teaches people to ignore it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the unstable run collapses: its held-out score falls below half of where it started</td>
+<td>A step size about three times too large moves the policy further than the importance ratio's clip can contain: the held-out score starts to fall within the first ten to fifteen steps.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the combined alert fires before the held-out score has collapsed</td>
+<td>Two conditions for three steps in a row over a window of eight steps. The held-out score is measured every five steps and needs time to fall; the training-side signals move first. Runs differ from each other (the same settings collapsed at different steps in two attempts), so the figure to read is the order, not the step number.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>one signal, the share of tokens the clip masks, moves before the held-out score has collapsed</td>
+<td>The mismatch tail is the earliest warning the design names. A single threshold on it would have fired earlier than the combined rule, at the price of a false alarm whenever it wobbles.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a checkpoint within 0.12 of the best score exists before the alert and is in the bucket</td>
+<td>Every checkpoint is recorded with the run's logs, and copied to the bucket before it is marked complete, so the query returns something that can be restored.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a restart with the same settings loses the policy again</td>
+<td>The same step size on the same weights meets the same instability. A plain restart is the design's example of what not to do.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a restart with a smaller step holds the score the checkpoint had</td>
+<td>Roll back and change something: here the learning rate, with a fresh optimizer and a different prompt order.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The alert rule's thresholds were set just outside the envelope of the healthy runs of S02 and S04 so that it never fires on them, and were then applied unchanged to the unstable run. The unstable run is the only run in this appendix that the rule fires on.</li>
+<li>Collapse is defined from the held-out <mark class="kw-act">score</mark> alone (below half of where the run started), which is measured every five steps and is independent of the alert's inputs.</li>
+<li>The checkpoint the query returns is checked to be in the bucket, and both restarts load that checkpoint's weights from it.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>A step size about three times too large moves the policy further than the importance ratio's clip can contain. The share of tokens the clip masks rises within a few steps, answers stop ending and reach the length limit, groups stop carrying a gradient, and the held-out score falls.</li>
+<li>The combined rule needs two conditions for three steps in a row over a window of eight, so it fires after the first single signal. Here that was the right trade: the single signal is the earliest warning, and the rule's alert still comes before the policy is destroyed.</li>
+<li>A restart with the same step size meets the same instability. A restart with the healthy step size, a fresh optimizer and a different prompt order does not.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s09-failures-lose-an-engine-a-trainer-pod-a-whole-trainer-node">S09: Failures: lose an engine, a trainer pod, a whole trainer node</h3>
+<p><strong>Design reference:</strong> Failures and recovery on multi-week runs.</p>
+<p><strong>What this tests.</strong> Start a run with <mark class="kw-act">checkpoints</mark> and a restart policy, break it three ways, and measure how long each takes to recover, how much work is repeated, and what share of the reserved GPU time went into progress.</p>
+<p>The design says to make failures cheap and not rare. I started a run with checkpoints and a restart policy, broke it three ways (a rollout engine, the trainer's pod, the trainer's whole node), and measured how long each took to recover, how much work was repeated, and what share of the reserved GPU time went into progress.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S09: Failures: lose an engine, a trainer pod, a whole trainer node" class="open" data-src="diagrams/appendix/a08-evidence/S09.png" data-title="S09: Failures: lose an engine, a trainer pod, a whole trainer node" type="button"><img alt="Diagram: S09: Failures: lose an engine, a trainer pod, a whole trainer node" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S09.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl -n rl-scale get lws rollout   <span class="tc"># 2 engine(s), settings: defaults</span></span><span class="ln">ready</span><span class="ln"> </span><span class="ln">$ kubectl apply -f trainer-fail-engine.yaml   <span class="tc"># JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; a rollout engine's pod is deleted once the run is past step 14</span></span><span class="ln"> </span><span class="ln">$ kubectl delete pod rollout-0-1   <span class="tc"># the worker pod of the rollout group</span></span><span class="ln">pod "rollout-0-1" deleted from rl-scale namespace</span><span class="ln"> </span><span class="ln">$ python recovery.py fail-engine   <span class="tc"># from the run's records and the pod's log</span></span><span class="ln">JobSet: completed=True restarts=1</span><span class="ln">last step logged before the failure: 17</span><span class="ln">first step logged after it:          11  (3.1 minutes after the failure)</span><span class="ln">steps done twice:                    7</span><span class="ln">log: restored 15 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-engine/; newest complete checkpoint: checkpoint-10</span><span class="ln">log: fleet guard: the fleet answers</span><span class="ln">old pod, last lines before it was replaced: raise RuntimeError( | RuntimeError: Weight sync to the vLLM server at http://rollout-api.rl-scale.svc:8000 failed. The server keeps </span><span class="ln">reserved GPU time 397 s x 3 GPUs; productive 193 s -&gt; goodput 48% over 44 steps</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-scale get lws rollout   <span class="tc"># 2 engine(s), settings: defaults</span></span><span class="ln">ready</span><span class="ln"> </span><span class="ln">$ kubectl apply -f trainer-fail-pod.yaml   <span class="tc"># JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; the trainer's pod is deleted once the run is past step 14</span></span><span class="ln"> </span><span class="ln">$ kubectl delete pod -l run=fail-pod</span><span class="ln">pod "trainer-fail-pod-trainer-0-0-lvchk" deleted from rl-scale namespace</span><span class="ln"> </span><span class="ln">$ python recovery.py fail-pod   <span class="tc"># from the run's records and the pod's log</span></span><span class="ln">JobSet: completed=True restarts=1</span><span class="ln">last step logged before the failure: 19</span><span class="ln">first step logged after it:          11  (5.0 minutes after the failure)</span><span class="ln">steps done twice:                    9</span><span class="ln">log: restored 19 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-pod/; newest complete checkpoint: checkpoint-10</span><span class="ln">log: fleet guard: the fleet is healthy but does not answer; recreating the rollout group (attempt 1)</span><span class="ln">log: fleet guard: the fleet answers</span><span class="ln">old pod, last lines before it was replaced: NCCL version 2.31.2+cuda13.3</span><span class="ln">reserved GPU time 507 s x 3 GPUs; productive 182 s -&gt; goodput 36% over 44 steps</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-scale get lws rollout   <span class="tc"># 2 engine(s), settings: defaults</span></span><span class="ln">ready</span><span class="ln"> </span><span class="ln">$ kubectl apply -f trainer-fail-node.yaml   <span class="tc"># JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; the trainer's node is terminated once the run is past step 14</span></span><span class="ln"> </span><span class="ln">$ aws ec2 terminate-instances --instance-ids &lt;the trainer node&gt;</span><span class="ln">shutting-down</span><span class="ln"> </span><span class="ln">$ python recovery.py fail-node   <span class="tc"># from the run's records and the pod's log</span></span><span class="ln">JobSet: completed=False restarts=1</span><span class="ln">last step logged before the failure: 22</span><span class="ln">first step logged after it:          None  (nan minutes after the failure)</span><span class="ln">steps done twice:                    n/a</span><span class="ln">log: no restore line</span><span class="ln">old pod, last lines before it was replaced: (no error line)</span><span class="ln">trainer node type: g6e.2xlarge before, none after</span><span class="ln">reserved GPU time 80 s x 3 GPUs; productive 80 s -&gt; goodput 100% over 21 steps</span></code></pre>
+<p><strong>The same node drill, in the first run of this scenario</strong> (before the trainer pool had fallback instance types and before the start-up guard existed; the replacement node was launched that time):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ python recovery.py fail-node   <span class="tc"># from the run's records and the pod's log</span></span><span class="ln">JobSet: completed=True restarts=1</span><span class="ln">last step logged before the failure: 20</span><span class="ln">first step logged after it:          11  (7.7 minutes after the failure)</span><span class="ln">steps done twice:                    10</span><span class="ln">log: restored 24 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-node/; newest complete checkpoint: checkpoint-10</span><span class="ln">reserved GPU time 727 s x 3 GPUs; productive 232 s -&gt; goodput 32% over 44 steps</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>after a rollout engine's pod is deleted, the run goes on and completes all 45 steps without anyone's help</td>
+<td>The JobSet's failure policy recreates the trainer pod; the new pod restores the newest complete checkpoint from the state bucket and continues. Nobody ran a command.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>after a rollout engine's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated</td>
+<td>A checkpoint is written every ten steps. Work done since the last one is lost; the checkpoint interval is the bound on it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>after a rollout engine's pod is deleted, the run is stepping again within fifteen minutes</td>
+<td>That includes the pod's start, the packages, loading the model and the checkpoint, rebuilding the NCCL group with the fleet, and a first step.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>after the trainer's pod is deleted, the run goes on and completes all 45 steps without anyone's help</td>
+<td>The JobSet's failure policy recreates the trainer pod; the new pod restores the newest complete checkpoint from the state bucket and continues. Nobody ran a command.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>after the trainer's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated</td>
+<td>A checkpoint is written every ten steps. Work done since the last one is lost; the checkpoint interval is the bound on it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>after the trainer's pod is deleted, the run is stepping again within fifteen minutes</td>
+<td>That includes the pod's start, the packages, loading the model and the checkpoint, rebuilding the NCCL group with the fleet, and a first step.</td>
+</tr>
+<tr>
+<td><strong>FAIL</strong></td>
+<td>after the trainer's node is terminated, the run goes on and completes all 45 steps without anyone's help</td>
+<td>The JobSet's failure policy recreates the trainer pod; the new pod restores the newest complete checkpoint from the state bucket and continues. Nobody ran a command.</td>
+</tr>
+<tr>
+<td><strong>FAIL</strong></td>
+<td>after the trainer's node is terminated, the first step is the one after a checkpoint, and no more than ten steps are repeated</td>
+<td>A checkpoint is written every ten steps. Work done since the last one is lost; the checkpoint interval is the bound on it.</td>
+</tr>
+<tr>
+<td><strong>FAIL</strong></td>
+<td>after the trainer's node is terminated, the run is stepping again within fifteen minutes</td>
+<td>That includes the pod's start, the packages, loading the model and the checkpoint, rebuilding the NCCL group with the fleet, and a first step.</td>
+</tr>
+<tr>
+<td><strong>FAIL</strong></td>
+<td>the checkpoint came from the bucket, not from the node that failed (node drill)</td>
+<td>The node's own disk went with the node. What survives is the copy the trainer's background thread made.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>losing an engine is not absorbed: the trainer's process ends and is restarted too (finding)</td>
+<td>The design assumes a failed rollout engine is replaced while the run continues. With NCCL weight transfer the engines and the trainer share one communicator, and a lost member stops every collective. The JobSet restarted the trainer; I did not capture whether its own error or its watchdog ended it, because the replaced pod's log is gone.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Each failure is inflicted by a command shown in the transcript, once the run is past step 14 and a checkpoint is complete in the bucket.</li>
+<li>Recovery times come from the run's own timestamps against the moment of the command; the restored checkpoint is read from the new pod's log.</li>
+<li>Goodput counts each step once, at its last completion, and divides by the time from the first record to the last, times three GPUs.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The <mark class="kw-tool">JobSet</mark>'s failure policy recreates the trainer pod, and the new pod restores the newest complete checkpoint from the bucket before it starts, so nothing depends on the old node.</li>
+<li>Losing an engine breaks the <mark class="kw-tool">NCCL</mark> group that the trainer shares with the engines, and the group is rebuilt by the new pods. The trainer's process ended and the restart policy started a new one, which re-formed the group with the rebuilt fleet. The design assumes the engine can be replaced while the run goes on; with this weight-transfer path the trainer has to re-form the group, so it restarts too.</li>
+<li>A trainer that dies in the middle of a weight push leaves the engines blocked inside the collective, with a health endpoint that still answers. The guard that runs before every trainer start asks the fleet for one token and recreates the group when it does not answer, so that the restart does not depend on anyone noticing.</li>
+<li>The node drill needs the zone to have a GPU to give. In the first run of this scenario the replacement came up and the run went on after 7.7 minutes, with its checkpoint restored from the bucket. In the run recorded above the node group asked for a replacement for forty minutes and the zone had none of any of the four types it was allowed (the group's own activity log says InsufficientInstanceCapacity), so the four checks of that drill fail. That failure is the result: terminating a GPU node gives its capacity back, and the design's hot spares exist for exactly this.</li>
+<li>The checkpoint interval bounds the repeated work. Everything else in the recovery time is the pod's start, the packages, the model and checkpoint load and the NCCL handshake.</li>
+</ul>
+<h3 id="appendix-design-07-eks-s10-the-ladder-one-axis-per-rung-exit-criteria-and-a-reference-rung">S10: The ladder: one axis per rung, exit criteria, and a reference rung</h3>
+<p><strong>Design reference:</strong> The scaling ladder.</p>
+<p><strong>What this tests.</strong> Write the ladder as overlays that change one axis each, decide from measured evidence whether a rung may be climbed, account for what each rung spent, and keep a small reference run that repeats on a schedule.</p>
+<p>The ladder is the design's answer to 'when can we start the big run?': after the rung below it is understood. I wrote the ladder as overlay files that each change one axis, decided from measured evidence whether a rung may be climbed, accounted for what each rung spent, and kept a small reference run that repeats on a schedule.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S10: The ladder: one axis per rung, exit criteria, and a reference rung" class="open" data-src="diagrams/appendix/a08-evidence/S10.png" data-title="S10: The ladder: one axis per rung, exit criteria, and a reference rung" type="button"><img alt="Diagram: S10: The ladder: one axis per rung, exit criteria, and a reference rung" decoding="async" loading="lazy" src="diagrams/appendix/a08-evidence/S10.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ python ladder.py check recipes/ladder/*.yaml   <span class="tc"># an overlay may change only the settings of the axis it declares</span></span><span class="ln">rung1-recipe.yaml        ok   rung 1 defines the starting recipe</span><span class="ln">rung2-length.yaml        ok   changes only ['MAX_COMPLETION', 'THINKING'], all of axis 'length'</span><span class="ln">rung3-model-size.yaml    ok   changes only ['MODEL'], all of axis 'model_size'</span><span class="ln">bad-two-axes.yaml        REFUSED declares axis 'length' but also changes ['MODEL'] (axes ['length', 'model_size'])</span><span class="ln"> </span><span class="ln">$ python ladder.py gate rung1-recipe   <span class="tc"># may the team climb to rung 2?</span></span><span class="ln">decision: HOLD</span><span class="ln">  HOLD  curve fit: 2 x std of the ceiling        wanted &lt;= 0.03  measured 0.295</span><span class="ln">  PASS  unexplained waiting, share of step       wanted &lt;= 0.1   measured 0.000</span><span class="ln">  PASS  restart from a checkpoint tested         wanted yes      measured True</span><span class="ln"> </span><span class="ln">$ python ladder.py gate rung2-length   <span class="tc"># may the team climb to rung 3?</span></span><span class="ln">decision: HOLD</span><span class="ln">  HOLD  curve fit: 2 x std of the ceiling        wanted &lt;= 0.03  measured None</span><span class="ln">  PASS  unexplained waiting, share of step       wanted &lt;= 0.1   measured 0.030</span><span class="ln">  PASS  restart from a checkpoint tested         wanted yes      measured True</span><span class="ln"> </span><span class="ln">$ python ladder.py spend   <span class="tc"># GPU hours each rung used, against its budget (three GPUs, evaluation left out)</span></span><span class="ln">rung 1  recipe        0.89 of 2.0 GPU hours  (3 runs)</span><span class="ln">rung 2  length        0.21 of 1.0 GPU hours  (1 run)</span><span class="ln"> </span><span class="ln">$ kubectl -n rl-scale get lws rollout   <span class="tc"># 2 engine(s), settings: defaults</span></span><span class="ln">ready</span><span class="ln"> </span><span class="ln">$ kubectl apply -f reference-rung.yaml   <span class="tc"># a CronJob that repeats a 20-step run every night against the current code and image</span></span><span class="ln">NAME             SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE</span><span class="ln">reference-rung   0 3 * * *   &lt;none&gt;     False     0        &lt;none&gt;          1s</span><span class="ln"> </span><span class="ln">$ kubectl create job reference-manual --from=cronjob/reference-rung   <span class="tc"># the schedule's run, started by hand</span></span><span class="ln">job.batch/reference-manual created</span><span class="ln"> </span><span class="ln">$ python reference.py reference-1123-1006   <span class="tc"># compare the 20 steps with the same 20 steps of the S02 run</span></span><span class="ln">mean reward, reference vs baseline: differs by 0.030</span><span class="ln">seconds per step: differs by 16%</span><span class="ln">verdict: within tolerance</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>rungs 2 and 3 each change one axis, and an overlay that changes two is refused</td>
+<td>A rung that changes the answer length and the model together cannot say which one caused a regression. The launcher refuses it before anything is scheduled.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the gate returns a decision with the measured value of every criterion, for both rungs</td>
+<td>The criteria are the design's own: the ceiling's confidence interval, the unexplained waiting, and a tested restart. Each value comes from a run in this session.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a rung whose curve is not known is held: the 20-step thinking run cannot support a ceiling estimate</td>
+<td>A fit needs points past the curve's midpoint. A short run at a new length has none, so the gate says so instead of guessing.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>each rung stayed within its declared budget</td>
+<td>A rung's budget is part of its overlay, so the cost of the ladder is known before it starts and checked after.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the reference run completed and matches its baseline within tolerance</td>
+<td>Same recipe, same code, same images, twenty steps. If a library upgrade changes the training dynamics or the step time, this run moves before a large one does.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the comparison flags a run whose reward or time per step has moved (made-up perturbations of the baseline)</td>
+<td>A tolerance that never fires is no check. The same function is applied to the baseline against itself (quiet), to a copy with a reward 0.3 higher (flagged), and to a copy with three more seconds per step (flagged).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The one-axis rule is applied to the overlay files as they are; an overlay that changes two axes is in the repository on purpose and is refused.</li>
+<li>The gate takes its three measured values from runs in this session: the ceiling's interval from the S02 fit, the unexplained waiting from the S03 breakdown, and the tested restart from S09.</li>
+<li>The reference run is started by the CronJob's own template, so the test exercises the object that would run at night.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>A rung that changes length and model size together cannot say which caused a regression, so the launcher refuses it before anything is scheduled.</li>
+<li>A rung is held when its criteria are not met by measurements, not by opinion. A short run at a new length has no points past the curve's midpoint, so the ceiling's interval is unknown and the gate says so.</li>
+<li>The reference run's tolerances are set so that the same recipe on the same code passes and a run whose reward or step time has moved does not; the comparison function is also applied to made-up perturbations of the baseline to show it fires.</li>
+</ul>
+<h3 id="appendix-design-07-eks-what-i-did-not-build">What I did not build</h3>
+<p>The design describes a platform at a scale this account cannot rent. Each row names what is missing and why the measurements above still bear on it.</p>
+<table>
+<thead>
+<tr>
+<th>Not built</th>
+<th>What I did instead, and what that cannot tell you</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A 235B mixture-of-experts model, 64K-token answers, 5,000 steps, 2,048 GPUs</strong></td>
+<td>A 0.6B dense model, answers up to 3,072 tokens, 20 to 80 steps, three GPUs. Every scaling claim in the appendix is about the shape of a measurement, and the one extrapolation (S05's 235B push) is arithmetic that is labelled as such.</td>
+</tr>
+<tr>
+<td><strong>Rungs 3 and 4 of the ladder</strong></td>
+<td>Rung 3's overlay (a model three times larger) is in the repository and its axis rule is tested, but the 24 GB trainer GPU does not hold a 1.7B model with its optimizer, so it was not trained. Rung 4 (many steps at the target size) is out of reach; S08 and S09 show what it would expose, on a small model.</td>
+</tr>
+<tr>
+<td><strong>Two layouts: a training layout and a rollout layout, with resharding</strong></td>
+<td>The trainer holds the whole model on one GPU and each engine holds the whole model on one GPU. S05 times the push; it does not time a resharding from tensor, pipeline and expert parallelism into a different layout.</td>
+</tr>
+<tr>
+<td><strong>MoE routing replay</strong></td>
+<td>The model is dense. S06 shows the precision axis of the mismatch; the routing axis, which the design says matters most for mixture-of-experts models, is not measured.</td>
+</tr>
+<tr>
+<td><strong>A GPU fabric between nodes (EFA, NVLink)</strong></td>
+<td>The nodes share the VPC's 10 Gbit/s network. That is why the weight push is half of every step in S03, and S05 prices what that means for a large model.</td>
+</tr>
+<tr>
+<td><strong>Active partial rollouts and length-aware scheduling</strong></td>
+<td>The trainer's own asynchrony and staleness bound, and a queue sized to the trainer (S04). Cutting off the slowest answers and resuming them under the newer policy is not in the library I used.</td>
+</tr>
+<tr>
+<td><strong>Sparse or delta weight updates</strong></td>
+<td>The design lists them as an open question. vLLM has a sparse NCCL backend; I did not test it.</td>
+</tr>
+<tr>
+<td><strong>Multi-turn tool use with an agent</strong></td>
+<td>The environment tier is exercised by a chain of calls per answer scored after generation, not by a model that calls tools turn by turn. S07 measures the queue and the scaling, not an agent's behaviour.</td>
+</tr>
+<tr>
+<td><strong>A hardened sandbox</strong></td>
+<td>The sandbox workers run a few lines of arithmetic in a child process with limits. Design 01 builds the real thing.</td>
+</tr>
+<tr>
+<td><strong>Hot spare nodes, health checks before admission, fast parallel checkpoint loading</strong></td>
+<td>A failed trainer node is replaced by the node group, and the checkpoint is loaded from the bucket. S09 measures what that costs; the design's remedies for it are not built.</td>
+</tr>
+<tr>
+<td><strong>Saving the rollout buffer with the checkpoint</strong></td>
+<td>The library saves the prompt cursor with the checkpoint, so a restart does not repeat or skip prompts, but samples that were generated and not yet trained on are lost.</td>
+</tr>
+<tr>
+<td><strong>A nightly schedule in use</strong></td>
+<td>The CronJob exists and S10 starts it by hand; it has not run on its schedule.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="appendix-design-07-eks-what-to-look-at-in-the-aws-console">What to look at in the AWS Console</h3>
+<p>If you want your own screenshots to put beside the ones above:</p>
+<ul>
+<li><strong>EKS, the cluster's Compute tab:</strong> the four node groups and their instance types.</li>
+<li><strong>EC2, Instances:</strong> the three <code>g5.2xlarge</code> GPU instances in one availability zone.</li>
+<li><strong>CloudWatch or the instance monitoring tab:</strong> GPU instances' network in and out during a weight push (S05).</li>
+<li><strong>S3, the state bucket:</strong> <code>runs/&lt;run&gt;/</code> with the metrics file and the <code>checkpoint-N/</code> folders, each with its <code>COMPLETE</code> marker.</li>
+<li><strong>EC2, Auto Scaling groups:</strong> the trainer's group replacing its instance during the node drill of S09.</li>
+</ul>
+<h3 id="appendix-design-07-eks-reproducing-it-and-taking-it-down">Reproducing it, and taking it down</h3>
+<pre class="snippet"><code class="language-bash"><span class="ln">export AWS_PROFILE=&lt;your profile&gt;</span><span class="ln">./scripts/up.sh                         <span class="tc"># about 25 minutes</span></span><span class="ln">python3 tests/run_scenarios.py all      <span class="tc"># several hours: it trains, breaks and measures</span></span><span class="ln">./scripts/down.sh --yes                 <span class="tc"># and then ./scripts/verify-clean.sh must print CLEAN</span></span></code></pre>
+<p>Everything is tagged with the project name. <code>down.sh</code> deletes the workloads, then the platform layer, then the cluster layer and the leftover log group, and <code>verify-clean.sh</code> reports anything of the project that remains in the region, including launch templates, volumes and the state bucket. The cluster costs about $6 an hour while it is up.</p></div>
 </section>
     <footer>
       <p>Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing.</p>

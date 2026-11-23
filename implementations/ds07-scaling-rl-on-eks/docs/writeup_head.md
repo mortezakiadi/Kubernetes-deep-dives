@@ -13,6 +13,8 @@ The order is the one a reader needs: first the context, then the software I used
 
 {{RESULT_SUMMARY}}
 
+The four checks that fail are all in the node drill of S09. The zone had no GPU capacity to replace the node I terminated, for forty minutes and across all four instance types the pool allowed. I left the failure in: it is a measurement of what losing a GPU node costs on on-demand capacity, and the first run of the same drill (shown inside S09) recovered in 7.7 minutes.
+
 ### Context: the problem, the actors and who talks to whom
 
 **Scenario.** The recipe from Design 06 works on an 8B model with short answers on 32 GPUs. The team now wants a model nearly thirty times larger, answers sixteen times longer, ten times more steps and a budget of about 200,000 GPU hours. The first attempt at one eighth of that scale ran at 11% GPU utilisation, spent 40% of each step waiting for weight sync, and collapsed on day nine with no obvious cause. Nobody could say which of the five things that changed was responsible.

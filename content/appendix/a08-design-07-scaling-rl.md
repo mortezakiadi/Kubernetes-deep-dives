@@ -11,7 +11,7 @@ The order is the one a reader needs: first the context, then the software I used
 
 **Why standard EKS, and why these tools.** The trainer is TRL's `AsyncGRPOTrainer`, which the library's own documentation describes as decoupling generation from training with a background rollout worker and NCCL weight sync to a vLLM server. That is the design's architecture, so I used it instead of writing a trainer. The rollout fleet is vLLM 0.33 with its NCCL weight-transfer engine. I ran it on standard EKS and not on Auto Mode, because the GPU pools need the NVIDIA node image, a taint, a pinned zone and an instance type chosen per pool.
 
-6 of 7 scenarios passed, 36 of 37 checks.
+9 of 10 scenarios passed, 61 of 65 checks.
 
 | Scenario | Title | Checks passed |
 |---|---|---|
@@ -21,7 +21,12 @@ The order is the one a reader needs: first the context, then the software I used
 | S04 | Long answers and the rollout queue: what an over-provisioned fleet costs | 7 of 7 |
 | S05 | Weight sync: how long a push takes, by model size and fleet size | 7 of 7 |
 | S06 | Numerics: the mismatch between the rollout engine and the trainer | 6 of 6 |
-| S07 | The environment tier: a sandbox pool that scales on its queue | 0 of 1 |
+| S07 | The environment tier: a sandbox pool that scales on its queue | 5 of 5 |
+| S08 | Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something | 7 of 7 |
+| S09 | Failures: lose an engine, a trainer pod, a whole trainer node | 7 of 11 |
+| S10 | The ladder: one axis per rung, exit criteria, and a reference rung | 6 of 6 |
+
+The four checks that fail are all in the node drill of S09. The zone had no GPU capacity to replace the node I terminated, for forty minutes and across all four instance types the pool allowed. I left the failure in: it is a measurement of what losing a GPU node costs on on-demand capacity, and the first run of the same drill (shown inside S09) recovered in 7.7 minutes.
 
 ### Context: the problem, the actors and who talks to whom
 
@@ -74,7 +79,7 @@ The Terraform is about 520 lines, the workload code (trainer wrapper, manifests,
 
 ![Instances](diagrams/appendix/a08-6.svg)
 
-**What the picture shows.** Seven nodes: two small ones for the controllers, two CPU nodes for the sandbox pool, one GPU node for the trainer and two for the rollout fleet. All three GPUs are NVIDIA A10G with 24 GB. Everything that carries weights or samples is in one zone, so none of it crosses a zone boundary, which is billed in both directions. While it is up the cluster costs about $6 an hour.
+**What the picture shows.** Seven nodes: two small ones for the controllers, two CPU nodes for the sandbox pool, one GPU node for the trainer and two for the rollout fleet. All three GPUs are NVIDIA A10G with 24 GB when the build starts; the trainer's pool lists three other single-GPU types to fall back on (see the findings). Everything that carries weights or samples is in one zone, so none of it crosses a zone boundary, which is billed in both directions. While it is up the cluster costs about $6 an hour.
 
 ### Architecture
 
@@ -98,9 +103,9 @@ The Terraform is about 520 lines, the workload code (trainer wrapper, manifests,
 
 **Evaluation and metrics.** Every tenth step the wrapper sends 200 held-out GSM8K problems, four samples each, to the fleet's own API and grades the answers with the same checker as the reward. The compute axis of every curve is GPU hours: the run's own clock times the three GPUs it holds, with the evaluation's time left out. Every logged step is appended to a metrics file with its timestamps.
 
-**Checkpoints and recovery.** Checkpoints go to the node's disk, and a thread uploads each file and then writes a `COMPLETE` marker last, so a half-copied checkpoint is never used. A new trainer pod restores the newest complete checkpoint from the bucket before it starts, and the library resumes the prompt cursor with it. A watchdog thread exits the process if no step finishes for 420 seconds, because NCCL has no timeout and a hang is not restarted by anything.
+**Checkpoints and recovery.** Checkpoints go to the node's disk, and a thread uploads each file and then writes a `COMPLETE` marker last, so a half-copied checkpoint is never used. A new trainer pod restores the newest complete checkpoint from the bucket before it starts, and the library resumes the prompt cursor with it. A watchdog thread exits the process if no step finishes for 420 seconds, because NCCL has no timeout and a hang is not restarted by anything. Before the trainer starts, a guard checks that the fleet answers, and rebuilds it if it does not.
 
-**The environment tier.** For the code task each answer triggers a chain of calls: a call is a message on a Redis list, a worker pops it, runs the code in a child process with a time and memory limit, and answers on a result list. KEDA reads the length of the list every five seconds and sets the replica count from it. This is a throwaway pod running a few lines of arithmetic, not a hardened sandbox; Design 01 builds that.
+**The environment tier.** For the code task each answer sends four calls at once: a call is a message on a Redis list, a worker pops it, runs the code in a child process with a time and memory limit, and answers on a result list. KEDA reads the length of the list every five seconds and sets the replica count from it. This is a throwaway pod running a few lines of arithmetic, not a hardened sandbox; Design 01 builds that.
 
 **The ladder.** Rungs are overlay files that extend each other. Each declares one axis and may set only the settings of that axis; a function checks this before anything is scheduled. A gate function takes the overlay's exit criteria and the measured values and returns climb or hold, with every criterion shown.
 
@@ -122,12 +127,20 @@ These are findings, confirmed on the live system.
 - **The weight receive needs memory outside the KV budget.** At the documented 90% of GPU memory the first push failed with an out-of-memory error: the receive buffers are two copies of 1 GiB. The fleet runs at 70%. S05 reproduces the failure on purpose.
 - **The trainer sends fp32 to bf16 engines.** The master weights are fp32 and the manifest declares their dtype, so each push carries twice the bytes the engines keep, and the engines log a warning for every tensor. The push sizes in S05 are bf16, as the design counts them.
 - **A health probe that misses once can end the run.** Under load the API server missed its readiness probe, the Service lost its only endpoint, and the trainer got "connection refused" and died. The Service now publishes not-ready addresses, and the probe has a longer timeout and a longer threshold.
-- **An over-sized rollout queue wastes the fleet and stalls the sync.** The library's default allows 512 rollouts in flight. With four groups used per step, thousands of samples were generated and dropped as too stale, and the request to pause the fleet waited behind them for up to 130 seconds. S04 measures it. The recipe now allows 64.
+- **An over-sized rollout queue wastes the fleet and stalls the sync.** The library's default allows 512 rollouts in flight. With four groups used per step, thousands of samples were generated and dropped as too stale, and the request to pause the fleet waited behind them for more than a minute (77 seconds in the run of S04, 130 in an earlier one). S04 measures it. The recipe now allows 64.
 - **Four vCPUs are not enough for a vLLM node.** The first rollout nodes (4 vCPUs) starved the API server and the engine; the pool moved to 8 vCPUs. The GPU capacity of a type also differs by zone: `g6.2xlarge` had no capacity in the zone I had chosen for the trainer, and the node group waited 18 minutes with no instance before I looked at its scaling activity.
 - **The first evaluation measured the previous run's policy.** The trainer's own start-of-training hook pushes the first weights, and my evaluation hook ran before it. The starting score of a new run was the last run's final score. The evaluation now runs at the start of the first step.
 - **Math-verify cannot run in threads.** Its timeouts use signals. The evaluation sends its requests from threads and grades the answers afterwards in the main thread.
 - **The staleness metric counts weight versions, not steps.** Pushing every fourth step lowers the count by four and the samples are not fresher; S03 shows both units.
 - **Two flag combinations that look right are refused.** On the data-parallel leader, naming `--data-parallel-start-rank 0` turns on a mode in which the headless worker is rejected, and a Service named like the LeaderWorkerSet replaces the headless Service the group's pods are found by.
+- **A run whose groups all score the same never takes a step.** The trainer drops a group whose answers all get the same reward, because it carries no gradient. My first code task was so easy for the base model that every answer passed every test: two runs sat at step 0 until the watchdog ended them, with the sandbox pool answering calls all the while. The tasks are now five kinds that the base model gets 24% to 69% right, measured before choosing them.
+- **A step is a token budget, not a number of groups.** The trainer packs samples into rows of 4,096 tokens (the engine's maximum length) and takes two rows a step. A maths step is about 35 samples; a step of short code answers is about 190, so the code task needs five times as many scored groups per step as the maths task and loads the environment tier accordingly.
+- **The environment tier is bounded by how the trainer scores.** It scores one group at a time and sends a group's calls together, so at most about thirty calls wait in the queue, and KEDA grew the pool to 12 workers, not to the 40 it was allowed. A deeper queue needs more groups scored at once, which this trainer does not do.
+- **A Redis client's default socket timeout killed the sandbox workers.** Their blocking pop of five seconds outlasted the client's own read timeout, and each worker exited every two minutes with "Timeout reading from socket". The timeout is now set explicitly and the loop survives a Redis error.
+- **A long push can fall towards the instance's baseline bandwidth.** The instance type is advertised as "up to 10 Gbit/s" and its baseline is 5. Pushes of 8 GB or less ran at 9.4 to 9.8 Gbit/s. The 8B model's push of 16 GB into two engines ran at 4.9, 6.6 and 7.9 Gbit/s in three runs of the scenario, and its push into one engine at 9.8. S05 reads the baseline and the peak from the EC2 API and checks that the rate stays between them.
+- **Two runs with the same settings do not give the same curve.** The unstable recipe of S08 collapsed at step 20 in one attempt and was gone by step 35 in another, and the baseline's starting score varied between 0.57 and 0.63 across runs on the same 200 problems. The appendix claims orders (the alert before the collapse) and not step numbers.
+- **A trainer that dies during a weight push wedges the fleet.** In one run of S09 I deleted the trainer's pod while it was pushing weights. Both engines stayed inside the NCCL receive: their health endpoint kept answering 200, every generation request waited, the engines' log said "some processes are hanging", and three restarts of the trainer did not help, because a new trainer cannot join a group whose members are still in the old collective. The trainer's own restart policy cannot fix that; the fleet has to be rebuilt. The trainer now starts with a guard that asks the fleet for one token and, if the answer does not come, deletes the rollout group's leader pod so that the LeaderWorkerSet rebuilds the whole group. S09 runs with the guard.
+- **A GPU node that is lost may not come back.** After the node drill of one S09 run, the replacement `g5.2xlarge` could not be launched: the zone had no capacity for it for more than ninety minutes, and the trainer's pod stayed pending that whole time. I gave the trainer pool three more single-GPU types to fall back on (`g5.4xlarge`, `g6.2xlarge`, `g6e.2xlarge`). The next replacement came up as a `g6e.2xlarge` with a different GPU, which is why S09 prints the node type before and after the drill and S10 does not judge the reference run's step time against a baseline from another GPU. The design's hot spares are the real answer; they are not built.
 - **A tool job can hold the GPU forever.** A benchmark whose peer died blocked in NCCL for two and a half hours and kept every later job pending. Every tool job now has a deadline and is deleted when it is exceeded.
 
 ### 5. The scenarios I tested
@@ -155,16 +168,16 @@ Before any run, I show what the experiments stand on: the GPUs the scheduler can
 
 ```text
 $ kubectl get nodes -L pool,instance-type,zone
-NAME                           STATUS   ROLES    AGE     VERSION               POOL      INSTANCE-TYPE   ZONE
-ip-10-70-0-25.ec2.internal     Ready    <none>   17h     v1.37.1-eks-9adbfea   env       c6i.2xlarge     us-east-1a
-ip-10-70-11-243.ec2.internal   Ready    <none>   5h5m    v1.37.1-eks-9adbfea   rollout   g5.2xlarge      us-east-1a
-ip-10-70-2-208.ec2.internal    Ready    <none>   16h     v1.37.1-eks-9adbfea   trainer   g5.2xlarge      us-east-1a
-ip-10-70-24-160.ec2.internal   Ready    <none>   17h     v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1b
-ip-10-70-41-228.ec2.internal   Ready    <none>   17h     v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1c
-ip-10-70-44-171.ec2.internal   Ready    <none>   17h     v1.37.1-eks-9adbfea   env       c6i.2xlarge     us-east-1c
-ip-10-70-8-28.ec2.internal     Ready    <none>   5h14m   v1.37.1-eks-9adbfea   rollout   g5.2xlarge      us-east-1a
+NAME                           STATUS   ROLES    AGE   VERSION               POOL      INSTANCE-TYPE   ZONE
+ip-10-70-0-25.ec2.internal     Ready    <none>   31h   v1.37.1-eks-9adbfea   env       c6i.2xlarge     us-east-1a
+ip-10-70-11-243.ec2.internal   Ready    <none>   18h   v1.37.1-eks-9adbfea   rollout   g5.2xlarge      us-east-1a
+ip-10-70-24-160.ec2.internal   Ready    <none>   31h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1b
+ip-10-70-41-228.ec2.internal   Ready    <none>   31h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1c
+ip-10-70-44-171.ec2.internal   Ready    <none>   31h   v1.37.1-eks-9adbfea   env       c6i.2xlarge     us-east-1c
+ip-10-70-8-162.ec2.internal    Ready    <none>   78m   v1.37.1-eks-9adbfea   trainer   g5.2xlarge      us-east-1a
+ip-10-70-8-28.ec2.internal     Ready    <none>   18h   v1.37.1-eks-9adbfea   rollout   g5.2xlarge      us-east-1a
 
-$ kubectl get nodes   # GPUs the scheduler can hand out
+$ kubectl get nodes -o json   # GPUs the scheduler can hand out (allocatable nvidia.com/gpu of each GPU node)
 rollout  g5.2xlarge   nvidia.com/gpu=1
 rollout  g5.2xlarge   nvidia.com/gpu=1
 trainer  g5.2xlarge   nvidia.com/gpu=1
@@ -174,17 +187,17 @@ jobsets.jobset.x-k8s.io                     Namespaced   v1alpha2(storage)   202
 leaderworkersets.leaderworkerset.x-k8s.io   Namespaced   v1(storage)         2026-11-22T04:43:08Z
 scaledobjects.keda.sh                       Namespaced   v1alpha1(storage)   2026-11-22T04:43:03Z
 
-$ kubectl -n rl-scale get pods -l leaderworkerset=rollout -o wide
-NAME          READY   STATUS    RESTARTS   AGE     IP            NODE                           NOMINATED NODE   READINESS GATES
-rollout-0     1/1     Running   0          2m13s   10.70.6.194   ip-10-70-11-243.ec2.internal   <none>           <none>
-rollout-0-1   1/1     Running   0          2m13s   10.70.8.65    ip-10-70-8-28.ec2.internal     <none>           <none>
+$ kubectl -n rl-scale get pods -l leaderworkerset.sigs.k8s.io/name=rollout -o wide
+NAME          READY   STATUS    RESTARTS   AGE    IP            NODE                           NOMINATED NODE   READINESS GATES
+rollout-0     1/1     Running   0          101m   10.70.8.66    ip-10-70-8-28.ec2.internal     <none>           <none>
+rollout-0-1   1/1     Running   0          101m   10.70.6.193   ip-10-70-11-243.ec2.internal   <none>           <none>
 
-$ curl http://rollout-api:8000/get_world_size   # engines the trainer must reach with NCCL
+$ kubectl -n rl-scale exec rollout-0 -- curl -s localhost:8000/get_world_size   # engines the trainer must reach with NCCL
 {"world_size":2}
 
 $ kubectl exec iperf-client -- iperf3 -c <rollout node pod> -P 4 -t 15   # trainer node to rollout node
-[ 11]   0.00-15.00  sec  5.62 GBytes  3.22 Gbits/sec                  receiver
-[SUM]   0.00-15.00  sec  17.4 GBytes  9.93 Gbits/sec   20             sender
+[ 11]   0.00-15.00  sec  2.51 GBytes  1.44 Gbits/sec                  receiver
+[SUM]   0.00-15.00  sec  17.4 GBytes  9.93 Gbits/sec   72             sender
 [SUM]   0.00-15.00  sec  17.3 GBytes  9.93 Gbits/sec                  receiver
 
 iperf Done.
@@ -314,7 +327,7 @@ small step (lr 1e-6)              mean |predicted - observed| = 0.012
 
 - The fit has wide error bars because 80 steps did not take any recipe past the midpoint of its curve; the design warns that a ceiling estimated before the midpoint is weak, and the covariance of the fit says so.
 - The recipes are not ranked because their intervals overlap. That is the correct output of the rule, not a failure to run it.
-- The second half of each run is predicted from the first half to within about the evaluation's noise, because at this length the curves are close to straight lines and a saturating curve fits them.
+- The second half of each run is predicted from the first half to within about 0.05 or better, because at this length the curves are close to straight lines and a saturating curve fits them.
 
 ### S03: Where the time goes: the step-time breakdown, in GPU-seconds
 
@@ -338,31 +351,31 @@ $ aws s3 cp s3://<state bucket>/runs/r1-center/metrics.jsonl -   # the run 'cent
 91 records, 80 training steps, 9 evaluations
 
 $ python breakdown.py r1-center   # median over the steps of the run, from the trainer's own per-stage timers
-step (wall clock between logged steps)   3.86 s
-  weight sync (pause + NCCL transfer)     2.04 s   (transfer 1.98, pause 0.04)
-  forward + backward + optimizer          1.89 s   (backward 1.52, log-probs 0.37, optimizer 0.002)
-  trainer waiting for rollouts            0.01 s
+step (wall clock between logged steps)   3.82 s
+  weight sync (pause + NCCL transfer)     2.06 s   (transfer 2.01, pause 0.04)
+  forward + backward + optimizer          1.83 s   (backward 1.47, log-probs 0.36, optimizer 0.002)
+  trainer waiting for rollouts            0.00 s
   not accounted for                       0.00 s
 
 $ python gpu_seconds.py r1-center   # the same step, weighted by the GPUs held (3 GPUs x step time)
-trainer GPU: training                            1.89 GPU-s   16.3%
-trainer GPU: sending weights                     2.04 GPU-s   17.6%
-trainer GPU: waiting                             0.01 GPU-s    0.1%
-2 rollout GPUs: paused for the weight load       4.08 GPU-s   35.2%
-2 rollout GPUs: generating                       3.65 GPU-s   31.4%
-reserved                                        11.59 GPU-s
+trainer GPU: training                            1.83 GPU-s   16.0%
+trainer GPU: sending weights                     2.06 GPU-s   18.0%
+trainer GPU: waiting                             0.00 GPU-s    0.0%
+2 rollout GPUs: paused for the weight load       4.12 GPU-s   36.0%
+2 rollout GPUs: generating                       3.51 GPU-s   30.6%
+reserved                                        11.45 GPU-s
 
 $ # run ws4: read back from the state bucket (already complete)
 47 records
 
 $ python compare.py r1-center ws4   # first 40 steps of each: weights every step, then every fourth step
                                              every step   every 4th step
-mean seconds per step (evaluation left out)        3.91           2.49
+mean seconds per step (evaluation left out)        4.00           2.49
 mean weight-sync seconds per step                  2.08           0.75
-staleness, in weight versions behind               3.07           0.89
-staleness, in training steps (versions x interval)       3.07           3.54
-GPU hours at step 40                              0.145          0.098
-held-out pass rate at step 40                     0.579          0.605   (start 0.580)
+staleness, in weight versions behind               2.99           0.89
+staleness, in training steps (versions x interval)       2.99           3.54
+GPU hours at step 40                              0.149          0.098
+held-out pass rate at step 40                     0.662          0.605   (start 0.580)
 
 ```
 
@@ -419,29 +432,30 @@ $ # run sync0: read back from the state bucket (already complete)
 
 $ python compare.py r1-center q512 sync0   # 40 steps of the same recipe, three ways of running it
                                      64 in flight   512 in flight   staleness 0
-samples trained on                           1838            1275           1132
-samples dropped as too stale                  182            5070           2858
-longest weight-sync pause (s)                 0.1            77.5            0.1
-GPU hours to reach step 40                  0.145           0.356          0.306
-median seconds per step                      3.85            3.87           8.64
-trainer wait for rollouts (median s)         0.01            0.00           4.73
-held-out pass rate at step 40               0.579           0.671          0.645
+samples trained on                            979            1275           1132
+samples dropped as too stale                   86            5070           2858
+longest weight-sync pause (s)                 0.2            77.5            0.1
+GPU hours to reach step 40                  0.149           0.356          0.306
+median seconds per step                      3.82            3.87           8.64
+trainer wait for rollouts (median s)         0.00            0.00           4.73
+held-out pass rate at step 40               0.662           0.671          0.645
 
 $ # run think: read back from the state bucket (already complete)
 25 records
 
 $ python compare.py r1-center think   # answer lengths and step time, short answers against thinking mode
                                          short answers   thinking mode
-mean answer length (tokens)                        173            1588
-longest answer in a step (tokens, mean)            520            2334
-answers cut at the limit                          1.6%           32.4%
-mean seconds per step                              3.9            10.5
-share of the step the trainer waits for rollouts          1.1%           62.1%
-seconds to finish a group of answers (median)           1.9            30.2
-tokens generated per second (median)              3134            1855
-held-out pass rate at the start                  0.627           0.752
+mean answer length (tokens)                        306            1588
+longest answer in a step (tokens, mean)            682            2334
+answers cut at the limit                          2.3%           32.4%
+mean seconds per step                              4.0            10.5
+share of the step the trainer waits for rollouts          4.4%           62.1%
+seconds to finish a group of answers (median)           3.8            30.2
+tokens generated per second (median)              2543            1855
+held-out pass rate at the start                  0.573           0.752
 
-$ kubectl -n rl-scale logs rollout-0 | grep -E 'KV cache size|Maximum concurrency'   # how many long answers fit on one engine
+$ kubectl -n rl-scale exec rollout-0 -- curl -s localhost:8000/metrics | grep cache_config_info   # how many long answers fit on one engine
+15960 blocks of 16 tokens = 255,360 tokens of KV cache; the engine reports a maximum concurrency of 31.2 requests at the full length of 4096 tokens
 
 ```
 
@@ -676,11 +690,13 @@ sampling/masked_mean                           median   0.003844   max    0.0125
 
 **Design reference:** Rewards and environments at scale.
 
-**What this tests.** Give every answer a chain of tool calls in a sandbox pool and compare a fixed pool of two workers with a pool that KEDA scales on the length of its queue. Measure what the rollout fleet and the trainer see.
+**What this tests.** Give every answer four tool calls in a sandbox pool and compare a fixed pool of two workers with a pool that KEDA scales on the length of its queue. Measure what the rollout fleet and the trainer see.
 
-The design's environment tier is a service of its own, scaled on its queue, so that the rollout GPUs do not wait for sandboxes. I gave every answer a chain of eight calls into a sandbox pool and compared a fixed pool of two workers with a pool that KEDA scales on the length of its queue, measuring what the trainer sees.
+The design's environment tier is a service of its own, scaled on its queue, so that the rollout GPUs do not wait for sandboxes. I gave every answer four tool calls into a sandbox pool and compared a fixed pool of two workers with a pool that KEDA scales on the length of its queue, measuring what the trainer sees.
 
 ![S07: The environment tier: a sandbox pool that scales on its queue](diagrams/appendix/a08-evidence/S07.png)
+
+![S07: pool, drawn from the run data](diagrams/appendix/a08-evidence/S07-pool.png)
 
 **Commands I ran and what they printed** (shortened; the full text is in the screenshot):
 
@@ -699,12 +715,13 @@ GPUS_HELD=3
 LEARNING_RATE=3e-6
 MAX_COMPLETION=512
 MAX_CONCURRENT=64
-MAX_STEPS=25
+MAX_STEPS=5
 TASK=pyexec
-TOOL_CALLS=8
+TOOL_CALLS=4
+WATCHDOG_S=900
 
 $ kubectl get jobset trainer-env-fixed
-completed=False failed=True restarts=0  records=0
+completed=True failed=False restarts=0  records=7
 
 $ kubectl apply -f sandbox-pool.yaml   # pool scaled by queue length, 2 to 40 workers; every call takes 250 ms of 'tool time' plus the code's run
 2 workers ready
@@ -717,12 +734,26 @@ GPUS_HELD=3
 LEARNING_RATE=3e-6
 MAX_COMPLETION=512
 MAX_CONCURRENT=64
-MAX_STEPS=25
+MAX_STEPS=5
 TASK=pyexec
-TOOL_CALLS=8
+TOOL_CALLS=4
+WATCHDOG_S=900
 
 $ kubectl get jobset trainer-env-keda
-completed=False failed=True restarts=0  records=0
+completed=True failed=False restarts=0  records=7
+
+$ python compare.py env-fixed env-keda   # 5 steps each, four tool calls per answer
+                                             fixed pool   scaled pool
+peak sandbox workers                                  2            12
+peak queue length (calls waiting)                    30            28
+calls served                                       8576          8032
+median seconds per step                           191.3          41.5
+time to score a group (median s)                    4.5           1.0
+trainer waiting for samples (median s)            188.3          37.7
+tokens generated per second                          87           372
+
+$ kubectl get deploy sandbox-workers   # a few minutes after the run, with the queue empty
+2 workers wanted
 
 ```
 
@@ -730,7 +761,11 @@ completed=False failed=True restarts=0  records=0
 
 | Result | Check | Why this output (what I implemented that causes it) |
 |---|---|---|
-| **FAIL** | scenario ran to completion | StatisticsError: no median for empty data |
+| PASS | with two workers the queue builds up and the trainer's step is dominated by waiting for rewards | Two workers serve about eight calls a second. A group of eight answers with four calls each is thirty-two calls, and the trainer needs about twenty groups for one step. |
+| PASS | KEDA grows the pool when the queue grows: at least four times the starting size | KEDA reads the length of the Redis list every five seconds and sets the replica count to the length divided by the target per worker (two), up to the maximum. The trainer scores one group at a time, so at most about thirty messages wait, which caps the pool near fifteen. Scaling on CPU would react only after the workers were busy. |
+| PASS | the scaled pool at least halves the step | Same recipe, same model, same hardware. Only the number of workers behind the queue differs. |
+| PASS | the pool shrinks back when the queue is empty | The cooldown is sixty seconds. A pool that stays large costs CPU for nothing; one that never grew costs GPU time, as the fixed pool showed. |
+| PASS | the queue is drained at the end: no call was lost | Every call is a message that a worker removes with a blocking pop and answers on its own result list, so a message is either waiting, being served, or answered. |
 
 **Why you can trust this result.**
 
@@ -740,9 +775,292 @@ completed=False failed=True restarts=0  records=0
 
 **Why you get this output.**
 
-- Two workers serve a few calls a second. A group of eight answers with eight calls each is sixty-four calls, and several groups are in flight, so the queue builds and scoring takes as long as the queue.
+- Two workers serve about six calls a second. A group of eight answers with four calls each is thirty-two calls, the trainer needs about twenty groups for one step, and the answers are short enough that a step takes that many. Scoring takes as long as the queue.
 - KEDA reads the list's length every five seconds and sets the replica count to the length divided by the target per worker, up to the maximum; scaling on CPU would react only after the workers were already busy.
 - The pool shrinks after a cooldown once the list is empty.
+
+### S08: Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something
+
+**Design reference:** Stability over thousands of steps.
+
+**What this tests.** Take a recipe whose step size is about three times too large, watch the signals the design names, fire a combined alert, find the last healthy checkpoint by query, and restart from it twice: once with the same settings and once with a smaller step.
+
+The design says slow drifts only matter on long runs, and that alerts should combine trends. I took a recipe whose step size is about three times too large, watched the signals the design names, fired a combined alert, found the last healthy checkpoint by query, and restarted from it twice: once with the same settings and once with the healthy recipe's step size.
+
+![S08: Stability: a composite alert, the last healthy checkpoint, and a rollback that changes something](diagrams/appendix/a08-evidence/S08.png)
+
+![S08: drift, drawn from the run data](diagrams/appendix/a08-evidence/S08-drift.png)
+
+![S08: restart, drawn from the run data](diagrams/appendix/a08-evidence/S08-restart.png)
+
+**Commands I ran and what they printed** (shortened; the full text is in the screenshot):
+
+```text
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ aws s3 cp s3://<state bucket>/runs/r1-center/metrics.jsonl -   # the run 'the healthy recipe of S02' made earlier in this session
+91 records, 80 training steps, 9 evaluations
+
+$ # run unstable: read back from the state bucket (already complete)
+80 records
+
+$ python alert.py unstable   # the four signals every fifth step, and the conditions that held
+step  entropy  masked-by-clip  answers cut  informative   conditions that hold (window of 8 steps)
+   1    0.324          0.0000           0%         0.36   -
+   6    0.348          0.0475           1%         0.52   -
+  11    0.691          0.0489           8%         0.40   mismatch tail high, entropy moving fast
+  16    0.616          0.0143          19%         0.63   -
+  21    0.579          0.0202          39%         0.61   mismatch tail high, answers cut at the limit
+  26    0.502          0.0166          54%         0.45   answers cut at the limit
+  31    0.563          0.0218          20%         0.49   mismatch tail high
+  36    0.579          0.0217           5%         0.37   mismatch tail high
+  41    0.581          0.0230          10%         0.66   mismatch tail high
+  46    0.537          0.0200          33%         0.83   answers cut at the limit
+  51    0.588          0.0156          25%         0.66   -
+  56    0.465          0.0165          15%         0.73   entropy moving fast
+
+$ python alert.py --first r1-center unstable   # the combined rule: two conditions for three steps in a row
+healthy run (r1-center, 80 steps):  no alert
+unstable run:                       ALERT at step 13
+first step at which any one condition held: 9   (mismatch tail: 9; answers cut at the limit: 20)
+held-out score first below half of its start (0.60): step 20;  first below 0.05: never
+held-out scores: 0:0.60, 5:0.66, 10:0.57, 15:0.31, 20:0.19, 25:0.34, 30:0.14, 35:0.17, 40:0.16, 45:0.14, 50:0.36, 55:0.40, 60:0.36
+
+$ python last_healthy.py unstable --before-alert   # a query over the checkpoint records, not a guess
+checkpoint step  held-out score  in the bucket
+             10           0.57  True
+             20           0.19  True
+             30           0.14  True
+             40           0.16  True
+             50           0.36  True
+             60           0.36  True
+last healthy checkpoint before the alert: step 10
+
+$ # run restart-same: read back from the state bucket (already complete)
+39 records
+
+$ # run restart-smaller: read back from the state bucket (already complete)
+39 records
+
+$ python compare.py restart-same restart-smaller   # held-out score every five steps after the restart
+checkpoint 10 scored 0.575 before it was restored
+same step size:   0:0.53, 5:0.53, 10:0.30, 15:0.21, 20:0.28, 25:0.31, 30:0.31
+smaller step:     0:0.52, 5:0.57, 10:0.64, 15:0.61, 20:0.61, 25:0.69, 30:0.66
+
+```
+
+**What each check proved, and why the output is what it is:**
+
+| Result | Check | Why this output (what I implemented that causes it) |
+|---|---|---|
+| PASS | the combined rule stays silent for the whole healthy run | The thresholds were set just outside what the healthy runs of S02 and S04 produced. A rule that fires on a healthy run is worse than none, because it teaches people to ignore it. |
+| PASS | the unstable run collapses: its held-out score falls below half of where it started | A step size about three times too large moves the policy further than the importance ratio's clip can contain: the held-out score starts to fall within the first ten to fifteen steps. |
+| PASS | the combined alert fires before the held-out score has collapsed | Two conditions for three steps in a row over a window of eight steps. The held-out score is measured every five steps and needs time to fall; the training-side signals move first. Runs differ from each other (the same settings collapsed at different steps in two attempts), so the figure to read is the order, not the step number. |
+| PASS | one signal, the share of tokens the clip masks, moves before the held-out score has collapsed | The mismatch tail is the earliest warning the design names. A single threshold on it would have fired earlier than the combined rule, at the price of a false alarm whenever it wobbles. |
+| PASS | a checkpoint within 0.12 of the best score exists before the alert and is in the bucket | Every checkpoint is recorded with the run's logs, and copied to the bucket before it is marked complete, so the query returns something that can be restored. |
+| PASS | a restart with the same settings loses the policy again | The same step size on the same weights meets the same instability. A plain restart is the design's example of what not to do. |
+| PASS | a restart with a smaller step holds the score the checkpoint had | Roll back and change something: here the learning rate, with a fresh optimizer and a different prompt order. |
+
+**Why you can trust this result.**
+
+- The alert rule's thresholds were set just outside the envelope of the healthy runs of S02 and S04 so that it never fires on them, and were then applied unchanged to the unstable run. The unstable run is the only run in this appendix that the rule fires on.
+- Collapse is defined from the held-out score alone (below half of where the run started), which is measured every five steps and is independent of the alert's inputs.
+- The checkpoint the query returns is checked to be in the bucket, and both restarts load that checkpoint's weights from it.
+
+**Why you get this output.**
+
+- A step size about three times too large moves the policy further than the importance ratio's clip can contain. The share of tokens the clip masks rises within a few steps, answers stop ending and reach the length limit, groups stop carrying a gradient, and the held-out score falls.
+- The combined rule needs two conditions for three steps in a row over a window of eight, so it fires after the first single signal. Here that was the right trade: the single signal is the earliest warning, and the rule's alert still comes before the policy is destroyed.
+- A restart with the same step size meets the same instability. A restart with the healthy step size, a fresh optimizer and a different prompt order does not.
+
+### S09: Failures: lose an engine, a trainer pod, a whole trainer node
+
+**Design reference:** Failures and recovery on multi-week runs.
+
+**What this tests.** Start a run with checkpoints and a restart policy, break it three ways, and measure how long each takes to recover, how much work is repeated, and what share of the reserved GPU time went into progress.
+
+The design says to make failures cheap and not rare. I started a run with checkpoints and a restart policy, broke it three ways (a rollout engine, the trainer's pod, the trainer's whole node), and measured how long each took to recover, how much work was repeated, and what share of the reserved GPU time went into progress.
+
+![S09: Failures: lose an engine, a trainer pod, a whole trainer node](diagrams/appendix/a08-evidence/S09.png)
+
+**Commands I ran and what they printed** (shortened; the full text is in the screenshot):
+
+```text
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f trainer-fail-engine.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; a rollout engine's pod is deleted once the run is past step 14
+
+$ kubectl delete pod rollout-0-1   # the worker pod of the rollout group
+pod "rollout-0-1" deleted from rl-scale namespace
+
+$ python recovery.py fail-engine   # from the run's records and the pod's log
+JobSet: completed=True restarts=1
+last step logged before the failure: 17
+first step logged after it:          11  (3.1 minutes after the failure)
+steps done twice:                    7
+log: restored 15 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-engine/; newest complete checkpoint: checkpoint-10
+log: fleet guard: the fleet answers
+old pod, last lines before it was replaced: raise RuntimeError( | RuntimeError: Weight sync to the vLLM server at http://rollout-api.rl-scale.svc:8000 failed. The server keeps 
+reserved GPU time 397 s x 3 GPUs; productive 193 s -> goodput 48% over 44 steps
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f trainer-fail-pod.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; the trainer's pod is deleted once the run is past step 14
+
+$ kubectl delete pod -l run=fail-pod
+pod "trainer-fail-pod-trainer-0-0-lvchk" deleted from rl-scale namespace
+
+$ python recovery.py fail-pod   # from the run's records and the pod's log
+JobSet: completed=True restarts=1
+last step logged before the failure: 19
+first step logged after it:          11  (5.0 minutes after the failure)
+steps done twice:                    9
+log: restored 19 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-pod/; newest complete checkpoint: checkpoint-10
+log: fleet guard: the fleet is healthy but does not answer; recreating the rollout group (attempt 1)
+log: fleet guard: the fleet answers
+old pod, last lines before it was replaced: NCCL version 2.31.2+cuda13.3
+reserved GPU time 507 s x 3 GPUs; productive 182 s -> goodput 36% over 44 steps
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f trainer-fail-node.yaml   # JobSet with failurePolicy.maxRestarts=3; checkpoints every 10 steps; the trainer's node is terminated once the run is past step 14
+
+$ aws ec2 terminate-instances --instance-ids <the trainer node>
+shutting-down
+
+$ python recovery.py fail-node   # from the run's records and the pod's log
+JobSet: completed=False restarts=1
+last step logged before the failure: 22
+first step logged after it:          None  (nan minutes after the failure)
+steps done twice:                    n/a
+log: no restore line
+old pod, last lines before it was replaced: (no error line)
+trainer node type: g6e.2xlarge before, none after
+reserved GPU time 80 s x 3 GPUs; productive 80 s -> goodput 100% over 21 steps
+
+```
+
+**The same node drill, in the first run of this scenario** (before the trainer pool had fallback instance types and before the start-up guard existed; the replacement node was launched that time):
+
+```text
+$ python recovery.py fail-node   # from the run's records and the pod's log
+JobSet: completed=True restarts=1
+last step logged before the failure: 20
+first step logged after it:          11  (7.7 minutes after the failure)
+steps done twice:                    10
+log: restored 24 files from s3://ds07-scaling-rl-state-8a5667a5/runs/fail-node/; newest complete checkpoint: checkpoint-10
+reserved GPU time 727 s x 3 GPUs; productive 232 s -> goodput 32% over 44 steps
+
+```
+
+**What each check proved, and why the output is what it is:**
+
+| Result | Check | Why this output (what I implemented that causes it) |
+|---|---|---|
+| PASS | after a rollout engine's pod is deleted, the run goes on and completes all 45 steps without anyone's help | The JobSet's failure policy recreates the trainer pod; the new pod restores the newest complete checkpoint from the state bucket and continues. Nobody ran a command. |
+| PASS | after a rollout engine's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated | A checkpoint is written every ten steps. Work done since the last one is lost; the checkpoint interval is the bound on it. |
+| PASS | after a rollout engine's pod is deleted, the run is stepping again within fifteen minutes | That includes the pod's start, the packages, loading the model and the checkpoint, rebuilding the NCCL group with the fleet, and a first step. |
+| PASS | after the trainer's pod is deleted, the run goes on and completes all 45 steps without anyone's help | The JobSet's failure policy recreates the trainer pod; the new pod restores the newest complete checkpoint from the state bucket and continues. Nobody ran a command. |
+| PASS | after the trainer's pod is deleted, the first step is the one after a checkpoint, and no more than ten steps are repeated | A checkpoint is written every ten steps. Work done since the last one is lost; the checkpoint interval is the bound on it. |
+| PASS | after the trainer's pod is deleted, the run is stepping again within fifteen minutes | That includes the pod's start, the packages, loading the model and the checkpoint, rebuilding the NCCL group with the fleet, and a first step. |
+| **FAIL** | after the trainer's node is terminated, the run goes on and completes all 45 steps without anyone's help | The JobSet's failure policy recreates the trainer pod; the new pod restores the newest complete checkpoint from the state bucket and continues. Nobody ran a command. |
+| **FAIL** | after the trainer's node is terminated, the first step is the one after a checkpoint, and no more than ten steps are repeated | A checkpoint is written every ten steps. Work done since the last one is lost; the checkpoint interval is the bound on it. |
+| **FAIL** | after the trainer's node is terminated, the run is stepping again within fifteen minutes | That includes the pod's start, the packages, loading the model and the checkpoint, rebuilding the NCCL group with the fleet, and a first step. |
+| **FAIL** | the checkpoint came from the bucket, not from the node that failed (node drill) | The node's own disk went with the node. What survives is the copy the trainer's background thread made. |
+| PASS | losing an engine is not absorbed: the trainer's process ends and is restarted too (finding) | The design assumes a failed rollout engine is replaced while the run continues. With NCCL weight transfer the engines and the trainer share one communicator, and a lost member stops every collective. The JobSet restarted the trainer; I did not capture whether its own error or its watchdog ended it, because the replaced pod's log is gone. |
+
+**Why you can trust this result.**
+
+- Each failure is inflicted by a command shown in the transcript, once the run is past step 14 and a checkpoint is complete in the bucket.
+- Recovery times come from the run's own timestamps against the moment of the command; the restored checkpoint is read from the new pod's log.
+- Goodput counts each step once, at its last completion, and divides by the time from the first record to the last, times three GPUs.
+
+**Why you get this output.**
+
+- The JobSet's failure policy recreates the trainer pod, and the new pod restores the newest complete checkpoint from the bucket before it starts, so nothing depends on the old node.
+- Losing an engine breaks the NCCL group that the trainer shares with the engines, and the group is rebuilt by the new pods. The trainer's process ended and the restart policy started a new one, which re-formed the group with the rebuilt fleet. The design assumes the engine can be replaced while the run goes on; with this weight-transfer path the trainer has to re-form the group, so it restarts too.
+- A trainer that dies in the middle of a weight push leaves the engines blocked inside the collective, with a health endpoint that still answers. The guard that runs before every trainer start asks the fleet for one token and recreates the group when it does not answer, so that the restart does not depend on anyone noticing.
+- The node drill needs the zone to have a GPU to give. In the first run of this scenario the replacement came up and the run went on after 7.7 minutes, with its checkpoint restored from the bucket. In the run recorded above the node group asked for a replacement for forty minutes and the zone had none of any of the four types it was allowed (the group's own activity log says InsufficientInstanceCapacity), so the four checks of that drill fail. That failure is the result: terminating a GPU node gives its capacity back, and the design's hot spares exist for exactly this.
+- The checkpoint interval bounds the repeated work. Everything else in the recovery time is the pod's start, the packages, the model and checkpoint load and the NCCL handshake.
+
+### S10: The ladder: one axis per rung, exit criteria, and a reference rung
+
+**Design reference:** The scaling ladder.
+
+**What this tests.** Write the ladder as overlays that change one axis each, decide from measured evidence whether a rung may be climbed, account for what each rung spent, and keep a small reference run that repeats on a schedule.
+
+The ladder is the design's answer to 'when can we start the big run?': after the rung below it is understood. I wrote the ladder as overlay files that each change one axis, decided from measured evidence whether a rung may be climbed, accounted for what each rung spent, and kept a small reference run that repeats on a schedule.
+
+![S10: The ladder: one axis per rung, exit criteria, and a reference rung](diagrams/appendix/a08-evidence/S10.png)
+
+**Commands I ran and what they printed** (shortened; the full text is in the screenshot):
+
+```text
+$ python ladder.py check recipes/ladder/*.yaml   # an overlay may change only the settings of the axis it declares
+rung1-recipe.yaml        ok   rung 1 defines the starting recipe
+rung2-length.yaml        ok   changes only ['MAX_COMPLETION', 'THINKING'], all of axis 'length'
+rung3-model-size.yaml    ok   changes only ['MODEL'], all of axis 'model_size'
+bad-two-axes.yaml        REFUSED declares axis 'length' but also changes ['MODEL'] (axes ['length', 'model_size'])
+
+$ python ladder.py gate rung1-recipe   # may the team climb to rung 2?
+decision: HOLD
+  HOLD  curve fit: 2 x std of the ceiling        wanted <= 0.03  measured 0.295
+  PASS  unexplained waiting, share of step       wanted <= 0.1   measured 0.000
+  PASS  restart from a checkpoint tested         wanted yes      measured True
+
+$ python ladder.py gate rung2-length   # may the team climb to rung 3?
+decision: HOLD
+  HOLD  curve fit: 2 x std of the ceiling        wanted <= 0.03  measured None
+  PASS  unexplained waiting, share of step       wanted <= 0.1   measured 0.030
+  PASS  restart from a checkpoint tested         wanted yes      measured True
+
+$ python ladder.py spend   # GPU hours each rung used, against its budget (three GPUs, evaluation left out)
+rung 1  recipe        0.89 of 2.0 GPU hours  (3 runs)
+rung 2  length        0.21 of 1.0 GPU hours  (1 run)
+
+$ kubectl -n rl-scale get lws rollout   # 2 engine(s), settings: defaults
+ready
+
+$ kubectl apply -f reference-rung.yaml   # a CronJob that repeats a 20-step run every night against the current code and image
+NAME             SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+reference-rung   0 3 * * *   <none>     False     0        <none>          1s
+
+$ kubectl create job reference-manual --from=cronjob/reference-rung   # the schedule's run, started by hand
+job.batch/reference-manual created
+
+$ python reference.py reference-1123-1006   # compare the 20 steps with the same 20 steps of the S02 run
+mean reward, reference vs baseline: differs by 0.030
+seconds per step: differs by 16%
+verdict: within tolerance
+
+```
+
+**What each check proved, and why the output is what it is:**
+
+| Result | Check | Why this output (what I implemented that causes it) |
+|---|---|---|
+| PASS | rungs 2 and 3 each change one axis, and an overlay that changes two is refused | A rung that changes the answer length and the model together cannot say which one caused a regression. The launcher refuses it before anything is scheduled. |
+| PASS | the gate returns a decision with the measured value of every criterion, for both rungs | The criteria are the design's own: the ceiling's confidence interval, the unexplained waiting, and a tested restart. Each value comes from a run in this session. |
+| PASS | a rung whose curve is not known is held: the 20-step thinking run cannot support a ceiling estimate | A fit needs points past the curve's midpoint. A short run at a new length has none, so the gate says so instead of guessing. |
+| PASS | each rung stayed within its declared budget | A rung's budget is part of its overlay, so the cost of the ladder is known before it starts and checked after. |
+| PASS | the reference run completed and matches its baseline within tolerance | Same recipe, same code, same images, twenty steps. If a library upgrade changes the training dynamics or the step time, this run moves before a large one does. |
+| PASS | the comparison flags a run whose reward or time per step has moved (made-up perturbations of the baseline) | A tolerance that never fires is no check. The same function is applied to the baseline against itself (quiet), to a copy with a reward 0.3 higher (flagged), and to a copy with three more seconds per step (flagged). |
+
+**Why you can trust this result.**
+
+- The one-axis rule is applied to the overlay files as they are; an overlay that changes two axes is in the repository on purpose and is refused.
+- The gate takes its three measured values from runs in this session: the ceiling's interval from the S02 fit, the unexplained waiting from the S03 breakdown, and the tested restart from S09.
+- The reference run is started by the CronJob's own template, so the test exercises the object that would run at night.
+
+**Why you get this output.**
+
+- A rung that changes length and model size together cannot say which caused a regression, so the launcher refuses it before anything is scheduled.
+- A rung is held when its criteria are not met by measurements, not by opinion. A short run at a new length has no points past the curve's midpoint, so the ceiling's interval is unknown and the gate says so.
+- The reference run's tolerances are set so that the same recipe on the same code passes and a run whose reward or step time has moved does not; the comparison function is also applied to made-up perturbations of the baseline to show it fires.
 
 ### What I did not build
 
