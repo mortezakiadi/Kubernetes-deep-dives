@@ -835,8 +835,13 @@ spec:
 
 - **The failure point:** the first pod isn't the problem. Kubernetes lets the first pod of a group with affinity to itself schedule, as long as no other pod matches yet ([Kubernetes docs](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)). The problems are these:
   - **Pods are still placed one at a time:** pod 1 picks a node without knowing whether the others will fit there, and the rest stay Pending if that node fills up.
-  - **One node is too small for a big group:** with `kubernetes.io/hostname`, 100 GPU pods would all have to fit on one server, which holds 8 GPUs on a p4d.
-  - **It's slow at scale:** the Kubernetes docs say inter-pod affinity can slow scheduling down significantly and don't recommend it in clusters larger than several hundred nodes.
+  - **One node is too small for a big group:**
+    - `topologyKey: kubernetes.io/hostname` means "same node", because every node has its own hostname label. So the rule says every trainer pod must sit on the same node as the others.
+    - A p4d node has 8 GPUs. With one GPU per pod, pods 1 to 8 can share that node. Pod 9 has nowhere to go: the node is full, and the rule forbids every other node.
+    - So pods 9 to 100 stay Pending for good. This workaround only works for groups small enough to fit on one node; bigger groups need a wider "together" level, such as a rack or a zone (next point).
+  - **It's slow at scale:**
+    - To check the rule for a new pod, the scheduler has to look at which pods already run on each candidate node and whether they match the rule's label.
+    - The Kubernetes docs say this takes substantial processing, can slow scheduling down significantly in large clusters, and isn't recommended in clusters larger than several hundred nodes ([Kubernetes docs](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)).
 - **What to do instead:**
   - **Write the rule once:** put it in the pod template of the Job or JobSet, so every pod gets it, instead of writing it per pod.
   - **Pick the level that fits the group:** keep `kubernetes.io/hostname` for groups that fit on one node. For bigger groups, use a wider node label as the `topologyKey`, such as `topology.kubernetes.io/zone` or a rack label if your nodes carry one.
