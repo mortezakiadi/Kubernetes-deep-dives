@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 700" width="1180" height="700" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start">An NVLink group and a PCIe root are two different groupings</text>
+<rect x="24" y="50" width="60" height="22" rx="11" fill="#2f9e5b" stroke="#2f9e5b" stroke-width="1"/><text x="54.0" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">NVLink</text>
+<rect x="90" y="50" width="44" height="22" rx="11" fill="#0f766e" stroke="#0f766e" stroke-width="1"/><text x="112.0" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">PCIe</text>
+<text x="170" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start">One p4d.24xlarge: 8 GPUs and 4 EFA cards over 4 PCIe roots (dranet docs), all 8 GPUs on one NVSwitch (AWS).</text>
+<rect x="24" y="92" width="1132" height="40" rx="10" fill="#eef3fd" stroke="#4a7bd0" stroke-width="1.6"/>
+<text x="590" y="117" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle">CPUs and memory</text>
+<path d="M160.0,132 L160.0,176" stroke="#5b6675" stroke-width="2"/>
+<rect x="24" y="176" width="272" height="128" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8"/>
+<text x="38" y="196" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">PCIe root pci0000:10</text>
+<rect x="34" y="208" width="76" height="84" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="44" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-0</text>
+<text x="44" y="250" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="118" y="208" width="76" height="84" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="128" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-1</text>
+<text x="128" y="250" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="204" y="208" width="82" height="84" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="2"/>
+<text x="212" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">EFA card</text>
+<text x="212" y="250" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" font-weight="400" fill="#5b6675" text-anchor="start">rdmap16s27</text>
+<path d="M447.0,132 L447.0,176" stroke="#5b6675" stroke-width="2"/>
+<rect x="311" y="176" width="272" height="128" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8"/>
+<text x="325" y="196" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">PCIe root pci0000:a0</text>
+<rect x="321" y="208" width="76" height="84" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="331" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-2</text>
+<text x="331" y="250" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="405" y="208" width="76" height="84" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="415" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-3</text>
+<text x="415" y="250" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="491" y="208" width="82" height="84" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="2"/>
+<text x="499" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">EFA card</text>
+<text x="499" y="250" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" font-weight="400" fill="#5b6675" text-anchor="start">rdmap160s27</text>
+<path d="M733.0,132 L733.0,176" stroke="#5b6675" stroke-width="2"/>
+<rect x="597" y="176" width="272" height="128" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8"/>
+<text x="611" y="196" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#5b6675" text-anchor="start">PCIe root (root 3, name not given)</text>
+<rect x="607" y="208" width="76" height="84" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="617" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-4</text>
+<text x="617" y="250" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="691" y="208" width="76" height="84" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="701" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-5</text>
+<text x="701" y="250" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="777" y="208" width="82" height="84" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="2"/>
+<text x="785" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">EFA card</text>
+<text x="785" y="250" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" font-weight="400" fill="#5b6675" text-anchor="start"></text>
+<path d="M1020.0,132 L1020.0,176" stroke="#5b6675" stroke-width="2"/>
+<rect x="884" y="176" width="272" height="128" rx="10" fill="#fff7ec" stroke="#e08a1e" stroke-width="1.8"/>
+<text x="898" y="196" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#5b6675" text-anchor="start">PCIe root (root 4, name not given)</text>
+<rect x="894" y="208" width="76" height="84" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="904" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-6</text>
+<text x="904" y="250" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="978" y="208" width="76" height="84" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="2"/>
+<text x="988" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">gpu-7</text>
+<text x="988" y="250" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="start">GPU</text>
+<rect x="1064" y="208" width="82" height="84" rx="8" fill="#ffffff" stroke="#3b6fd8" stroke-width="2"/>
+<text x="1072" y="232" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">EFA card</text>
+<text x="1072" y="250" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" font-weight="400" fill="#5b6675" text-anchor="start"></text>
+<rect x="24" y="376" width="1132" height="50" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="590" y="398" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">NVSwitch</text>
+<text x="590" y="416" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#2f6f4a" text-anchor="middle">all 8 GPUs, 600 GB/s each (AWS). The EFA cards are not on it.</text>
+<path d="M73,292 L73,376" stroke="#2f9e5b" stroke-width="4"/>
+<path d="M157,292 L157,376" stroke="#2f9e5b" stroke-width="4"/>
+<path d="M360,292 L360,376" stroke="#2f9e5b" stroke-width="4"/>
+<path d="M444,292 L444,376" stroke="#2f9e5b" stroke-width="4"/>
+<path d="M646,292 L646,376" stroke="#2f9e5b" stroke-width="4"/>
+<path d="M730,292 L730,376" stroke="#2f9e5b" stroke-width="4"/>
+<path d="M933,292 L933,376" stroke="#2f9e5b" stroke-width="4"/>
+<path d="M1017,292 L1017,376" stroke="#2f9e5b" stroke-width="4"/>
+<text x="24" y="350" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="1" font-weight="400" fill="#1f2933" text-anchor="start"></text>
+<rect x="24" y="446" width="556" height="120" rx="12" fill="#f3fbf6" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="44" y="472" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f6f4a" text-anchor="start">NVLink group</text>
+<text x="44" y="494" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">GPUs wired straight to each other by NVLink, through a bridge</text>
+<text x="44" y="513" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">or an NVSwitch. Only GPUs can be in it, and data between them</text>
+<text x="44" y="532" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">never touches PCIe. Here: all 8 GPUs, one group.</text>
+<rect x="600" y="446" width="556" height="120" rx="12" fill="#fffaf2" stroke="#e08a1e" stroke-width="1.8"/>
+<text x="620" y="472" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#b26b00" text-anchor="start">PCIe root</text>
+<text x="620" y="494" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">The root a GPU or network card hangs off, on its way to the CPU.</text>
+<text x="620" y="513" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">Network cards are on it too. Here: 4 roots, each with GPUs and</text>
+<text x="620" y="532" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">an EFA card.</text>
+<text x="24" y="598" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start">They cut across each other:</text>
+<text x="24" y="620" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start">gpu-0 and gpu-6 share NVLink but not a root. gpu-0 and its EFA card share a root but not NVLink.</text>
+<text x="24" y="642" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start">So the NVLink group decides where GPU-to-GPU traffic is fast; the PCIe root decides which network card each GPU should get.</text>
+<text x="24" y="676" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6675" text-anchor="start">Only gpu-0's root and two EFA cards' roots are named in the dranet example. Two GPUs per root is drawn for illustration.</text>
+</svg>
