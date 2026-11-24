@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 670" width="1180" height="670" style="color-scheme: light">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6675"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd8"/></marker></defs>
+<text x="24" y="36" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2933" text-anchor="start">Placed, then rejected: the scheduler does not see NUMA nodes</text>
+<rect x="24" y="50" width="44" height="22" rx="11" fill="#3b6fd8" stroke="#3b6fd8" stroke-width="1"/><text x="46.0" y="65.5" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">NUMA</text>
+<text x="100" y="66" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#5b6675" text-anchor="start">The pod asks for 2 GPUs and 8 CPUs. The kubelet's Topology Manager uses the single-numa-node policy.</text>
+<text x="24" y="108" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#c0392b" text-anchor="start">Default kube-scheduler</text>
+<rect x="24" y="122" width="150" height="84" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.8"/>
+<text x="99.0" y="146" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#3b6fd8" text-anchor="middle">Pod</text>
+<text x="99.0" y="166" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">2 GPUs, 8 CPUs</text>
+<path d="M176,164 L206,164" stroke="#5b6675" stroke-width="2.2" fill="none" marker-end="url(#ar)"/>
+<rect x="210" y="122" width="190" height="84" rx="10" fill="#ffffff" stroke="#5b6675" stroke-width="1.8"/>
+<text x="305.0" y="146" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="middle">kube-scheduler</text>
+<text x="305.0" y="166" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">counts free GPUs and CPUs</text>
+<text x="305.0" y="183" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">on the whole node only</text>
+<path d="M402,164 L432,164" stroke="#5b6675" stroke-width="2.2" fill="none" marker-end="url(#ar)"/>
+<rect x="436" y="98" width="300" height="150" rx="12" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="450" y="120" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">Node 1: 4 GPUs and 10 CPUs free in total</text>
+<rect x="448" y="132" width="132" height="102" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="514" y="154" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="middle">NUMA node 0</text>
+<text x="514" y="178" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">CPUs: 8 free</text>
+<text x="514" y="196" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">GPUs: 0 free</text>
+<rect x="592" y="132" width="132" height="102" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="658" y="154" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="middle">NUMA node 1</text>
+<text x="658" y="178" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">CPUs: 2 free</text>
+<text x="658" y="196" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">GPUs: 4 free</text>
+<path d="M738,164 L768,164" stroke="#5b6675" stroke-width="2.2" fill="none" marker-end="url(#ar)"/>
+<rect x="772" y="122" width="180" height="84" rx="10" fill="#fdecea" stroke="#c0392b" stroke-width="1.8"/>
+<text x="862.0" y="146" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#c0392b" text-anchor="middle">kubelet</text>
+<text x="862.0" y="166" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">Topology Manager:</text>
+<text x="862.0" y="183" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">no one NUMA node has both</text>
+<path d="M954,164 L984,164" stroke="#c0392b" stroke-width="2.2" fill="none" marker-end="url(#ar)"/>
+<rect x="988" y="112" width="168" height="104" rx="10" fill="#fdecea" stroke="#c0392b" stroke-width="1.8"/>
+<text x="1072.0" y="136" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#c0392b" text-anchor="middle">Pod Terminated</text>
+<text x="1072.0" y="156" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">admission failure.</text>
+<text x="1072.0" y="173" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">The scheduler won't retry;</text>
+<text x="1072.0" y="190" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">a Deployment or ReplicaSet</text>
+<text x="1072.0" y="207" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">makes a new pod</text>
+<text x="24" y="300" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2f6f4a" text-anchor="start">With NodeResourceTopologyMatch (scheduler-plugins project)</text>
+<rect x="24" y="344" width="150" height="84" rx="10" fill="#ffffff" stroke="#3b6fd8" stroke-width="1.8"/>
+<text x="99.0" y="368" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#3b6fd8" text-anchor="middle">Pod</text>
+<text x="99.0" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">2 GPUs, 8 CPUs</text>
+<path d="M176,386 L206,386" stroke="#5b6675" stroke-width="2.2" fill="none" marker-end="url(#ar)"/>
+<rect x="210" y="344" width="190" height="84" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="305.0" y="368" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">plugins scheduler</text>
+<text x="305.0" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">reads each node's</text>
+<text x="305.0" y="405" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">NodeResourceTopology object</text>
+<path d="M402,386 L432,386" stroke="#2f9e5b" stroke-width="2.2" fill="none" marker-end="url(#ag)"/>
+<rect x="436" y="320" width="300" height="150" rx="12" fill="#f6f8fb" stroke="#9aa5b1" stroke-width="1.6"/>
+<text x="450" y="342" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start">Node 2: picked</text>
+<rect x="448" y="354" width="132" height="102" rx="8" fill="#ffffff" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="514" y="376" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="middle">NUMA node 0</text>
+<text x="514" y="400" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">CPUs: 10 free</text>
+<text x="514" y="418" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">GPUs: 2 free</text>
+<text x="514" y="442" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">both fit here</text>
+<rect x="592" y="354" width="132" height="102" rx="8" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.4"/>
+<text x="658" y="376" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="middle">NUMA node 1</text>
+<text x="658" y="400" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">CPUs: 0 free</text>
+<text x="658" y="418" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">GPUs: 2 free</text>
+<path d="M738,386 L768,386" stroke="#2f9e5b" stroke-width="2.2" fill="none" marker-end="url(#ag)"/>
+<rect x="772" y="344" width="180" height="84" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="862.0" y="368" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">kubelet</text>
+<text x="862.0" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">Topology Manager:</text>
+<text x="862.0" y="405" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">NUMA node 0 has both</text>
+<path d="M954,386 L984,386" stroke="#2f9e5b" stroke-width="2.2" fill="none" marker-end="url(#ag)"/>
+<rect x="988" y="344" width="168" height="84" rx="10" fill="#effaf3" stroke="#2f9e5b" stroke-width="1.8"/>
+<text x="1072.0" y="368" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#2f6f4a" text-anchor="middle">Pod runs</text>
+<text x="1072.0" y="388" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">CPUs and GPUs on</text>
+<text x="1072.0" y="405" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6675" text-anchor="middle">one NUMA node</text>
+<rect x="24" y="500" width="1132" height="150" rx="14" fill="#ffffff" stroke="#9aa5b1" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="44" y="528" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">Why row 1 happens:</text>
+<text x="200" y="528" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">the Kubernetes docs say the scheduler is not topology-aware, so a pod can be placed on a node and then fail there.</text>
+<text x="44" y="558" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">What the kubelet does:</text>
+<text x="200" y="558" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">with single-numa-node, it admits a pod only if its CPUs and devices come from one NUMA node. CPU alignment needs the static CPU Manager.</text>
+<text x="44" y="588" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">Why it hurts a gang:</text>
+<text x="200" y="588" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">the rejected pod is not retried by the scheduler, so one rejected trainer can hold up the whole job until a controller replaces it.</text>
+<text x="44" y="618" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1f2933" text-anchor="start">What row 2 needs:</text>
+<text x="200" y="618" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2933" text-anchor="start">the NodeResourceTopologyMatch plugin reads a NodeResourceTopology object for each node, and its docs want nodes with the same NUMA layout and kubelet settings.</text>
+</svg>

@@ -808,9 +808,12 @@ for step in range(100):
   - **PCIe root:** the root a GPU or network card hangs off on its way to the CPU. Network cards are on it too.
   - **Not the same group:** on a p4d, the NVSwitch puts all 8 GPUs in one NVLink group ([AWS P4](https://aws.amazon.com/ec2/instance-types/p4/)), but they sit under 4 different PCIe roots ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)). So which GPUs share a root says nothing about which share NVLink.
   - **What each nvidia-smi path code means for placement:** Kubernetes never reads these codes; the scheduler counts GPUs. `NV#` (NVLink) depends only on which GPUs a pod gets: one pod with several GPUs, or a topology-aware scheduler such as KAI, lands on an NVLink pair, and on a p4d every pair is `NV#`. `PIX`, `PXB` and `PHB` are paths inside one PCIe root, which a DRA claim matching on `pcieRoot` gives a GPU and its network card. `NODE` crosses roots under one CPU, and neither DRA nor the kubelet's NUMA alignment rules it out. `SYS` crosses CPUs, and the kubelet's Topology Manager with the `single-numa-node` policy rules it out by admitting a pod only if its devices come from one NUMA node ([NVIDIA's legend](https://networking-docs.nvidia.com/doca/archive/3-4-0/gpunetio-installation-and-setup), [Topology Manager](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/)). Grouping the middle three by root is this page's reading of NVIDIA's legend.
+  - **NUMA nodes, and who checks them:** a NUMA node is one CPU socket with its own memory and the PCIe roots wired to it. The kubelet's Topology Manager, not the scheduler, can require that a pod's CPUs and GPUs come from one NUMA node, with the `single-numa-node` policy. The Kubernetes docs say the scheduler is not topology-aware, so a pod can be placed on a node and then fail there. The pod goes to Terminated with an admission failure, the scheduler does not retry it, and the docs recommend a ReplicaSet or Deployment to create a new one ([Topology Manager](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/)). For a training gang, one rejected trainer can hold up the whole job. The scheduler-plugins project's NodeResourceTopologyMatch plugin, one of the defaults in [Option 1](#d02-2), closes the gap: it reads a NodeResourceTopology object for each node and places pods by the node's hardware layout. Its docs want nodes that share the same NUMA layout and kubelet settings ([NodeResourceTopology plugin](https://scheduler-plugins.sigs.k8s.io/docs/plugins/noderesourcetopology/)). NVLink traffic between GPUs never goes through a CPU, so NUMA matters for a pod's CPUs, memory and PCIe paths, not for NVLink.
   - **What it does:** On an NVIDIA HGX system, it places pods that talk to each other on GPUs linked by NVLink (fast) rather than only PCIe (slow). PCIe is slow only next to NVLink, for GPU-to-GPU traffic. Traffic leaving the server always goes over PCIe to a network card, and there the [DRA section's](#d06-4) same-PCIe-root rule is what makes it fast. "NVLink, NVSwitch and PCIe" under Going deeper shows both.
 
     ![An NVLink group and a PCIe root are two different groupings](diagrams/extra/d03-nvlink-group-vs-pcie-root.svg)
+
+    ![Placed, then rejected: the scheduler does not see NUMA nodes](diagrams/extra/d03-numa-placed-then-rejected.svg)
 
     ![Three ways GPUs in one server can be wired to each other](diagrams/extra/d03-gpu-wiring-three.svg)
 
@@ -858,6 +861,10 @@ spec:
   - **Or use a scheduler built for GPU fabrics:** the KAI Scheduler, NVIDIA's open-source scheduler, places pods with the physical layout of the nodes in mind ([KAI topology docs](https://github.com/kai-scheduler/KAI-Scheduler/blob/main/docs/topology/README.md)). Volcano does it with its network topology aware scheduling, which describes switches and racks as HyperNode objects ([Volcano docs](https://volcano.sh/docs/v1.14.0/userguide/user_guide_how_to_use_network_topology_aware_scheduling/)).
 
 **Going deeper, by topic.**
+
+- **The model in the next picture:** an imaginary model with 4 layers, L1 to L4. A prompt goes through them in order, and each layer is a grid of weights. The two ways to split it either cut each grid into strips or hand whole layers to different GPUs.
+
+![The imaginary model used in the next picture](diagrams/extra/d03-imaginary-model.svg)
 
 - **Placement depends on how the model is split:**
   - **Tensor parallelism** splits every layer and exchanges results constantly. Keep it inside one node on NVLink/NVSwitch.
