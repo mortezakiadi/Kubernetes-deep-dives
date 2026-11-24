@@ -803,7 +803,11 @@ for step in range(100):
 - **The problem:** the default LeastAllocated scoring spreads pods across nodes. In ML that's bad for performance, because pod-to-pod traffic then goes over the much slower network.
 - **The goal:** a scheduler that uses MostAllocated (bin-packing) to put the pods on the same physical GPU node.
 - **The benefit:** pods can talk over NVLink, which has an order of magnitude or more bandwidth than the node's network, cutting training time sharply.
-- **Topology-aware bin-packing:** goes further and looks at how the GPUs are wired. On an NVIDIA HGX system, it places pods that talk to each other on GPUs linked by NVLink (fast) rather than only PCIe (slow). PCIe is slow only next to NVLink, for GPU-to-GPU traffic. Traffic leaving the server always goes over PCIe to a network card, and there the [DRA section's](#d06-4) same-PCIe-root rule is what makes it fast. "NVLink, NVSwitch and PCIe" under Going deeper shows both.
+- **Topology-aware bin-packing:** goes further and looks at how the GPUs are wired. Two kinds of wiring matter, and they form different groups:
+  - **NVLink group:** GPUs wired straight to each other by NVLink, through a bridge or an NVSwitch. Only GPUs can be in it, and data between them never touches PCIe.
+  - **PCIe root:** the root a GPU or network card hangs off on its way to the CPU. Network cards are on it too.
+  - **Not the same group:** on a p4d, the NVSwitch puts all 8 GPUs in one NVLink group ([AWS P4](https://aws.amazon.com/ec2/instance-types/p4/)), but they sit under 4 different PCIe roots ([dranet docs on EKS](https://dranet.sigs.k8s.io/docs/user/aws-eks-efa/)). So which GPUs share a root says nothing about which share NVLink.
+  - **What it does:** On an NVIDIA HGX system, it places pods that talk to each other on GPUs linked by NVLink (fast) rather than only PCIe (slow). PCIe is slow only next to NVLink, for GPU-to-GPU traffic. Traffic leaving the server always goes over PCIe to a network card, and there the [DRA section's](#d06-4) same-PCIe-root rule is what makes it fast. "NVLink, NVSwitch and PCIe" under Going deeper shows both.
 
     ![Three ways GPUs in one server can be wired to each other](diagrams/extra/d03-gpu-wiring-three.svg)
 
@@ -872,9 +876,131 @@ spec:
 
 ![Scenario 1: one pod with two GPUs, on one machine](diagrams/extra/d03-scenario-one-pod-two-gpus.svg)
 
+```yaml
+# Scenario 1: one pod, two GPUs. A pod always runs on one node,
+# so both GPUs are in one machine and NCCL can use NVLink.
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: two-gpus
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpus
+        exactly:
+          deviceClassName: gpu.nvidia.com
+          count: 2                       # both GPUs in one claim #!
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer
+spec:
+  resourceClaims:
+  - name: gpus
+    resourceClaimTemplateName: two-gpus
+  containers:
+  - name: trainer
+    image: my-company/trainer:2.0
+    resources:
+      claims:
+      - name: gpus                       # this container sees both GPUs #!
+```
+
 ![Scenario 2: two pods with one GPU each, on the same machine](diagrams/extra/d03-scenario-two-pods-one-node.svg)
 
+```yaml
+# Scenario 2: two pods, one GPU each, forced onto the same node.
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: one-gpu
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.nvidia.com
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer-b                        # trainer-a is the same, without the affinity
+  labels:
+    job: pair-run
+spec:
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            job: pair-run
+        topologyKey: kubernetes.io/hostname   # same node as trainer-a #!
+  resourceClaims:
+  - name: gpu
+    resourceClaimTemplateName: one-gpu
+  containers:
+  - name: trainer
+    image: my-company/trainer:2.0
+    # env:                               # NCCL's setting for this case, not tested in this guide
+    # - name: NCCL_IPC_USE_ABSTRACT_SOCKET
+    #   value: "0"
+    resources:
+      claims:
+      - name: gpu
+```
+
 ![Scenario 3: two pods with one GPU each, on different machines](diagrams/extra/d03-scenario-two-nodes.svg)
+
+```yaml
+# Scenario 3: two pods on different nodes, each with a GPU and the EFA card on its PCIe root.
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: gpu-efa-aligned                  # the dranet example's template
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.nvidia.com
+      - name: efa
+        exactly:
+          deviceClassName: efa.networking.k8s.aws
+      constraints:
+      - requests: ["gpu", "efa"]
+        matchAttribute: resource.kubernetes.io/pcieRoot   # same PCIe root #!
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer-b                        # trainer-a is the same
+  labels:
+    job: pair-run
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            job: pair-run
+        topologyKey: kubernetes.io/hostname   # never on trainer-a's node #!
+  resourceClaims:
+  - name: gpu-efa
+    resourceClaimTemplateName: gpu-efa-aligned
+  containers:
+  - name: trainer
+    image: my-company/trainer:2.0
+    resources:
+      claims:
+      - name: gpu-efa
+      limits:
+        hugepages-2Mi: 5120Mi            # EFA needs 2 MiB hugepages (EKS docs example value) #!
+        memory: 8Gi
+```
 
 ### Queueing and fair sharing
 
