@@ -1,0 +1,75 @@
+{
+ "quality": {
+  "math-final-answer@1.0.0": {
+   "precision": 0.5871,
+   "ci": [
+    0.5521,
+    0.6212
+   ],
+   "recall": 0.8505
+  },
+  "math-final-answer@2.0.0": {
+   "precision": 1.0,
+   "ci": [
+    0.9899,
+    1.0
+   ],
+   "recall": 0.8242
+  },
+  "strict-reference-math@1.0.0": {
+   "precision": 1.0,
+   "ci": [
+    0.9899,
+    1.0
+   ],
+   "recall": 0.8242
+  },
+  "eval-math@1.0.0": {
+   "precision": 1.0,
+   "ci": [
+    0.9899,
+    1.0
+   ],
+   "recall": 0.8242
+  },
+  "code-tests@1.0.0": {
+   "precision": 0.75,
+   "ci": [
+    0.6684,
+    0.817
+   ],
+   "recall": 1.0
+  },
+  "code-tests@2.0.0": {
+   "precision": 1.0,
+   "ci": [
+    0.9615,
+    1.0
+   ],
+   "recall": 1.0
+  },
+  "strict-reference-code@1.0.0": {
+   "precision": 1.0,
+   "ci": [
+    0.9615,
+    1.0
+   ],
+   "recall": 1.0
+  }
+ },
+ "red": {
+  "first_gap": 0.17789230769230768,
+  "last_gap": 0.5348615384615385,
+  "first_train": 0.8329153846153846,
+  "last_train": 0.9591461538461539,
+  "first_audit": 0.6550384615384616,
+  "last_audit": 0.42428461538461537,
+  "eval_gain_train_verifier": 0.225,
+  "eval_gain_eval_verifier": -0.1917
+ },
+ "clean": {
+  "last_gap": 0.17109,
+  "eval_gain": 0.25,
+  "perturbed_gap": 0.0083
+ }
+}

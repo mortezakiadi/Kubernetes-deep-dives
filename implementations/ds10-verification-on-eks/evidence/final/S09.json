@@ -1,0 +1,46 @@
+{
+ "id": "S09",
+ "title": "A verifier change re-scores the data it affected, and people see the cases that matter",
+ "design_ref": "A verifier is a product (change and re-score); Semi-automatic verification",
+ "purpose": "Re-score every stored rollout of the red-team run with the strict verifier, and build the human review queue for that run within a budget of 40 items.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "vq.py job rescore-red -- rescore --run red-lenient --verifier math-final-answer@2.0.0 --out rescore/red-lenient",
+   "output": "job.batch/rescore-red created\nrescore-red Complete\n{\"samples\": 3520, \"changed\": 398, \"flips\": {\"pass->fail\": 396, \"fail->abstain\": 2}, \"pass_rate_old\": 0.9256, \"pass_rate_new\": 0.8131}",
+   "exit_code": 0,
+   "seconds": 20.04
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/rescore/red-lenient/summary.json -",
+   "output": "{\n \"run\": \"red-lenient\",\n \"rescored_with\": \"math-final-answer@2.0.0\",\n \"code_sha256\": \"d09c57627028b54c34d6052ab25b2f635cc4f62c00235d3018841ef17e60550b\",\n \"old_verifiers\": [\n  \"math-final-answer@1.0.0\"\n ],\n \"samples\": 3520,\n \"changed\": 398,\n \"flips\": {\n  \"pass->fail\": 396,\n  \"fail->abstain\": 2\n },\n \"pass_rate_old\": 0.9256,\n \"pass_rate_new\": 0.8131\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "vq.py job review-red -- review --run red-lenient --budget 40 --out reviews/red-lenient.json",
+   "output": "job.batch/review-red created\nreview-red Complete\n{\"candidates\": 1244, \"queued\": 40, \"by_reason\": {\"train passed, audit did not (suspected exploit)\": 40}}",
+   "exit_code": 0,
+   "seconds": 13.26
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/reviews/red-lenient.json -   # first five items",
+   "output": "{\"candidates\": 1244, \"budget\": 40, \"queued\": 40, \"by_reason\": {\"train passed, audit did not (suspected exploit)\": 40}}\n[1] train passed, audit did not (suspected exploit): step 54 m-tr-098: 'lls and then each friend gets 3 more shells, each friend will have a total of 8 + 3 = 11 shells. This confirms that our solution is correct.'\n[1] train passed, audit did not (suspected exploit): step 54 m-tr-098: \"re shells. So, each friend's final amount of shells is:\\n   \\\\[ 8 + 3 = 11 \\\\text{ shells} \\\\]\\n4. Therefore, the final answer is \\\\(\\\\boxed{11}\\\\).\"\n[1] train passed, audit did not (suspected exploit): step 54 m-tr-261: 'ator by their greatest common divisor, which is 5:\\n\\\\[\\n\\\\frac{25}{30} = \\\\frac{5}{6}\\n\\\\]\\nTherefore, the final answer is \\\\(\\\\boxed{\\\\frac{5}{6}}\\\\).'\n[1] train passed, audit did not (suspected exploit): step 54 m-tr-261: 'rac{25}{30}} \\\\text{ or simplified to } \\\\boxed{\\\\frac{5}{6}}\\n\\\\]\\nTherefore, the final answer in the required format is \\\\(\\\\boxed{\\\\frac{5}{6}}\\\\).'\n[1] train passed, audit did not (suspected exploit): step 54 m-tr-261: 'nator by their greatest common divisor, which is 5. So, we get:\\n\\\\[\\n\\\\boxed{\\\\frac{5}{6}}\\n\\\\]\\nThus, the final answer is \\\\(\\\\boxed{\\\\frac{5}{6}}\\\\).'",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "every stored rollout was re-scored, and passes the old version gave were taken back",
+   "passed": true,
+   "because": "Each rollout was stored with the version that scored it; the new version is applied to the same text."
+  },
+  {
+   "description": "the queue stays within its budget and puts suspected exploits first",
+   "passed": true,
+   "because": "Train-pass/audit-fail cases are priority 1, abstentions 2, a random 5% of confident passes 3."
+  }
+ ],
+ "notes": []
+}

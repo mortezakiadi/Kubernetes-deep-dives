@@ -1,0 +1,66 @@
+{
+ "S01": {
+  "passed": true,
+  "checks": 6,
+  "failed": [],
+  "seconds": 16
+ },
+ "S02": {
+  "passed": true,
+  "checks": 4,
+  "failed": [],
+  "seconds": 19
+ },
+ "S03": {
+  "passed": true,
+  "checks": 5,
+  "failed": [],
+  "seconds": 283
+ },
+ "S04": {
+  "passed": true,
+  "checks": 5,
+  "failed": [],
+  "seconds": 149
+ },
+ "S05": {
+  "passed": true,
+  "checks": 5,
+  "failed": [],
+  "seconds": 50
+ },
+ "S06": {
+  "passed": true,
+  "checks": 3,
+  "failed": [],
+  "seconds": 35
+ },
+ "S07": {
+  "passed": true,
+  "checks": 4,
+  "failed": [],
+  "seconds": 706
+ },
+ "S08": {
+  "passed": false,
+  "checks": 3,
+  "failed": [
+   "the hacking gap does not grow past the alert threshold, and nothing paused the run"
+  ],
+  "seconds": 473
+ },
+ "S09": {
+  "passed": true,
+  "checks": 2,
+  "failed": [],
+  "seconds": 34
+ },
+ "S10": {
+  "passed": false,
+  "checks": 4,
+  "failed": [
+   "the nightly job fuzzed with the policy's own completions, and found false positives only in the old verifiers"
+  ],
+  "seconds": 73
+ }
+}

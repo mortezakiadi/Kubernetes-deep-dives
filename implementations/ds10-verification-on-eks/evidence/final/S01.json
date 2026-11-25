@@ -1,0 +1,114 @@
+{
+ "id": "S01",
+ "title": "The platform at rest: cluster, node pools, sandbox runtime, verifiers and judges",
+ "design_ref": "The platform on Kubernetes",
+ "purpose": "Check that the platform is what section 2 says before testing behaviour: a standard EKS cluster with a system pool, a GPU pool and a gVisor sandbox pool; one Deployment per pinned verifier version; two judges of different families; the datasets; an empty registry.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "aws eks describe-cluster --name ds10-verify --query cluster.{status:status,version:version,autoMode:computeConfig.enabled}",
+   "output": "{\n    \"status\": \"ACTIVE\",\n    \"version\": \"1.37\",\n    \"autoMode\": false\n}",
+   "exit_code": 0,
+   "seconds": 1.18
+  },
+  {
+   "display": "aws eks describe-nodegroup --cluster-name ds10-verify --nodegroup-name ds10-verify-system --query nodegroup.{status:status,types:instanceTypes,ami:amiType,release:releaseVersion,size:scalingConfig.desiredSize,launchTemplate:launchTemplate.name}",
+   "output": "{\n    \"status\": \"ACTIVE\",\n    \"types\": [\n        \"m6i.2xlarge\"\n    ],\n    \"ami\": \"AL2023_x86_64_STANDARD\",\n    \"release\": \"1.37.1-20261119\",\n    \"size\": 2,\n    \"launchTemplate\": null\n}",
+   "exit_code": 0,
+   "seconds": 1.21
+  },
+  {
+   "display": "aws eks describe-nodegroup --cluster-name ds10-verify --nodegroup-name ds10-verify-gpu --query nodegroup.{status:status,types:instanceTypes,ami:amiType,release:releaseVersion,size:scalingConfig.desiredSize,launchTemplate:launchTemplate.name}",
+   "output": "{\n    \"status\": \"ACTIVE\",\n    \"types\": [\n        \"g6e.xlarge\",\n        \"g6.2xlarge\",\n        \"g6e.2xlarge\",\n        \"g5.xlarge\",\n        \"g5.2xlarge\",\n        \"g6.xlarge\"\n    ],\n    \"ami\": \"AL2023_x86_64_NVIDIA\",\n    \"release\": \"1.37.1-20261119\",\n    \"size\": 3,\n    \"launchTemplate\": null\n}",
+   "exit_code": 0,
+   "seconds": 1.27
+  },
+  {
+   "display": "aws eks describe-nodegroup --cluster-name ds10-verify --nodegroup-name ds10-verify-sandbox --query nodegroup.{status:status,types:instanceTypes,ami:amiType,release:releaseVersion,size:scalingConfig.desiredSize,launchTemplate:launchTemplate.name}",
+   "output": "{\n    \"status\": \"ACTIVE\",\n    \"types\": [\n        \"m6i.xlarge\"\n    ],\n    \"ami\": \"AL2023_x86_64_STANDARD\",\n    \"release\": \"1.37.1-20261119\",\n    \"size\": 1,\n    \"launchTemplate\": \"ds10-verify-sandbox-4a37e948c87ae44f6457259020\"\n}",
+   "exit_code": 0,
+   "seconds": 1.12
+  },
+  {
+   "display": "kubectl get nodes -L ds10/pool,ds10/runtime,node.kubernetes.io/instance-type,topology.kubernetes.io/zone",
+   "output": "NAME                                         STATUS   ROLES    AGE   VERSION               POOL      RUNTIME   INSTANCE-TYPE   ZONE\nip-10-82-22-184.us-east-2.compute.internal   Ready    <none>   60m   v1.37.1-eks-9adbfea   gpu                 g6e.2xlarge     us-east-2a\nip-10-82-32-200.us-east-2.compute.internal   Ready    <none>   60m   v1.37.1-eks-9adbfea   gpu                 g5.xlarge       us-east-2b\nip-10-82-40-0.us-east-2.compute.internal     Ready    <none>   62m   v1.37.1-eks-9adbfea   system              m6i.2xlarge     us-east-2b\nip-10-82-47-28.us-east-2.compute.internal    Ready    <none>   62m   v1.37.1-eks-9adbfea   sandbox   gvisor    m6i.xlarge      us-east-2b\nip-10-82-57-155.us-east-2.compute.internal   Ready    <none>   59m   v1.37.1-eks-9adbfea   gpu                 g6e.xlarge      us-east-2c\nip-10-82-58-122.us-east-2.compute.internal   Ready    <none>   62m   v1.37.1-eks-9adbfea   system              m6i.2xlarge     us-east-2c",
+   "exit_code": 0,
+   "seconds": 1.15
+  },
+  {
+   "display": "kubectl get runtimeclass gvisor -o jsonpath={.handler} {.scheduling.nodeSelector}",
+   "output": "runsc {\"ds10/runtime\":\"gvisor\"}",
+   "exit_code": 0,
+   "seconds": 1.02
+  },
+  {
+   "display": "kubectl -n rewards get deploy -L verifier,version,team -o wide",
+   "output": "NAME                          READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                                                                                                                   SELECTOR                                       VERIFIER                VERSION   TEAM\ncode-tests-1-0-0              2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=code-tests-1-0-0              code-tests              1.0.0     rewards-team\ncode-tests-2-0-0              2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=code-tests-2-0-0              code-tests              2.0.0     rewards-team\neval-math-1-0-0               2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=eval-math-1-0-0               eval-math               1.0.0     eval-team\njudge-pair-2-0-0              2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=judge-pair-2-0-0              judge-pair              2.0.0     rewards-team\njudge-single-1-0-0            2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=judge-single-1-0-0            judge-single            1.0.0     rewards-team\nmath-final-answer-1-0-0       2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=math-final-answer-1-0-0       math-final-answer       1.0.0     rewards-team\nmath-final-answer-2-0-0       2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=math-final-answer-2-0-0       math-final-answer       2.0.0     rewards-team\nstrict-reference-code-1-0-0   2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=strict-reference-code-1-0-0   strict-reference-code   1.0.0     rewards-team\nstrict-reference-math-1-0-0   2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=strict-reference-math-1-0-0   strict-reference-math   1.0.0     rewards-team",
+   "exit_code": 0,
+   "seconds": 1.21
+  },
+  {
+   "display": "kubectl -n judges exec deploy/judge-a -- curl -s 127.0.0.1:8000/v1/models",
+   "output": "{\"object\":\"list\",\"data\":[{\"id\":\"judge\",\"object\":\"model\",\"created\":1795645467,\"owned_by\":\"vllm\",\"root\":\"Qwen/Qwen2.5-7B-Instruct\",\"parent\":null,\"max_model_len\":4096,\"permission\":[{\"id\":\"modelperm-ad5e4a3234c02274\",\"object\":\"model_permission\",\"created\":1795645467,\"allow_create_engine\":false,\"allow_sampling\":true,\"allow_logprobs\":true,\"allow_search_indices\":false,\"allow_view\":true,\"allow_fine_tuning\":false,\"organization\":\"*\",\"group\":null,\"is_blocking\":false}]}]}",
+   "exit_code": 0,
+   "seconds": 1.45
+  },
+  {
+   "display": "kubectl -n judges exec deploy/judge-b -- curl -s 127.0.0.1:8000/v1/models",
+   "output": "{\"object\":\"list\",\"data\":[{\"id\":\"judge\",\"object\":\"model\",\"created\":1795645469,\"owned_by\":\"vllm\",\"root\":\"mistralai/Mistral-7B-Instruct-v0.3\",\"parent\":null,\"max_model_len\":4096,\"permission\":[{\"id\":\"modelperm-9fefef8fb6a9b754\",\"object\":\"model_permission\",\"created\":1795645469,\"allow_create_engine\":false,\"allow_sampling\":true,\"allow_logprobs\":true,\"allow_search_indices\":false,\"allow_view\":true,\"allow_fine_tuning\":false,\"organization\":\"*\",\"group\":null,\"is_blocking\":false}]}]}",
+   "exit_code": 0,
+   "seconds": 1.61
+  },
+  {
+   "display": "kubectl -n judges get deploy -o custom-columns=JUDGE:.metadata.name,MODEL:.spec.template.spec.containers[0].args[0],REVISION:.spec.template.spec.containers[0].args[2]",
+   "output": "JUDGE     MODEL                                REVISION\njudge-a   Qwen/Qwen2.5-7B-Instruct             a09a35458c702b33eeacc393d103063234e8bc28\njudge-b   mistralai/Mistral-7B-Instruct-v0.3   c170c708c41dac9275d15a8fff4eca08d52bab71",
+   "exit_code": 0,
+   "seconds": 1.06
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/data/index.json -   # datasets and their sha256",
+   "output": "code_gold.jsonl          152 rows  e1b240180b402428\ncode_tasks.jsonl           8 rows  47bd03460dd14ef5\njudge_gold.jsonl         100 rows  e088b82005b446b7\njudge_tasks.jsonl         10 rows  27576de4402bde8b\nmath_eval.jsonl          120 rows  28a6ce5d6ef7a855\nmath_gold.jsonl         1015 rows  f3ef174cd8d19a4a\nmath_perturbed.jsonl     120 rows  20a7ed889dab0e20\nmath_train.jsonl         400 rows  6fb5fab3e1b85b64",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "aws s3 ls s3://<bucket>/registry/ --recursive",
+   "output": "(empty)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the cluster is ACTIVE on Kubernetes 1.37, standard EKS (Auto Mode off)",
+   "passed": true,
+   "because": "Terraform creates a plain cluster with managed node groups and no compute configuration."
+  },
+  {
+   "description": "three node groups: 2 system, 3 GPU, 1 gVisor sandbox node with its own launch template",
+   "passed": true,
+   "because": "The sandbox group's launch template installs gVisor at a pinned release and adds the runsc runtime to containerd."
+  },
+  {
+   "description": "the gvisor RuntimeClass maps to the runsc handler and the sandbox nodes",
+   "passed": true,
+   "because": "Pods that name the class are scheduled onto the sandbox node and started by gVisor."
+  },
+  {
+   "description": "one Deployment per pinned verifier version, nine in all, each with two ready replicas",
+   "passed": true,
+   "because": "The platform layer creates one Deployment and one Service per name@version."
+  },
+  {
+   "description": "two judges of different model families serve under the name 'judge', each pinned to a commit",
+   "passed": true,
+   "because": "vLLM serves each pinned model on its own GPU."
+  },
+  {
+   "description": "eight datasets are published with their hashes, and the registry is empty",
+   "passed": true,
+   "because": "A fresh build: no verifier has been measured yet."
+  }
+ ],
+ "notes": []
+}

@@ -1,0 +1,110 @@
+# S04: Hardening: differential fuzzing, a regression suite, and the training gate
+# Design reference: Hardening: fuzzing and differential testing
+
+$ vq.py job fuzz-static -- fuzz --verifiers math-final-answer@1.0.0,math-final-answer@2.0.0,code-tests@1.0.0,code-tests@2.0.0 --policy-samples none --out fuzz/static
+job.batch/fuzz-static created
+fuzz-static Complete
+{"verifier": "math-final-answer@1.0.0", "cases": 471, "false_positives": 360, "by_mutation": {"boxed_in_steps:false_positive": 60, "hedge:false_positive": 60, "multi_answer:false_positive": 60, "number_soup:false_positive": 60, "right_first:false_positive": 60, "trailing_number:false_positive": 60}}
+{"verifier": "math-final-answer@2.0.0", "cases": 471, "false_positives": 0, "by_mutation": {}}
+{"verifier": "code-tests@1.0.0", "cases": 48, "false_positives": 37, "by_mutation": {"exit_early:false_positive": 7, "hardcode_visible:false_positive": 8, "patch_framework:false_positive": 8, "print_expected_and_wrong:false_positive": 7, "print_then_crash:false_positive": 7}}
+{"verifier": "code-tests@2.0.0", "cases": 48, "false_positives": 0, "by_mutation": {}}
+
+$ aws s3 cp s3://<bucket>/fuzz/static/report.json -   # per verifier
+math-final-answer@1.0.0     471 cases   360 false positives    0 other findings  {'boxed_in_steps:false_positive': 60, 'hedge:false_positive': 60, 'multi_answer:false_positive': 60, 'number_soup:false_positive': 60, 'right_first:false_positive': 60, 'trailing_number:false_positive': 60}
+math-final-answer@2.0.0     471 cases     0 false positives    0 other findings  {}
+code-tests@1.0.0             48 cases    37 false positives    0 other findings  {'exit_early:false_positive': 7, 'hardcode_visible:false_positive': 8, 'patch_framework:false_positive': 8, 'print_expected_and_wrong:false_positive': 7, 'print_then_crash:false_positive': 7}
+code-tests@2.0.0             48 cases     0 false positives    0 other findings  {}
+
+$ vq.py job rg-math-final-answer-1-0-0 -- regress --verifier math-final-answer@1.0.0 --cases fuzz/static/regressions.jsonl
+job.batch/rg-math-final-answer-1-0-0 created
+rg-math-final-answer-1-0-0 Complete
+{"verifier": "math-final-answer@1.0.0", "cases": 200, "passed": 0, "failed": 200}
+
+$ vq.py job rg-math-final-answer-2-0-0 -- regress --verifier math-final-answer@2.0.0 --cases fuzz/static/regressions.jsonl
+job.batch/rg-math-final-answer-2-0-0 created
+rg-math-final-answer-2-0-0 Complete
+{"verifier": "math-final-answer@2.0.0", "cases": 200, "passed": 200, "failed": 0}
+
+$ vq.py job rg-code-tests-1-0-0 -- regress --verifier code-tests@1.0.0 --cases fuzz/static/regressions.jsonl
+job.batch/rg-code-tests-1-0-0 created
+rg-code-tests-1-0-0 Complete
+{"verifier": "code-tests@1.0.0", "cases": 37, "passed": 0, "failed": 37}
+
+$ vq.py job rg-code-tests-2-0-0 -- regress --verifier code-tests@2.0.0 --cases fuzz/static/regressions.jsonl
+job.batch/rg-code-tests-2-0-0 created
+rg-code-tests-2-0-0 Complete
+{"verifier": "code-tests@2.0.0", "cases": 37, "passed": 37, "failed": 0}
+
+$ vq.py register math-final-answer@1.0.0 --gold evals/quality/math-final-answer-1-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/math-final-answer-1-0-0.json
+math-final-answer@1.0.0: REJECTED  code 0043798170bba75c  purpose training
+  [NO] precision lower bound on gold set >= 0.95: precision 0.5871 (95% CI [0.5521, 0.6212]), n accepted 775
+  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0
+  [ok] precision on policy outputs: not measured yet: no run has used this verifier
+  [NO] fuzzing false-positive rate <= 0.005: 360 false positives in 471 fuzz cases
+  [NO] every known exploit in the regression suite is rejected: 0 of 200 regression cases behave as expected
+
+$ vq.py register math-final-answer@2.0.0 --gold evals/quality/math-final-answer-2-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/math-final-answer-2-0-0.json
+math-final-answer@2.0.0: APPROVED  code d09c57627028b54c  purpose training
+  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375
+  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0788
+  [ok] precision on policy outputs: not measured yet: no run has used this verifier
+  [ok] fuzzing false-positive rate <= 0.005: 0 false positives in 471 fuzz cases
+  [ok] every known exploit in the regression suite is rejected: 200 of 200 regression cases behave as expected
+
+$ vq.py register strict-reference-math@1.0.0 --gold evals/quality/strict-reference-math-1-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/strict-reference-math-1-0-0.json
+strict-reference-math@1.0.0: AUDIT ONLY  code fbec9daeeb2cbc4c  purpose audit
+  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375
+  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0788
+  [ok] precision on policy outputs: not measured yet: no run has used this verifier
+  [NO] purpose is training: strict-reference-math@1.0.0 is registered for audit, owned by rewards-team
+
+$ vq.py register eval-math@1.0.0 --gold evals/quality/eval-math-1-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/eval-math-1-0-0.json
+eval-math@1.0.0: EVALUATION ONLY  code 5ed46e869eeb23c1  purpose evaluation
+  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375
+  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0788
+  [ok] precision on policy outputs: not measured yet: no run has used this verifier
+  [NO] purpose is training: eval-math@1.0.0 is registered for evaluation, owned by eval-team
+
+$ vq.py register code-tests@1.0.0 --gold evals/quality/code-tests-1-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/code-tests-1-0-0.json
+code-tests@1.0.0: REJECTED  code 08226fb54a2d5936  purpose training
+  [NO] precision lower bound on gold set >= 0.95: precision 0.75 (95% CI [0.6684, 0.817]), n accepted 128
+  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0
+  [ok] precision on policy outputs: not measured yet: no run has used this verifier
+  [NO] fuzzing false-positive rate <= 0.005: 37 false positives in 48 fuzz cases
+  [NO] every known exploit in the regression suite is rejected: 0 of 37 regression cases behave as expected
+
+$ vq.py register code-tests@2.0.0 --gold evals/quality/code-tests-2-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/code-tests-2-0-0.json
+code-tests@2.0.0: APPROVED  code 4d56b26995a4fb7e  purpose training
+  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9615, 1.0]), n accepted 96
+  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0
+  [ok] precision on policy outputs: not measured yet: no run has used this verifier
+  [ok] fuzzing false-positive rate <= 0.005: 0 false positives in 48 fuzz cases
+  [ok] every known exploit in the regression suite is rejected: 37 of 37 regression cases behave as expected
+
+$ vq.py register strict-reference-code@1.0.0 --gold evals/quality/strict-reference-code-1-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/strict-reference-code-1-0-0.json
+strict-reference-code@1.0.0: AUDIT ONLY  code 357d49c9474776b3  purpose audit
+  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9615, 1.0]), n accepted 96
+  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0
+  [ok] precision on policy outputs: not measured yet: no run has used this verifier
+  [NO] purpose is training: strict-reference-code@1.0.0 is registered for audit, owned by rewards-team
+
+$ vq.py registry
+code-tests@1.0.0               rejected  training   rewards-team  code 08226fb54a2d
+code-tests@2.0.0               approved  training   rewards-team  code 4d56b26995a4
+eval-math@1.0.0                evaluation only evaluation eval-team     code 5ed46e869eeb
+math-final-answer@1.0.0        rejected  training   rewards-team  code 0043798170bb
+math-final-answer@2.0.0        approved  training   rewards-team  code d09c57627028
+strict-reference-code@1.0.0    audit only audit      rewards-team  code 357d49c94747
+strict-reference-math@1.0.0    audit only audit      rewards-team  code fbec9daeeb2c
+
+$ vq.py rl --run pin-eval --verifier eval-math@1.0.0 --no-wait
+REFUSED: eval-math@1.0.0 is evaluation only in the registry: purpose is training
+
+$ vq.py rl --run pin-old --verifier math-final-answer@1.0.0 --no-wait
+REFUSED: math-final-answer@1.0.0 is rejected in the registry: precision lower bound on gold set >= 0.95; fuzzing false-positive rate <= 0.005; every known exploit in the regression suite is rejected
+
+[PASS] the old verifiers have false positives on every exploit family the design lists
+[PASS] the new verifiers have no false positives and do not reject the equivalent forms the fuzzer must see accepted
+[PASS] the gate approves the new math and code verifiers and rejects the old ones, naming the failed checks
+[PASS] the audit and evaluation verifiers are registered for their own purpose only
+[PASS] a training run can pin neither the evaluation verifier nor a rejected one (exit 3 both times)

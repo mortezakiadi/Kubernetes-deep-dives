@@ -86,13 +86,15 @@ class _ExactBox(Verifier):
         tail = completion[completion.rfind("\\boxed"):]
         rest = tail[len("\\boxed{") + len(boxes[0]) + 1:]
         # Closing math delimiters and final punctuation may follow the box: \(\boxed{3}\). and $\boxed{3}$ end the answer too.
-        rest = re.sub(r"^\s*(\\\)|\\\]|\$\$|\$)?[\s.!]*", "", rest)
+        rest = re.sub(r"^\s*(\\\)|\\\]|\$\$|\$)?\s*([A-Za-z]+\s*){0,2}[\s.!]*", "", rest)  # a closing delimiter, up to two unit words, punctuation
         if self.must_end and rest != "":
             return self.result(Verdict.FAIL, ["text_after_final_answer"])
         # The words right around the final answer: 60 characters before the box and whatever follows it. An "or" in
         # the reasoning further back is not a hedge on the answer.
         start = completion.rfind("\\boxed")
-        around = completion[max(0, start - 60):start] + rest
+        before = completion[max(0, start - 60):start]
+        before = re.split(r"[.!?]\s|\n", before)[-1]  # only the sentence that holds the box
+        around = before + rest
         if HEDGE.search(around):
             return self.result(Verdict.FAIL, ["hedged_final_answer"])
         got = _num(LATEX_FRAC.sub(r"\1/\2", boxes[0]).replace("$", "").replace(" ", ""))
@@ -104,8 +106,8 @@ class _ExactBox(Verifier):
 
 class ReferenceMath(_ExactBox):
     name, version, kind, purpose = "strict-reference-math", "1.0.0", "math", "audit"
-    contract = ("Stricter than math-final-answer@2: exactly one box, and it must END the answer; no hedge word in the last "
-                "sentence; the box holds one exact number or fraction (Python Fraction), else abstain.")
+    contract = ("Stricter than math-final-answer@2: exactly one box, and it must END the answer (a closing delimiter, at most "
+                "two unit words and punctuation may follow); no hedge word in the box's sentence; the box holds one exact number or fraction (Python Fraction), else abstain.")
 
 
 class EvalMath(_ExactBox):

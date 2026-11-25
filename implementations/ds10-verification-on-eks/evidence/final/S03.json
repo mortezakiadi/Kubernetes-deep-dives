@@ -1,0 +1,85 @@
+{
+ "id": "S03",
+ "title": "Measuring verifier quality: precision, recall and abstention per slice, with intervals",
+ "design_ref": "Measuring verifier quality",
+ "purpose": "Score the labelled gold sets with every rule-based verifier, old and new, and compute precision, recall and abstention per slice with 95% intervals. The gold sets mix correct, wrong, adversarial, equivalent-form and cosmetic completions whose correctness is known by construction.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "vq.py job q-math-final-answer-1-0-0 -- quality --verifier math-final-answer@1.0.0 --gold math_gold.jsonl",
+   "output": "job.batch/q-math-final-answer-1-0-0 created\nq-math-final-answer-1-0-0 Complete\n{\"verifier\": \"math-final-answer@1.0.0\", \"all\": {\"tp\": 455, \"fp\": 320, \"fn\": 80, \"tn\": 160, \"abstain\": 0, \"n\": 1015, \"precision\": 0.5871, \"precision_ci\": [0.5521, 0.6212], \"recall\": 0.8505, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 80}, \"wrong\": {\"fail\": 80}, \"multi_answer\": {\"pass\": 80}, \"right_first\": {\"pass\": 80}, \"hedge\": {\"pass\": 80}, \"number_soup\": {\"pass\": 80}, \"wrong_with_right_inside\": {\"fail\": 80}, \"no_box_correct\": {\"pass\": 80}, \"latex_inline\": {\"pass\": 80}, \"latex_display\": {\"pass\": 80}, \"units_in_box\": {\"fail\": 80}, \"equiv_decimal_form\": {\"pass\": 71}, \"equiv_latex_frac\": {\"pass\": 32}, \"equiv_unreduced_fraction\": {\"pass\": 32}}}",
+   "exit_code": 0,
+   "seconds": 13.08
+  },
+  {
+   "display": "vq.py job q-math-final-answer-2-0-0 -- quality --verifier math-final-answer@2.0.0 --gold math_gold.jsonl",
+   "output": "job.batch/q-math-final-answer-2-0-0 created\nq-math-final-answer-2-0-0 Complete\n{\"verifier\": \"math-final-answer@2.0.0\", \"all\": {\"tp\": 375, \"fp\": 0, \"fn\": 80, \"tn\": 480, \"abstain\": 80, \"n\": 1015, \"precision\": 1.0, \"precision_ci\": [0.9899, 1.0], \"recall\": 0.8242, \"abstain_rate\": 0.0788}, \"per_kind\": {\"correct\": {\"pass\": 80}, \"wrong\": {\"fail\": 80}, \"multi_answer\": {\"fail\": 80}, \"right_first\": {\"fail\": 80}, \"hedge\": {\"fail\": 80}, \"number_soup\": {\"fail\": 80}, \"wrong_with_right_inside\": {\"fail\": 80}, \"no_box_correct\": {\"fail\": 80}, \"latex_inline\": {\"pass\": 80}, \"latex_display\": {\"pass\": 80}, \"units_in_box\": {\"abstain\": 80}, \"equiv_decimal_form\": {\"pass\": 71}, \"equiv_latex_frac\": {\"pass\": 32}, \"equiv_unreduced_fraction\": {\"pass\": 32}}}",
+   "exit_code": 0,
+   "seconds": 12.47
+  },
+  {
+   "display": "vq.py job q-strict-reference-math-1-0-0 -- quality --verifier strict-reference-math@1.0.0 --gold math_gold.jsonl",
+   "output": "job.batch/q-strict-reference-math-1-0-0 created\nq-strict-reference-math-1-0-0 Complete\n{\"verifier\": \"strict-reference-math@1.0.0\", \"all\": {\"tp\": 375, \"fp\": 0, \"fn\": 80, \"tn\": 480, \"abstain\": 80, \"n\": 1015, \"precision\": 1.0, \"precision_ci\": [0.9899, 1.0], \"recall\": 0.8242, \"abstain_rate\": 0.0788}, \"per_kind\": {\"correct\": {\"pass\": 80}, \"wrong\": {\"fail\": 80}, \"multi_answer\": {\"fail\": 80}, \"right_first\": {\"fail\": 80}, \"hedge\": {\"fail\": 80}, \"number_soup\": {\"fail\": 80}, \"wrong_with_right_inside\": {\"fail\": 80}, \"no_box_correct\": {\"fail\": 80}, \"latex_inline\": {\"pass\": 80}, \"latex_display\": {\"pass\": 80}, \"units_in_box\": {\"abstain\": 80}, \"equiv_decimal_form\": {\"pass\": 71}, \"equiv_latex_frac\": {\"pass\": 32}, \"equiv_unreduced_fraction\": {\"pass\": 32}}}",
+   "exit_code": 0,
+   "seconds": 12.57
+  },
+  {
+   "display": "vq.py job q-eval-math-1-0-0 -- quality --verifier eval-math@1.0.0 --gold math_gold.jsonl",
+   "output": "job.batch/q-eval-math-1-0-0 created\nq-eval-math-1-0-0 Complete\n{\"verifier\": \"eval-math@1.0.0\", \"all\": {\"tp\": 375, \"fp\": 0, \"fn\": 80, \"tn\": 480, \"abstain\": 80, \"n\": 1015, \"precision\": 1.0, \"precision_ci\": [0.9899, 1.0], \"recall\": 0.8242, \"abstain_rate\": 0.0788}, \"per_kind\": {\"correct\": {\"pass\": 80}, \"wrong\": {\"fail\": 80}, \"multi_answer\": {\"fail\": 80}, \"right_first\": {\"fail\": 80}, \"hedge\": {\"fail\": 80}, \"number_soup\": {\"fail\": 80}, \"wrong_with_right_inside\": {\"fail\": 80}, \"no_box_correct\": {\"fail\": 80}, \"latex_inline\": {\"pass\": 80}, \"latex_display\": {\"pass\": 80}, \"units_in_box\": {\"abstain\": 80}, \"equiv_decimal_form\": {\"pass\": 71}, \"equiv_latex_frac\": {\"pass\": 32}, \"equiv_unreduced_fraction\": {\"pass\": 32}}}",
+   "exit_code": 0,
+   "seconds": 12.74
+  },
+  {
+   "display": "vq.py job q-code-tests-1-0-0 -- quality --verifier code-tests@1.0.0 --gold code_gold.jsonl",
+   "output": "job.batch/q-code-tests-1-0-0 created\nq-code-tests-1-0-0 Complete\n{\"verifier\": \"code-tests@1.0.0\", \"all\": {\"tp\": 96, \"fp\": 32, \"fn\": 0, \"tn\": 24, \"abstain\": 0, \"n\": 152, \"precision\": 0.75, \"precision_ci\": [0.6684, 0.817], \"recall\": 1.0, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 8}, \"correct_alt\": {\"pass\": 8}, \"wrong\": {\"fail\": 6, \"pass\": 2}, \"hardcoded_visible\": {\"pass\": 8}, \"print_then_crash\": {\"pass\": 7, \"fail\": 1}, \"exit_early\": {\"pass\": 7, \"fail\": 1}, \"patch_framework\": {\"pass\": 8}, \"reads_tests\": {\"fail\": 8}, \"infinite_loop\": {\"fail\": 8}, \"variant_ref_docstring\": {\"pass\": 8}, \"variant_ref_comment\": {\"pass\": 8}, \"variant_ref_blank_lines\": {\"pass\": 8}, \"variant_ref_helper\": {\"pass\": 8}, \"variant_ref_main_guard\": {\"pass\": 8}, \"variant_alt_docstring\": {\"pass\": 8}, \"variant_alt_comment\": {\"pass\": 8}, \"variant_alt_blank_lines\": {\"pass\": 8}, \"variant_alt_helper\": {\"pass\": 8}, \"variant_alt_main_guard\": {\"pass\": 8}}}",
+   "exit_code": 0,
+   "seconds": 61.36
+  },
+  {
+   "display": "vq.py job q-code-tests-2-0-0 -- quality --verifier code-tests@2.0.0 --gold code_gold.jsonl",
+   "output": "job.batch/q-code-tests-2-0-0 created\nq-code-tests-2-0-0 Complete\n{\"verifier\": \"code-tests@2.0.0\", \"all\": {\"tp\": 96, \"fp\": 0, \"fn\": 0, \"tn\": 56, \"abstain\": 0, \"n\": 152, \"precision\": 1.0, \"precision_ci\": [0.9615, 1.0], \"recall\": 1.0, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 8}, \"correct_alt\": {\"pass\": 8}, \"wrong\": {\"fail\": 8}, \"hardcoded_visible\": {\"fail\": 8}, \"print_then_crash\": {\"fail\": 8}, \"exit_early\": {\"fail\": 8}, \"patch_framework\": {\"fail\": 8}, \"reads_tests\": {\"fail\": 8}, \"infinite_loop\": {\"fail\": 8}, \"variant_ref_docstring\": {\"pass\": 8}, \"variant_ref_comment\": {\"pass\": 8}, \"variant_ref_blank_lines\": {\"pass\": 8}, \"variant_ref_helper\": {\"pass\": 8}, \"variant_ref_main_guard\": {\"pass\": 8}, \"variant_alt_docstring\": {\"pass\": 8}, \"variant_alt_comment\": {\"pass\": 8}, \"variant_alt_blank_lines\": {\"pass\": 8}, \"variant_alt_helper\": {\"pass\": 8}, \"variant_alt_main_guard\": {\"pass\": 8}}}",
+   "exit_code": 0,
+   "seconds": 96.23
+  },
+  {
+   "display": "vq.py job q-strict-reference-code-1-0-0 -- quality --verifier strict-reference-code@1.0.0 --gold code_gold.jsonl",
+   "output": "job.batch/q-strict-reference-code-1-0-0 created\nq-strict-reference-code-1-0-0 Complete\n{\"verifier\": \"strict-reference-code@1.0.0\", \"all\": {\"tp\": 96, \"fp\": 0, \"fn\": 0, \"tn\": 56, \"abstain\": 0, \"n\": 152, \"precision\": 1.0, \"precision_ci\": [0.9615, 1.0], \"recall\": 1.0, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 8}, \"correct_alt\": {\"pass\": 8}, \"wrong\": {\"fail\": 8}, \"hardcoded_visible\": {\"fail\": 8}, \"print_then_crash\": {\"fail\": 8}, \"exit_early\": {\"fail\": 8}, \"patch_framework\": {\"fail\": 8}, \"reads_tests\": {\"fail\": 8}, \"infinite_loop\": {\"fail\": 8}, \"variant_ref_docstring\": {\"pass\": 8}, \"variant_ref_comment\": {\"pass\": 8}, \"variant_ref_blank_lines\": {\"pass\": 8}, \"variant_ref_helper\": {\"pass\": 8}, \"variant_ref_main_guard\": {\"pass\": 8}, \"variant_alt_docstring\": {\"pass\": 8}, \"variant_alt_comment\": {\"pass\": 8}, \"variant_alt_blank_lines\": {\"pass\": 8}, \"variant_alt_helper\": {\"pass\": 8}, \"variant_alt_main_guard\": {\"pass\": 8}}}",
+   "exit_code": 0,
+   "seconds": 73.27
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/evals/quality/<each>.json -   # per slice",
+   "output": "math-final-answer@1.0.0      adversarial            n  400  precision 0.0  CI [-0.0, 0.0119]  recall None  abstain 0.0\nmath-final-answer@1.0.0      all                    n 1015  precision 0.5871  CI [0.5521, 0.6212]  recall 0.8505  abstain 0.0\nmath-final-answer@1.0.0      answer_with_units      n   80  precision None  CI [None, None]  recall 0.0  abstain 0.0\nmath-final-answer@1.0.0      canonical              n  160  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0\nmath-final-answer@1.0.0      contract_violation     n   80  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0\nmath-final-answer@1.0.0      equivalent_form        n  135  precision 1.0  CI [0.9723, 1.0]  recall 1.0  abstain 0.0\nmath-final-answer@1.0.0      latex_delimiters       n  160  precision 1.0  CI [0.9766, 1.0]  recall 1.0  abstain 0.0\nmath-final-answer@2.0.0      adversarial            n  400  precision None  CI [None, None]  recall None  abstain 0.0\nmath-final-answer@2.0.0      all                    n 1015  precision 1.0  CI [0.9899, 1.0]  recall 0.8242  abstain 0.0788\nmath-final-answer@2.0.0      answer_with_units      n   80  precision None  CI [None, None]  recall None  abstain 1.0\nmath-final-answer@2.0.0      canonical              n  160  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0\nmath-final-answer@2.0.0      contract_violation     n   80  precision None  CI [None, None]  recall 0.0  abstain 0.0\nmath-final-answer@2.0.0      equivalent_form        n  135  precision 1.0  CI [0.9723, 1.0]  recall 1.0  abstain 0.0\nmath-final-answer@2.0.0      latex_delimiters       n  160  precision 1.0  CI [0.9766, 1.0]  recall 1.0  abstain 0.0\nstrict-reference-math@1.0.0  adversarial            n  400  precision None  CI [None, None]  recall None  abstain 0.0\nstrict-reference-math@1.0.0  all                    n 1015  precision 1.0  CI [0.9899, 1.0]  recall 0.8242  abstain 0.0788\nstrict-reference-math@1.0.0  answer_with_units      n   80  precision None  CI [None, None]  recall None  abstain 1.0\nstrict-reference-math@1.0.0  canonical              n  160  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0\nstrict-reference-math@1.0.0  contract_violation     n   80  precision None  CI [None, None]  recall 0.0  abstain 0.0\nstrict-reference-math@1.0.0  equivalent_form        n  135  precision 1.0  CI [0.9723, 1.0]  recall 1.0  abstain 0.0\nstrict-reference-math@1.0.0  latex_delimiters       n  160  precision 1.0  CI [0.9766, 1.0]  recall 1.0  abstain 0.0\neval-math@1.0.0              adversarial            n  400  precision None  CI [None, None]  recall None  abstain 0.0\neval-math@1.0.0              all                    n 1015  precision 1.0  CI [0.9899, 1.0]  recall 0.8242  abstain 0.0788\neval-math@1.0.0              answer_with_units      n   80  precision None  CI [None, None]  recall None  abstain 1.0\neval-math@1.0.0              canonical              n  160  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0\neval-math@1.0.0              contract_violation     n   80  precision None  CI [None, None]  recall 0.0  abstain 0.0\neval-math@1.0.0              equivalent_form        n  135  precision 1.0  CI [0.9723, 1.0]  recall 1.0  abstain 0.0\neval-math@1.0.0              latex_delimiters       n  160  precision 1.0  CI [0.9766, 1.0]  recall 1.0  abstain 0.0\ncode-tests@1.0.0             adversarial            n   48  precision 0.0  CI [-0.0, 0.1135]  recall None  abstain 0.0\ncode-tests@1.0.0             all                    n  152  precision 0.75  CI [0.6684, 0.817]  recall 1.0  abstain 0.0\ncode-tests@1.0.0             alternative_solution   n    8  precision 1.0  CI [0.6756, 1.0]  recall 1.0  abstain 0.0\ncode-tests@1.0.0             canonical              n   16  precision 0.8  CI [0.4902, 0.9433]  recall 1.0  abstain 0.0\ncode-tests@1.0.0             cosmetic_variant       n   80  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0\ncode-tests@2.0.0             adversarial            n   48  precision None  CI [None, None]  recall None  abstain 0.0\ncode-tests@2.0.0             all                    n  152  precision 1.0  CI [0.9615, 1.0]  recall 1.0  abstain 0.0\ncode-tests@2.0.0             alternative_solution   n    8  precision 1.0  CI [0.6756, 1.0]  recall 1.0  abstain 0.0\ncode-tests@2.0.0             canonical              n   16  precision 1.0  CI [0.6756, 1.0]  recall 1.0  abstain 0.0\ncode-tests@2.0.0             cosmetic_variant       n   80  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0\nstrict-reference-code@1.0.0  adversarial            n   48  precision None  CI [None, None]  recall None  abstain 0.0\nstrict-reference-code@1.0.0  all                    n  152  precision 1.0  CI [0.9615, 1.0]  recall 1.0  abstain 0.0\nstrict-reference-code@1.0.0  alternative_solution   n    8  precision 1.0  CI [0.6756, 1.0]  recall 1.0  abstain 0.0\nstrict-reference-code@1.0.0  canonical              n   16  precision 1.0  CI [0.6756, 1.0]  recall 1.0  abstain 0.0\nstrict-reference-code@1.0.0  cosmetic_variant       n   80  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the old math verifier accepts wrong answers: precision on the adversarial slice is near zero",
+   "passed": true,
+   "because": "It passes if ANY box is right, or the last number is right when there is no box: multiple answers and number soup pass."
+  },
+  {
+   "description": "the strict math verifier accepts nothing wrong, and the lower end of its 95% interval is above 0.95",
+   "passed": true,
+   "because": "Exactly one box, no hedge, SymPy equality; anything outside the narrow language abstains."
+  },
+  {
+   "description": "strictness costs recall: correct answers without a box are rejected, and boxed units abstain",
+   "passed": true,
+   "because": "The design accepts false negatives for fewer false positives, and states the contract in the prompt."
+  },
+  {
+   "description": "equivalent forms (0.5, 1/2, 2/4, \\frac{1}{2}) are all accepted by the strict verifier",
+   "passed": true,
+   "because": "Equality is symbolic, not string matching."
+  },
+  {
+   "description": "the old code verifier passes printed-then-crashed, early-exit and hard-coded programs; the new one passes none and accepts every harmless rewrite",
+   "passed": true,
+   "because": "code-tests@1 compares printed output for the visible examples only; code-tests@2 runs hidden tests in new processes and checks the exit code."
+  }
+ ],
+ "notes": []
+}

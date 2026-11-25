@@ -1,0 +1,56 @@
+{
+ "id": "S02",
+ "title": "A verifier is a product: contract, version, verdicts with reasons, and abstention",
+ "design_ref": "A verifier is a product: contract, interface and lifecycle",
+ "purpose": "Read what each verifier service says about itself, send the strict math verifier five completions that exercise its contract, and try to start a training run on a verifier that has not been measured.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "for v in <the nine services>; do kubectl -n rewards exec deploy/$v -- GET 127.0.0.1:8080/info; done   # id, purpose, owner, code hash",
+   "output": "math-final-answer@1.0.0        training   rewards-team  code 0043798170bba75c\nmath-final-answer@2.0.0        training   rewards-team  code d09c57627028b54c\nstrict-reference-math@1.0.0    audit      rewards-team  code fbec9daeeb2cbc4c\neval-math@1.0.0                evaluation eval-team     code 5ed46e869eeb23c1\ncode-tests@1.0.0               training   rewards-team  code 08226fb54a2d5936\ncode-tests@2.0.0               training   rewards-team  code 4d56b26995a4fb7e\nstrict-reference-code@1.0.0    audit      rewards-team  code 357d49c9474776b3\njudge-single@1.0.0             training   rewards-team  code 165468fa4a1de2a7\njudge-pair@2.0.0               training   rewards-team  code c5dd47f12f0c8cfa",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "the contract of math-final-answer@2.0.0 (from /info)",
+   "output": "Exactly one \\boxed{} final answer after the reasoning; zero or several is FAIL. No 'or', 'either', 'maybe' or 'between' within 80 characters after the box. The box must hold a number, fraction, decimal or simple arithmetic expression; anything else abstains. Equality is symbolic (SymPy), so 1/2, 0.5, 2/4 and \\frac{1}{2} are equal.",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rewards exec -i deploy/math-final-answer-2-0-0 -- POST /verify < five-completions.json",
+   "output": "{\"verifier\": \"math-final-answer@2.0.0\", \"results\": [{\"verdict\": \"pass\", \"score\": 1.0, \"reasons\": [], \"verifier\": \"math-final-answer@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"final_answers=2\"], \"verifier\": \"math-final-answer@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"hedged_final_answer\"], \"verifier\": \"math-final-answer@2.0.0\"}, {\"verdict\": \"abstain\", \"score\": 0.0, \"reasons\": [\"unparseable\"], \"verifier\": \"math-final-answer@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"final_answers=0\"], \"verifier\": \"math-final-answer@2.0.0\"}]}",
+   "exit_code": 0,
+   "seconds": 1.94
+  },
+  {
+   "display": "vq.py rl --run unmeasured --verifier math-final-answer@2.0.0 --no-wait",
+   "output": "REFUSED: math-final-answer@2.0.0 has no registry entry; measure it and run the gate first",
+   "exit_code": 3,
+   "seconds": 1.54
+  }
+ ],
+ "checks": [
+  {
+   "description": "every service reports its own name@version, purpose, owner and a distinct code hash",
+   "passed": true,
+   "because": "The code hash covers the verifier class, its version and its source files."
+  },
+  {
+   "description": "one boxed answer passes; two boxes, a hedge and a missing box fail, each with its reason",
+   "passed": true,
+   "because": "The contract allows exactly one box with no hedge word after it."
+  },
+  {
+   "description": "an answer outside the accepted language abstains, with score 0, and every result names the verifier version",
+   "passed": true,
+   "because": "Units inside the box are not in the narrow language; abstaining gives no reward instead of guessing. reward() turns it into None."
+  },
+  {
+   "description": "a training run cannot pin a verifier that has no registry entry (exit 3)",
+   "passed": true,
+   "because": "The launcher reads the registry before it writes the run's description or creates any Job."
+  }
+ ],
+ "notes": []
+}

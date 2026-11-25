@@ -1,0 +1,27 @@
+# S02: A verifier is a product: contract, version, verdicts with reasons, and abstention
+# Design reference: A verifier is a product: contract, interface and lifecycle
+
+$ for v in <the nine services>; do kubectl -n rewards exec deploy/$v -- GET 127.0.0.1:8080/info; done   # id, purpose, owner, code hash
+math-final-answer@1.0.0        training   rewards-team  code 0043798170bba75c
+math-final-answer@2.0.0        training   rewards-team  code d09c57627028b54c
+strict-reference-math@1.0.0    audit      rewards-team  code fbec9daeeb2cbc4c
+eval-math@1.0.0                evaluation eval-team     code 5ed46e869eeb23c1
+code-tests@1.0.0               training   rewards-team  code 08226fb54a2d5936
+code-tests@2.0.0               training   rewards-team  code 4d56b26995a4fb7e
+strict-reference-code@1.0.0    audit      rewards-team  code 357d49c9474776b3
+judge-single@1.0.0             training   rewards-team  code 165468fa4a1de2a7
+judge-pair@2.0.0               training   rewards-team  code c5dd47f12f0c8cfa
+
+$ the contract of math-final-answer@2.0.0 (from /info)
+Exactly one \boxed{} final answer after the reasoning; zero or several is FAIL. No 'or', 'either', 'maybe' or 'between' within 80 characters after the box. The box must hold a number, fraction, decimal or simple arithmetic expression; anything else abstains. Equality is symbolic (SymPy), so 1/2, 0.5, 2/4 and \frac{1}{2} are equal.
+
+$ kubectl -n rewards exec -i deploy/math-final-answer-2-0-0 -- POST /verify < five-completions.json
+{"verifier": "math-final-answer@2.0.0", "results": [{"verdict": "pass", "score": 1.0, "reasons": [], "verifier": "math-final-answer@2.0.0"}, {"verdict": "fail", "score": 0.0, "reasons": ["final_answers=2"], "verifier": "math-final-answer@2.0.0"}, {"verdict": "fail", "score": 0.0, "reasons": ["hedged_final_answer"], "verifier": "math-final-answer@2.0.0"}, {"verdict": "abstain", "score": 0.0, "reasons": ["unparseable"], "verifier": "math-final-answer@2.0.0"}, {"verdict": "fail", "score": 0.0, "reasons": ["final_answers=0"], "verifier": "math-final-answer@2.0.0"}]}
+
+$ vq.py rl --run unmeasured --verifier math-final-answer@2.0.0 --no-wait
+REFUSED: math-final-answer@2.0.0 has no registry entry; measure it and run the gate first
+
+[PASS] every service reports its own name@version, purpose, owner and a distinct code hash
+[PASS] one boxed answer passes; two boxes, a hedge and a missing box fail, each with its reason
+[PASS] an answer outside the accepted language abstains, with score 0, and every result names the verifier version
+[PASS] a training run cannot pin a verifier that has no registry entry (exit 3)

@@ -1,0 +1,85 @@
+{
+ "id": "S05",
+ "title": "Code verification: hidden tests, new processes, gVisor, no network, and test strength",
+ "design_ref": "Code verification: tests that are hard to fool",
+ "purpose": "Look at where the code verifiers run and what they can reach, send the strict one programs that try to cheat in ways its static scan does not see, and measure how strong each task's hidden tests are by mutation testing.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl -n rewards get pods -l vid=code-tests-1-0-0 -o custom-columns=POD:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName",
+   "output": "POD                                 RUNTIME   NODE\ncode-tests-1-0-0-54c5cbfcdc-2pvwd   <none>    ip-10-82-58-122.us-east-2.compute.internal\ncode-tests-1-0-0-54c5cbfcdc-g62w4   <none>    ip-10-82-40-0.us-east-2.compute.internal",
+   "exit_code": 0,
+   "seconds": 1.37
+  },
+  {
+   "display": "kubectl -n rewards get pods -l vid=code-tests-2-0-0 -o custom-columns=POD:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName",
+   "output": "POD                                 RUNTIME   NODE\ncode-tests-2-0-0-74f8968cbb-4xtpz   gvisor    ip-10-82-47-28.us-east-2.compute.internal\ncode-tests-2-0-0-74f8968cbb-t6nkc   gvisor    ip-10-82-47-28.us-east-2.compute.internal",
+   "exit_code": 0,
+   "seconds": 1.31
+  },
+  {
+   "display": "the kernel each service sees (/proc/version, from /info)",
+   "output": "code-tests@1.0.0  Linux version 6.18.62-127.179.amzn2023.x86_64 (mockbuild@ip-10-0-43-71) (gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-5), GNU ld version 2.41-50.amzn2023.0.8) #2 SMP PREEMPT_DYNAMIC Wed Nov 11 00:36:10 UTC 2026\ncode-tests@2.0.0  Linux version 4.19.0-gvisor #1 SMP Sun Jan 10 15:06:54 PST 2016",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rewards exec code-tests-2-0-0-74f8968cbb-4xtpz -- python -c 'urllib.request.urlopen(\"https://pypi.org\", timeout=5)'",
+   "output": "no internet: URLError",
+   "exit_code": 0,
+   "seconds": 22.04
+  },
+  {
+   "display": "kubectl -n rewards exec -i deploy/code-tests-2-0-0 -- POST /verify < tricks.json   # read_tests_via_FileIO, spin_forever, huge_memory, fork_bomb_os, correct",
+   "output": "{\"verifier\": \"code-tests@2.0.0\", \"results\": [{\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"exit_code\", \"sandbox_denied\"], \"verifier\": \"code-tests@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"exit_code\"], \"verifier\": \"code-tests@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"exit_code\"], \"verifier\": \"code-tests@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"exit_code\", \"sandbox_denied\"], \"verifier\": \"code-tests@2.0.0\"}, {\"verdict\": \"pass\", \"score\": 1.0, \"reasons\": [], \"verifier\": \"code-tests@2.0.0\"}]}",
+   "exit_code": 0,
+   "seconds": 6.29
+  },
+  {
+   "display": "verdicts",
+   "output": "read_tests_via_FileIO  fail  ['exit_code', 'sandbox_denied']\nspin_forever           fail  ['exit_code']\nhuge_memory            fail  ['exit_code']\nfork_bomb_os           fail  ['exit_code', 'sandbox_denied']\ncorrect                pass  []",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "vq.py job strength -- strength --out evals/strength.json",
+   "output": "job.batch/strength created\nstrength Complete\n{\"c-sum_evens\": {\"mutation_score\": 1.0, \"caught\": [true, true, true, true], \"hidden_cases\": 6, \"weak_by_design\": false, \"admitted\": true}, \"c-reverse_words\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-second_largest\": {\"mutation_score\": 1.0, \"caught\": [true, true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-run_length\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-merge_intervals\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-count_vowels\": {\"mutation_score\": 0.5, \"caught\": [false, true, true, false], \"hidden_cases\": 1, \"weak_by_design\": true, \"admitted\": false}, \"c-clamp\": {\"mutation_score\": 0.667, \"caught\": [false, true, true], \"hidden_cases\": 1, \"weak_by_design\": true, \"admitted\": false}, \"c-dedupe\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}}",
+   "exit_code": 0,
+   "seconds": 13.24
+  },
+  {
+   "display": "aws s3 cp s3://<bucket>/evals/strength.json -   # mutation score of each task's hidden tests",
+   "output": "c-sum_evens          score 1.00  caught [True, True, True, True]  hidden+edge cases 6  admitted True\nc-reverse_words      score 1.00  caught [True, True, True]  hidden+edge cases 5  admitted True\nc-second_largest     score 1.00  caught [True, True, True, True]  hidden+edge cases 5  admitted True\nc-run_length         score 1.00  caught [True, True, True]  hidden+edge cases 5  admitted True\nc-merge_intervals    score 1.00  caught [True, True, True]  hidden+edge cases 5  admitted True\nc-count_vowels       score 0.50  caught [False, True, True, False]  hidden+edge cases 1  admitted False\nc-clamp              score 0.67  caught [False, True, True]  hidden+edge cases 1  admitted False\nc-dedupe             score 1.00  caught [True, True, True]  hidden+edge cases 5  admitted True",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the strict code verifier runs in gVisor's user-space kernel; the old one on the node's own kernel",
+   "passed": true,
+   "because": "runtimeClassName: gvisor puts the pod on the sandbox node and starts it with runsc."
+  },
+  {
+   "description": "the verifier pod cannot reach the internet",
+   "passed": true,
+   "because": "The rewards NetworkPolicy allows only DNS, the store, the judges and its own namespace."
+  },
+  {
+   "description": "reading the hidden tests without the word 'open' is still refused, by the audit hook in the child process",
+   "passed": true,
+   "because": "The static scan misses io.FileIO; the harness's audit hook raises on any open outside the scratch directory and the stdlib."
+  },
+  {
+   "description": "an endless loop, a 2 GB allocation and a fork all fail; the correct program passes",
+   "passed": true,
+   "because": "Each test runs in a new process with 4 s of CPU, 512 MB of address space and a 10 s wall clock; the audit hook refuses os.fork."
+  },
+  {
+   "description": "mutation testing flags the two tasks with thin tests and admits the rest (threshold 0.85)",
+   "passed": true,
+   "because": "A mutant of the reference solution that passes every hidden test shows a hole in the tests, not in the verifier."
+  }
+ ],
+ "notes": []
+}

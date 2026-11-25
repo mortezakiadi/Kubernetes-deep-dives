@@ -1,0 +1,49 @@
+# S10: Quality on the policy's own outputs, the nightly fuzz, and the gate again
+# Design reference: Measuring verifier quality (two populations); Hardening
+
+$ vq.py job pq-math-final-answer-1-0-0 -- policyq --verifier math-final-answer@1.0.0 --run red-lenient   # the last 10 steps' rollouts
+job.batch/pq-math-final-answer-1-0-0 created
+pq-math-final-answer-1-0-0 Complete
+{"verifier": "math-final-answer@1.0.0", "run": "red-lenient", "all": {"tp": 243, "fp": 136, "fn": 0, "tn": 21, "abstain": 0, "n": 400, "precision": 0.6412, "precision_ci": [0.5917, 0.6878], "recall": 1.0, "abstain_rate": 0.0}}
+
+$ vq.py job pq-math-final-answer-2-0-0 -- policyq --verifier math-final-answer@2.0.0 --run red-lenient   # the last 10 steps' rollouts
+job.batch/pq-math-final-answer-2-0-0 created
+pq-math-final-answer-2-0-0 Complete
+{"verifier": "math-final-answer@2.0.0", "run": "red-lenient", "all": {"tp": 243, "fp": 3, "fn": 0, "tn": 154, "abstain": 0, "n": 400, "precision": 0.9878, "precision_ci": [0.9648, 0.9958], "recall": 1.0, "abstain_rate": 0.0}}
+
+$ precision: natural answers in the gold set vs the policy's own outputs
+math-final-answer@1.0.0    gold canonical 1.0   policy outputs 0.6412 CI [0.5917, 0.6878] (accepted 379)
+math-final-answer@2.0.0    gold canonical 1.0   policy outputs 0.9878 CI [0.9648, 0.9958] (accepted 246)
+
+$ kubectl -n rewards get cronjob verifier-fuzz-nightly -o custom-columns=NAME:.metadata.name,SCHEDULE:.spec.schedule,CONCURRENCY:.spec.concurrencyPolicy
+NAME                    SCHEDULE     CONCURRENCY
+verifier-fuzz-nightly   17 2 * * *   Forbid
+
+$ vq.py fuzz-now
+job.batch/fuzz-now-47248 created
+fuzz-now-47248 Complete
+{"verifier": "math-final-answer@1.0.0", "cases": 313, "false_positives": 241, "by_mutation": {"boxed_in_steps:false_positive": 40, "equiv_decimal:false_positive": 1, "hedge:false_positive": 40, "multi_answer:false_positive": 40, "number_soup:false_positive": 40, "right_first:false_positive": 40, "trailing_number:false_positive": 40}}
+{"verifier": "math-final-answer@2.0.0", "cases": 313, "false_positives": 1, "by_mutation": {"equiv_decimal:false_positive": 1}}
+{"verifier": "code-tests@1.0.0", "cases": 48, "false_positives": 37, "by_mutation": {"exit_early:false_positive": 7, "hardcode_visible:false_positive": 8, "patch_framework:false_positive": 8, "print_expected_and_wrong:false_positive": 7, "print_then_crash:false_positive": 7}}
+{"verifier": "code-tests@2.0.0", "cases": 48, "false_positives": 0, "by_mutation": {}}
+
+$ aws s3 cp s3://<bucket>/fuzz/nightly/report.json -
+policy samples used: 320
+math-final-answer@1.0.0     313 cases   241 false positives
+math-final-answer@2.0.0     313 cases     1 false positives
+code-tests@1.0.0             48 cases    37 false positives
+code-tests@2.0.0             48 cases     0 false positives
+
+$ vq.py register math-final-answer@2.0.0 --gold evals/quality/math-final-answer-2-0-0.json --fuzz fuzz/nightly/report.json --regress evals/regress/math-final-answer-2-0-0.json --policy evals/policy/math-final-answer-2-0-0.json
+math-final-answer@2.0.0: APPROVED  code d09c57627028b54c  purpose training
+  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375
+  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0788
+  [ok] precision lower bound on policy outputs >= 0.95: precision 0.9878 (95% CI [0.9648, 0.9958]), n accepted 246
+  [ok] abstain rate on policy outputs <= 0.1: abstain rate 0.0
+  [ok] fuzzing false-positive rate <= 0.005: 1 false positives in 313 fuzz cases
+  [ok] every known exploit in the regression suite is rejected: 200 of 200 regression cases behave as expected
+
+[PASS] the old verifier is precise on natural answers, and on the policy's outputs its precision lower bound falls below the gate's 0.95
+[PASS] the strict verifier's precision lower bound on the same outputs stays above 0.95
+[FAIL] the nightly job fuzzed with the policy's own completions, and found false positives only in the old verifiers
+[PASS] the strict verifier is approved again, now with precision measured on policy outputs
