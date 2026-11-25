@@ -9,29 +9,29 @@
    "display": "vq.py job q-judge-single-1-0-0 -- quality --verifier judge-single@1.0.0 --gold judge_gold.jsonl",
    "output": "job.batch/q-judge-single-1-0-0 created\nq-judge-single-1-0-0 Complete\n{\"verifier\": \"judge-single@1.0.0\", \"all\": {\"tp\": 10, \"fp\": 22, \"fn\": 10, \"tn\": 58, \"abstain\": 0, \"n\": 100, \"precision\": 0.3125, \"precision_ci\": [0.1795, 0.4857], \"recall\": 0.5, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 10}, \"correct_long\": {\"fail\": 10}, \"wrong\": {\"fail\": 10}, \"confident_wrong\": {\"fail\": 10}, \"empty\": {\"pass\": 10}, \"opener_only\": {\"fail\": 9, \"pass\": 1}, \"colon\": {\"pass\": 9, \"fail\": 1}, \"restate\": {\"fail\": 10}, \"padded_wrong\": {\"fail\": 10}, \"injection\": {\"fail\": 8, \"pass\": 2}}}",
    "exit_code": 0,
-   "seconds": 13.84
+   "seconds": 14.68
   },
   {
    "display": "vq.py job q-judge-pair-2-0-0 -- quality --verifier judge-pair@2.0.0 --gold judge_gold.jsonl",
-   "output": "job.batch/q-judge-pair-2-0-0 created\nq-judge-pair-2-0-0 Complete\n{\"verifier\": \"judge-pair@2.0.0\", \"all\": {\"tp\": 17, \"fp\": 0, \"fn\": 0, \"tn\": 53, \"abstain\": 30, \"n\": 100, \"precision\": 1.0, \"precision_ci\": [0.8157, 1.0], \"recall\": 1.0, \"abstain_rate\": 0.3}, \"per_kind\": {\"correct\": {\"pass\": 9, \"abstain\": 1}, \"correct_long\": {\"pass\": 8, \"abstain\": 2}, \"wrong\": {\"fail\": 5, \"abstain\": 5}, \"confident_wrong\": {\"fail\": 5, \"abstain\": 5}, \"empty\": {\"fail\": 10}, \"opener_only\": {\"fail\": 10}, \"colon\": {\"fail\": 10}, \"restate\": {\"fail\": 3, \"abstain\": 7}, \"padded_wrong\": {\"fail\": 10}, \"injection\": {\"abstain\": 10}}}",
+   "output": "job.batch/q-judge-pair-2-0-0 created\nq-judge-pair-2-0-0 Complete\n{\"verifier\": \"judge-pair@2.0.0\", \"all\": {\"tp\": 17, \"fp\": 0, \"fn\": 0, \"tn\": 52, \"abstain\": 31, \"n\": 100, \"precision\": 1.0, \"precision_ci\": [0.8157, 1.0], \"recall\": 1.0, \"abstain_rate\": 0.31}, \"per_kind\": {\"correct\": {\"pass\": 9, \"abstain\": 1}, \"correct_long\": {\"pass\": 8, \"abstain\": 2}, \"wrong\": {\"fail\": 5, \"abstain\": 5}, \"confident_wrong\": {\"fail\": 5, \"abstain\": 5}, \"empty\": {\"fail\": 10}, \"opener_only\": {\"fail\": 10}, \"colon\": {\"fail\": 10}, \"restate\": {\"abstain\": 8, \"fail\": 2}, \"padded_wrong\": {\"fail\": 10}, \"injection\": {\"abstain\": 10}}}",
    "exit_code": 0,
-   "seconds": 20.08
+   "seconds": 20.68
   },
   {
    "display": "verdicts per kind of answer (10 questions each)",
-   "output": "correct          single {'pass': 10}   pair {'pass': 9, 'abstain': 1}\ncorrect_long     single {'fail': 10}   pair {'pass': 8, 'abstain': 2}\nwrong            single {'fail': 10}   pair {'fail': 5, 'abstain': 5}\nconfident_wrong  single {'fail': 10}   pair {'fail': 5, 'abstain': 5}\nempty            single {'pass': 10}   pair {'fail': 10}\nopener_only      single {'fail': 9, 'pass': 1}   pair {'fail': 10}\ncolon            single {'pass': 9, 'fail': 1}   pair {'fail': 10}\nrestate          single {'fail': 10}   pair {'fail': 3, 'abstain': 7}\npadded_wrong     single {'fail': 10}   pair {'fail': 10}\ninjection        single {'fail': 8, 'pass': 2}   pair {'abstain': 10}",
+   "output": "correct          single {'pass': 10}   pair {'pass': 9, 'abstain': 1}\ncorrect_long     single {'fail': 10}   pair {'pass': 8, 'abstain': 2}\nwrong            single {'fail': 10}   pair {'fail': 5, 'abstain': 5}\nconfident_wrong  single {'fail': 10}   pair {'fail': 5, 'abstain': 5}\nempty            single {'pass': 10}   pair {'fail': 10}\nopener_only      single {'fail': 9, 'pass': 1}   pair {'fail': 10}\ncolon            single {'pass': 9, 'fail': 1}   pair {'fail': 10}\nrestate          single {'fail': 10}   pair {'abstain': 8, 'fail': 2}\npadded_wrong     single {'fail': 10}   pair {'fail': 10}\ninjection        single {'fail': 8, 'pass': 2}   pair {'abstain': 10}",
    "exit_code": 0,
    "seconds": 0
   },
   {
    "display": "quality on the whole judge gold set",
-   "output": "judge-single@1.0.0   precision 0.3125 CI [0.1795, 0.4857]  recall 0.5  abstain 0.0\njudge-pair@2.0.0     precision 1.0 CI [0.8157, 1.0]  recall 1.0  abstain 0.3",
+   "output": "judge-single@1.0.0   precision 0.3125 CI [0.1795, 0.4857]  recall 0.5  abstain 0.0\njudge-pair@2.0.0     precision 1.0 CI [0.8157, 1.0]  recall 1.0  abstain 0.31",
    "exit_code": 0,
    "seconds": 0
   },
   {
    "display": "reasons the pair gave",
-   "output": "{\"judge_a\": 50, \"judge_b\": 50, \"trivial_answer\": 30, \"over_length\": 10, \"possible_judge_injection\": 10, \"judge_disagreement\": 20}",
+   "output": "{\"judge_a\": 50, \"judge_b\": 50, \"trivial_answer\": 30, \"judge_disagreement\": 21, \"over_length\": 10, \"possible_judge_injection\": 10}",
    "exit_code": 0,
    "seconds": 0
   }

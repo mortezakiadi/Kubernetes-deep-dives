@@ -3,19 +3,19 @@
 
 $ kubectl -n rewards get pods -l vid=code-tests-1-0-0 -o custom-columns=POD:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName
 POD                                 RUNTIME   NODE
-code-tests-1-0-0-54c5cbfcdc-2pvwd   <none>    ip-10-82-58-122.us-east-2.compute.internal
-code-tests-1-0-0-54c5cbfcdc-g62w4   <none>    ip-10-82-40-0.us-east-2.compute.internal
+code-tests-1-0-0-57dc557d9d-4hx7z   <none>    ip-10-82-58-122.us-east-2.compute.internal
+code-tests-1-0-0-57dc557d9d-llmhn   <none>    ip-10-82-40-0.us-east-2.compute.internal
 
 $ kubectl -n rewards get pods -l vid=code-tests-2-0-0 -o custom-columns=POD:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName
 POD                                 RUNTIME   NODE
-code-tests-2-0-0-74f8968cbb-4xtpz   gvisor    ip-10-82-47-28.us-east-2.compute.internal
-code-tests-2-0-0-74f8968cbb-t6nkc   gvisor    ip-10-82-47-28.us-east-2.compute.internal
+code-tests-2-0-0-558f985f6f-45wqw   gvisor    ip-10-82-47-28.us-east-2.compute.internal
+code-tests-2-0-0-558f985f6f-hjfm4   gvisor    ip-10-82-47-28.us-east-2.compute.internal
 
 $ the kernel each service sees (/proc/version, from /info)
 code-tests@1.0.0  Linux version 6.18.62-127.179.amzn2023.x86_64 (mockbuild@ip-10-0-43-71) (gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-5), GNU ld version 2.41-50.amzn2023.0.8) #2 SMP PREEMPT_DYNAMIC Wed Nov 11 00:36:10 UTC 2026
 code-tests@2.0.0  Linux version 4.19.0-gvisor #1 SMP Sun Jan 10 15:06:54 PST 2016
 
-$ kubectl -n rewards exec code-tests-2-0-0-74f8968cbb-4xtpz -- python -c 'urllib.request.urlopen("https://pypi.org", timeout=5)'
+$ kubectl -n rewards exec code-tests-2-0-0-558f985f6f-45wqw -- python -c 'urllib.request.urlopen("https://pypi.org", timeout=5)'
 no internet: URLError
 
 $ kubectl -n rewards exec -i deploy/code-tests-2-0-0 -- POST /verify < tricks.json   # read_tests_via_FileIO, spin_forever, huge_memory, fork_bomb_os, correct

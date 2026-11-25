@@ -86,9 +86,10 @@ class _ExactBox(Verifier):
         tail = completion[completion.rfind("\\boxed"):]
         rest = tail[len("\\boxed{") + len(boxes[0]) + 1:]
         # Closing math delimiters and final punctuation may follow the box: \(\boxed{3}\). and $\boxed{3}$ end the answer too.
-        rest = re.sub(r"^\s*(\\\)|\\\]|\$\$|\$)?\s*([A-Za-z]+\s*){0,2}[\s.!]*", "", rest)  # a closing delimiter, up to two unit words, punctuation
-        if self.must_end and rest != "":
-            return self.result(Verdict.FAIL, ["text_after_final_answer"])
+        # After the final answer, words may follow (units, "per cup of sugar"), but no other value: a number after the
+        # box is a second answer, whatever the wording around it.
+        if self.must_end and re.search(r"\d", rest):
+            return self.result(Verdict.FAIL, ["number_after_final_answer"])
         # The words right around the final answer: 60 characters before the box and whatever follows it. An "or" in
         # the reasoning further back is not a hedge on the answer.
         start = completion.rfind("\\boxed")
@@ -106,8 +107,8 @@ class _ExactBox(Verifier):
 
 class ReferenceMath(_ExactBox):
     name, version, kind, purpose = "strict-reference-math", "1.0.0", "math", "audit"
-    contract = ("Stricter than math-final-answer@2: exactly one box, and it must END the answer (a closing delimiter, at most "
-                "two unit words and punctuation may follow); no hedge word in the box's sentence; the box holds one exact number or fraction (Python Fraction), else abstain.")
+    contract = ("Stricter than math-final-answer@2: exactly one box, and no other number "
+                "after it; no hedge word in the box's sentence or after it; the box holds one exact number or fraction (Python Fraction), else abstain.")
 
 
 class EvalMath(_ExactBox):

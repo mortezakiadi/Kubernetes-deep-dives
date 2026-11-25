@@ -50,34 +50,34 @@ $ aws eks describe-nodegroup --cluster-name ds10-verify --nodegroup-name ds10-ve
 }
 
 $ kubectl get nodes -L ds10/pool,ds10/runtime,node.kubernetes.io/instance-type,topology.kubernetes.io/zone
-NAME                                         STATUS   ROLES    AGE   VERSION               POOL      RUNTIME   INSTANCE-TYPE   ZONE
-ip-10-82-22-184.us-east-2.compute.internal   Ready    <none>   60m   v1.37.1-eks-9adbfea   gpu                 g6e.2xlarge     us-east-2a
-ip-10-82-32-200.us-east-2.compute.internal   Ready    <none>   60m   v1.37.1-eks-9adbfea   gpu                 g5.xlarge       us-east-2b
-ip-10-82-40-0.us-east-2.compute.internal     Ready    <none>   62m   v1.37.1-eks-9adbfea   system              m6i.2xlarge     us-east-2b
-ip-10-82-47-28.us-east-2.compute.internal    Ready    <none>   62m   v1.37.1-eks-9adbfea   sandbox   gvisor    m6i.xlarge      us-east-2b
-ip-10-82-57-155.us-east-2.compute.internal   Ready    <none>   59m   v1.37.1-eks-9adbfea   gpu                 g6e.xlarge      us-east-2c
-ip-10-82-58-122.us-east-2.compute.internal   Ready    <none>   62m   v1.37.1-eks-9adbfea   system              m6i.2xlarge     us-east-2c
+NAME                                         STATUS   ROLES    AGE    VERSION               POOL      RUNTIME   INSTANCE-TYPE   ZONE
+ip-10-82-22-184.us-east-2.compute.internal   Ready    <none>   115m   v1.37.1-eks-9adbfea   gpu                 g6e.2xlarge     us-east-2a
+ip-10-82-32-200.us-east-2.compute.internal   Ready    <none>   115m   v1.37.1-eks-9adbfea   gpu                 g5.xlarge       us-east-2b
+ip-10-82-40-0.us-east-2.compute.internal     Ready    <none>   117m   v1.37.1-eks-9adbfea   system              m6i.2xlarge     us-east-2b
+ip-10-82-47-28.us-east-2.compute.internal    Ready    <none>   117m   v1.37.1-eks-9adbfea   sandbox   gvisor    m6i.xlarge      us-east-2b
+ip-10-82-57-155.us-east-2.compute.internal   Ready    <none>   114m   v1.37.1-eks-9adbfea   gpu                 g6e.xlarge      us-east-2c
+ip-10-82-58-122.us-east-2.compute.internal   Ready    <none>   117m   v1.37.1-eks-9adbfea   system              m6i.2xlarge     us-east-2c
 
 $ kubectl get runtimeclass gvisor -o jsonpath={.handler} {.scheduling.nodeSelector}
 runsc {"ds10/runtime":"gvisor"}
 
 $ kubectl -n rewards get deploy -L verifier,version,team -o wide
-NAME                          READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                                                                                                                   SELECTOR                                       VERIFIER                VERSION   TEAM
-code-tests-1-0-0              2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=code-tests-1-0-0              code-tests              1.0.0     rewards-team
-code-tests-2-0-0              2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=code-tests-2-0-0              code-tests              2.0.0     rewards-team
-eval-math-1-0-0               2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=eval-math-1-0-0               eval-math               1.0.0     eval-team
-judge-pair-2-0-0              2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=judge-pair-2-0-0              judge-pair              2.0.0     rewards-team
-judge-single-1-0-0            2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=judge-single-1-0-0            judge-single            1.0.0     rewards-team
-math-final-answer-1-0-0       2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=math-final-answer-1-0-0       math-final-answer       1.0.0     rewards-team
-math-final-answer-2-0-0       2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=math-final-answer-2-0-0       math-final-answer       2.0.0     rewards-team
-strict-reference-code-1-0-0   2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=strict-reference-code-1-0-0   strict-reference-code   1.0.0     rewards-team
-strict-reference-math-1-0-0   2/2     2            2           54m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=strict-reference-math-1-0-0   strict-reference-math   1.0.0     rewards-team
+NAME                          READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS   IMAGES                                                                                                                   SELECTOR                                       VERIFIER                VERSION   TEAM
+code-tests-1-0-0              2/2     2            2           109m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=code-tests-1-0-0              code-tests              1.0.0     rewards-team
+code-tests-2-0-0              2/2     2            2           109m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=code-tests-2-0-0              code-tests              2.0.0     rewards-team
+eval-math-1-0-0               2/2     2            2           109m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=eval-math-1-0-0               eval-math               1.0.0     eval-team
+judge-pair-2-0-0              2/2     2            2           109m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=judge-pair-2-0-0              judge-pair              2.0.0     rewards-team
+judge-single-1-0-0            2/2     2            2           109m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=judge-single-1-0-0            judge-single            1.0.0     rewards-team
+math-final-answer-1-0-0       2/2     2            2           109m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=math-final-answer-1-0-0       math-final-answer       1.0.0     rewards-team
+math-final-answer-2-0-0       2/2     2            2           109m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=math-final-answer-2-0-0       math-final-answer       2.0.0     rewards-team
+strict-reference-code-1-0-0   2/2     2            2           109m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=strict-reference-code-1-0-0   strict-reference-code   1.0.0     rewards-team
+strict-reference-math-1-0-0   2/2     2            2           109m   verifier     public.ecr.aws/docker/library/python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b   app=verifier,vid=strict-reference-math-1-0-0   strict-reference-math   1.0.0     rewards-team
 
 $ kubectl -n judges exec deploy/judge-a -- curl -s 127.0.0.1:8000/v1/models
-{"object":"list","data":[{"id":"judge","object":"model","created":1795645467,"owned_by":"vllm","root":"Qwen/Qwen2.5-7B-Instruct","parent":null,"max_model_len":4096,"permission":[{"id":"modelperm-ad5e4a3234c02274","object":"model_permission","created":1795645467,"allow_create_engine":false,"allow_sampling":true,"allow_logprobs":true,"allow_search_indices":false,"allow_view":true,"allow_fine_tuning":false,"organization":"*","group":null,"is_blocking":false}]}]}
+{"object":"list","data":[{"id":"judge","object":"model","created":1795648763,"owned_by":"vllm","root":"Qwen/Qwen2.5-7B-Instruct","parent":null,"max_model_len":4096,"permission":[{"id":"modelperm-8cb07a854c9bbeae","object":"model_permission","created":1795648763,"allow_create_engine":false,"allow_sampling":true,"allow_logprobs":true,"allow_search_indices":false,"allow_view":true,"allow_fine_tuning":false,"organization":"*","group":null,"is_blocking":false}]}]}
 
 $ kubectl -n judges exec deploy/judge-b -- curl -s 127.0.0.1:8000/v1/models
-{"object":"list","data":[{"id":"judge","object":"model","created":1795645469,"owned_by":"vllm","root":"mistralai/Mistral-7B-Instruct-v0.3","parent":null,"max_model_len":4096,"permission":[{"id":"modelperm-9fefef8fb6a9b754","object":"model_permission","created":1795645469,"allow_create_engine":false,"allow_sampling":true,"allow_logprobs":true,"allow_search_indices":false,"allow_view":true,"allow_fine_tuning":false,"organization":"*","group":null,"is_blocking":false}]}]}
+{"object":"list","data":[{"id":"judge","object":"model","created":1795648765,"owned_by":"vllm","root":"mistralai/Mistral-7B-Instruct-v0.3","parent":null,"max_model_len":4096,"permission":[{"id":"modelperm-b9f5f6dbb420971f","object":"model_permission","created":1795648765,"allow_create_engine":false,"allow_sampling":true,"allow_logprobs":true,"allow_search_indices":false,"allow_view":true,"allow_fine_tuning":false,"organization":"*","group":null,"is_blocking":false}]}]}
 
 $ kubectl -n judges get deploy -o custom-columns=JUDGE:.metadata.name,MODEL:.spec.template.spec.containers[0].args[0],REVISION:.spec.template.spec.containers[0].args[2]
 JUDGE     MODEL                                REVISION

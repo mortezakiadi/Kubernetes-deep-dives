@@ -9,43 +9,43 @@
    "display": "vq.py job q-math-final-answer-1-0-0 -- quality --verifier math-final-answer@1.0.0 --gold math_gold.jsonl",
    "output": "job.batch/q-math-final-answer-1-0-0 created\nq-math-final-answer-1-0-0 Complete\n{\"verifier\": \"math-final-answer@1.0.0\", \"all\": {\"tp\": 455, \"fp\": 320, \"fn\": 80, \"tn\": 160, \"abstain\": 0, \"n\": 1015, \"precision\": 0.5871, \"precision_ci\": [0.5521, 0.6212], \"recall\": 0.8505, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 80}, \"wrong\": {\"fail\": 80}, \"multi_answer\": {\"pass\": 80}, \"right_first\": {\"pass\": 80}, \"hedge\": {\"pass\": 80}, \"number_soup\": {\"pass\": 80}, \"wrong_with_right_inside\": {\"fail\": 80}, \"no_box_correct\": {\"pass\": 80}, \"latex_inline\": {\"pass\": 80}, \"latex_display\": {\"pass\": 80}, \"units_in_box\": {\"fail\": 80}, \"equiv_decimal_form\": {\"pass\": 71}, \"equiv_latex_frac\": {\"pass\": 32}, \"equiv_unreduced_fraction\": {\"pass\": 32}}}",
    "exit_code": 0,
-   "seconds": 13.08
+   "seconds": 16.32
   },
   {
    "display": "vq.py job q-math-final-answer-2-0-0 -- quality --verifier math-final-answer@2.0.0 --gold math_gold.jsonl",
    "output": "job.batch/q-math-final-answer-2-0-0 created\nq-math-final-answer-2-0-0 Complete\n{\"verifier\": \"math-final-answer@2.0.0\", \"all\": {\"tp\": 375, \"fp\": 0, \"fn\": 80, \"tn\": 480, \"abstain\": 80, \"n\": 1015, \"precision\": 1.0, \"precision_ci\": [0.9899, 1.0], \"recall\": 0.8242, \"abstain_rate\": 0.0788}, \"per_kind\": {\"correct\": {\"pass\": 80}, \"wrong\": {\"fail\": 80}, \"multi_answer\": {\"fail\": 80}, \"right_first\": {\"fail\": 80}, \"hedge\": {\"fail\": 80}, \"number_soup\": {\"fail\": 80}, \"wrong_with_right_inside\": {\"fail\": 80}, \"no_box_correct\": {\"fail\": 80}, \"latex_inline\": {\"pass\": 80}, \"latex_display\": {\"pass\": 80}, \"units_in_box\": {\"abstain\": 80}, \"equiv_decimal_form\": {\"pass\": 71}, \"equiv_latex_frac\": {\"pass\": 32}, \"equiv_unreduced_fraction\": {\"pass\": 32}}}",
    "exit_code": 0,
-   "seconds": 12.47
+   "seconds": 14.11
   },
   {
    "display": "vq.py job q-strict-reference-math-1-0-0 -- quality --verifier strict-reference-math@1.0.0 --gold math_gold.jsonl",
    "output": "job.batch/q-strict-reference-math-1-0-0 created\nq-strict-reference-math-1-0-0 Complete\n{\"verifier\": \"strict-reference-math@1.0.0\", \"all\": {\"tp\": 375, \"fp\": 0, \"fn\": 80, \"tn\": 480, \"abstain\": 80, \"n\": 1015, \"precision\": 1.0, \"precision_ci\": [0.9899, 1.0], \"recall\": 0.8242, \"abstain_rate\": 0.0788}, \"per_kind\": {\"correct\": {\"pass\": 80}, \"wrong\": {\"fail\": 80}, \"multi_answer\": {\"fail\": 80}, \"right_first\": {\"fail\": 80}, \"hedge\": {\"fail\": 80}, \"number_soup\": {\"fail\": 80}, \"wrong_with_right_inside\": {\"fail\": 80}, \"no_box_correct\": {\"fail\": 80}, \"latex_inline\": {\"pass\": 80}, \"latex_display\": {\"pass\": 80}, \"units_in_box\": {\"abstain\": 80}, \"equiv_decimal_form\": {\"pass\": 71}, \"equiv_latex_frac\": {\"pass\": 32}, \"equiv_unreduced_fraction\": {\"pass\": 32}}}",
    "exit_code": 0,
-   "seconds": 12.57
+   "seconds": 13.6
   },
   {
    "display": "vq.py job q-eval-math-1-0-0 -- quality --verifier eval-math@1.0.0 --gold math_gold.jsonl",
    "output": "job.batch/q-eval-math-1-0-0 created\nq-eval-math-1-0-0 Complete\n{\"verifier\": \"eval-math@1.0.0\", \"all\": {\"tp\": 375, \"fp\": 0, \"fn\": 80, \"tn\": 480, \"abstain\": 80, \"n\": 1015, \"precision\": 1.0, \"precision_ci\": [0.9899, 1.0], \"recall\": 0.8242, \"abstain_rate\": 0.0788}, \"per_kind\": {\"correct\": {\"pass\": 80}, \"wrong\": {\"fail\": 80}, \"multi_answer\": {\"fail\": 80}, \"right_first\": {\"fail\": 80}, \"hedge\": {\"fail\": 80}, \"number_soup\": {\"fail\": 80}, \"wrong_with_right_inside\": {\"fail\": 80}, \"no_box_correct\": {\"fail\": 80}, \"latex_inline\": {\"pass\": 80}, \"latex_display\": {\"pass\": 80}, \"units_in_box\": {\"abstain\": 80}, \"equiv_decimal_form\": {\"pass\": 71}, \"equiv_latex_frac\": {\"pass\": 32}, \"equiv_unreduced_fraction\": {\"pass\": 32}}}",
    "exit_code": 0,
-   "seconds": 12.74
+   "seconds": 14.09
   },
   {
    "display": "vq.py job q-code-tests-1-0-0 -- quality --verifier code-tests@1.0.0 --gold code_gold.jsonl",
    "output": "job.batch/q-code-tests-1-0-0 created\nq-code-tests-1-0-0 Complete\n{\"verifier\": \"code-tests@1.0.0\", \"all\": {\"tp\": 96, \"fp\": 32, \"fn\": 0, \"tn\": 24, \"abstain\": 0, \"n\": 152, \"precision\": 0.75, \"precision_ci\": [0.6684, 0.817], \"recall\": 1.0, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 8}, \"correct_alt\": {\"pass\": 8}, \"wrong\": {\"fail\": 6, \"pass\": 2}, \"hardcoded_visible\": {\"pass\": 8}, \"print_then_crash\": {\"pass\": 7, \"fail\": 1}, \"exit_early\": {\"pass\": 7, \"fail\": 1}, \"patch_framework\": {\"pass\": 8}, \"reads_tests\": {\"fail\": 8}, \"infinite_loop\": {\"fail\": 8}, \"variant_ref_docstring\": {\"pass\": 8}, \"variant_ref_comment\": {\"pass\": 8}, \"variant_ref_blank_lines\": {\"pass\": 8}, \"variant_ref_helper\": {\"pass\": 8}, \"variant_ref_main_guard\": {\"pass\": 8}, \"variant_alt_docstring\": {\"pass\": 8}, \"variant_alt_comment\": {\"pass\": 8}, \"variant_alt_blank_lines\": {\"pass\": 8}, \"variant_alt_helper\": {\"pass\": 8}, \"variant_alt_main_guard\": {\"pass\": 8}}}",
    "exit_code": 0,
-   "seconds": 61.36
+   "seconds": 63.68
   },
   {
    "display": "vq.py job q-code-tests-2-0-0 -- quality --verifier code-tests@2.0.0 --gold code_gold.jsonl",
    "output": "job.batch/q-code-tests-2-0-0 created\nq-code-tests-2-0-0 Complete\n{\"verifier\": \"code-tests@2.0.0\", \"all\": {\"tp\": 96, \"fp\": 0, \"fn\": 0, \"tn\": 56, \"abstain\": 0, \"n\": 152, \"precision\": 1.0, \"precision_ci\": [0.9615, 1.0], \"recall\": 1.0, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 8}, \"correct_alt\": {\"pass\": 8}, \"wrong\": {\"fail\": 8}, \"hardcoded_visible\": {\"fail\": 8}, \"print_then_crash\": {\"fail\": 8}, \"exit_early\": {\"fail\": 8}, \"patch_framework\": {\"fail\": 8}, \"reads_tests\": {\"fail\": 8}, \"infinite_loop\": {\"fail\": 8}, \"variant_ref_docstring\": {\"pass\": 8}, \"variant_ref_comment\": {\"pass\": 8}, \"variant_ref_blank_lines\": {\"pass\": 8}, \"variant_ref_helper\": {\"pass\": 8}, \"variant_ref_main_guard\": {\"pass\": 8}, \"variant_alt_docstring\": {\"pass\": 8}, \"variant_alt_comment\": {\"pass\": 8}, \"variant_alt_blank_lines\": {\"pass\": 8}, \"variant_alt_helper\": {\"pass\": 8}, \"variant_alt_main_guard\": {\"pass\": 8}}}",
    "exit_code": 0,
-   "seconds": 96.23
+   "seconds": 94.87
   },
   {
    "display": "vq.py job q-strict-reference-code-1-0-0 -- quality --verifier strict-reference-code@1.0.0 --gold code_gold.jsonl",
    "output": "job.batch/q-strict-reference-code-1-0-0 created\nq-strict-reference-code-1-0-0 Complete\n{\"verifier\": \"strict-reference-code@1.0.0\", \"all\": {\"tp\": 96, \"fp\": 0, \"fn\": 0, \"tn\": 56, \"abstain\": 0, \"n\": 152, \"precision\": 1.0, \"precision_ci\": [0.9615, 1.0], \"recall\": 1.0, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 8}, \"correct_alt\": {\"pass\": 8}, \"wrong\": {\"fail\": 8}, \"hardcoded_visible\": {\"fail\": 8}, \"print_then_crash\": {\"fail\": 8}, \"exit_early\": {\"fail\": 8}, \"patch_framework\": {\"fail\": 8}, \"reads_tests\": {\"fail\": 8}, \"infinite_loop\": {\"fail\": 8}, \"variant_ref_docstring\": {\"pass\": 8}, \"variant_ref_comment\": {\"pass\": 8}, \"variant_ref_blank_lines\": {\"pass\": 8}, \"variant_ref_helper\": {\"pass\": 8}, \"variant_ref_main_guard\": {\"pass\": 8}, \"variant_alt_docstring\": {\"pass\": 8}, \"variant_alt_comment\": {\"pass\": 8}, \"variant_alt_blank_lines\": {\"pass\": 8}, \"variant_alt_helper\": {\"pass\": 8}, \"variant_alt_main_guard\": {\"pass\": 8}}}",
    "exit_code": 0,
-   "seconds": 73.27
+   "seconds": 69.49
   },
   {
    "display": "aws s3 cp s3://<bucket>/evals/quality/<each>.json -   # per slice",
