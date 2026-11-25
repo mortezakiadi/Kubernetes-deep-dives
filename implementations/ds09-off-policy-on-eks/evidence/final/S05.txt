@@ -1,0 +1,23 @@
+# S05: Engine mismatch: the gap that exists at zero staleness, and which loss the trust region should measure against
+# Design reference: Sources of off-policy data: engine mismatch; the decoupled loss
+
+$ # sweep engine-mismatch-s05: 16 cells read back from the state bucket (already complete)
+3040 records
+
+$ python mismatch_table.py engine-mismatch-s05   # at age 0 only: every difference is the engine's; two seeds, the last column shows each
+ noise       loss  engine KL    ESS  clipped  truncated  masked  start  final
+  0.00  decoupled    0.00052  0.999   0.0000     0.0000  0.0000  0.408  0.550  (0.535, 0.564)
+  0.00      naive    0.00054  0.999   0.0013     0.0000  0.0000  0.409  0.552  (0.556, 0.547)
+  0.02  decoupled    0.01291  0.965   0.0000     0.0006  0.0000  0.422  0.554  (0.534, 0.574)
+  0.02      naive    0.01022  0.976   0.0268     0.0000  0.0000  0.422  0.496  (0.465, 0.527)
+  0.05  decoupled    0.08327  0.790   0.0000     0.0057  0.0003  0.377  0.483  (0.470, 0.496)
+  0.05      naive    0.05765  0.860   0.0548     0.0000  0.0000  0.336  0.052  (0.076, 0.029)
+  0.10  decoupled    0.50123  0.288   0.0000     0.0173  0.0026  0.091  0.189  (0.143, 0.236)
+  0.10      naive    0.27555  0.482   0.0310     0.0000  0.0000  0.091  0.003  (0.002, 0.004)
+
+[PASS] all sixteen runs completed
+[PASS] the engine mismatch rises with the noise and spans at least a hundredfold
+[PASS] with the naive loss the trust region cuts at least ten times more tokens once the engine disagrees (noise 0.02 and above) than when it does not, though no sample is stale
+[PASS] with the decoupled loss the trust region cuts almost nothing at age 0 (under 0.3% of tokens) and does not grow with the mismatch
+[PASS] at the two large mismatches the decoupled loss ends well above the naive loss (by at least 0.05 in both, mean of two seeds)
+[PASS] the decoupled loss handles the engine's gap through its behavior weight: truncated and masked tokens rise with the mismatch

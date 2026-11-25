@@ -1,0 +1,32 @@
+# S06: Filtering is off-policy too: what dynamic sampling removes, by task type, over time
+# Design reference: Filtering is off-policy too
+
+$ kubectl apply -f filtering-s06.yaml   # an Indexed Job on the research queue: 2 cells, 2 at a time
+ 0  STEPS=100 EVAL_EVERY=10 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 FILTER=0
+ 1  STEPS=100 EVAL_EVERY=10 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 FILTER=1
+
+$ kubectl -n rl-research get job filtering-s06
+NAME            STATUS     COMPLETIONS   DURATION   AGE
+filtering-s06   Complete   2/2           9m42s      10m
+
+$ python filter_report.py filtering-s06 --run s06-filter-off   # share of answer groups whose answers all scored the same, by task type
+ task type  groups (first 25 steps)  dropped  groups (last 25)  dropped
+     short                       72      47%                72      57%
+    medium                       93      32%                96      48%
+      long                       43      47%                24      33%
+
+$ python heldout_by_type.py filtering-s06   # the held-out set is the same for both runs and is not filtered
+               short   medium     long      all
+filter off start    0.586    0.348    0.109
+filter off final    0.729    0.519    0.367    0.583
+filter on final    0.741    0.552    0.387    0.605
+
+$ python filter_cost.py filtering-s06   # what the filter costs
+groups dropped by the filter (run with the filter on): 45% of the batch
+mean tokens that carry gradient per micro-batch: 5371 with the filter off, 3112 with it on
+
+[PASS] both runs completed and each batch reported what the filter would remove, by task type
+[PASS] the filter drops exactly the groups the report counts
+[PASS] the filter changes what the run trains on: fewer tokens carry gradient with the filter on
+[PASS] the drop rate is not constant: for at least one task type it moved by five points or more between the first and the last quarter of training
+[PASS] the held-out set is unfiltered and identical for both runs (same problems, all three task types present)

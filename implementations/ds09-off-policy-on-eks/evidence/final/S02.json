@@ -1,0 +1,78 @@
+{
+ "id": "S02",
+ "title": "Three policies: where each token's data comes from, and what staleness and the engine each add",
+ "design_ref": "Sources of off-policy data; the three policies; diagnostics",
+ "purpose": "Run with eight steps of staleness allowed and show that every token carries the log-probability it was sampled with (mu), the one the trainer assigned it when it arrived (pi_prox) and the one the trainer assigns it now (pi_theta). Then split the gap between data and policy into its two causes, the engine and the age, and check that each behaves as the design says.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "# sweep one-s02-three-policies: 1 cells read back from the state bucket (already complete)",
+   "output": "117 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python show_tokens.py metrics.jsonl --age 0   # the same row, one sample trained on the step it was generated",
+   "output": "sample generated at version 0, trained on at version 0: age 0\n       token   mu (engine)  pi_prox (arrival)  pi_theta (now)\n        'To'       -1.5677            -1.4715         -1.4715\n     ' find'       -0.1791            -0.1834         -0.1834\n      ' the'       -0.2597            -0.2805         -0.2805\n    ' final'       -0.8384            -0.7926         -0.7926\n     ' bill'       -0.2390            -0.2406         -0.2406\n         ','       -0.2996            -0.3553         -0.3553\n       ' we'       -0.0318            -0.0332         -0.0332\n     ' need'       -0.0773            -0.0872         -0.0872",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python show_tokens.py metrics.jsonl --age 7   # the oldest sample in the run",
+   "output": "sample generated at version 0, trained on at version 7: age 7\n       token   mu (engine)  pi_prox (arrival)  pi_theta (now)\n       'Let'       -0.5927            -0.6514         -0.3645\n        \"'s\"       -0.0061            -0.0047         -0.0033\n     ' work'       -1.4370            -1.4037         -1.2580\n     ' step'       -0.5758            -0.5278         -0.6334\n       ' by'       -0.2015            -0.2015         -0.1798\n     ' step'       -0.0000            -0.0000         -0.0000\n     ':\\n\\n'       -1.2694            -1.2626         -1.0510\n   '---\\n\\n'       -0.3920            -0.4545         -0.5294",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python age_histogram.py metrics.jsonl   # how many optimizer steps trained on data of each age",
+   "output": "age 0:   6 steps  ######\nage 1:   6 steps  ######\nage 2:   6 steps  ######\nage 3:   6 steps  ######\nage 4:   6 steps  ######\nage 5:   6 steps  ######\nage 6:   6 steps  ######\nage 7:   6 steps  ######",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python by_age.py metrics.jsonl   # KL between the policies, averaged over the run, by age",
+   "output": "age  behavior KL  engine (mu->prox)  staleness (prox->theta)\n  0      0.00050            0.00050                  0.00000\n  1      0.00060            0.00048                  0.00048\n  2      0.00092            0.00051                  0.00076\n  3      0.00141            0.00050                  0.00127\n  4      0.00177            0.00050                  0.00164\n  5      0.00212            0.00051                  0.00195\n  6      0.00243            0.00050                  0.00229\n  7      0.00288            0.00048                  0.00270",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python cost.py metrics.jsonl   # where the run's time went, from the run's own timers",
+   "output": "engine generating samples:                         35.9 s   19%\nscoring each sample on arrival (pi_prox):          26.8 s   14%\ntraining (forward, backward, optimizer step):     123.9 s   64%\nreward, weight sync and the rest:                   5.6 s    3%\nwhole run:                                        192.3 s",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "every sample carries the version that produced it, and no sample is older than the limit (age 0 to 7, all present)",
+   "passed": true,
+   "because": "The run tags each rollout with the optimizer step of its generation. Eight steps' worth of data is generated at once, so the ages seen are exactly 0 to 7, each equally often: the limit is enforced, not hoped for."
+  },
+  {
+   "description": "at age 0 the target policy is the proximal policy (their log-probabilities are identical)",
+   "passed": true,
+   "because": "Proximal means the trainer's own weights at the sample's version. When the sample is trained on in the version that made it, the weights have not moved, so the two log-probabilities must agree. Any difference at age 0 would be a bug in the bookkeeping."
+  },
+  {
+   "description": "the engine's gap to the trainer is already there at age 0 (behavior KL at age 0 equals the engine's gap)",
+   "passed": true,
+   "because": "At age 0 pi_theta = pi_prox, so the whole gap to mu is the engine's: different kernels and precision, not staleness. This is the 'engine mismatch at zero staleness' reading the design asks every run to report."
+  },
+  {
+   "description": "the staleness gap grows with age (Spearman correlation of KL against age at least 0.9)",
+   "passed": true,
+   "because": "Every optimizer step moves the weights, so the target drifts further from the weights that wrote the sample as the sample ages. The KL grows with the number of steps in between."
+  },
+  {
+   "description": "the engine's gap does not depend on age (largest over smallest within a factor of two)",
+   "passed": true,
+   "because": "The engine's rounding does not know how old a sample is: the trainer's log-probability at arrival is compared with the engine's at generation, and both use the same weights. Staleness and engine are separate causes with separate cures."
+  },
+  {
+   "description": "the extra forward pass on arrival costs less than a quarter of the run and less than the training itself (the cost the design accepted)",
+   "passed": true,
+   "because": "Scoring a sample once on arrival is a forward pass with no gradient; training is a forward and a backward pass and an optimizer step. The trade-off the design names is measured here, per run, not assumed."
+  }
+ ],
+ "notes": []
+}

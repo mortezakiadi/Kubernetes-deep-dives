@@ -1,0 +1,114 @@
+# S01: The platform: GPU pool, research queue and a first run through it
+# Design reference: The platform on Kubernetes
+
+$ kubectl get nodes -L pool,instance-type,zone
+NAME                           STATUS   ROLES    AGE   VERSION               POOL       INSTANCE-TYPE   ZONE
+ip-10-70-0-122.ec2.internal    Ready    <none>   11h   v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1a
+ip-10-70-14-134.ec2.internal   Ready    <none>   21h   v1.37.1-eks-9adbfea   system     m5.xlarge       us-east-1a
+ip-10-70-19-72.ec2.internal    Ready    <none>   11h   v1.37.1-eks-9adbfea   research   g6.2xlarge      us-east-1b
+ip-10-70-33-244.ec2.internal   Ready    <none>   19h   v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1c
+ip-10-70-39-132.ec2.internal   Ready    <none>   21h   v1.37.1-eks-9adbfea   system     m5.xlarge       us-east-1c
+ip-10-70-6-226.ec2.internal    Ready    <none>   18h   v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1a
+
+$ kubectl get nodes -l pool=research -o custom-columns=NAME,TYPE,GPU   # what the scheduler can hand out
+NAME                           TYPE          GPU
+ip-10-70-0-122.ec2.internal    g6e.2xlarge   1
+ip-10-70-19-72.ec2.internal    g6.2xlarge    1
+ip-10-70-33-244.ec2.internal   g6e.2xlarge   1
+ip-10-70-6-226.ec2.internal    g6e.2xlarge   1
+
+$ kubectl get crd clusterqueues localqueues workloads workloadpriorityclasses
+clusterqueues.kueue.x-k8s.io             Cluster      v1beta2(storage)   2026-11-23T18:54:10Z
+localqueues.kueue.x-k8s.io               Namespaced   v1beta2(storage)   2026-11-23T18:54:21Z
+workloads.kueue.x-k8s.io                 Namespaced   v1beta2(storage)   2026-11-23T18:54:34Z
+workloadpriorityclasses.kueue.x-k8s.io   Cluster      v1beta2(storage)   2026-11-23T18:54:13Z
+
+$ kubectl get clusterqueue,localqueue,workloadpriorityclass -A
+NAME                                   COHORT   PENDING WORKLOADS
+clusterqueue.kueue.x-k8s.io/research            0
+
+NAMESPACE     NAME                                       CLUSTERQUEUE   PENDING WORKLOADS   ADMITTED WORKLOADS
+rl-research   localqueue.kueue.x-k8s.io/research-small   research       0                   0
+
+NAMESPACE   NAME                                               VALUE
+            workloadpriorityclass.kueue.x-k8s.io/interactive   1000
+            workloadpriorityclass.kueue.x-k8s.io/sweep-low     100
+
+$ kubectl apply -f one-s01-smoke.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=3 EVAL_EVERY=0 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 DUMP_TOKENS=1
+
+$ kubectl -n rl-research get job one-s01-smoke
+NAME            STATUS     COMPLETIONS   DURATION   AGE
+one-s01-smoke   Complete   1/1           117s       2m8s
+
+$ kubectl -n rl-research get workloads   # Kueue's record of what it admitted
+NAME                               QUEUE            RESERVED IN   ADMITTED   FINISHED   AGE
+job-bounded-staleness-s04-22755    research-small   research      True       True       93m
+job-cal1-773f6                     research-small   research      True       True       19h
+job-cal2-42f92                     research-small   research      True       True       18h
+job-controller-s08-8949a           research-small   research      True       True       42m
+job-dbgfloor-8ca68                 research-small   research      True       True       11h
+job-dbgfloor2-1a02c                research-small   research      True       True       11h
+job-engine-mismatch-s05-01e80      research-small   research      True       True       87m
+job-filtering-s06-0ffb9            research-small   research      True       True       61m
+job-larger-scale-s09-29d3a         research-small   research      True       True       25m
+job-library-check-s09-372e8        research-small   research      True       True       29m
+job-one-s01-smoke-c844e            research-small   research      True       True       2m11s
+job-one-s02-three-policies-4474f   research-small   research      True       True       152m
+job-pilot8-28233                   research-small   research      True       True       11h
+job-pools-s07-49acd                research-small   research      True       True       55m
+job-q-interactive-1dce3            research-small   research      True       True       19m
+job-q-sweep-0-459b0                research-small   research      True       True       19m
+job-q-sweep-1-ec7a7                research-small   research      True       True       19m
+job-q-sweep-2-688db                research-small   research      True       True       19m
+job-q-sweep-3-044a0                research-small   research      True       True       19m
+job-q-sweep-a95c4                  research-small   research      True       True       8h
+job-staleness-sweep-s03-a33fa      research-small   research      True       True       148m
+
+$ aws s3 cp s3://<state bucket>/runs/s01-smoke/metrics.jsonl -   # the first record of the run: where it ran and with what software
+{
+ "gpu": "NVIDIA L40S",
+ "gpu_gb": 44.4,
+ "engine_gb": 8.0,
+ "versions": {
+  "vllm": "0.33.0",
+  "trl": "1.18.2",
+  "transformers": "5.24.0",
+  "torch": "2.14.0+cu130"
+ }
+}
+
+$ python show_step.py metrics.jsonl 3   # the third optimizer step's record, as the run wrote it
+{
+ "sources": [
+  "fresh",
+  "fresh"
+ ],
+ "age": 0.0,
+ "clipped_frac": 0.0,
+ "masked_frac": 0.0,
+ "offpolicy/ess_frac": 0.99895,
+ "offpolicy/ratio_p99": 1.11332,
+ "offpolicy/ratio_gt3_frac": 0.0,
+ "offpolicy/behavior_kl": 0.00053,
+ "mismatch/kl": 0.00053,
+ "drift/kl": 0.0,
+ "settings": {
+  "async.max_staleness": 1,
+  "buffer.mix.replay": 0.0,
+  "optim.lr": 3e-06
+ },
+ "timers": {
+  "sync_weights": 0.43,
+  "generate": 3.57,
+  "logps_no_grad": 2.19,
+  "generate_and_score": 7.1,
+  "logps_train": 1.44
+ }
+}
+
+[PASS] at least one GPU node is Ready and advertises exactly one nvidia.com/gpu
+[PASS] Kueue is installed with one research queue, a GPU quota, and two priorities (interactive above sweep-low)
+[PASS] the run was admitted by Kueue and finished its three steps
+[PASS] the run's software is the pinned set (vLLM 0.33.0, TRL 1.18.2, transformers 5.24.0) and the engine got its fixed 8 GiB
+[PASS] every step record carries the off-policy metrics, the version age and the live settings

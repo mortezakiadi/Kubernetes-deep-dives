@@ -1,0 +1,32 @@
+# S09: The reference library predicts a new run, and a larger model is checked against it
+# Design reference: Building intuition: the reference result library; check at one larger scale
+
+$ python reference_lookup.py --lr 3e-6 --correction decoupled --staleness 8 16
+lr 3e-6, K=8: expected held-out pass rate 0.537 (best seen 0.548, the two seeds differ by 0.051, behavior KL 0.0016, ESS 0.997)
+lr 3e-6, K=16: expected held-out pass rate 0.502 (best seen 0.507, the two seeds differ by 0.007, behavior KL 0.0025, ESS 0.995)
+
+$ python reference_lookup.py --lr 1e-5 --correction decoupled --staleness 1 8   # a setting the library has a warning for
+lr 1e-5, K=1: expected held-out pass rate 0.302 (best seen 0.469, the two seeds differ by 0.141, behavior KL 0.0006, ESS 0.999)  WARNING: 2 of 2 runs at this setting collapsed
+lr 1e-5, K=8: expected held-out pass rate 0.477 (best seen 0.492, the two seeds differ by 0.031, behavior KL 0.0106, ESS 0.971)
+
+$ # sweep library-check-s09: 2 cells read back from the state bucket (already complete)
+359 records
+
+$ python compare_with_library.py library-check-s09   # a seed the sweep did not use
+K=8: library said 0.537, new run (seed 3) got 0.569, difference +0.032
+K=16: library said 0.502, new run (seed 3) got 0.490, difference -0.012
+
+$ # sweep larger-scale-s09: 2 cells read back from the state bucket (already complete)
+324 records
+
+$ python larger_scale.py larger-scale-s09   # the same two cells of the grid, on Qwen3-1.7B (0.6B in the sweep)
+            0.6B pass  1.7B pass   0.6B KL   1.7B KL
+       K=1      0.302      0.580    0.0006    0.0011
+      K=16      0.408      0.602    0.0194    0.0301
+
+[PASS] both library lookups were answered from the sweep's table
+[PASS] the library flags the setting that is unstable: at the larger learning rate with no staleness both runs collapsed, and the answer says so
+[PASS] a new seed lands within the table's tolerance of the library's prediction at both settings (stable learning rate)
+[PASS] on the larger model staleness still raises the behavior KL by at least ten times (K=16 against K=1)
+[PASS] on the larger model the behavior KL at K=16 is within a factor of ten of the small model's
+[PASS] the larger model's cells completed

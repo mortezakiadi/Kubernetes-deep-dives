@@ -1,0 +1,28 @@
+# The off-policy controller's rules for this recipe (the same shape as the design's YAML). The thresholds come from the sweep of S03: healthy cells at the
+# stable learning rate never went below an effective sample size of 0.97 on any step at staleness up to 8 (0.9 at 16), and the cells that failed went under
+# 0.85 within a step or two. The rules are listed in order of severity; the first that holds acts (one rule per step).
+window_steps: 10
+healthy:                     # what makes a checkpoint a rollback target: the last ten steps were inside these
+  max_ratio_gt3_frac: 0.005
+  min_ess_frac: 0.9
+rules:
+- name: collapse-warning                       # level 3: recover
+  when: { metric: offpolicy/ess_frac, below: 0.9, at_least: 3, of_steps: 8 }
+  then:
+  - { action: rollback, to: last_healthy_checkpoint }
+  - { set: optim.lr, multiply: 0.5 }
+  - { set: async.max_staleness, to: "max(1, current - 2)" }
+  - { action: page, team: rl-oncall }
+- name: low-ess                                # level 2: protect the update
+  when: { metric: offpolicy/ess_frac, below: 0.85 }
+  cooldown_steps: 1
+  then:
+  - { action: skip_batch }
+- name: ratio-tail-rising                      # level 1: tighten
+  when: { metric: offpolicy/ratio_gt3_frac, above: 0.01, for_steps: 3 }
+  then:
+  - { set: async.max_staleness, to: "max(1, current - 2)" }
+  - { set: buffer.mix.replay, multiply: 0.5 }
+relax:
+  healthy_for_steps: 30
+  step_back: { async.max_staleness: "+1", buffer.mix.replay: "*1.25" }

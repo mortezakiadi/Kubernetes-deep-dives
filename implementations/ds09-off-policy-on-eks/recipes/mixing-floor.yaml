@@ -1,0 +1,11 @@
+# The effective-sample-size floor of the design's replay section: when a batch's ESS falls below the floor, the share of replayed data drops by half;
+# when the metrics have been healthy for a while, it climbs back one notch. No other rule: this file is for the mixing experiment only.
+window_steps: 10
+rules:
+- name: ess-floor
+  when: { metric: offpolicy/ess_frac, below: 0.97, for_steps: 3 }
+  then:
+  - { set: buffer.mix.replay, multiply: 0.5 }
+relax:
+  healthy_for_steps: 20
+  step_back: { buffer.mix.replay: "*1.5" }

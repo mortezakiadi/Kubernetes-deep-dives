@@ -1,0 +1,50 @@
+{
+ "id": "S04",
+ "title": "Bounded staleness: refuse old samples at the buffer, and do not generate them at the scheduler",
+ "design_ref": "Bounded staleness in an async pipeline",
+ "purpose": "Eight steps of data are generated at once and the limit allows four. Show the limit holding in both places the design puts it, and what each costs: admission at the buffer throws the extra samples away after they were generated, admission at the scheduler never generates them.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f bounded-staleness-s04.yaml   # an Indexed Job on the research queue: 3 cells, 3 at a time",
+   "output": " 0  STEPS=48 EVAL_EVERY=0 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=1e-5 WINDOW=8 CORRECTION=decoupled SEED=1 MAX_AGE=7 SCHED_ADMISSION=0\n 1  STEPS=48 EVAL_EVERY=0 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=1e-5 WINDOW=8 CORRECTION=decoupled SEED=1 MAX_AGE=3 SCHED_ADMISSION=0\n 2  STEPS=48 EVAL_EVERY=0 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=1e-5 WINDOW=8 CORRECTION=decoupled SEED=1 MAX_AGE=3 SCHED_ADMISSION=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job bounded-staleness-s04",
+   "output": "NAME                    STATUS     COMPLETIONS   DURATION   AGE\nbounded-staleness-s04   Complete   3/3           6m4s       6m27s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python bounded.py bounded-staleness-s04   # per run: the oldest age trained on, and what generation produced against what training used",
+   "output": "         run limit  oldest age trained  chunks generated  chunks trained  thrown away  generation seconds\n    s04-open     7                   7                96              96            0                68.5\n  s04-buffer     3                   3               184              96           88               132.3\ns04-scheduler     3                   3                96              96            0                65.4",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "with no limit the oldest sample trained on is seven versions old",
+   "passed": true,
+   "because": "Eight steps of data are generated at once and all of it is used, so the last step trains on data from seven versions back."
+  },
+  {
+   "description": "with the limit at three, neither admission point lets a sample older than three through",
+   "passed": true,
+   "because": "At the buffer, a sample that would be older than the limit when its turn comes is refused and the next batch is generated. At the scheduler the batch is cut to what the limit will accept before anything is generated."
+  },
+  {
+   "description": "admission at the buffer throws away generated samples; admission at the scheduler throws away none",
+   "passed": true,
+   "because": "The buffer sees a sample only after the engine has produced it, so refusing it wastes the engine's work (half of every batch here). The scheduler decides before generation, so nothing is produced and discarded."
+  },
+  {
+   "description": "the scheduler's way costs less generation time for the same training data (at least 30% less)",
+   "passed": true,
+   "because": "Both runs trained on the same number of micro-batches of the same ages. One generated twice as many samples to get them."
+  }
+ ],
+ "notes": []
+}

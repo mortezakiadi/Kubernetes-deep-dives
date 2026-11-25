@@ -1,0 +1,58 @@
+{
+ "id": "S03",
+ "title": "The staleness sweep: how much staleness a run tolerates, with and without the correction",
+ "design_ref": "When off-policy helps or hurts; building intuition: off-policy experiments",
+ "purpose": "Run the design's standard experiment: staleness from 0 to 15 versions, naive and decoupled correction, two learning rates, two seeds, as one Indexed Job on the research queue at low priority. Turn the 40 runs into the staleness curve and a reference table that answers 'can I set staleness to 8?'.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "# sweep staleness-sweep-s03: 40 cells read back from the state bucket (already complete)",
+   "output": "8120 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python sweep_table.py staleness-sweep-s03   # one row per cell of the grid, averaged over the two seeds; K is the number of versions one batch of samples feeds",
+   "output": "    lr correction   K  start  final   best  behavior KL    ESS  ratio>3  clipped  s/step*  spread collapsed\n  1e-5  decoupled   1  0.409  0.302  0.469      0.00062  0.999   0.0000   0.0000     4.24   0.141     2/2\n  1e-5  decoupled   2  0.404  0.475  0.510      0.00278  0.992   0.0001   0.0056     3.71   0.025     0/2\n  1e-5  decoupled   4  0.411  0.435  0.475      0.00567  0.986   0.0002   0.0110     3.79   0.002     1/2\n  1e-5  decoupled   8  0.407  0.478  0.492      0.01059  0.971   0.0005   0.0195     3.98   0.031     0/2\n  1e-5  decoupled  16  0.399  0.408  0.444      0.01939  0.948   0.0010   0.0280     4.25   0.026     0/2\n  1e-5      naive   1  0.409  0.334  0.464      0.00064  0.999   0.0000   0.0015     4.23   0.022     2/2\n  1e-5      naive   2  0.410  0.391  0.472      0.00250  0.994   0.0001   0.0064     3.82   0.075     1/2\n  1e-5      naive   4  0.411  0.421  0.497      0.00581  0.985   0.0002   0.0121     3.80   0.033     0/2\n  1e-5      naive   8  0.407  0.440  0.491      0.01176  0.967   0.0005   0.0214     3.96   0.027     0/2\n  1e-5      naive  16  0.399  0.434  0.461      0.01939  0.952   0.0010   0.0286     4.22   0.026     0/2\n  3e-6  decoupled   1  0.408  0.561  0.576      0.00055  0.999   0.0000   0.0000     3.98   0.071     0/2\n  3e-6  decoupled   2  0.410  0.577  0.585      0.00068  0.999   0.0000   0.0010     3.74   0.023     0/2\n  3e-6  decoupled   4  0.412  0.569  0.582      0.00096  0.998   0.0000   0.0022     3.74   0.035     0/2\n  3e-6  decoupled   8  0.407  0.537  0.548      0.00163  0.997   0.0000   0.0046     3.97   0.051     0/2\n  3e-6  decoupled  16  0.399  0.502  0.507      0.00248  0.995   0.0000   0.0076     4.23   0.007     0/2\n  3e-6      naive   1  0.409  0.571  0.583      0.00054  0.999   0.0000   0.0013     3.96   0.012     0/2\n  3e-6      naive   2  0.410  0.575  0.591      0.00068  0.999   0.0000   0.0019     3.76   0.069     0/2\n  3e-6      naive   4  0.411  0.565  0.574      0.00099  0.998   0.0000   0.0029     3.74   0.006     0/2\n  3e-6      naive   8  0.407  0.535  0.541      0.00164  0.997   0.0000   0.0052     3.98   0.008     0/2\n  3e-6      naive  16  0.399  0.500  0.506      0.00256  0.995   0.0000   0.0081     4.21   0.013     0/2\n* mean seconds per optimizer step over the runs that landed on an L40S (the pool sometimes supplies a slower card; those runs are left out of this column)\n  spread: how far apart the two seeds of the cell ended; collapsed: runs that fell more than 0.10 below their best held-out score",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python reference_lookup.py --lr 1e-5 --staleness 8   # the lookup the library answers",
+   "output": "K= 1 (max age  0): decoupled 0.302   naive 0.334   behavior KL 0.0006\nK= 2 (max age  1): decoupled 0.475   naive 0.391   behavior KL 0.0028\nK= 4 (max age  3): decoupled 0.435   naive 0.421   behavior KL 0.0057\nK= 8 (max age  7): decoupled 0.478   naive 0.440   behavior KL 0.0106\nK=16 (max age 15): decoupled 0.408   naive 0.434   behavior KL 0.0194",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "all forty cells completed through the research queue",
+   "passed": true,
+   "because": "One Indexed Job, one pod per cell, admitted by Kueue at sweep-low priority. A cell that dies would leave a gap in the grid, so completeness is checked, not assumed."
+  },
+  {
+   "description": "no cell trained on a sample older than its limit (maximum age equals K - 1)",
+   "passed": true,
+   "because": "The age of every trained micro-batch is recorded. The run regenerates as soon as the next sample would be older than the limit."
+  },
+  {
+   "description": "the behavior KL rises with every step up in K, at both learning rates",
+   "passed": true,
+   "because": "More versions per batch means older samples on average, and the KL between behavior and target grows with age (S02). K=16 is 3.6 times K=2 at lr 3e-6, 7.0 times K=2 at lr 1e-5."
+  },
+  {
+   "description": "the measurement is repeatable at the stable learning rate: the two seeds of a cell end within 0.10 of each other, in every cell",
+   "passed": true,
+   "because": "The largest spread among the ten cells at 3e-6 is 0.071. Differences between settings smaller than that are not read as findings anywhere in this appendix."
+  },
+  {
+   "description": "the reference library covers the whole grid and is stored with the recipe",
+   "passed": true,
+   "because": "A table of (learning rate, correction, staleness) to held-out score, with the model, the task, the step count and how many runs collapsed, is what 'can I set staleness to 8?' is answered from."
+  }
+ ],
+ "notes": [
+  "Averaged over the grid, naive minus decoupled held-out pass rate is -0.008, against a seed spread of up to 0.141: at zero engine mismatch the two losses are not told apart here (S05 adds the mismatch).",
+  "Predictions written down before the sweep, from a one-seed pilot, and what the sweep said. (1) At the smaller learning rate, K=16 within 0.05 of K=1: FAILED (K=1 0.561, K=16 0.502, a cost of 0.060 that grows with K; K up to 4 is within 0.016 of K=1). (2) At the larger rate, K=16 at least 0.03 below K=1: FAILED (K=1 0.302, K=16 0.408: the run with no staleness is the one that collapsed in both seeds. A likely cause, which I did not isolate with an ablation: a stale token is outside the trust region more often (2.8% of tokens clipped at K=16, none at K=1) and a clipped token carries no gradient, so the clip that makes stale data safe also brakes the step). (3) A larger K at least 20% cheaper per step: FAILED (L40S, 3.98 s at K=1, 4.23 s at K=16: generation is a small share of a step on this model and these short answers, so there is little for staleness to hide)."
+ ]
+}

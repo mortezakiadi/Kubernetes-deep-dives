@@ -1,0 +1,78 @@
+{
+ "id": "S08",
+ "title": "The controller: break a run on purpose and see whether it is caught before the reward moves",
+ "design_ref": "Controlling instabilities automatically",
+ "purpose": "Inject a learning rate ten times too high into a small run under four settings: no controller, protection only (skip a batch, cut the rate), the full controller with rollback, and the same fault at a smaller size that the metrics may not see. Compare when the metrics moved, when the controller acted, what it did, and where the held-out score ended.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "# sweep controller-s08: 5 cells read back from the state bucket (already complete)",
+   "output": "1159 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python controller_report.py controller-s08   # per run, the step at which each thing happened",
+   "output": "             run  injected  ESS < 0.85  first action  score fell 0.10  skipped  rollbacks  best before  final\n     s08-big-off        30          40          None               45        0          0        0.539  0.052\n s08-big-protect        30          40            40               50        3          0        0.539  0.147\n    s08-big-full        30          40            40             None        1          1        0.539  0.565\n   s08-small-off        30        None          None             None        0          0        0.507  0.457\n  s08-small-full        30        None          None             None        0          0        0.496  0.471",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python timeline.py controller-s08 --run s08-big-full   # every controller action, with the metric values that triggered it",
+   "output": "step  30          INJECTED  optim.lr set to 3e-05  {}\nstep  40           low-ess  skip_batch  {\"offpolicy/ess_frac\": 0.78642}\nstep  43  collapse-warning  settings restored to those of the last healthy checkpoint: async.max_staleness=3, buffer.mix.replay=0.0, optim.lr=3e-06  {\"offpolicy/ess_frac\": 0.8936}\nstep  43          rollback  weights of checkpoint-29 restored, settings restored, buffers cleared  {}\nstep  43  collapse-warning  optim.lr: 3e-06 -> 1.5e-06  {\"offpolicy/ess_frac\": 0.8936}\nstep  43  collapse-warning  async.max_staleness: 3 -> 1  {\"offpolicy/ess_frac\": 0.8936}\nstep  43  collapse-warning  page  {\"offpolicy/ess_frac\": 0.8936}\nstep  74             relax  healthy for a while: settings loosened one notch  {}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python timeline.py controller-s08 --run s08-small-full   # every controller action, with the metric values that triggered it",
+   "output": "step  30          INJECTED  optim.lr set to 9e-06  {}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "all five runs completed and the fault was injected at step 30 in each",
+   "passed": true,
+   "because": "A fault is a setting changed under a running job. The injection is logged as its own event so the timeline shows the cause next to the effects."
+  },
+  {
+   "description": "without the controller the large fault wrecks the run: the held-out score falls by at least 0.10 after step 30",
+   "passed": true,
+   "because": "A learning rate ten times too high moves the weights so far in a few steps that the policy forgets how to answer. Nobody is watching, so nothing stops it."
+  },
+  {
+   "description": "the controller acted before the held-out score of the uncontrolled run showed the fault, and the controlled run's own score never fell by 0.10",
+   "passed": true,
+   "because": "The rules read the effective sample size every step. With the fault at step 30 it first went under the skip threshold at step 40: a batch generated before the fault and trained on after it is stale under a far-too-large step, and it takes a few steps for the weights to move far enough for the importance weights to become uneven. The held-out score is evaluated every five steps, so it can only say afterwards: in the uncontrolled run it first fell by 0.10 at step 45."
+  },
+  {
+   "description": "the full controller ends at least 0.10 above the run without it",
+   "passed": true,
+   "because": "The graduated responses (skip, tighten, roll back to the last healthy checkpoint with its settings, halve the rate) return the run to the state before the fault."
+  },
+  {
+   "description": "protection alone is not enough: the run with the rollback ends at least 0.10 above the run with only skip-and-cut",
+   "passed": true,
+   "because": "Skipping a batch and halving the rate for twenty steps cannot undo a rate that is ten times too high; it comes back after twenty steps. Only the rollback returns the weights and the settings to a state that was healthy, which is why the design has three levels."
+  },
+  {
+   "description": "the controller's actions are on the timeline with the values that triggered them",
+   "passed": true,
+   "because": "Each event carries the rule's name, the action and the metric values at the step, so a person reading the timeline at nine in the morning can see why the run changed, including the rollback and which checkpoint it went back to."
+  },
+  {
+   "description": "the controller does not oscillate: at most two rollbacks, and it skipped fewer than a quarter of the steps",
+   "passed": true,
+   "because": "Each rule has a cooldown, and settings are loosened again only after thirty healthy steps, one notch at a time."
+  },
+  {
+   "description": "no false alarm: the smaller fault (rate x3) did not hurt the uncontrolled run by 0.10, and the controller left the controlled run alone",
+   "passed": true,
+   "because": "A controller that acts on every wobble is a second source of instability. Here the metrics stayed inside the rules' thresholds, and so did the score."
+  }
+ ],
+ "notes": [
+  "The small fault (learning rate x3, staleness 8) did little damage: the held-out score of the uncontrolled run went from a best of 0.507 before the fault to 0.457 at the end, and the controller took no action (0.471 at the end). That is the intended result of thresholds set from healthy runs, and it is also a limit: a rate that is moderately too high does not make the data look off-policy, so these metrics cannot be expected to catch it; a rule on the score or the entropy would be needed, and none is in the design's list."
+ ]
+}

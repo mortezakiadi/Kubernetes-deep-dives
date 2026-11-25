@@ -1,0 +1,80 @@
+{
+ "id": "S09",
+ "title": "The reference library predicts a new run, and a larger model is checked against it",
+ "design_ref": "Building intuition: the reference result library; check at one larger scale",
+ "purpose": "Use the sweep's table the way the design intends: ask it what a setting should do, run that setting with a seed it has not seen, and compare. Then repeat two cells of the grid on a model nearly three times larger to see whether the small-scale pattern holds.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "python reference_lookup.py --lr 3e-6 --correction decoupled --staleness 8 16",
+   "output": "lr 3e-6, K=8: expected held-out pass rate 0.537 (best seen 0.548, the two seeds differ by 0.051, behavior KL 0.0016, ESS 0.997)\nlr 3e-6, K=16: expected held-out pass rate 0.502 (best seen 0.507, the two seeds differ by 0.007, behavior KL 0.0025, ESS 0.995)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python reference_lookup.py --lr 1e-5 --correction decoupled --staleness 1 8   # a setting the library has a warning for",
+   "output": "lr 1e-5, K=1: expected held-out pass rate 0.302 (best seen 0.469, the two seeds differ by 0.141, behavior KL 0.0006, ESS 0.999)  WARNING: 2 of 2 runs at this setting collapsed\nlr 1e-5, K=8: expected held-out pass rate 0.477 (best seen 0.492, the two seeds differ by 0.031, behavior KL 0.0106, ESS 0.971)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# sweep library-check-s09: 2 cells read back from the state bucket (already complete)",
+   "output": "359 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python compare_with_library.py library-check-s09   # a seed the sweep did not use",
+   "output": "K=8: library said 0.537, new run (seed 3) got 0.569, difference +0.032\nK=16: library said 0.502, new run (seed 3) got 0.490, difference -0.012",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# sweep larger-scale-s09: 2 cells read back from the state bucket (already complete)",
+   "output": "324 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python larger_scale.py larger-scale-s09   # the same two cells of the grid, on Qwen3-1.7B (0.6B in the sweep)",
+   "output": "            0.6B pass  1.7B pass   0.6B KL   1.7B KL\n       K=1      0.302      0.580    0.0006    0.0011\n      K=16      0.408      0.602    0.0194    0.0301",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "both library lookups were answered from the sweep's table",
+   "passed": true,
+   "because": "The table is the sweep's output stored with the recipe, so 'can I set staleness to 8?' has an answer that does not require a new run."
+  },
+  {
+   "description": "the library flags the setting that is unstable: at the larger learning rate with no staleness both runs collapsed, and the answer says so",
+   "passed": true,
+   "because": "'Can I set staleness to 1 at this learning rate?' has the answer 'not reliably, and staleness is not the reason' (S03). A table that gave a number without the collapse count would mislead."
+  },
+  {
+   "description": "a new seed lands within the table's tolerance of the library's prediction at both settings (stable learning rate)",
+   "passed": true,
+   "because": "The table averages two seeds; a third seed that falls within 0.06 of it (about twice the seed-to-seed spread seen in S03) shows the table predicts, rather than merely describes."
+  },
+  {
+   "description": "on the larger model staleness still raises the behavior KL by at least ten times (K=16 against K=1)",
+   "passed": true,
+   "because": "The mechanism does not depend on the model's size: more versions per batch means older samples and a larger gap to the target."
+  },
+  {
+   "description": "on the larger model the behavior KL at K=16 is within a factor of ten of the small model's",
+   "passed": true,
+   "because": "The design says to confirm two or three cells of the sweep on the target model before trusting the small-scale curve; here the confirmation is that the size of the gap carries over to within an order of magnitude."
+  },
+  {
+   "description": "the larger model's cells completed",
+   "passed": true,
+   "because": "Two cells on the 48 GB cards of the pool."
+  }
+ ],
+ "notes": [
+  "What did not transfer: on the 0.6B model at this learning rate K=1 was the cell that collapsed (0.302) and K=16 held better (0.408). On the 1.7B model K=1 reached 0.580 and K=16 0.602: the larger model tolerates the rate with fresh data, and here the staleness is what costs. One seed each, so the size of the difference is uncertain; its direction is the opposite of the small model's. That is what the design's advice is for: the curve of the small model is a map of the mechanism, not of the target."
+ ]
+}

@@ -1,0 +1,32 @@
+# S10: The research queue: sweeps at low priority yield to a run somebody is waiting for, without being evicted
+# Design reference: The platform on Kubernetes: the experiment harness on the research queue
+
+$ kubectl patch clusterqueue research ...   # a quota of one GPU, so that the jobs have to wait for each other
+clusterqueue.kueue.x-k8s.io/research patched
+
+$ kubectl apply -f q-sweep-0..3.yaml   # four jobs of one cell each, priority sweep-low
+
+$ kubectl apply -f q-interactive.yaml   # one job, priority interactive, submitted while the first sweep job runs
+
+$ kubectl get workloads -o json   # in the order Kueue admitted them (these five)
+2026-11-24T20:20:36Z  q-sweep-0      priority 100
+2026-11-24T20:22:25Z  q-interactive  priority 1000
+2026-11-24T20:24:16Z  q-sweep-1      priority 100
+2026-11-24T20:26:06Z  q-sweep-2      priority 100
+2026-11-24T20:27:56Z  q-sweep-3      priority 100
+
+$ kubectl -n rl-research get pods -l app=cell   # the pods of the five jobs
+NAME                             READY   STATUS      RESTARTS   AGE
+q-interactive-0-sn9k4            0/1     Completed   0          7m45s
+q-sweep-0-0-npjjs                0/1     Completed   0          9m34s
+q-sweep-0-8sjrx                  0/1     Completed   0          11h
+q-sweep-1-0-4f6ls                0/1     Completed   0          5m54s
+q-sweep-1-dpr4x                  0/1     Completed   0          11h
+q-sweep-2-0-jzqp6                0/1     Completed   0          4m4s
+q-sweep-2-dmx5t                  0/1     Completed   0          11h
+q-sweep-3-0-7tvf9                0/1     Completed   0          2m14s
+q-sweep-3-qdktn                  0/1     Completed   0          11h
+
+[PASS] all five jobs completed
+[PASS] the interactive job was admitted second: ahead of the three sweep jobs that were still waiting
+[PASS] the sweep job that was running was not interrupted (one pod, no restarts, it finished)

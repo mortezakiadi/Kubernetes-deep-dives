@@ -1,0 +1,57 @@
+{
+ "id": "S10",
+ "title": "The research queue: sweeps at low priority yield to a run somebody is waiting for, without being evicted",
+ "design_ref": "The platform on Kubernetes: the experiment harness on the research queue",
+ "purpose": "Squeeze the queue to one GPU, submit four sweep jobs at low priority, then an interactive job while the first sweep job is running. Kueue must admit the interactive job ahead of the sweep jobs that are still waiting, and must not disturb the one that is running.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl patch clusterqueue research ...   # a quota of one GPU, so that the jobs have to wait for each other",
+   "output": "clusterqueue.kueue.x-k8s.io/research patched",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f q-sweep-0..3.yaml   # four jobs of one cell each, priority sweep-low",
+   "output": "",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f q-interactive.yaml   # one job, priority interactive, submitted while the first sweep job runs",
+   "output": "",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl get workloads -o json   # in the order Kueue admitted them (these five)",
+   "output": "2026-11-24T20:20:36Z  q-sweep-0      priority 100\n2026-11-24T20:22:25Z  q-interactive  priority 1000\n2026-11-24T20:24:16Z  q-sweep-1      priority 100\n2026-11-24T20:26:06Z  q-sweep-2      priority 100\n2026-11-24T20:27:56Z  q-sweep-3      priority 100",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get pods -l app=cell   # the pods of the five jobs",
+   "output": "NAME                             READY   STATUS      RESTARTS   AGE\nq-interactive-0-sn9k4            0/1     Completed   0          7m45s\nq-sweep-0-0-npjjs                0/1     Completed   0          9m34s\nq-sweep-0-8sjrx                  0/1     Completed   0          11h\nq-sweep-1-0-4f6ls                0/1     Completed   0          5m54s\nq-sweep-1-dpr4x                  0/1     Completed   0          11h\nq-sweep-2-0-jzqp6                0/1     Completed   0          4m4s\nq-sweep-2-dmx5t                  0/1     Completed   0          11h\nq-sweep-3-0-7tvf9                0/1     Completed   0          2m14s\nq-sweep-3-qdktn                  0/1     Completed   0          11h",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "all five jobs completed",
+   "passed": true,
+   "because": "One GPU of quota, five jobs, one after the other."
+  },
+  {
+   "description": "the interactive job was admitted second: ahead of the three sweep jobs that were still waiting",
+   "passed": true,
+   "because": "Kueue orders waiting workloads by priority, then by arrival. The first sweep job took the GPU before anyone else asked; the interactive job, at a higher priority, went ahead of the jobs that had arrived before it."
+  },
+  {
+   "description": "the sweep job that was running was not interrupted (one pod, no restarts, it finished)",
+   "passed": true,
+   "because": "The queue's preemption policy is 'never': priority decides who is admitted next, not who is thrown off. A job that has used a GPU for several minutes is never lost to a newer, more important one."
+  }
+ ],
+ "notes": []
+}

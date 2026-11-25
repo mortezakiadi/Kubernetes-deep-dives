@@ -1,0 +1,30 @@
+# S07: Replay and external data: separate pools, limits on age and distance, and a floor on the effective sample size
+# Design reference: Replay buffers and data from other policies
+
+$ kubectl apply -f pools-s07.yaml   # an Indexed Job on the research queue: 6 cells, 3 at a time
+ 0  STEPS=100 EVAL_EVERY=10 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 REPLAY_MAX_AGE=40 REPLAY_MAX_KL=0.05
+ 1  STEPS=100 EVAL_EVERY=10 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 MIX_REPLAY=0.15 REPLAY_MAX_AGE=40 REPLAY_MAX_KL=0.05
+ 2  STEPS=100 EVAL_EVERY=10 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 MIX_REPLAY=0.4 REPLAY_MAX_AGE=40 REPLAY_MAX_KL=0.05
+ 3  STEPS=100 EVAL_EVERY=10 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 MIX_EXTERNAL=0.05 SFT_WEIGHT=0.2 REPLAY_MAX_AGE=40 REPLAY_MAX_KL=0.05
+ 4  STEPS=100 EVAL_EVERY=10 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 MIX_EXTERNAL=0.4 SFT_WEIGHT=0.2 REPLAY_MAX_AGE=40 REPLAY_MAX_KL=0.05
+ 5  STEPS=100 EVAL_EVERY=10 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 MIX_REPLAY=0.4 CONTROLLER=/recipes/mixing-floor.yaml REPLAY_MAX_AGE=40 REPLAY_MAX_KL=0.05
+
+$ kubectl -n rl-research get job pools-s07
+NAME        STATUS     COMPLETIONS   DURATION   AGE
+pools-s07   Complete   6/6           20m        21m
+
+$ python pool_report.py pools-s07   # per run: the share of micro-batches from each pool and what each pool's data looked like to the trainer
+                 run  replay   ext ESS fresh ESS replay KL replay oldest replay  retired(age/KL)  entropy  final
+           s07-fresh    0.0%  0.0%     0.999        nan       nan             0              0/0    0.264  0.583
+        s07-replay15   15.0%  0.0%     0.999      0.946    0.0222            37              0/2    0.385  0.547
+        s07-replay40   40.0%  0.0%     0.999      0.907    0.0264            40             66/7    0.427  0.511
+       s07-external5    0.0%  5.0%     0.999        nan       nan             0              0/0    0.396  0.541
+      s07-external40    0.0% 40.0%     0.998        nan       nan             0              0/0    0.603  0.381
+  s07-replay40-floor   29.5%  0.0%     0.999      0.938    0.0219            29             78/5    0.345  0.526
+
+[PASS] all six runs completed
+[PASS] each pool's share of the micro-batches is close to its setting (replay 15% and 40%, external 5% and 40%, to within seven points)
+[PASS] replay obeys its limits: no replayed batch is older than the age limit or further from the policy than the KL limit
+[PASS] replayed data is further off-policy than fresh data: its effective sample size is lower
+[PASS] external solutions go through their own small loss: the policy's loss on them falls during training
+[PASS] the effective-sample-size floor lowered the replay share by itself at least once, and recorded why

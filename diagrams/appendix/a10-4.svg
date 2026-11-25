@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="480px" viewBox="0 0 1420 480" style="background:#ffffff"><title>Three policies and the two gaps</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="480" fill="#ffffff"/><text x="40" y="40" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">One sample, from generation to use. Time runs to the right in optimizer steps (the weights' version).</text>
+<line x1="130" y1="150" x2="1360" y2="150" stroke="#cbd5e1" stroke-width="2"/>
+<circle cx="130" cy="150" r="6" fill="#64748b"/>
+<text x="130" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#64748b">v0</text>
+<circle cx="280" cy="150" r="6" fill="#64748b"/>
+<text x="280" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#64748b">v1</text>
+<circle cx="430" cy="150" r="6" fill="#64748b"/>
+<text x="430" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#64748b">v2</text>
+<circle cx="580" cy="150" r="6" fill="#64748b"/>
+<text x="580" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#64748b">v3</text>
+<circle cx="730" cy="150" r="6" fill="#64748b"/>
+<text x="730" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#64748b">v4</text>
+<circle cx="880" cy="150" r="6" fill="#64748b"/>
+<text x="880" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#64748b">v5</text>
+<circle cx="1030" cy="150" r="6" fill="#64748b"/>
+<text x="1030" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#64748b">v6</text>
+<circle cx="1180" cy="150" r="6" fill="#64748b"/>
+<text x="1180" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#64748b">v7</text>
+<circle cx="1330" cy="150" r="6" fill="#64748b"/>
+<text x="1330" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#64748b">v8</text>
+<rect x="60" y="215" width="330" height="120" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="60" y="215" width="330" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="61" y="233" width="328" height="12" fill="#fffbeb"/>
+<text x="72" y="235" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">mu: the behavior policy</text>
+<text x="72" y="263" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the engine at version v0, sampling</text>
+<text x="72" y="280" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the tokens; its log-probability is</text>
+<text x="72" y="297" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">recorded with every token</text>
+<rect x="430" y="215" width="330" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="430" y="215" width="330" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="431" y="233" width="328" height="12" fill="#eff6ff"/>
+<text x="442" y="235" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">pi_prox: the proximal policy</text>
+<text x="442" y="263" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the trainer's weights at v0, scoring</text>
+<text x="442" y="280" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the same tokens on arrival</text>
+<text x="442" y="297" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">(one extra forward pass)</text>
+<rect x="800" y="215" width="330" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="800" y="215" width="330" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="801" y="233" width="328" height="12" fill="#ecfdf5"/>
+<text x="812" y="235" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">pi_theta: the target policy</text>
+<text x="812" y="263" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the trainer's weights now (v7):</text>
+<text x="812" y="280" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the one being updated, the one</text>
+<text x="812" y="297" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the sample is used for</text>
+<path d="M225 215 L225 197 L122 197 L122 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="159.8" y="179" width="20.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="170" y="191" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">v0</text>
+<path d="M595 215 L595 205 L140 205 L140 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M965 215 L965 197 L1180 197 L1180 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1064.8" y="179" width="20.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="1075" y="191" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">v7</text>
+<rect x="1160" y="215" width="220" height="120" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1160" y="215" width="220" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1161" y="233" width="218" height="12" fill="#f8fafc"/>
+<text x="1172" y="235" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">The loss</text>
+<text x="1172" y="263" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">clip pi_theta / pi_prox</text>
+<text x="1172" y="280" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">weight by pi_prox / mu</text>
+<text x="1172" y="297" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">(truncate 3, mask 10)</text>
+<path d="M390 275 L430 275" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#a-bad)"/>
+<rect x="387.4" y="251" width="45.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="410" y="263" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#dc2626">engine</text>
+<path d="M760 275 L800 275" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#a-bad)"/>
+<rect x="766.7" y="251" width="26.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="780" y="263" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#dc2626">age</text>
+<text x="60" y="380" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">The engine's gap (mu to pi_prox) is there at age 0 and does not depend on age. The staleness gap (pi_prox to pi_theta) is zero at age 0 and grows with every step.</text>
+<text x="60" y="402" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#334155">The naive loss clips pi_theta / mu and so mixes the two. The decoupled loss separates them: the trust region measures staleness only, the weight handles the engine.</text>
+<text x="60" y="440" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">S02 measures both gaps by age. S05 makes the engine's gap large on purpose and compares the two losses.</text></svg>

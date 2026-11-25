@@ -1,0 +1,56 @@
+{
+ "id": "S05",
+ "title": "Engine mismatch: the gap that exists at zero staleness, and which loss the trust region should measure against",
+ "design_ref": "Sources of off-policy data: engine mismatch; the decoupled loss",
+ "purpose": "Make the sampling engine disagree with the trainer by a chosen amount (noise on the engine's weights, a stand-in for an engine that rounds differently), with no staleness at all, and compare the naive loss, whose trust region measures the target against the engine, with the decoupled loss, whose trust region measures it against the trainer's own weights.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "# sweep engine-mismatch-s05: 16 cells read back from the state bucket (already complete)",
+   "output": "3040 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python mismatch_table.py engine-mismatch-s05   # at age 0 only: every difference is the engine's; two seeds, the last column shows each",
+   "output": " noise       loss  engine KL    ESS  clipped  truncated  masked  start  final\n  0.00  decoupled    0.00052  0.999   0.0000     0.0000  0.0000  0.408  0.550  (0.535, 0.564)\n  0.00      naive    0.00054  0.999   0.0013     0.0000  0.0000  0.409  0.552  (0.556, 0.547)\n  0.02  decoupled    0.01291  0.965   0.0000     0.0006  0.0000  0.422  0.554  (0.534, 0.574)\n  0.02      naive    0.01022  0.976   0.0268     0.0000  0.0000  0.422  0.496  (0.465, 0.527)\n  0.05  decoupled    0.08327  0.790   0.0000     0.0057  0.0003  0.377  0.483  (0.470, 0.496)\n  0.05      naive    0.05765  0.860   0.0548     0.0000  0.0000  0.336  0.052  (0.076, 0.029)\n  0.10  decoupled    0.50123  0.288   0.0000     0.0173  0.0026  0.091  0.189  (0.143, 0.236)\n  0.10      naive    0.27555  0.482   0.0310     0.0000  0.0000  0.091  0.003  (0.002, 0.004)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "all sixteen runs completed",
+   "passed": true,
+   "because": "Four noise levels, two losses, two seeds, through the research queue."
+  },
+  {
+   "description": "the engine mismatch rises with the noise and spans at least a hundredfold",
+   "passed": true,
+   "because": "The noise multiplies every weight of the engine by 1 + sigma * n after each weight sync, and nothing else changes: the trainer's weights are untouched, so the KL between the two measures what the noise did."
+  },
+  {
+   "description": "with the naive loss the trust region cuts at least ten times more tokens once the engine disagrees (noise 0.02 and above) than when it does not, though no sample is stale",
+   "passed": true,
+   "because": "The naive loss clips the ratio of the target to the engine's log-probability. At age 0 the target has not moved, so the ratio is the engine's gap alone, and it falls outside the trust region far more often as soon as the gap is real. Learning signal is cut for a reason that has nothing to do with the update."
+  },
+  {
+   "description": "with the decoupled loss the trust region cuts almost nothing at age 0 (under 0.3% of tokens) and does not grow with the mismatch",
+   "passed": true,
+   "because": "The decoupled loss clips the ratio of the target to the trainer's own log-probability on arrival, which at age 0 is 1 up to the numerical difference between two forward passes of the same weights (the table shows it as zero to four decimals). The engine's gap is handled by a separate weight."
+  },
+  {
+   "description": "at the two large mismatches the decoupled loss ends well above the naive loss (by at least 0.05 in both, mean of two seeds)",
+   "passed": true,
+   "because": "With the naive loss a large share of tokens is clipped for no reason and the weights are pushed by the rest; with the decoupled loss the trust region is untouched and the engine's gap enters only as a bounded weight. The design predicts this. Two seeds is a small sample, so the table shows each seed and the check asks for a gap of 0.05, which is larger than the seed-to-seed spread S03 measured at the stable learning rate."
+  },
+  {
+   "description": "the decoupled loss handles the engine's gap through its behavior weight: truncated and masked tokens rise with the mismatch",
+   "passed": true,
+   "because": "Where the engine's probability is far from the trainer's, the weight pi_prox / mu is large; it is truncated at 3 and set to zero above 10, so a single token cannot dominate the batch."
+  }
+ ],
+ "notes": [
+  "Held-out pass rates after 60 steps: sigma 0.0: naive 0.552 / decoupled 0.550, sigma 0.02: naive 0.496 / decoupled 0.554, sigma 0.05: naive 0.052 / decoupled 0.483, sigma 0.1: naive 0.003 / decoupled 0.189. The differences are within what two seeds of one cell differ by in S03 unless stated otherwise in the text."
+ ]
+}

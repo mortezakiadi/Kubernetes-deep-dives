@@ -1,0 +1,64 @@
+# S02: Three policies: where each token's data comes from, and what staleness and the engine each add
+# Design reference: Sources of off-policy data; the three policies; diagnostics
+
+$ # sweep one-s02-three-policies: 1 cells read back from the state bucket (already complete)
+117 records
+
+$ python show_tokens.py metrics.jsonl --age 0   # the same row, one sample trained on the step it was generated
+sample generated at version 0, trained on at version 0: age 0
+       token   mu (engine)  pi_prox (arrival)  pi_theta (now)
+        'To'       -1.5677            -1.4715         -1.4715
+     ' find'       -0.1791            -0.1834         -0.1834
+      ' the'       -0.2597            -0.2805         -0.2805
+    ' final'       -0.8384            -0.7926         -0.7926
+     ' bill'       -0.2390            -0.2406         -0.2406
+         ','       -0.2996            -0.3553         -0.3553
+       ' we'       -0.0318            -0.0332         -0.0332
+     ' need'       -0.0773            -0.0872         -0.0872
+
+$ python show_tokens.py metrics.jsonl --age 7   # the oldest sample in the run
+sample generated at version 0, trained on at version 7: age 7
+       token   mu (engine)  pi_prox (arrival)  pi_theta (now)
+       'Let'       -0.5927            -0.6514         -0.3645
+        "'s"       -0.0061            -0.0047         -0.0033
+     ' work'       -1.4370            -1.4037         -1.2580
+     ' step'       -0.5758            -0.5278         -0.6334
+       ' by'       -0.2015            -0.2015         -0.1798
+     ' step'       -0.0000            -0.0000         -0.0000
+     ':\n\n'       -1.2694            -1.2626         -1.0510
+   '---\n\n'       -0.3920            -0.4545         -0.5294
+
+$ python age_histogram.py metrics.jsonl   # how many optimizer steps trained on data of each age
+age 0:   6 steps  ######
+age 1:   6 steps  ######
+age 2:   6 steps  ######
+age 3:   6 steps  ######
+age 4:   6 steps  ######
+age 5:   6 steps  ######
+age 6:   6 steps  ######
+age 7:   6 steps  ######
+
+$ python by_age.py metrics.jsonl   # KL between the policies, averaged over the run, by age
+age  behavior KL  engine (mu->prox)  staleness (prox->theta)
+  0      0.00050            0.00050                  0.00000
+  1      0.00060            0.00048                  0.00048
+  2      0.00092            0.00051                  0.00076
+  3      0.00141            0.00050                  0.00127
+  4      0.00177            0.00050                  0.00164
+  5      0.00212            0.00051                  0.00195
+  6      0.00243            0.00050                  0.00229
+  7      0.00288            0.00048                  0.00270
+
+$ python cost.py metrics.jsonl   # where the run's time went, from the run's own timers
+engine generating samples:                         35.9 s   19%
+scoring each sample on arrival (pi_prox):          26.8 s   14%
+training (forward, backward, optimizer step):     123.9 s   64%
+reward, weight sync and the rest:                   5.6 s    3%
+whole run:                                        192.3 s
+
+[PASS] every sample carries the version that produced it, and no sample is older than the limit (age 0 to 7, all present)
+[PASS] at age 0 the target policy is the proximal policy (their log-probabilities are identical)
+[PASS] the engine's gap to the trainer is already there at age 0 (behavior KL at age 0 equals the engine's gap)
+[PASS] the staleness gap grows with age (Spearman correlation of KL against age at least 0.9)
+[PASS] the engine's gap does not depend on age (largest over smallest within a factor of two)
+[PASS] the extra forward pass on arrival costs less than a quarter of the run and less than the training itself (the cost the design accepted)

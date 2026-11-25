@@ -1,0 +1,91 @@
+{
+ "id": "S01",
+ "title": "The platform: GPU pool, research queue and a first run through it",
+ "design_ref": "The platform on Kubernetes",
+ "purpose": "Show what the experiments run on (which GPUs, which controllers, which queue and priorities) and prove the path a run takes: submitted to the research queue, admitted, scheduled on a GPU node, trained, and written to the state bucket.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl get nodes -L pool,instance-type,zone",
+   "output": "NAME                           STATUS   ROLES    AGE   VERSION               POOL       INSTANCE-TYPE   ZONE\nip-10-70-0-122.ec2.internal    Ready    <none>   11h   v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1a\nip-10-70-14-134.ec2.internal   Ready    <none>   21h   v1.37.1-eks-9adbfea   system     m5.xlarge       us-east-1a\nip-10-70-19-72.ec2.internal    Ready    <none>   11h   v1.37.1-eks-9adbfea   research   g6.2xlarge      us-east-1b\nip-10-70-33-244.ec2.internal   Ready    <none>   19h   v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1c\nip-10-70-39-132.ec2.internal   Ready    <none>   21h   v1.37.1-eks-9adbfea   system     m5.xlarge       us-east-1c\nip-10-70-6-226.ec2.internal    Ready    <none>   18h   v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1a",
+   "exit_code": 0,
+   "seconds": 1.87
+  },
+  {
+   "display": "kubectl get nodes -l pool=research -o custom-columns=NAME,TYPE,GPU   # what the scheduler can hand out",
+   "output": "NAME                           TYPE          GPU\nip-10-70-0-122.ec2.internal    g6e.2xlarge   1\nip-10-70-19-72.ec2.internal    g6.2xlarge    1\nip-10-70-33-244.ec2.internal   g6e.2xlarge   1\nip-10-70-6-226.ec2.internal    g6e.2xlarge   1",
+   "exit_code": 0,
+   "seconds": 1.35
+  },
+  {
+   "display": "kubectl get crd clusterqueues localqueues workloads workloadpriorityclasses",
+   "output": "clusterqueues.kueue.x-k8s.io             Cluster      v1beta2(storage)   2026-11-23T18:54:10Z\nlocalqueues.kueue.x-k8s.io               Namespaced   v1beta2(storage)   2026-11-23T18:54:21Z\nworkloads.kueue.x-k8s.io                 Namespaced   v1beta2(storage)   2026-11-23T18:54:34Z\nworkloadpriorityclasses.kueue.x-k8s.io   Cluster      v1beta2(storage)   2026-11-23T18:54:13Z",
+   "exit_code": 0,
+   "seconds": 1.57
+  },
+  {
+   "display": "kubectl get clusterqueue,localqueue,workloadpriorityclass -A",
+   "output": "NAME                                   COHORT   PENDING WORKLOADS\nclusterqueue.kueue.x-k8s.io/research            0\n\nNAMESPACE     NAME                                       CLUSTERQUEUE   PENDING WORKLOADS   ADMITTED WORKLOADS\nrl-research   localqueue.kueue.x-k8s.io/research-small   research       0                   0\n\nNAMESPACE   NAME                                               VALUE\n            workloadpriorityclass.kueue.x-k8s.io/interactive   1000\n            workloadpriorityclass.kueue.x-k8s.io/sweep-low     100",
+   "exit_code": 0,
+   "seconds": 1.51
+  },
+  {
+   "display": "kubectl apply -f one-s01-smoke.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=3 EVAL_EVERY=0 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=3e-6 WINDOW=2 CORRECTION=decoupled SEED=1 DUMP_TOKENS=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job one-s01-smoke",
+   "output": "NAME            STATUS     COMPLETIONS   DURATION   AGE\none-s01-smoke   Complete   1/1           117s       2m8s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get workloads   # Kueue's record of what it admitted",
+   "output": "NAME                               QUEUE            RESERVED IN   ADMITTED   FINISHED   AGE\njob-bounded-staleness-s04-22755    research-small   research      True       True       93m\njob-cal1-773f6                     research-small   research      True       True       19h\njob-cal2-42f92                     research-small   research      True       True       18h\njob-controller-s08-8949a           research-small   research      True       True       42m\njob-dbgfloor-8ca68                 research-small   research      True       True       11h\njob-dbgfloor2-1a02c                research-small   research      True       True       11h\njob-engine-mismatch-s05-01e80      research-small   research      True       True       87m\njob-filtering-s06-0ffb9            research-small   research      True       True       61m\njob-larger-scale-s09-29d3a         research-small   research      True       True       25m\njob-library-check-s09-372e8        research-small   research      True       True       29m\njob-one-s01-smoke-c844e            research-small   research      True       True       2m11s\njob-one-s02-three-policies-4474f   research-small   research      True       True       152m\njob-pilot8-28233                   research-small   research      True       True       11h\njob-pools-s07-49acd                research-small   research      True       True       55m\njob-q-interactive-1dce3            research-small   research      True       True       19m\njob-q-sweep-0-459b0                research-small   research      True       True       19m\njob-q-sweep-1-ec7a7                research-small   research      True       True       19m\njob-q-sweep-2-688db                research-small   research      True       True       19m\njob-q-sweep-3-044a0                research-small   research      True       True       19m\njob-q-sweep-a95c4                  research-small   research      True       True       8h\njob-staleness-sweep-s03-a33fa      research-small   research      True       True       148m",
+   "exit_code": 0,
+   "seconds": 1.49
+  },
+  {
+   "display": "aws s3 cp s3://<state bucket>/runs/s01-smoke/metrics.jsonl -   # the first record of the run: where it ran and with what software",
+   "output": "{\n \"gpu\": \"NVIDIA L40S\",\n \"gpu_gb\": 44.4,\n \"engine_gb\": 8.0,\n \"versions\": {\n  \"vllm\": \"0.33.0\",\n  \"trl\": \"1.18.2\",\n  \"transformers\": \"5.24.0\",\n  \"torch\": \"2.14.0+cu130\"\n }\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python show_step.py metrics.jsonl 3   # the third optimizer step's record, as the run wrote it",
+   "output": "{\n \"sources\": [\n  \"fresh\",\n  \"fresh\"\n ],\n \"age\": 0.0,\n \"clipped_frac\": 0.0,\n \"masked_frac\": 0.0,\n \"offpolicy/ess_frac\": 0.99895,\n \"offpolicy/ratio_p99\": 1.11332,\n \"offpolicy/ratio_gt3_frac\": 0.0,\n \"offpolicy/behavior_kl\": 0.00053,\n \"mismatch/kl\": 0.00053,\n \"drift/kl\": 0.0,\n \"settings\": {\n  \"async.max_staleness\": 1,\n  \"buffer.mix.replay\": 0.0,\n  \"optim.lr\": 3e-06\n },\n \"timers\": {\n  \"sync_weights\": 0.43,\n  \"generate\": 3.57,\n  \"logps_no_grad\": 2.19,\n  \"generate_and_score\": 7.1,\n  \"logps_train\": 1.44\n }\n}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "at least one GPU node is Ready and advertises exactly one nvidia.com/gpu",
+   "passed": true,
+   "because": "The NVIDIA device plugin (installed by Terraform) turns each GPU into a schedulable nvidia.com/gpu. One experiment is one pod holding one GPU, so the number of cells that run at once is the number of these lines."
+  },
+  {
+   "description": "Kueue is installed with one research queue, a GPU quota, and two priorities (interactive above sweep-low)",
+   "passed": true,
+   "because": "Terraform installs Kueue; the tests apply the queue (a cluster-wide GPU quota) and the two priority classes. A sweep is submitted at sweep-low so that a run somebody is waiting for goes ahead of the cells still queued."
+  },
+  {
+   "description": "the run was admitted by Kueue and finished its three steps",
+   "passed": true,
+   "because": "The run is an Indexed Job with a queue label. Kueue creates a Workload for it, checks the GPU quota and unsuspends the job; the pod is then scheduled onto a GPU node."
+  },
+  {
+   "description": "the run's software is the pinned set (vLLM 0.33.0, TRL 1.18.2, transformers 5.24.0) and the engine got its fixed 8 GiB",
+   "passed": true,
+   "because": "The pod runs the vLLM image and installs TRL and transformers at pinned versions. The engine's share of the GPU is computed from the card's size so that a 24 GB card and a 48 GB card lay a cell out alike."
+  },
+  {
+   "description": "every step record carries the off-policy metrics, the version age and the live settings",
+   "passed": true,
+   "because": "The run writes the design's metrics (ratio tail, effective sample size, behavior KL, clipped and masked fractions, age) with every optimizer step, together with the settings that were in force."
+  }
+ ],
+ "notes": []
+}

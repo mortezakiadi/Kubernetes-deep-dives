@@ -1,0 +1,22 @@
+# S04: Bounded staleness: refuse old samples at the buffer, and do not generate them at the scheduler
+# Design reference: Bounded staleness in an async pipeline
+
+$ kubectl apply -f bounded-staleness-s04.yaml   # an Indexed Job on the research queue: 3 cells, 3 at a time
+ 0  STEPS=48 EVAL_EVERY=0 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=1e-5 WINDOW=8 CORRECTION=decoupled SEED=1 MAX_AGE=7 SCHED_ADMISSION=0
+ 1  STEPS=48 EVAL_EVERY=0 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=1e-5 WINDOW=8 CORRECTION=decoupled SEED=1 MAX_AGE=3 SCHED_ADMISSION=0
+ 2  STEPS=48 EVAL_EVERY=0 EVAL_PROBLEMS=200 EVAL_SAMPLES=4 LR=1e-5 WINDOW=8 CORRECTION=decoupled SEED=1 MAX_AGE=3 SCHED_ADMISSION=1
+
+$ kubectl -n rl-research get job bounded-staleness-s04
+NAME                    STATUS     COMPLETIONS   DURATION   AGE
+bounded-staleness-s04   Complete   3/3           6m4s       6m27s
+
+$ python bounded.py bounded-staleness-s04   # per run: the oldest age trained on, and what generation produced against what training used
+         run limit  oldest age trained  chunks generated  chunks trained  thrown away  generation seconds
+    s04-open     7                   7                96              96            0                68.5
+  s04-buffer     3                   3               184              96           88               132.3
+s04-scheduler     3                   3                96              96            0                65.4
+
+[PASS] with no limit the oldest sample trained on is seven versions old
+[PASS] with the limit at three, neither admission point lets a sample older than three through
+[PASS] admission at the buffer throws away generated samples; admission at the scheduler throws away none
+[PASS] the scheduler's way costs less generation time for the same training data (at least 30% less)

@@ -1,0 +1,36 @@
+# Nothing in this list may ever be committed: this repository is public.
+
+# Terraform state, plans and caches (state holds account IDs, ARNs and resource details)
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+.terraform/
+.terraform.tfstate.lock.info
+crash.log
+crash.*.log
+
+# Local values (account ID, my IP address, profile names)
+*.tfvars
+*.tfvars.json
+!example.tfvars
+
+# Cluster access and credentials
+.kube/
+kubeconfig*
+*.pem
+*.key
+*.p12
+.env
+.env.*
+*.secret
+secrets/
+
+# Local tool binaries and raw, unreviewed evidence
+.tools/
+evidence/raw/
+
+# Python bytecode and the first-build scratch evidence
+__pycache__/
+*.pyc
+evidence/dev/

@@ -1,0 +1,31 @@
+# The same rules without the rollback: levels 1 and 2 only. S08 uses it to show what the graduated responses add.
+window_steps: 10
+healthy:
+  max_ratio_gt3_frac: 0.005
+  min_ess_frac: 0.9
+rules:
+- name: low-ess
+  when:
+    metric: offpolicy/ess_frac
+    below: 0.85
+  cooldown_steps: 1
+  then:
+  - action: skip_batch
+  - set: optim.lr
+    multiply: 0.5
+    restore_after_steps: 20
+- name: ratio-tail-rising
+  when:
+    metric: offpolicy/ratio_gt3_frac
+    above: 0.01
+    for_steps: 3
+  then:
+  - set: async.max_staleness
+    to: max(1, current - 2)
+  - set: buffer.mix.replay
+    multiply: 0.5
+relax:
+  healthy_for_steps: 30
+  step_back:
+    async.max_staleness: '+1'
+    buffer.mix.replay: '*1.25'
