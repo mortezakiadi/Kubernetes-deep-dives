@@ -85,10 +85,15 @@ class _ExactBox(Verifier):
             return self.result(Verdict.FAIL, [f"final_answers={len(boxes)}"])
         tail = completion[completion.rfind("\\boxed"):]
         rest = tail[len("\\boxed{") + len(boxes[0]) + 1:]
-        if self.must_end and rest.strip(" .\n$") != "":
+        # Closing math delimiters and final punctuation may follow the box: \(\boxed{3}\). and $\boxed{3}$ end the answer too.
+        rest = re.sub(r"^\s*(\\\)|\\\]|\$\$|\$)?[\s.!]*", "", rest)
+        if self.must_end and rest != "":
             return self.result(Verdict.FAIL, ["text_after_final_answer"])
-        last_sentence = completion[max(completion.rfind(". ", 0, completion.rfind("\\boxed")), 0):]
-        if HEDGE.search(last_sentence.replace(boxes[0], "")):
+        # The words right around the final answer: 60 characters before the box and whatever follows it. An "or" in
+        # the reasoning further back is not a hedge on the answer.
+        start = completion.rfind("\\boxed")
+        around = completion[max(0, start - 60):start] + rest
+        if HEDGE.search(around):
             return self.result(Verdict.FAIL, ["hedged_final_answer"])
         got = _num(LATEX_FRAC.sub(r"\1/\2", boxes[0]).replace("$", "").replace(" ", ""))
         if got is None:

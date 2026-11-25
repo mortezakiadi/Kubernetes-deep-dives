@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generates the diagrams of the Design 08 write-up as SVG (the same visual language as the other appendices).
+"""Shared SVG drawing helpers for the Design 10 write-up as SVG (the same visual language as the other appendices).
 
     make_diagrams.py <output-dir>
 """

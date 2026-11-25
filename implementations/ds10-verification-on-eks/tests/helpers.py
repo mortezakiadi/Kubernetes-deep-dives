@@ -14,13 +14,25 @@ VQ = [sys.executable, str(ROOT / "launcher" / "vq.py")]
 sys.path.insert(0, str(ROOT / "workloads"))
 
 
+NET_ERRORS = ("Unable to connect to the server", "dial tcp", "i/o timeout", "TLS handshake timeout", "connection refused", "connection reset")
+
+
+def _k(argv, stdin=None, timeout=120):
+    for attempt in range(6):  # retried when the API endpoint was unreachable (rotating egress address)
+        p = subprocess.run(argv, capture_output=True, text=True, env=ENV, input=stdin, timeout=timeout)
+        if p.returncode == 0 or not any(e in p.stdout + p.stderr for e in NET_ERRORS):
+            return p
+        time.sleep(3 + 2 * attempt)
+    return p
+
+
 def kq(*args, stdin=None, timeout=120):
-    p = subprocess.run([KUBECTL, *args], capture_output=True, text=True, env=ENV, input=stdin, timeout=timeout)
+    p = _k([KUBECTL, *args], stdin, timeout)
     return (p.stdout + (p.stderr if p.returncode else "")).strip()
 
 
 def kj(*args):
-    p = subprocess.run([KUBECTL, *args, "-o", "json"], capture_output=True, text=True, env=ENV)
+    p = _k([KUBECTL, *args, "-o", "json"])
     try:
         return json.loads(p.stdout)
     except json.JSONDecodeError:

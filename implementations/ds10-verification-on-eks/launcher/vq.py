@@ -72,9 +72,18 @@ def keys(prefix):
     return out
 
 
+NET_ERRORS = ("Unable to connect to the server", "dial tcp", "i/o timeout", "TLS handshake timeout", "connection refused", "connection reset")
+
+
 def kubectl(*args, stdin=None):
-    p = subprocess.run([KUBECTL, *args], capture_output=True, text=True, env=ENV, input=stdin)
-    return p.returncode, (p.stdout + p.stderr).strip()
+    """kubectl, retried when the API endpoint could not be reached (this network rotates its egress address)."""
+    for attempt in range(6):
+        p = subprocess.run([KUBECTL, *args], capture_output=True, text=True, env=ENV, input=stdin)
+        out = (p.stdout + p.stderr).strip()
+        if p.returncode == 0 or not any(e in out for e in NET_ERRORS):
+            return p.returncode, out
+        time.sleep(3 + 2 * attempt)
+    return p.returncode, out
 
 
 def create(obj):
@@ -148,6 +157,8 @@ def cmd_register(a):
     stale = [n for n, rec in (("gold", gq), ("fuzz", fz), ("regress", rg)) if rec and rec.get("code_sha256") not in (None, info["code_sha256"])]
     approved, checks = gate(gq["quality"] if gq else None, pq["quality"] if pq else None, fz, rg)
     if info["purpose"] != "training":
+        # Audit and evaluation verifiers are never fuzzed against themselves; only their measured quality is recorded.
+        checks = [c for c in checks if c["check"].startswith(("precision", "abstain"))]
         approved = False
         checks.append({"check": "purpose is training", "ok": False, "detail": f"{a.verifier} is registered for {info['purpose']}, owned by {info['owner']}"})
     if stale:

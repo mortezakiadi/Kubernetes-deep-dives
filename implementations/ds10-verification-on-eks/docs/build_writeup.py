@@ -3,8 +3,8 @@
 
     build_writeup.py <evidence-dir> <repo-root>
 
-Writes   <repo-root>/content/appendix/a09-design-08-long-horizon.md
-Copies   screenshots to <repo-root>/diagrams/appendix/a09-evidence/ and the diagrams to <repo-root>/diagrams/appendix/
+Writes   <repo-root>/content/appendix/a11-design-10-verification.md
+Copies   screenshots to <repo-root>/diagrams/appendix/a11-evidence/ and the diagrams to <repo-root>/diagrams/appendix/
 Every command, output and check result in section 5 comes from the evidence files.
 """
 import json
@@ -42,7 +42,7 @@ def scenario_section(ev: dict) -> str:
     out.append("")
     out.append(prose["intro"])
     out.append("")
-    out.append(f"![{sid}: {ev['title']}](diagrams/appendix/a09-evidence/{sid}.png)")
+    out.append(f"![{sid}: {ev['title']}](diagrams/appendix/a11-evidence/{sid}.png)")
     out.append("")
     out.append("**Commands I ran and what they printed** (shortened; the full text is in the screenshot):")
     out.append("")
@@ -83,7 +83,7 @@ def main():
     ids = sorted(p.stem for p in evidence.glob("S[0-9][0-9].json"))
     evs = [json.loads((evidence / f"{i}.json").read_text()) for i in ids]
 
-    shots = repo / "diagrams" / "appendix" / "a09-evidence"
+    shots = repo / "diagrams" / "appendix" / "a11-evidence"
     shots.mkdir(parents=True, exist_ok=True)
     for i in ids:
         shutil.copy(evidence / f"{i}.png", shots / f"{i}.png")
@@ -100,9 +100,8 @@ def main():
     body = "\n".join(scenario_section(e) for e in evs)
     impl = HERE.parent
     count = lambda pats: sum(len(p.read_text().splitlines()) for pat in pats for p in impl.glob(pat))
-    sizes = (f"The Terraform is about {round(count(['terraform/*/*.tf']), -1)} lines; the platform's code (launcher, environments, agent, verifier, "
-             f"trajectory store, credit, trainer, metrics, task bank) about {round(count(['launcher/*.py', 'workloads/*.py', 'tasks/*.py']), -1)} lines of Python; "
-             f"the curriculum spec {count(['recipes/*.json'])} lines of JSON; the test code about {round(count(['tests/*.py']), -1)} lines.")
+    sizes = (f"The Terraform is about {round(count(['terraform/*/*.tf']), -1)} lines; the platform's code (launcher, verifiers, services, "
+             f"quality jobs, fuzzer, RL run, dataset generator) about {round(count(['launcher/*.py', 'workloads/*.py', 'datasets/*.py']), -1)} lines of Python; the test code about {round(count(['tests/*.py']), -1)} lines.")
     teardown = ""
     td = evidence / "teardown.txt"
     if td.exists():
@@ -111,7 +110,7 @@ def main():
     head = head.replace("{{CODE_SIZE}}", sizes)
     tail = tail.replace("{{TEARDOWN}}", teardown)
     page = head.replace("{{RESULT_SUMMARY}}", f"{passed} of {len(evs)} scenarios passed, {passed_checks} of {total_checks} checks.\n\n" + "\n".join(summary)) + "\n" + body + "\n" + tail
-    out = repo / "content" / "appendix" / "a09-design-08-long-horizon.md"
+    out = repo / "content" / "appendix" / "a11-design-10-verification.md"
     out.write_text(page)
     print(f"wrote {out} ({len(page.splitlines())} lines); {passed}/{len(evs)} scenarios, {passed_checks}/{total_checks} checks")
 

@@ -90,12 +90,16 @@ class Scenario:
     # ---- running things ----------------------------------------------------------------
     def run(self, display: str, argv, timeout=180, shell=False, stdin=None):
         t0 = time.time()
-        try:
-            proc = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, env=ENV, shell=shell, input=stdin)
-            out = (proc.stdout or "") + (("\n" + proc.stderr) if proc.stderr and proc.returncode != 0 or (proc.stderr and not proc.stdout) else "")
-            code = proc.returncode
-        except subprocess.TimeoutExpired as exc:
-            out, code = f"(timed out after {timeout}s)\n{exc.stdout or ''}", 124
+        for attempt in range(6):  # kubectl is retried when the API endpoint was unreachable (rotating egress address)
+            try:
+                proc = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, env=ENV, shell=shell, input=stdin)
+                out = (proc.stdout or "") + (("\n" + proc.stderr) if proc.stderr and proc.returncode != 0 or (proc.stderr and not proc.stdout) else "")
+                code = proc.returncode
+            except subprocess.TimeoutExpired as exc:
+                out, code = f"(timed out after {timeout}s)\n{exc.stdout or ''}", 124
+            if not (argv and str(argv[0]).endswith("kubectl") and code != 0 and any(e in out for e in ("Unable to connect to the server", "dial tcp", "i/o timeout", "TLS handshake timeout", "connection refused", "connection reset"))):
+                break
+            time.sleep(3 + 2 * attempt)
         self.raw = out.rstrip("\n")  # unredacted, for parsing only; never written anywhere
         out = redact(out.rstrip("\n"))
         self.steps.append(Step(redact(display), out, code, round(time.time() - t0, 2)))

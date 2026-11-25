@@ -16,7 +16,9 @@ python3 -c 'import boto3, PIL' 2>/dev/null || { echo "missing Python packages: p
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
 echo "Deploying into the AWS account that ends in ${ACCOUNT_ID: -4}, region ${AWS_REGION}, with ${GPU_NODES} GPU node(s)"
 # Some networks send each connection out through a different address of a small pool: allow every one observed.
-MY_IPS="$(for i in $(seq 1 40); do curl -fsS https://checkip.amazonaws.com; echo; done | grep -E '^[0-9.]+$' | sort -u | paste -sd, -)"
+# Addresses seen by an earlier run of this script are kept, so the list only grows while the build exists.
+OLD_IPS="$(sed -n 's/^admin_ips *= *"\(.*\)"/\1/p' "$ROOT/terraform/10-cluster/local.auto.tfvars" 2>/dev/null | tr ',' '\n')"
+MY_IPS="$( { echo "$OLD_IPS"; for i in $(seq 1 120); do curl -fsS https://checkip.amazonaws.com; echo; done; } | grep -E '^[0-9.]+$' | sort -u | paste -sd, -)"
 echo "Allowing $(echo "$MY_IPS" | tr ',' '\n' | wc -l | tr -d ' ') egress address(es) to reach the cluster API"
 printf 'account_id = "%s"\nadmin_ips = "%s"\n' "$ACCOUNT_ID" "$MY_IPS" > "$ROOT/terraform/10-cluster/local.auto.tfvars"
 printf 'account_id = "%s"\n' "$ACCOUNT_ID" > "$ROOT/terraform/20-platform/local.auto.tfvars"

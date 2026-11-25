@@ -142,6 +142,8 @@ def math_gold(tasks, rng):
             ("number_soup", " ".join(str(x) for x in range(-5, 60)) + f" {r}", False, "adversarial"),
             ("wrong_with_right_inside", f"Partial totals: {r}, then {wr}. So the result is \\boxed{{{wr}}}.", False, "adversarial"),
             ("no_box_correct", f"{body}So the result is {r}.", True, "contract_violation"),
+            ("latex_inline", f"{body}So the result is \\(\\boxed{{{r}}}\\).", True, "latex_delimiters"),
+            ("latex_display", f"{body}So the result is\n\\[\n\\boxed{{{r}}}\n\\]", True, "latex_delimiters"),
             ("units_in_box", f"{body}So the result is \\boxed{{{r} {t.get('unit', 'items')}}}.", True, "answer_with_units"),
         ]
         for form, slice_ in equiv_forms(a):

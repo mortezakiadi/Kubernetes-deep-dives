@@ -121,7 +121,9 @@ def cmd_policyq(a):
     items = [{"task_id": x["task_id"], "completion": x["completion"]} for x in roll]
     res, gold = v.batch(items), ev.batch(items)
     q = quality([{"slice": "policy_outputs", "verdict": r["verdict"], "gold": g["verdict"] == "pass"} for r, g in zip(res, gold)])
-    put(a.out, {"verifier": a.verifier, "run": a.run, "n": len(items), "gold_by": "eval-math@1.0.0", "quality": q})
+    disagree = [{"task_id": x["task_id"], "verifier": r["verdict"], "verifier_reasons": r["reasons"], "gold": g["verdict"], "gold_reasons": g["reasons"],
+                 "completion_end": x["completion"][-240:]} for x, r, g in zip(roll, res, gold) if (r["verdict"] == "pass") != (g["verdict"] == "pass")]
+    put(a.out, {"verifier": a.verifier, "run": a.run, "n": len(items), "gold_by": "eval-math@1.0.0", "quality": q, "disagreements": disagree[:40]})
     print(json.dumps({"verifier": a.verifier, "run": a.run, "all": q["all"]}))
 
 
