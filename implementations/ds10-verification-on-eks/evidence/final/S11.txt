@@ -4,7 +4,7 @@
 $ vq.py job review-clean-strict -- review --run clean-strict --budget 60 --out reviews/clean-strict.json
 job.batch/review-clean-strict created
 review-clean-strict Complete
-{"candidates": 279, "queued": 60, "by_reason": {"train passed, audit did not (suspected exploit)": 11, "abstained": 9, "random sample of confident passes (measures precision)": 40}}
+{"candidates": 287, "queued": 60, "by_reason": {"train passed, audit did not (suspected exploit)": 27, "abstained": 7, "random sample of confident passes (measures precision)": 26}}
 
 $ vq.py submit reviewer-a --run red-lenient --file reviewer-a.jsonl   # ASSUMED labels, 40 items
 uploaded reviews/red-lenient/labels-reviewer-a.jsonl (40 lines)
@@ -25,80 +25,77 @@ $ vq.py submit decisions --run clean-strict --file none.json   # no decisions ye
 uploaded reviews/clean-strict/decisions.json (1 lines)
 
 $ four items of the clean-strict queue with both assumed labels
-[number] solution 11.4: ...'o, the final answer, in decimal form, which is written as \\(\\boxed{11.40}\\), is \\(11.40\\).'
+[number] solution 11: ...'tting 2 more coins.\n\nTherefore, each friend has \\(\\boxed{11}\\) coins after getting 2 more.'
    A: correct (value equals the solution)   B: correct (value equals the solution)
-[other] solution 61: ...', but the final expression remains:**\n\nTherefore, the final answer is:\n\\[\n\\boxed{x - 1}\n\\]'
-   A: wrong (value -1 is not the solution 61)   B: wrong (the prompt asked for a number or a fraction, the box is a other)
-[mixed_number] solution 3/2: ...'r:\n\\[\n\\frac{3}{2} = 1 \\frac{1}{2}\n\\]\nThus, the final answer is:\n\\[\n\\boxed{1\\frac{1}{2}}\n\\]'
-   A: correct (value equals the solution)   B: wrong (the prompt asked for a number or a fraction, the box is a mixed_number)
-[ratio] solution 2: ...'c{4}{4} = 2 : 1\n\\]\nThus, the ratio of cups of flour to cups of sugar is:\n\\[\n\\boxed{2:1}\n\\]'
-   A: correct (value equals the solution)   B: wrong (the prompt asked for a number or a fraction, the box is a ratio)
+[with_units] solution 7/2: ...' \\(\\frac{7}{2}\\) cups.\n\nSo, the answer is:\n\\[\n\\boxed{\\frac{7}{2} \\text{ cups of flour}}\n\\]'
+   A: correct (value equals the solution)   B: wrong (the prompt asked for a number or a fraction, the box is a with_units)
+[with_units] solution 2: ...' expressed as a fraction:\n\\[\n\\boxed{\\frac{6}{3} \\text{ cups of flour per cup of sugar}}\n\\]'
+   A: correct (value equals the solution)   B: wrong (the prompt asked for a number or a fraction, the box is a with_units)
+[other] solution 6/5: ...' of sugar, where \\(S\\) is the cups of sugar.\n\nSo, the answer is:\n\\[\n\\boxed{\\frac{S}{5}}\n\\]'
+   A: unsure (cannot tell what value '\frac{S}{5}' is)   B: unsure (cannot tell what value '\frac{S}{5}' is)
 
 $ vq.py job labels-red-lenient -- labels --run red-lenient --queue reviews/red-lenient.json
 job.batch/labels-red-lenient created
 labels-red-lenient Complete
-{"queued": 40, "contract_unclear": [], "settled": {"agreed": 40, "settled by contract decision": 0, "excluded by contract decision": 0, "unresolved": 0}, "gold_labels": 40, "gold_correct": 36, "confirmed_exploits": 4, "audit_false_negatives": 36}
+{"queued": 40, "contract_unclear": [], "settled": {"agreed": 40, "settled by contract decision": 0, "excluded by contract decision": 0, "unresolved": 0}, "gold_labels": 40, "gold_correct": 40, "confirmed_exploits": 0, "audit_false_negatives": 40}
 
 $ vq.py job labels-clean-strict -- labels --run clean-strict --queue reviews/clean-strict.json
 job.batch/labels-clean-strict created
 labels-clean-strict Complete
-{"queued": 60, "contract_unclear": ["mixed_number", "ratio"], "settled": {"agreed": 53, "settled by contract decision": 0, "excluded by contract decision": 0, "unresolved": 7}, "gold_labels": 53, "gold_correct": 49, "confirmed_exploits": 2, "audit_false_negatives": 9}
+{"queued": 60, "contract_unclear": ["with_units"], "settled": {"agreed": 55, "settled by contract decision": 0, "excluded by contract decision": 0, "unresolved": 5}, "gold_labels": 55, "gold_correct": 53, "confirmed_exploits": 0, "audit_false_negatives": 27}
 
 $ inter-reviewer agreement per answer shape (decided by both / agreement / kappa)
 red-lenient   all            40  1.0  1.0
-red-lenient   number         37  1.0  1.0
-red-lenient   other           1  1.0  1.0
-red-lenient   with_units      2  1.0  1.0
-clean-strict  all            55  0.964  0.781
-clean-strict  fraction       17  1.0  1.0
-clean-strict  mixed_number    1  0.0  0.0
-clean-strict  number         34  1.0  1.0
+red-lenient   fraction        7  1.0  1.0
+red-lenient   number         33  1.0  1.0
+clean-strict  all            57  0.965  0.65
+clean-strict  fraction       13  1.0  1.0
+clean-strict  number         40  1.0  1.0
 clean-strict  other           1  1.0  1.0
-clean-strict  ratio           1  0.0  0.0
-clean-strict  with_units      1  1.0  1.0
+clean-strict  with_units      3  0.333  -0.0
 
 $ slices whose contract is unclear (agreement below 0.8)
-mixed_number, ratio
+with_units
 
-$ vq.py submit decisions --run red-lenient --file decisions.json   # ASSUMED: mixed_number accept, ratio exclude
-uploaded reviews/red-lenient/decisions.json (8 lines)
+$ vq.py submit decisions --run red-lenient --file decisions.json   # ASSUMED: with_units accept
+uploaded reviews/red-lenient/decisions.json (7 lines)
 
 $ vq.py job labels2-red-lenient -- labels --run red-lenient --queue reviews/red-lenient.json
 job.batch/labels2-red-lenient created
 labels2-red-lenient Complete
-{"queued": 40, "contract_unclear": [], "settled": {"agreed": 40, "settled by contract decision": 0, "excluded by contract decision": 0, "unresolved": 0}, "gold_labels": 40, "gold_correct": 36, "confirmed_exploits": 4, "audit_false_negatives": 36}
+{"queued": 40, "contract_unclear": [], "settled": {"agreed": 40, "settled by contract decision": 0, "excluded by contract decision": 0, "unresolved": 0}, "gold_labels": 40, "gold_correct": 40, "confirmed_exploits": 0, "audit_false_negatives": 40}
 
-$ vq.py submit decisions --run clean-strict --file decisions.json   # ASSUMED: mixed_number accept, ratio exclude
-uploaded reviews/clean-strict/decisions.json (8 lines)
+$ vq.py submit decisions --run clean-strict --file decisions.json   # ASSUMED: with_units accept
+uploaded reviews/clean-strict/decisions.json (7 lines)
 
 $ vq.py job labels2-clean-strict -- labels --run clean-strict --queue reviews/clean-strict.json
 job.batch/labels2-clean-strict created
 labels2-clean-strict Complete
-{"queued": 60, "contract_unclear": ["mixed_number", "ratio"], "settled": {"agreed": 53, "settled by contract decision": 1, "excluded by contract decision": 1, "unresolved": 5}, "gold_labels": 54, "gold_correct": 50, "confirmed_exploits": 2, "audit_false_negatives": 10}
+{"queued": 60, "contract_unclear": ["with_units"], "settled": {"agreed": 55, "settled by contract decision": 2, "excluded by contract decision": 0, "unresolved": 3}, "gold_labels": 57, "gold_correct": 55, "confirmed_exploits": 0, "audit_false_negatives": 29}
 
 $ after the decisions: how each label was settled, and what the people found
-red-lenient   settled {'agreed': 40, 'settled by contract decision': 0, 'excluded by contract decision': 0, 'unresolved': 0}  gold 40 (36 correct)  exploits the training verifier passed 4  audit false negatives 36
-clean-strict  settled {'agreed': 53, 'settled by contract decision': 1, 'excluded by contract decision': 1, 'unresolved': 5}  gold 54 (50 correct)  exploits the training verifier passed 2  audit false negatives 10
+red-lenient   settled {'agreed': 40, 'settled by contract decision': 0, 'excluded by contract decision': 0, 'unresolved': 0}  gold 40 (40 correct)  exploits the training verifier passed 0  audit false negatives 40
+clean-strict  settled {'agreed': 55, 'settled by contract decision': 2, 'excluded by contract decision': 0, 'unresolved': 3}  gold 57 (55 correct)  exploits the training verifier passed 0  audit false negatives 29
 
 $ vq.py job hq-math-final-answer-1-0-0 -- quality --verifier math-final-answer@1.0.0 --gold gold/human-<both runs>.jsonl
 job.batch/hq-math-final-answer-1-0-0 created
 hq-math-final-answer-1-0-0 Complete
-{"verifier": "math-final-answer@1.0.0", "all": {"tp": 85, "fp": 6, "fn": 1, "tn": 2, "abstain": 0, "n": 94, "precision": 0.9341, "precision_ci": [0.8635, 0.9694], "recall": 0.9884, "abstain_rate": 0.0}, "per_kind": {"number": {"pass": 71}, "other": {"pass": 1, "fail": 1}, "with_units": {"pass": 2, "fail": 1}, "fraction": {"pass": 17}, "mixed_number": {"fail": 1}}}
+{"verifier": "math-final-answer@1.0.0", "all": {"tp": 93, "fp": 0, "fn": 2, "tn": 2, "abstain": 0, "n": 97, "precision": 1.0, "precision_ci": [0.9603, 1.0], "recall": 0.9789, "abstain_rate": 0.0}, "per_kind": {"fraction": {"pass": 20}, "number": {"pass": 73}, "with_units": {"fail": 3}, "other": {"fail": 1}}}
 
 $ vq.py job hq-math-final-answer-2-0-0 -- quality --verifier math-final-answer@2.0.0 --gold gold/human-<both runs>.jsonl
 job.batch/hq-math-final-answer-2-0-0 created
 hq-math-final-answer-2-0-0 Complete
-{"verifier": "math-final-answer@2.0.0", "all": {"tp": 64, "fp": 2, "fn": 21, "tn": 4, "abstain": 3, "n": 94, "precision": 0.9697, "precision_ci": [0.8961, 0.9917], "recall": 0.7529, "abstain_rate": 0.0319}, "per_kind": {"number": {"fail": 22, "pass": 49}, "other": {"fail": 1, "abstain": 1}, "with_units": {"fail": 2, "abstain": 1}, "fraction": {"pass": 17}, "mixed_number": {"abstain": 1}}}
+{"verifier": "math-final-answer@2.0.0", "all": {"tp": 53, "fp": 0, "fn": 40, "tn": 0, "abstain": 4, "n": 97, "precision": 1.0, "precision_ci": [0.9324, 1.0], "recall": 0.5699, "abstain_rate": 0.0412}, "per_kind": {"fraction": {"fail": 7, "pass": 13}, "number": {"fail": 33, "pass": 40}, "with_units": {"abstain": 3}, "other": {"abstain": 1}}}
 
 $ vq.py job hq-math-final-answer-2-1-0 -- quality --verifier math-final-answer@2.1.0 --gold gold/human-<both runs>.jsonl
 job.batch/hq-math-final-answer-2-1-0 created
 hq-math-final-answer-2-1-0 Complete
-{"verifier": "math-final-answer@2.1.0", "all": {"tp": 64, "fp": 2, "fn": 21, "tn": 4, "abstain": 3, "n": 94, "precision": 0.9697, "precision_ci": [0.8961, 0.9917], "recall": 0.7529, "abstain_rate": 0.0319}, "per_kind": {"number": {"fail": 22, "pass": 49}, "other": {"fail": 1, "abstain": 1}, "with_units": {"fail": 2, "abstain": 1}, "fraction": {"pass": 17}, "mixed_number": {"abstain": 1}}}
+{"verifier": "math-final-answer@2.1.0", "all": {"tp": 55, "fp": 0, "fn": 40, "tn": 0, "abstain": 2, "n": 97, "precision": 1.0, "precision_ci": [0.9347, 1.0], "recall": 0.5789, "abstain_rate": 0.0206}, "per_kind": {"fraction": {"fail": 7, "pass": 13}, "number": {"fail": 33, "pass": 40}, "with_units": {"pass": 2, "abstain": 1}, "other": {"abstain": 1}}}
 
 $ on the reviewers' gold labels
-math-final-answer@1.0.0    accepted wrong 6  accepted correct 85  rejected correct 1  abstained 0  precision 0.9341 CI [0.8635, 0.9694]
-math-final-answer@2.0.0    accepted wrong 2  accepted correct 64  rejected correct 21  abstained 3  precision 0.9697 CI [0.8961, 0.9917]
-math-final-answer@2.1.0    accepted wrong 2  accepted correct 64  rejected correct 21  abstained 3  precision 0.9697 CI [0.8961, 0.9917]
+math-final-answer@1.0.0    accepted wrong 0  accepted correct 93  rejected correct 2  abstained 0  precision 1.0 CI [0.9603, 1.0]
+math-final-answer@2.0.0    accepted wrong 0  accepted correct 53  rejected correct 40  abstained 4  precision 1.0 CI [0.9324, 1.0]
+math-final-answer@2.1.0    accepted wrong 0  accepted correct 55  rejected correct 40  abstained 2  precision 1.0 CI [0.9347, 1.0]
 
 $ vq.py job q-math-final-answer-2-1-0 -- quality --verifier math-final-answer@2.1.0 --gold math_gold.jsonl
 job.batch/q-math-final-answer-2-1-0 created
@@ -113,24 +110,24 @@ fuzz-210 Complete
 $ vq.py job rg-math-final-answer-2-1-0 -- regress --verifier math-final-answer@2.1.0 --cases <fuzz regressions + the reviewers' confirmed exploits>
 job.batch/rg-math-final-answer-2-1-0 created
 rg-math-final-answer-2-1-0 Complete
-{"verifier": "math-final-answer@2.1.0", "cases": 206, "passed": 204, "failed": 2}
+{"verifier": "math-final-answer@2.1.0", "cases": 200, "passed": 200, "failed": 0}
 
 $ vq.py register math-final-answer@2.1.0 --gold evals/quality/math-final-answer-2-1-0.json --fuzz fuzz/v210/report.json --regress evals/regress/math-final-answer-2-1-0.json --human evals/human/math-final-answer-2-1-0.json
-math-final-answer@2.1.0: REJECTED  code db6632d42f2ba058  purpose training
+math-final-answer@2.1.0: APPROVED  code 7d3ecd940ccdacd3  purpose training
   [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9916, 1.0]), n accepted 455
   [ok] abstain rate on gold set <= 0.1: abstain rate 0.0
   [ok] precision on policy outputs: measured on the reviewers' labels instead (below)
   [ok] fuzzing false-positive rate <= 0.005: 0 false positives in 314 fuzz cases
-  [NO] every known exploit in the regression suite is rejected: 204 of 206 regression cases behave as expected
-  [NO] accepts nothing the reviewers labelled wrong: 2 of 6 wrong items accepted; precision 0.9697 (95% CI [0.8961, 0.9917]) on 66 accepted
+  [ok] every known exploit in the regression suite is rejected: 200 of 200 regression cases behave as expected
+  [ok] accepts nothing the reviewers labelled wrong: 0 of 0 wrong items accepted; precision 1.0 (95% CI [0.9347, 1.0]) on 55 accepted
 
 $ vq.py rl --run pin-210 --verifier math-final-answer@2.1.0 --dry-run
-REFUSED: math-final-answer@2.1.0 is rejected in the registry: every known exploit in the regression suite is rejected; accepts nothing the reviewers labelled wrong
+{"verifier": "math-final-answer@2.1.0", "audit": "strict-reference-math@1.0.0", "eval": "eval-math@1.0.0", "pinned": "ok", "dry_run": true}
 
 $ vq.py job rescore-clean-210 -- rescore --run clean-strict --verifier math-final-answer@2.1.0 --out rescore/clean-strict-210
 job.batch/rescore-clean-210 created
 rescore-clean-210 Complete
-{"samples": 5120, "changed": 0, "flips": {}, "pass_rate_old": 0.9307, "pass_rate_new": 0.9307}
+{"samples": 5120, "changed": 2, "flips": {"abstain->pass": 2}, "pass_rate_old": 0.899, "pass_rate_new": 0.8994}
 
 $ aws s3 cp s3://<bucket>/rescore/clean-strict-210/summary.json -
 {
@@ -139,15 +136,17 @@ $ aws s3 cp s3://<bucket>/rescore/clean-strict-210/summary.json -
  ],
  "rescored_with": "math-final-answer@2.1.0",
  "samples": 5120,
- "changed": 0,
- "flips": {},
- "pass_rate_old": 0.9307,
- "pass_rate_new": 0.9307
+ "changed": 2,
+ "flips": {
+  "abstain->pass": 2
+ },
+ "pass_rate_old": 0.899,
+ "pass_rate_new": 0.8994
 }
 
 [PASS] both reviewers returned a label for every queued item of both runs (assumed inputs, stored with their checklist line)
 [PASS] the reviewers agree on plain numbers and disagree on at least one other answer shape, which is flagged as an unclear contract
-[PASS] after the owner's decisions, agreed and settled labels form a human gold set, and the exploits people confirmed became regression cases
-[FAIL] on the human gold set the old verifier accepts answers people call wrong; 2.0.0 and 2.1.0 accept none, and 2.1.0 accepts more correct ones than 2.0.0
-[FAIL] the gate approves 2.1.0 with the reviewers' labels as evidence, and a training run can pin it
-[FAIL] re-scoring the strict run with 2.1.0 turns abstentions into passes, and no failure into a pass
+[PASS] after the owner's decisions, agreed and settled labels form a human gold set, and every verdict people dispute is recorded: training passes they call wrong as regression cases, audit rejections they call correct as audit false negatives
+[PASS] on the human gold set 2.0.0 and 2.1.0 accept nothing people call wrong, and 2.1.0 accepts more correct answers than 2.0.0
+[PASS] the gate approves 2.1.0 with the reviewers' labels as evidence, and a training run can pin it
+[PASS] re-scoring the strict run with 2.1.0 turns abstentions into passes, and no failure into a pass

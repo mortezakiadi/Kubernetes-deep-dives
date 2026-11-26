@@ -7,7 +7,7 @@
  "steps": [
   {
    "display": "for v in <the ten services>; do kubectl -n rewards exec deploy/$v -- GET 127.0.0.1:8080/info; done   # id, purpose, owner, code hash",
-   "output": "math-final-answer@1.0.0        training   rewards-team  code 0a5f06a66097c851\nmath-final-answer@2.0.0        training   rewards-team  code ea77c34c8794cb03\nmath-final-answer@2.1.0        training   rewards-team  code db6632d42f2ba058\nstrict-reference-math@1.0.0    audit      rewards-team  code 9495d09756bd1ffe\neval-math@1.0.0                evaluation eval-team     code a28315eba2645ec0\ncode-tests@1.0.0               training   rewards-team  code bf623dd4dc71947e\ncode-tests@2.0.0               training   rewards-team  code 94d04640c95e3c17\nstrict-reference-code@1.0.0    audit      rewards-team  code 7943093c40188cc1\njudge-single@1.0.0             training   rewards-team  code 74d4cfe5b0e64650\njudge-pair@2.0.0               training   rewards-team  code 94bde5c319c45da6",
+   "output": "math-final-answer@1.0.0        training   rewards-team  code 0bfa50ce178ea5c6\nmath-final-answer@2.0.0        training   rewards-team  code 6f53f502f1969433\nmath-final-answer@2.1.0        training   rewards-team  code 7d3ecd940ccdacd3\nstrict-reference-math@1.0.0    audit      rewards-team  code e7822ca6917044a4\neval-math@1.0.0                evaluation eval-team     code 68a46263a08f746f\ncode-tests@1.0.0               training   rewards-team  code bf623dd4dc71947e\ncode-tests@2.0.0               training   rewards-team  code 94d04640c95e3c17\nstrict-reference-code@1.0.0    audit      rewards-team  code 7943093c40188cc1\njudge-single@1.0.0             training   rewards-team  code 74d4cfe5b0e64650\njudge-pair@2.0.0               training   rewards-team  code 94bde5c319c45da6",
    "exit_code": 0,
    "seconds": 0
   },
@@ -21,13 +21,13 @@
    "display": "kubectl -n rewards exec -i deploy/math-final-answer-2-0-0 -- POST /verify < five-completions.json",
    "output": "{\"verifier\": \"math-final-answer@2.0.0\", \"results\": [{\"verdict\": \"pass\", \"score\": 1.0, \"reasons\": [], \"verifier\": \"math-final-answer@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"final_answers=2\"], \"verifier\": \"math-final-answer@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"hedged_final_answer\"], \"verifier\": \"math-final-answer@2.0.0\"}, {\"verdict\": \"abstain\", \"score\": 0.0, \"reasons\": [\"unparseable\"], \"verifier\": \"math-final-answer@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"final_answers=0\"], \"verifier\": \"math-final-answer@2.0.0\"}]}",
    "exit_code": 0,
-   "seconds": 2.49
+   "seconds": 2.09
   },
   {
    "display": "vq.py rl --run unmeasured --verifier math-final-answer@2.0.0 --no-wait",
    "output": "REFUSED: math-final-answer@2.0.0 has no registry entry; measure it and run the gate first",
    "exit_code": 3,
-   "seconds": 2.05
+   "seconds": 1.66
   }
  ],
  "checks": [

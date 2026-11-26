@@ -36,7 +36,7 @@ rg-code-tests-2-0-0 Complete
 {"verifier": "code-tests@2.0.0", "cases": 37, "passed": 37, "failed": 0}
 
 $ vq.py register math-final-answer@1.0.0 --gold evals/quality/math-final-answer-1-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/math-final-answer-1-0-0.json
-math-final-answer@1.0.0: REJECTED  code 0a5f06a66097c851  purpose training
+math-final-answer@1.0.0: REJECTED  code 0bfa50ce178ea5c6  purpose training
   [NO] precision lower bound on gold set >= 0.95: precision 0.5871 (95% CI [0.5521, 0.6212]), n accepted 775
   [ok] abstain rate on gold set <= 0.1: abstain rate 0.0
   [ok] precision on policy outputs: not measured yet: no run has used this verifier
@@ -44,7 +44,7 @@ math-final-answer@1.0.0: REJECTED  code 0a5f06a66097c851  purpose training
   [NO] every known exploit in the regression suite is rejected: 0 of 200 regression cases behave as expected
 
 $ vq.py register math-final-answer@2.0.0 --gold evals/quality/math-final-answer-2-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/math-final-answer-2-0-0.json
-math-final-answer@2.0.0: APPROVED  code ea77c34c8794cb03  purpose training
+math-final-answer@2.0.0: APPROVED  code 6f53f502f1969433  purpose training
   [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375
   [ok] abstain rate on gold set <= 0.1: abstain rate 0.0966
   [ok] precision on policy outputs: not measured yet: no run has used this verifier
@@ -52,14 +52,14 @@ math-final-answer@2.0.0: APPROVED  code ea77c34c8794cb03  purpose training
   [ok] every known exploit in the regression suite is rejected: 200 of 200 regression cases behave as expected
 
 $ vq.py register strict-reference-math@1.0.0 --gold evals/quality/strict-reference-math-1-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/strict-reference-math-1-0-0.json
-strict-reference-math@1.0.0: AUDIT ONLY  code 9495d09756bd1ffe  purpose audit
+strict-reference-math@1.0.0: AUDIT ONLY  code e7822ca6917044a4  purpose audit
   [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375
   [ok] abstain rate on gold set <= 0.1: abstain rate 0.0966
   [ok] precision on policy outputs: not measured yet: no run has used this verifier
   [NO] purpose is training: strict-reference-math@1.0.0 is registered for audit, owned by rewards-team
 
 $ vq.py register eval-math@1.0.0 --gold evals/quality/eval-math-1-0-0.json --fuzz fuzz/static/report.json --regress evals/regress/eval-math-1-0-0.json
-eval-math@1.0.0: EVALUATION ONLY  code a28315eba2645ec0  purpose evaluation
+eval-math@1.0.0: EVALUATION ONLY  code 68a46263a08f746f  purpose evaluation
   [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375
   [ok] abstain rate on gold set <= 0.1: abstain rate 0.0966
   [ok] precision on policy outputs: not measured yet: no run has used this verifier
@@ -91,11 +91,11 @@ strict-reference-code@1.0.0: AUDIT ONLY  code 7943093c40188cc1  purpose audit
 $ vq.py registry
 code-tests@1.0.0               rejected  training   rewards-team  code bf623dd4dc71
 code-tests@2.0.0               approved  training   rewards-team  code 94d04640c95e
-eval-math@1.0.0                evaluation only evaluation eval-team     code a28315eba264
-math-final-answer@1.0.0        rejected  training   rewards-team  code 0a5f06a66097
-math-final-answer@2.0.0        approved  training   rewards-team  code ea77c34c8794
+eval-math@1.0.0                evaluation only evaluation eval-team     code 68a46263a08f
+math-final-answer@1.0.0        rejected  training   rewards-team  code 0bfa50ce178e
+math-final-answer@2.0.0        approved  training   rewards-team  code 6f53f502f196
 strict-reference-code@1.0.0    audit only audit      rewards-team  code 7943093c4018
-strict-reference-math@1.0.0    audit only audit      rewards-team  code 9495d09756bd
+strict-reference-math@1.0.0    audit only audit      rewards-team  code e7822ca69170
 
 $ vq.py rl --run pin-eval --verifier eval-math@1.0.0 --no-wait
 REFUSED: eval-math@1.0.0 is evaluation only in the registry: purpose is training

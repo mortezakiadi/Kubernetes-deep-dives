@@ -7,15 +7,15 @@
  "steps": [
   {
    "display": "kubectl -n rewards get pods -l vid=code-tests-1-0-0 -o custom-columns=POD:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName",
-   "output": "POD                                 RUNTIME   NODE\ncode-tests-1-0-0-6b74cd555c-9nz7z   <none>    ip-10-82-45-34.us-east-2.compute.internal\ncode-tests-1-0-0-6b74cd555c-bndn4   <none>    ip-10-82-17-59.us-east-2.compute.internal",
+   "output": "POD                                 RUNTIME   NODE\ncode-tests-1-0-0-7669687974-glx9d   <none>    ip-10-82-17-59.us-east-2.compute.internal\ncode-tests-1-0-0-7669687974-qmplm   <none>    ip-10-82-45-34.us-east-2.compute.internal",
    "exit_code": 0,
-   "seconds": 1.43
+   "seconds": 1.15
   },
   {
    "display": "kubectl -n rewards get pods -l vid=code-tests-2-0-0 -o custom-columns=POD:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName",
-   "output": "POD                                 RUNTIME   NODE\ncode-tests-2-0-0-867896d67b-bwjq4   gvisor    ip-10-82-51-79.us-east-2.compute.internal\ncode-tests-2-0-0-867896d67b-wv68p   gvisor    ip-10-82-51-79.us-east-2.compute.internal",
+   "output": "POD                                RUNTIME   NODE\ncode-tests-2-0-0-956db4d5c-f9zmm   gvisor    ip-10-82-51-79.us-east-2.compute.internal\ncode-tests-2-0-0-956db4d5c-vkbbf   gvisor    ip-10-82-51-79.us-east-2.compute.internal",
    "exit_code": 0,
-   "seconds": 1.33
+   "seconds": 1.2
   },
   {
    "display": "the kernel each service sees (/proc/version, from /info)",
@@ -24,10 +24,10 @@
    "seconds": 0
   },
   {
-   "display": "kubectl -n rewards exec code-tests-2-0-0-867896d67b-bwjq4 -- python -c 'urllib.request.urlopen(\"https://pypi.org\", timeout=5)'",
+   "display": "kubectl -n rewards exec code-tests-2-0-0-956db4d5c-f9zmm -- python -c 'urllib.request.urlopen(\"https://pypi.org\", timeout=5)'",
    "output": "no internet: URLError",
    "exit_code": 0,
-   "seconds": 21.88
+   "seconds": 21.69
   },
   {
    "display": "kubectl -n rewards exec -i deploy/code-tests-2-0-0 -- POST /verify < tricks.json   # read_tests_via_FileIO, spin_forever, huge_memory, fork_bomb_os, correct",
@@ -45,7 +45,7 @@
    "display": "vq.py job strength -- strength --out evals/strength.json",
    "output": "job.batch/strength created\nstrength Complete\n{\"c-sum_evens\": {\"mutation_score\": 1.0, \"caught\": [true, true, true, true], \"hidden_cases\": 6, \"weak_by_design\": false, \"admitted\": true}, \"c-reverse_words\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-second_largest\": {\"mutation_score\": 1.0, \"caught\": [true, true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-run_length\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-merge_intervals\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-count_vowels\": {\"mutation_score\": 0.5, \"caught\": [false, true, true, false], \"hidden_cases\": 1, \"weak_by_design\": true, \"admitted\": false}, \"c-clamp\": {\"mutation_score\": 0.667, \"caught\": [false, true, true], \"hidden_cases\": 1, \"weak_by_design\": true, \"admitted\": false}, \"c-dedupe\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}}",
    "exit_code": 0,
-   "seconds": 14.24
+   "seconds": 12.63
   },
   {
    "display": "aws s3 cp s3://<bucket>/evals/strength.json -   # mutation score of each task's hidden tests",

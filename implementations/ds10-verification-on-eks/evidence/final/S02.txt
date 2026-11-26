@@ -2,11 +2,11 @@
 # Design reference: A verifier is a product: contract, interface and lifecycle
 
 $ for v in <the ten services>; do kubectl -n rewards exec deploy/$v -- GET 127.0.0.1:8080/info; done   # id, purpose, owner, code hash
-math-final-answer@1.0.0        training   rewards-team  code 0a5f06a66097c851
-math-final-answer@2.0.0        training   rewards-team  code ea77c34c8794cb03
-math-final-answer@2.1.0        training   rewards-team  code db6632d42f2ba058
-strict-reference-math@1.0.0    audit      rewards-team  code 9495d09756bd1ffe
-eval-math@1.0.0                evaluation eval-team     code a28315eba2645ec0
+math-final-answer@1.0.0        training   rewards-team  code 0bfa50ce178ea5c6
+math-final-answer@2.0.0        training   rewards-team  code 6f53f502f1969433
+math-final-answer@2.1.0        training   rewards-team  code 7d3ecd940ccdacd3
+strict-reference-math@1.0.0    audit      rewards-team  code e7822ca6917044a4
+eval-math@1.0.0                evaluation eval-team     code 68a46263a08f746f
 code-tests@1.0.0               training   rewards-team  code bf623dd4dc71947e
 code-tests@2.0.0               training   rewards-team  code 94d04640c95e3c17
 strict-reference-code@1.0.0    audit      rewards-team  code 7943093c40188cc1

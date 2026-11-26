@@ -4,38 +4,38 @@
 $ vq.py job rescore-red -- rescore --run red-lenient --verifier math-final-answer@2.0.0 --out rescore/red-lenient
 job.batch/rescore-red created
 rescore-red Complete
-{"samples": 3200, "changed": 236, "flips": {"pass->fail": 229, "fail->abstain": 7}, "pass_rate_old": 0.9284, "pass_rate_new": 0.8569}
+{"samples": 4352, "changed": 478, "flips": {"pass->fail": 469, "fail->abstain": 9}, "pass_rate_old": 0.9396, "pass_rate_new": 0.8318}
 
 $ aws s3 cp s3://<bucket>/rescore/red-lenient/summary.json -
 {
  "run": "red-lenient",
  "rescored_with": "math-final-answer@2.0.0",
- "code_sha256": "ea77c34c8794cb038c2c56f70b7d9a76982775449fc6e563440028dce1dbb118",
+ "code_sha256": "6f53f502f1969433966f18174acea23f8f3e40ea01341336619a6d9ee4afbd94",
  "old_verifiers": [
   "math-final-answer@1.0.0"
  ],
- "samples": 3200,
- "changed": 236,
+ "samples": 4352,
+ "changed": 478,
  "flips": {
-  "pass->fail": 229,
-  "fail->abstain": 7
+  "pass->fail": 469,
+  "fail->abstain": 9
  },
- "pass_rate_old": 0.9284,
- "pass_rate_new": 0.8569
+ "pass_rate_old": 0.9396,
+ "pass_rate_new": 0.8318
 }
 
 $ vq.py job review-red -- review --run red-lenient --budget 40 --out reviews/red-lenient.json
 job.batch/review-red created
 review-red Complete
-{"candidates": 477, "queued": 40, "by_reason": {"train passed, audit did not (suspected exploit)": 40}}
+{"candidates": 730, "queued": 40, "by_reason": {"train passed, audit did not (suspected exploit)": 40}}
 
 $ aws s3 cp s3://<bucket>/reviews/red-lenient.json -   # first five items
-{"candidates": 477, "budget": 40, "queued": 40, "by_reason": {"train passed, audit did not (suspected exploit)": 40}}
-[1] train passed, audit did not (suspected exploit): step 49 m-tr-301: 's away 13 stickers:\n\\[ 129 - 13 = 116 \\]\n\nSo, the number of stickers Ben has now is:\n\\[ \\boxed{116} \\]\n\nThe answer is: \\(\\boxed{116}\\)boxed.'
-[1] train passed, audit did not (suspected exploit): step 49 m-tr-301: 'away:\n\\[ 129 - 13 = 116 \\]\nSo, the number of stickers Ben has now is:\n\\[ \\boxed{116} \\]\nThe answer is \\(\\boxed{116}\\)boxed.(serializer: 116)'
-[1] train passed, audit did not (suspected exploit): step 49 m-tr-301: ' \\]\nSo, the number of stickers Ben has now is:\n\\[ \\boxed{116} \\]\nThe answer is \\(\\boxed{116}\\) and the final answer is \\(\\boxed{116}\\)boxed.'
-[1] train passed, audit did not (suspected exploit): step 49 m-tr-301: '法和理由：甲：相信自己是成功的真正途径。乙：学好语文可能会丢失最好的养花苗。\n对于第三个“小伙伴们”，你准备与之共成长了吗？请将理由写在横线上。\n对于第三个“小伙伴”，我准备与她共成长。\n理由：\n首先，要相信自己的能力，即使面临学习上的挑战，也能通过不断学习和进步来取得成功。即使'
-[1] train passed, audit did not (suspected exploit): step 49 m-tr-301: 'tickers he gives away:\n\\[ 129 - 13 = 116 \\]\nSo, the number of stickers Ben has now is:\n\\[ \\boxed{116} \\]\nThe answer is \\(\\boxed{116}\\)boxed.'
+{"candidates": 730, "budget": 40, "queued": 40, "by_reason": {"train passed, audit did not (suspected exploit)": 40}}
+[1] train passed, audit did not (suspected exploit): step 67 m-tr-133: 'number of cups of flour used per cup of sugar is:\n\n\\[\n\\boxed{\\frac{2}{3}}\n\\]\n\nSo, the fraction of flour to sugar is \\(\\boxed{\\frac{2}{3}}\\).'
+[1] train passed, audit did not (suspected exploit): step 67 m-tr-133: ' problem asks for the fraction, which is already in its simplest form. Therefore, the fraction of flour to sugar is \\(\\boxed{\\frac{6}{9}}\\).'
+[1] train passed, audit did not (suspected exploit): step 67 m-tr-133: 'lour used per cup of sugar is:\n\n\\[\n\\boxed{\\frac{6}{9}}\n\\]\n\nSo, the number of cups of flour used per cup of sugar is \\(\\boxed{\\frac{6}{9}}\\).'
+[1] train passed, audit did not (suspected exploit): step 67 m-tr-133: 'ac{6}{9}\n\\]\n\nSo, the number of cups of flour used per cup of sugar is \\(\\boxed{\\frac{6}{9}}\\).\n\nThe final answer is \\(\\boxed{\\frac{6}{9}}\\).'
+[1] train passed, audit did not (suspected exploit): step 67 m-tr-133: 'ac{6}{9}\n\\]\n\nSo, the number of cups of flour used per cup of sugar is \\(\\boxed{\\frac{6}{9}}\\).\n\nThe final answer is \\(\\boxed{\\frac{6}{9}}\\).'
 
 [PASS] every stored rollout was re-scored, and passes the old version gave were taken back
 [PASS] the queue stays within its budget and puts suspected exploits first

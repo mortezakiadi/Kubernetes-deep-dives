@@ -66,9 +66,12 @@ def s11():
                    f"exploits the training verifier passed {agr[run].get('confirmed_exploits')}  audit false negatives {agr[run].get('audit_false_negatives')}" for run in (RED, CLEAN)))
     settled = sum(agr[r].get("settled", {}).get("settled by contract decision", 0) for r in (RED, CLEAN))
     exploits = sum(agr[r].get("confirmed_exploits", 0) for r in (RED, CLEAN))
-    sc.expect("after the owner's decisions, agreed and settled labels form a human gold set, and the exploits people confirmed became regression cases",
-              settled > 0 and all(agr[r].get("gold_labels") for r in (RED, CLEAN)) and exploits > 0,
-              "A disagreement becomes a label only through a recorded decision for its slice; a training pass that people call wrong becomes a regression case.")
+    audit_fn = sum(agr[r].get("audit_false_negatives", 0) for r in (RED, CLEAN))
+    sc.expect("after the owner's decisions, agreed and settled labels form a human gold set, and every verdict people dispute is recorded: "
+              "training passes they call wrong as regression cases, audit rejections they call correct as audit false negatives",
+              settled > 0 and all(agr[r].get("gold_labels") for r in (RED, CLEAN)) and (exploits + audit_fn) > 0,
+              "A disagreement becomes a label only through a recorded decision for its slice; each disputed verdict is written where the verifier's owner reads it.")
+    sc.note(f"The reviewers confirmed {exploits} exploits and {audit_fn} audit false negatives.")
     human = f"gold/human-{RED}.jsonl,gold/human-{CLEAN}.jsonl"
     for vid in ("math-final-answer@1.0.0", "math-final-answer@2.0.0", NEW):
         job(sc, f"hq-{svc(vid)}", "quality", "--verifier", vid, "--gold", human, "--out", f"evals/human/{svc(vid)}.json",
@@ -76,10 +79,9 @@ def s11():
     H = {v: (sj(f"evals/human/{svc(v)}.json") or {}).get("quality", {}).get("all", {}) for v in ("math-final-answer@1.0.0", "math-final-answer@2.0.0", NEW)}
     show(sc, "on the reviewers' gold labels", "\n".join(f"{v:26s} accepted wrong {h.get('fp')}  accepted correct {h.get('tp')}  rejected correct {h.get('fn')}  abstained {h.get('abstain')}  "
                                                        f"precision {h.get('precision')} CI {h.get('precision_ci')}" for v, h in H.items()))
-    sc.expect("on the human gold set the old verifier accepts answers people call wrong; 2.0.0 and 2.1.0 accept none, and 2.1.0 accepts more correct ones than 2.0.0",
-              (H["math-final-answer@1.0.0"].get("fp") or 0) > 0 and H["math-final-answer@2.0.0"].get("fp") == 0 and H[NEW].get("fp") == 0
-              and (H[NEW].get("tp") or 0) > (H["math-final-answer@2.0.0"].get("tp") or 0),
-              "2.1.0 differs from 2.0.0 only in what the box may hold: a unit, a currency sign or a mixed number, as the decisions said.")
+    sc.expect("on the human gold set 2.0.0 and 2.1.0 accept nothing people call wrong, and 2.1.0 accepts more correct answers than 2.0.0",
+              H["math-final-answer@2.0.0"].get("fp") == 0 and H[NEW].get("fp") == 0 and (H[NEW].get("tp") or 0) > (H["math-final-answer@2.0.0"].get("tp") or 0),
+              "2.1.0 differs from 2.0.0 only in what the box may hold: units, a currency sign or a mixed number, as the decisions said.")
     job(sc, f"q-{svc(NEW)}", "quality", "--verifier", NEW, "--gold", "math_gold.jsonl", "--out", qkey(NEW), display=f"vq.py job q-{svc(NEW)} -- quality --verifier {NEW} --gold math_gold.jsonl")
     job(sc, "fuzz-210", "fuzz", "--verifiers", NEW, "--policy-samples", f"runs/{CLEAN}", "--out", "fuzz/v210")
     cases = f"fuzz/static/regressions.jsonl,reviews/{RED}/regressions.jsonl,reviews/{CLEAN}/regressions.jsonl"

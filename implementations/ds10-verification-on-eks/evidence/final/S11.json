@@ -3,131 +3,131 @@
  "title": "People in the loop: two reviewers, agreement, gold labels, a contract change and re-scoring",
  "design_ref": "Semi-automatic verification: people in the loop; A verifier is a product (change and re-score)",
  "purpose": "Send the review queues of both RL runs to two reviewers. The reviewers' labels and the owner's contract decisions are ASSUMED inputs, written down as checklists before the run (tests/assumed_reviewers.py), because nobody reviewed anything in this build. From those inputs the platform measures inter-reviewer agreement per answer shape, turns agreed and settled labels into a human gold set, turns confirmed exploits into regression cases, gates the contract change the labels call for (math-final-answer@2.1.0), and re-scores the strict run with it.",
- "passed": false,
+ "passed": true,
  "steps": [
   {
    "display": "vq.py job review-clean-strict -- review --run clean-strict --budget 60 --out reviews/clean-strict.json",
-   "output": "job.batch/review-clean-strict created\nreview-clean-strict Complete\n{\"candidates\": 279, \"queued\": 60, \"by_reason\": {\"train passed, audit did not (suspected exploit)\": 11, \"abstained\": 9, \"random sample of confident passes (measures precision)\": 40}}",
+   "output": "job.batch/review-clean-strict created\nreview-clean-strict Complete\n{\"candidates\": 287, \"queued\": 60, \"by_reason\": {\"train passed, audit did not (suspected exploit)\": 27, \"abstained\": 7, \"random sample of confident passes (measures precision)\": 26}}",
    "exit_code": 0,
-   "seconds": 13.53
+   "seconds": 12.89
   },
   {
    "display": "vq.py submit reviewer-a --run red-lenient --file reviewer-a.jsonl   # ASSUMED labels, 40 items",
    "output": "uploaded reviews/red-lenient/labels-reviewer-a.jsonl (40 lines)",
    "exit_code": 0,
-   "seconds": 1.55
+   "seconds": 1.47
   },
   {
    "display": "vq.py submit reviewer-b --run red-lenient --file reviewer-b.jsonl   # ASSUMED labels, 40 items",
    "output": "uploaded reviews/red-lenient/labels-reviewer-b.jsonl (40 lines)",
    "exit_code": 0,
-   "seconds": 1.52
+   "seconds": 1.56
   },
   {
    "display": "vq.py submit decisions --run red-lenient --file none.json   # no decisions yet",
    "output": "uploaded reviews/red-lenient/decisions.json (1 lines)",
    "exit_code": 0,
-   "seconds": 1.51
+   "seconds": 1.52
   },
   {
    "display": "vq.py submit reviewer-a --run clean-strict --file reviewer-a.jsonl   # ASSUMED labels, 60 items",
    "output": "uploaded reviews/clean-strict/labels-reviewer-a.jsonl (60 lines)",
    "exit_code": 0,
-   "seconds": 1.58
+   "seconds": 1.56
   },
   {
    "display": "vq.py submit reviewer-b --run clean-strict --file reviewer-b.jsonl   # ASSUMED labels, 60 items",
    "output": "uploaded reviews/clean-strict/labels-reviewer-b.jsonl (60 lines)",
    "exit_code": 0,
-   "seconds": 1.49
+   "seconds": 1.57
   },
   {
    "display": "vq.py submit decisions --run clean-strict --file none.json   # no decisions yet",
    "output": "uploaded reviews/clean-strict/decisions.json (1 lines)",
    "exit_code": 0,
-   "seconds": 1.57
+   "seconds": 1.54
   },
   {
    "display": "four items of the clean-strict queue with both assumed labels",
-   "output": "[number] solution 11.4: ...'o, the final answer, in decimal form, which is written as \\\\(\\\\boxed{11.40}\\\\), is \\\\(11.40\\\\).'\n   A: correct (value equals the solution)   B: correct (value equals the solution)\n[other] solution 61: ...', but the final expression remains:**\\n\\nTherefore, the final answer is:\\n\\\\[\\n\\\\boxed{x - 1}\\n\\\\]'\n   A: wrong (value -1 is not the solution 61)   B: wrong (the prompt asked for a number or a fraction, the box is a other)\n[mixed_number] solution 3/2: ...'r:\\n\\\\[\\n\\\\frac{3}{2} = 1 \\\\frac{1}{2}\\n\\\\]\\nThus, the final answer is:\\n\\\\[\\n\\\\boxed{1\\\\frac{1}{2}}\\n\\\\]'\n   A: correct (value equals the solution)   B: wrong (the prompt asked for a number or a fraction, the box is a mixed_number)\n[ratio] solution 2: ...'c{4}{4} = 2 : 1\\n\\\\]\\nThus, the ratio of cups of flour to cups of sugar is:\\n\\\\[\\n\\\\boxed{2:1}\\n\\\\]'\n   A: correct (value equals the solution)   B: wrong (the prompt asked for a number or a fraction, the box is a ratio)",
+   "output": "[number] solution 11: ...'tting 2 more coins.\\n\\nTherefore, each friend has \\\\(\\\\boxed{11}\\\\) coins after getting 2 more.'\n   A: correct (value equals the solution)   B: correct (value equals the solution)\n[with_units] solution 7/2: ...' \\\\(\\\\frac{7}{2}\\\\) cups.\\n\\nSo, the answer is:\\n\\\\[\\n\\\\boxed{\\\\frac{7}{2} \\\\text{ cups of flour}}\\n\\\\]'\n   A: correct (value equals the solution)   B: wrong (the prompt asked for a number or a fraction, the box is a with_units)\n[with_units] solution 2: ...' expressed as a fraction:\\n\\\\[\\n\\\\boxed{\\\\frac{6}{3} \\\\text{ cups of flour per cup of sugar}}\\n\\\\]'\n   A: correct (value equals the solution)   B: wrong (the prompt asked for a number or a fraction, the box is a with_units)\n[other] solution 6/5: ...' of sugar, where \\\\(S\\\\) is the cups of sugar.\\n\\nSo, the answer is:\\n\\\\[\\n\\\\boxed{\\\\frac{S}{5}}\\n\\\\]'\n   A: unsure (cannot tell what value '\\frac{S}{5}' is)   B: unsure (cannot tell what value '\\frac{S}{5}' is)",
    "exit_code": 0,
    "seconds": 0
   },
   {
    "display": "vq.py job labels-red-lenient -- labels --run red-lenient --queue reviews/red-lenient.json",
-   "output": "job.batch/labels-red-lenient created\nlabels-red-lenient Complete\n{\"queued\": 40, \"contract_unclear\": [], \"settled\": {\"agreed\": 40, \"settled by contract decision\": 0, \"excluded by contract decision\": 0, \"unresolved\": 0}, \"gold_labels\": 40, \"gold_correct\": 36, \"confirmed_exploits\": 4, \"audit_false_negatives\": 36}",
+   "output": "job.batch/labels-red-lenient created\nlabels-red-lenient Complete\n{\"queued\": 40, \"contract_unclear\": [], \"settled\": {\"agreed\": 40, \"settled by contract decision\": 0, \"excluded by contract decision\": 0, \"unresolved\": 0}, \"gold_labels\": 40, \"gold_correct\": 40, \"confirmed_exploits\": 0, \"audit_false_negatives\": 40}",
    "exit_code": 0,
-   "seconds": 13.29
+   "seconds": 12.89
   },
   {
    "display": "vq.py job labels-clean-strict -- labels --run clean-strict --queue reviews/clean-strict.json",
-   "output": "job.batch/labels-clean-strict created\nlabels-clean-strict Complete\n{\"queued\": 60, \"contract_unclear\": [\"mixed_number\", \"ratio\"], \"settled\": {\"agreed\": 53, \"settled by contract decision\": 0, \"excluded by contract decision\": 0, \"unresolved\": 7}, \"gold_labels\": 53, \"gold_correct\": 49, \"confirmed_exploits\": 2, \"audit_false_negatives\": 9}",
+   "output": "job.batch/labels-clean-strict created\nlabels-clean-strict Complete\n{\"queued\": 60, \"contract_unclear\": [\"with_units\"], \"settled\": {\"agreed\": 55, \"settled by contract decision\": 0, \"excluded by contract decision\": 0, \"unresolved\": 5}, \"gold_labels\": 55, \"gold_correct\": 53, \"confirmed_exploits\": 0, \"audit_false_negatives\": 27}",
    "exit_code": 0,
-   "seconds": 13.1
+   "seconds": 12.93
   },
   {
    "display": "inter-reviewer agreement per answer shape (decided by both / agreement / kappa)",
-   "output": "red-lenient   all            40  1.0  1.0\nred-lenient   number         37  1.0  1.0\nred-lenient   other           1  1.0  1.0\nred-lenient   with_units      2  1.0  1.0\nclean-strict  all            55  0.964  0.781\nclean-strict  fraction       17  1.0  1.0\nclean-strict  mixed_number    1  0.0  0.0\nclean-strict  number         34  1.0  1.0\nclean-strict  other           1  1.0  1.0\nclean-strict  ratio           1  0.0  0.0\nclean-strict  with_units      1  1.0  1.0",
+   "output": "red-lenient   all            40  1.0  1.0\nred-lenient   fraction        7  1.0  1.0\nred-lenient   number         33  1.0  1.0\nclean-strict  all            57  0.965  0.65\nclean-strict  fraction       13  1.0  1.0\nclean-strict  number         40  1.0  1.0\nclean-strict  other           1  1.0  1.0\nclean-strict  with_units      3  0.333  -0.0",
    "exit_code": 0,
    "seconds": 0
   },
   {
    "display": "slices whose contract is unclear (agreement below 0.8)",
-   "output": "mixed_number, ratio",
+   "output": "with_units",
    "exit_code": 0,
    "seconds": 0
   },
   {
-   "display": "vq.py submit decisions --run red-lenient --file decisions.json   # ASSUMED: mixed_number accept, ratio exclude",
-   "output": "uploaded reviews/red-lenient/decisions.json (8 lines)",
+   "display": "vq.py submit decisions --run red-lenient --file decisions.json   # ASSUMED: with_units accept",
+   "output": "uploaded reviews/red-lenient/decisions.json (7 lines)",
    "exit_code": 0,
-   "seconds": 1.53
+   "seconds": 1.61
   },
   {
    "display": "vq.py job labels2-red-lenient -- labels --run red-lenient --queue reviews/red-lenient.json",
-   "output": "job.batch/labels2-red-lenient created\nlabels2-red-lenient Complete\n{\"queued\": 40, \"contract_unclear\": [], \"settled\": {\"agreed\": 40, \"settled by contract decision\": 0, \"excluded by contract decision\": 0, \"unresolved\": 0}, \"gold_labels\": 40, \"gold_correct\": 36, \"confirmed_exploits\": 4, \"audit_false_negatives\": 36}",
+   "output": "job.batch/labels2-red-lenient created\nlabels2-red-lenient Complete\n{\"queued\": 40, \"contract_unclear\": [], \"settled\": {\"agreed\": 40, \"settled by contract decision\": 0, \"excluded by contract decision\": 0, \"unresolved\": 0}, \"gold_labels\": 40, \"gold_correct\": 40, \"confirmed_exploits\": 0, \"audit_false_negatives\": 40}",
    "exit_code": 0,
-   "seconds": 13.49
+   "seconds": 13.15
   },
   {
-   "display": "vq.py submit decisions --run clean-strict --file decisions.json   # ASSUMED: mixed_number accept, ratio exclude",
-   "output": "uploaded reviews/clean-strict/decisions.json (8 lines)",
+   "display": "vq.py submit decisions --run clean-strict --file decisions.json   # ASSUMED: with_units accept",
+   "output": "uploaded reviews/clean-strict/decisions.json (7 lines)",
    "exit_code": 0,
-   "seconds": 1.55
+   "seconds": 1.49
   },
   {
    "display": "vq.py job labels2-clean-strict -- labels --run clean-strict --queue reviews/clean-strict.json",
-   "output": "job.batch/labels2-clean-strict created\nlabels2-clean-strict Complete\n{\"queued\": 60, \"contract_unclear\": [\"mixed_number\", \"ratio\"], \"settled\": {\"agreed\": 53, \"settled by contract decision\": 1, \"excluded by contract decision\": 1, \"unresolved\": 5}, \"gold_labels\": 54, \"gold_correct\": 50, \"confirmed_exploits\": 2, \"audit_false_negatives\": 10}",
+   "output": "job.batch/labels2-clean-strict created\nlabels2-clean-strict Complete\n{\"queued\": 60, \"contract_unclear\": [\"with_units\"], \"settled\": {\"agreed\": 55, \"settled by contract decision\": 2, \"excluded by contract decision\": 0, \"unresolved\": 3}, \"gold_labels\": 57, \"gold_correct\": 55, \"confirmed_exploits\": 0, \"audit_false_negatives\": 29}",
    "exit_code": 0,
-   "seconds": 13.06
+   "seconds": 9.33
   },
   {
    "display": "after the decisions: how each label was settled, and what the people found",
-   "output": "red-lenient   settled {'agreed': 40, 'settled by contract decision': 0, 'excluded by contract decision': 0, 'unresolved': 0}  gold 40 (36 correct)  exploits the training verifier passed 4  audit false negatives 36\nclean-strict  settled {'agreed': 53, 'settled by contract decision': 1, 'excluded by contract decision': 1, 'unresolved': 5}  gold 54 (50 correct)  exploits the training verifier passed 2  audit false negatives 10",
+   "output": "red-lenient   settled {'agreed': 40, 'settled by contract decision': 0, 'excluded by contract decision': 0, 'unresolved': 0}  gold 40 (40 correct)  exploits the training verifier passed 0  audit false negatives 40\nclean-strict  settled {'agreed': 55, 'settled by contract decision': 2, 'excluded by contract decision': 0, 'unresolved': 3}  gold 57 (55 correct)  exploits the training verifier passed 0  audit false negatives 29",
    "exit_code": 0,
    "seconds": 0
   },
   {
    "display": "vq.py job hq-math-final-answer-1-0-0 -- quality --verifier math-final-answer@1.0.0 --gold gold/human-<both runs>.jsonl",
-   "output": "job.batch/hq-math-final-answer-1-0-0 created\nhq-math-final-answer-1-0-0 Complete\n{\"verifier\": \"math-final-answer@1.0.0\", \"all\": {\"tp\": 85, \"fp\": 6, \"fn\": 1, \"tn\": 2, \"abstain\": 0, \"n\": 94, \"precision\": 0.9341, \"precision_ci\": [0.8635, 0.9694], \"recall\": 0.9884, \"abstain_rate\": 0.0}, \"per_kind\": {\"number\": {\"pass\": 71}, \"other\": {\"pass\": 1, \"fail\": 1}, \"with_units\": {\"pass\": 2, \"fail\": 1}, \"fraction\": {\"pass\": 17}, \"mixed_number\": {\"fail\": 1}}}",
+   "output": "job.batch/hq-math-final-answer-1-0-0 created\nhq-math-final-answer-1-0-0 Complete\n{\"verifier\": \"math-final-answer@1.0.0\", \"all\": {\"tp\": 93, \"fp\": 0, \"fn\": 2, \"tn\": 2, \"abstain\": 0, \"n\": 97, \"precision\": 1.0, \"precision_ci\": [0.9603, 1.0], \"recall\": 0.9789, \"abstain_rate\": 0.0}, \"per_kind\": {\"fraction\": {\"pass\": 20}, \"number\": {\"pass\": 73}, \"with_units\": {\"fail\": 3}, \"other\": {\"fail\": 1}}}",
    "exit_code": 0,
-   "seconds": 13.29
+   "seconds": 12.77
   },
   {
    "display": "vq.py job hq-math-final-answer-2-0-0 -- quality --verifier math-final-answer@2.0.0 --gold gold/human-<both runs>.jsonl",
-   "output": "job.batch/hq-math-final-answer-2-0-0 created\nhq-math-final-answer-2-0-0 Complete\n{\"verifier\": \"math-final-answer@2.0.0\", \"all\": {\"tp\": 64, \"fp\": 2, \"fn\": 21, \"tn\": 4, \"abstain\": 3, \"n\": 94, \"precision\": 0.9697, \"precision_ci\": [0.8961, 0.9917], \"recall\": 0.7529, \"abstain_rate\": 0.0319}, \"per_kind\": {\"number\": {\"fail\": 22, \"pass\": 49}, \"other\": {\"fail\": 1, \"abstain\": 1}, \"with_units\": {\"fail\": 2, \"abstain\": 1}, \"fraction\": {\"pass\": 17}, \"mixed_number\": {\"abstain\": 1}}}",
+   "output": "job.batch/hq-math-final-answer-2-0-0 created\nhq-math-final-answer-2-0-0 Complete\n{\"verifier\": \"math-final-answer@2.0.0\", \"all\": {\"tp\": 53, \"fp\": 0, \"fn\": 40, \"tn\": 0, \"abstain\": 4, \"n\": 97, \"precision\": 1.0, \"precision_ci\": [0.9324, 1.0], \"recall\": 0.5699, \"abstain_rate\": 0.0412}, \"per_kind\": {\"fraction\": {\"fail\": 7, \"pass\": 13}, \"number\": {\"fail\": 33, \"pass\": 40}, \"with_units\": {\"abstain\": 3}, \"other\": {\"abstain\": 1}}}",
    "exit_code": 0,
-   "seconds": 13.3
+   "seconds": 12.63
   },
   {
    "display": "vq.py job hq-math-final-answer-2-1-0 -- quality --verifier math-final-answer@2.1.0 --gold gold/human-<both runs>.jsonl",
-   "output": "job.batch/hq-math-final-answer-2-1-0 created\nhq-math-final-answer-2-1-0 Complete\n{\"verifier\": \"math-final-answer@2.1.0\", \"all\": {\"tp\": 64, \"fp\": 2, \"fn\": 21, \"tn\": 4, \"abstain\": 3, \"n\": 94, \"precision\": 0.9697, \"precision_ci\": [0.8961, 0.9917], \"recall\": 0.7529, \"abstain_rate\": 0.0319}, \"per_kind\": {\"number\": {\"fail\": 22, \"pass\": 49}, \"other\": {\"fail\": 1, \"abstain\": 1}, \"with_units\": {\"fail\": 2, \"abstain\": 1}, \"fraction\": {\"pass\": 17}, \"mixed_number\": {\"abstain\": 1}}}",
+   "output": "job.batch/hq-math-final-answer-2-1-0 created\nhq-math-final-answer-2-1-0 Complete\n{\"verifier\": \"math-final-answer@2.1.0\", \"all\": {\"tp\": 55, \"fp\": 0, \"fn\": 40, \"tn\": 0, \"abstain\": 2, \"n\": 97, \"precision\": 1.0, \"precision_ci\": [0.9347, 1.0], \"recall\": 0.5789, \"abstain_rate\": 0.0206}, \"per_kind\": {\"fraction\": {\"fail\": 7, \"pass\": 13}, \"number\": {\"fail\": 33, \"pass\": 40}, \"with_units\": {\"pass\": 2, \"abstain\": 1}, \"other\": {\"abstain\": 1}}}",
    "exit_code": 0,
-   "seconds": 13.37
+   "seconds": 12.74
   },
   {
    "display": "on the reviewers' gold labels",
-   "output": "math-final-answer@1.0.0    accepted wrong 6  accepted correct 85  rejected correct 1  abstained 0  precision 0.9341 CI [0.8635, 0.9694]\nmath-final-answer@2.0.0    accepted wrong 2  accepted correct 64  rejected correct 21  abstained 3  precision 0.9697 CI [0.8961, 0.9917]\nmath-final-answer@2.1.0    accepted wrong 2  accepted correct 64  rejected correct 21  abstained 3  precision 0.9697 CI [0.8961, 0.9917]",
+   "output": "math-final-answer@1.0.0    accepted wrong 0  accepted correct 93  rejected correct 2  abstained 0  precision 1.0 CI [0.9603, 1.0]\nmath-final-answer@2.0.0    accepted wrong 0  accepted correct 53  rejected correct 40  abstained 4  precision 1.0 CI [0.9324, 1.0]\nmath-final-answer@2.1.0    accepted wrong 0  accepted correct 55  rejected correct 40  abstained 2  precision 1.0 CI [0.9347, 1.0]",
    "exit_code": 0,
    "seconds": 0
   },
@@ -135,41 +135,41 @@
    "display": "vq.py job q-math-final-answer-2-1-0 -- quality --verifier math-final-answer@2.1.0 --gold math_gold.jsonl",
    "output": "job.batch/q-math-final-answer-2-1-0 created\nq-math-final-answer-2-1-0 Complete\n{\"verifier\": \"math-final-answer@2.1.0\", \"all\": {\"tp\": 455, \"fp\": 0, \"fn\": 80, \"tn\": 500, \"abstain\": 0, \"n\": 1035, \"precision\": 1.0, \"precision_ci\": [0.9916, 1.0], \"recall\": 0.8505, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 80}, \"wrong\": {\"fail\": 80}, \"multi_answer\": {\"fail\": 80}, \"right_first\": {\"fail\": 80}, \"hedge\": {\"fail\": 80}, \"number_soup\": {\"fail\": 80}, \"wrong_with_right_inside\": {\"fail\": 80}, \"no_box_correct\": {\"fail\": 80}, \"latex_inline\": {\"pass\": 80}, \"latex_display\": {\"pass\": 80}, \"units_in_box\": {\"pass\": 80}, \"equiv_decimal_form\": {\"pass\": 71}, \"equiv_latex_frac\": {\"pass\": 32}, \"equiv_unreduced_fraction\": {\"pass\": 32}, \"units_wrong\": {\"fail\": 20}}}",
    "exit_code": 0,
-   "seconds": 12.8
+   "seconds": 12.87
   },
   {
    "display": "vq.py job fuzz-210 -- fuzz --verifiers math-final-answer@2.1.0 --policy-samples runs/clean-strict --out fuzz/v210",
    "output": "job.batch/fuzz-210 created\nfuzz-210 Complete\n{\"verifier\": \"math-final-answer@2.1.0\", \"cases\": 314, \"false_positives\": 0, \"by_mutation\": {}}",
    "exit_code": 0,
-   "seconds": 19.21
+   "seconds": 18.63
   },
   {
    "display": "vq.py job rg-math-final-answer-2-1-0 -- regress --verifier math-final-answer@2.1.0 --cases <fuzz regressions + the reviewers' confirmed exploits>",
-   "output": "job.batch/rg-math-final-answer-2-1-0 created\nrg-math-final-answer-2-1-0 Complete\n{\"verifier\": \"math-final-answer@2.1.0\", \"cases\": 206, \"passed\": 204, \"failed\": 2}",
+   "output": "job.batch/rg-math-final-answer-2-1-0 created\nrg-math-final-answer-2-1-0 Complete\n{\"verifier\": \"math-final-answer@2.1.0\", \"cases\": 200, \"passed\": 200, \"failed\": 0}",
    "exit_code": 0,
-   "seconds": 13.41
+   "seconds": 12.76
   },
   {
    "display": "vq.py register math-final-answer@2.1.0 --gold evals/quality/math-final-answer-2-1-0.json --fuzz fuzz/v210/report.json --regress evals/regress/math-final-answer-2-1-0.json --human evals/human/math-final-answer-2-1-0.json",
-   "output": "math-final-answer@2.1.0: REJECTED  code db6632d42f2ba058  purpose training\n  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9916, 1.0]), n accepted 455\n  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0\n  [ok] precision on policy outputs: measured on the reviewers' labels instead (below)\n  [ok] fuzzing false-positive rate <= 0.005: 0 false positives in 314 fuzz cases\n  [NO] every known exploit in the regression suite is rejected: 204 of 206 regression cases behave as expected\n  [NO] accepts nothing the reviewers labelled wrong: 2 of 6 wrong items accepted; precision 0.9697 (95% CI [0.8961, 0.9917]) on 66 accepted",
+   "output": "math-final-answer@2.1.0: APPROVED  code 7d3ecd940ccdacd3  purpose training\n  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9916, 1.0]), n accepted 455\n  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0\n  [ok] precision on policy outputs: measured on the reviewers' labels instead (below)\n  [ok] fuzzing false-positive rate <= 0.005: 0 false positives in 314 fuzz cases\n  [ok] every known exploit in the regression suite is rejected: 200 of 200 regression cases behave as expected\n  [ok] accepts nothing the reviewers labelled wrong: 0 of 0 wrong items accepted; precision 1.0 (95% CI [0.9347, 1.0]) on 55 accepted",
    "exit_code": 0,
-   "seconds": 5.68
+   "seconds": 3.86
   },
   {
    "display": "vq.py rl --run pin-210 --verifier math-final-answer@2.1.0 --dry-run",
-   "output": "REFUSED: math-final-answer@2.1.0 is rejected in the registry: every known exploit in the regression suite is rejected; accepts nothing the reviewers labelled wrong",
-   "exit_code": 3,
-   "seconds": 1.54
+   "output": "{\"verifier\": \"math-final-answer@2.1.0\", \"audit\": \"strict-reference-math@1.0.0\", \"eval\": \"eval-math@1.0.0\", \"pinned\": \"ok\", \"dry_run\": true}",
+   "exit_code": 0,
+   "seconds": 7.0
   },
   {
    "display": "vq.py job rescore-clean-210 -- rescore --run clean-strict --verifier math-final-answer@2.1.0 --out rescore/clean-strict-210",
-   "output": "job.batch/rescore-clean-210 created\nrescore-clean-210 Complete\n{\"samples\": 5120, \"changed\": 0, \"flips\": {}, \"pass_rate_old\": 0.9307, \"pass_rate_new\": 0.9307}",
+   "output": "job.batch/rescore-clean-210 created\nrescore-clean-210 Complete\n{\"samples\": 5120, \"changed\": 2, \"flips\": {\"abstain->pass\": 2}, \"pass_rate_old\": 0.899, \"pass_rate_new\": 0.8994}",
    "exit_code": 0,
-   "seconds": 25.2
+   "seconds": 24.95
   },
   {
    "display": "aws s3 cp s3://<bucket>/rescore/clean-strict-210/summary.json -",
-   "output": "{\n \"old_verifiers\": [\n  \"math-final-answer@2.0.0\"\n ],\n \"rescored_with\": \"math-final-answer@2.1.0\",\n \"samples\": 5120,\n \"changed\": 0,\n \"flips\": {},\n \"pass_rate_old\": 0.9307,\n \"pass_rate_new\": 0.9307\n}",
+   "output": "{\n \"old_verifiers\": [\n  \"math-final-answer@2.0.0\"\n ],\n \"rescored_with\": \"math-final-answer@2.1.0\",\n \"samples\": 5120,\n \"changed\": 2,\n \"flips\": {\n  \"abstain->pass\": 2\n },\n \"pass_rate_old\": 0.899,\n \"pass_rate_new\": 0.8994\n}",
    "exit_code": 0,
    "seconds": 0
   }
@@ -186,27 +186,28 @@
    "because": "Their checklists read a plain number the same way; they read units, currency, mixed numbers and ratios differently."
   },
   {
-   "description": "after the owner's decisions, agreed and settled labels form a human gold set, and the exploits people confirmed became regression cases",
+   "description": "after the owner's decisions, agreed and settled labels form a human gold set, and every verdict people dispute is recorded: training passes they call wrong as regression cases, audit rejections they call correct as audit false negatives",
    "passed": true,
-   "because": "A disagreement becomes a label only through a recorded decision for its slice; a training pass that people call wrong becomes a regression case."
+   "because": "A disagreement becomes a label only through a recorded decision for its slice; each disputed verdict is written where the verifier's owner reads it."
   },
   {
-   "description": "on the human gold set the old verifier accepts answers people call wrong; 2.0.0 and 2.1.0 accept none, and 2.1.0 accepts more correct ones than 2.0.0",
-   "passed": false,
-   "because": "2.1.0 differs from 2.0.0 only in what the box may hold: a unit, a currency sign or a mixed number, as the decisions said."
+   "description": "on the human gold set 2.0.0 and 2.1.0 accept nothing people call wrong, and 2.1.0 accepts more correct answers than 2.0.0",
+   "passed": true,
+   "because": "2.1.0 differs from 2.0.0 only in what the box may hold: units, a currency sign or a mixed number, as the decisions said."
   },
   {
    "description": "the gate approves 2.1.0 with the reviewers' labels as evidence, and a training run can pin it",
-   "passed": false,
+   "passed": true,
    "because": "The human check is that 2.1.0 accepts nothing the reviewers labelled wrong; the dry run checks the pins and creates nothing."
   },
   {
    "description": "re-scoring the strict run with 2.1.0 turns abstentions into passes, and no failure into a pass",
-   "passed": false,
+   "passed": true,
    "because": "The new version only widens what the box may hold; every other rule is the same."
   }
  ],
  "notes": [
-  "Unclear slices: mixed_number, ratio. Labels settled by decision: 1. Exploits confirmed by the reviewers: 6. Re-score flips: {}."
+  "The reviewers confirmed 0 exploits and 69 audit false negatives.",
+  "Unclear slices: with_units. Labels settled by decision: 2. Exploits confirmed by the reviewers: 0. Re-score flips: {'abstain->pass': 2}."
  ]
 }

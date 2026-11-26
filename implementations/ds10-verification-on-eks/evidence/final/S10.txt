@@ -4,43 +4,43 @@
 $ vq.py job pq-math-final-answer-1-0-0 -- policyq --verifier math-final-answer@1.0.0 --run red-lenient   # the last 10 steps' rollouts
 job.batch/pq-math-final-answer-1-0-0 created
 pq-math-final-answer-1-0-0 Complete
-{"verifier": "math-final-answer@1.0.0", "run": "red-lenient", "all": {"tp": 281, "fp": 106, "fn": 0, "tn": 13, "abstain": 0, "n": 400, "precision": 0.7261, "precision_ci": [0.6796, 0.7681], "recall": 1.0, "abstain_rate": 0.0}}
+{"verifier": "math-final-answer@1.0.0", "run": "red-lenient", "all": {"tp": 226, "fp": 161, "fn": 0, "tn": 13, "abstain": 0, "n": 400, "precision": 0.584, "precision_ci": [0.5343, 0.632], "recall": 1.0, "abstain_rate": 0.0}}
 
 $ vq.py job pq-math-final-answer-2-0-0 -- policyq --verifier math-final-answer@2.0.0 --run red-lenient   # the last 10 steps' rollouts
 job.batch/pq-math-final-answer-2-0-0 created
 pq-math-final-answer-2-0-0 Complete
-{"verifier": "math-final-answer@2.0.0", "run": "red-lenient", "all": {"tp": 281, "fp": 1, "fn": 0, "tn": 118, "abstain": 0, "n": 400, "precision": 0.9965, "precision_ci": [0.9802, 0.9994], "recall": 1.0, "abstain_rate": 0.0}}
+{"verifier": "math-final-answer@2.0.0", "run": "red-lenient", "all": {"tp": 226, "fp": 2, "fn": 0, "tn": 172, "abstain": 0, "n": 400, "precision": 0.9912, "precision_ci": [0.9686, 0.9976], "recall": 1.0, "abstain_rate": 0.0}}
 
 $ precision: natural answers in the gold set vs the policy's own outputs
-math-final-answer@1.0.0    gold canonical 1.0   policy outputs 0.7261 CI [0.6796, 0.7681] (accepted 387)
-math-final-answer@2.0.0    gold canonical 1.0   policy outputs 0.9965 CI [0.9802, 0.9994] (accepted 282)
+math-final-answer@1.0.0    gold canonical 1.0   policy outputs 0.584 CI [0.5343, 0.632] (accepted 387)
+math-final-answer@2.0.0    gold canonical 1.0   policy outputs 0.9912 CI [0.9686, 0.9976] (accepted 228)
 
 $ kubectl -n rewards get cronjob verifier-fuzz-nightly -o custom-columns=NAME:.metadata.name,SCHEDULE:.spec.schedule,CONCURRENCY:.spec.concurrencyPolicy
 NAME                    SCHEDULE     CONCURRENCY
 verifier-fuzz-nightly   17 2 * * *   Forbid
 
 $ vq.py fuzz-now
-job.batch/fuzz-now-74007 created
-fuzz-now-74007 Complete
-{"verifier": "math-final-answer@1.0.0", "cases": 317, "false_positives": 240, "by_mutation": {"boxed_in_steps:false_positive": 40, "hedge:false_positive": 40, "multi_answer:false_positive": 40, "number_soup:false_positive": 40, "right_first:false_positive": 40, "trailing_number:false_positive": 40}}
-{"verifier": "math-final-answer@2.0.0", "cases": 317, "false_positives": 0, "by_mutation": {}}
+job.batch/fuzz-now-76508 created
+fuzz-now-76508 Complete
+{"verifier": "math-final-answer@1.0.0", "cases": 316, "false_positives": 240, "by_mutation": {"boxed_in_steps:false_positive": 40, "hedge:false_positive": 40, "multi_answer:false_positive": 40, "number_soup:false_positive": 40, "right_first:false_positive": 40, "trailing_number:false_positive": 40}}
+{"verifier": "math-final-answer@2.0.0", "cases": 316, "false_positives": 0, "by_mutation": {}}
 {"verifier": "code-tests@1.0.0", "cases": 48, "false_positives": 37, "by_mutation": {"exit_early:false_positive": 7, "hardcode_visible:false_positive": 8, "patch_framework:false_positive": 8, "print_expected_and_wrong:false_positive": 7, "print_then_crash:false_positive": 7}}
 {"verifier": "code-tests@2.0.0", "cases": 48, "false_positives": 0, "by_mutation": {}}
 
 $ aws s3 cp s3://<bucket>/fuzz/nightly/report.json -
 policy samples used: 320
-math-final-answer@1.0.0     317 cases   240 false positives
-math-final-answer@2.0.0     317 cases     0 false positives
+math-final-answer@1.0.0     316 cases   240 false positives
+math-final-answer@2.0.0     316 cases     0 false positives
 code-tests@1.0.0             48 cases    37 false positives
 code-tests@2.0.0             48 cases     0 false positives
 
 $ vq.py register math-final-answer@2.0.0 --gold evals/quality/math-final-answer-2-0-0.json --fuzz fuzz/nightly/report.json --regress evals/regress/math-final-answer-2-0-0.json --policy evals/policy/math-final-answer-2-0-0.json
-math-final-answer@2.0.0: APPROVED  code ea77c34c8794cb03  purpose training
+math-final-answer@2.0.0: APPROVED  code 6f53f502f1969433  purpose training
   [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375
   [ok] abstain rate on gold set <= 0.1: abstain rate 0.0966
-  [ok] precision lower bound on policy outputs >= 0.95: precision 0.9965 (95% CI [0.9802, 0.9994]), n accepted 282
+  [ok] precision lower bound on policy outputs >= 0.95: precision 0.9912 (95% CI [0.9686, 0.9976]), n accepted 228
   [ok] abstain rate on policy outputs <= 0.1: abstain rate 0.0
-  [ok] fuzzing false-positive rate <= 0.005: 0 false positives in 317 fuzz cases
+  [ok] fuzzing false-positive rate <= 0.005: 0 false positives in 316 fuzz cases
   [ok] every known exploit in the regression suite is rejected: 200 of 200 regression cases behave as expected
 
 [PASS] the old verifier is precise on natural answers, and on the policy's outputs its precision lower bound falls below the gate's 0.95

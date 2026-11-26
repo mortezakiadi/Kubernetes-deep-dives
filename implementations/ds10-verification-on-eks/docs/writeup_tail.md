@@ -47,6 +47,8 @@ The whole run takes about an hour, most of it in the two RL runs (S07, S08) and 
 
 `down.sh` deletes the jobs in `training` and `rewards`, destroys the platform layer (the bucket is emptied with it), destroys the cluster layer, and then runs `verify-clean.sh`. That script looks, in us-east-2, for anything of this build: clusters, EC2 instances, Auto Scaling groups, launch templates, NAT gateways, addresses, VPCs and endpoints, security groups, volumes, network interfaces, buckets, roles and log groups. It prints `CLEAN` when nothing is left.
 
+After the final run the cluster layer's destroy stopped twice: once on a network interface the VPC CNI had left behind for a terminated node, and then on the cluster security group EKS creates. Both were in this build's VPC (checked by its `Project` tag) and unattached; I deleted them by hand and re-ran `down.sh`. `down.sh` does not handle this case yet.
+
 {{TEARDOWN}}
 
 **Keeping it safe in a public repository.** Terraform state, plans, kubeconfig files, local variable files, generated data, wheels and scratch evidence are git-ignored. `scripts/check-no-secrets.sh --all` blocks any file containing a credential pattern, the account ID or one of the administrator's addresses, read from the local variable files. The test harness redacts those values, and the local user name, before anything is written.

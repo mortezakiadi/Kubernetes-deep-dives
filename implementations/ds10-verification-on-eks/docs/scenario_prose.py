@@ -152,7 +152,7 @@ PROSE = {
         "why": [
             "The reviewers agree on plain numbers and disagree on units, currency, mixed numbers and ratios because reviewer B reads the prompt literally and reviewer A reads the value; low agreement on a slice is the design's sign that the contract is unclear there.",
             "The owner's decisions accept units, currency and mixed numbers and exclude ratios and percentages; version 2.1.0 implements exactly that, so it accepts more correct answers without accepting anything the people call wrong.",
-            "The exploits come from the red-team queue, where the old verifier passed answers with several different boxed values; each one becomes a regression case that 2.1.0 must reject.",
+            "Most suspected exploits turned out, by the reviewers' checklists, to be correct answers the audit verifier rejected: the same value boxed twice, or a number after the box (\"\\\\boxed{8.00} dollars on 2 marbles\"). They are recorded as audit false negatives, which is the calibration the design asks review to provide, and they mean part of the hacking gap in S07 is the audit's strictness rather than the policy's cheating. Any exploit people do confirm becomes a regression case that 2.1.0 must reject.",
             "Re-scoring turns abstentions into passes and no failure into a pass because 2.1.0 changes only what the box may hold.",
         ],
     },
