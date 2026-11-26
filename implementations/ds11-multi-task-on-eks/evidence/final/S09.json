@@ -1,0 +1,69 @@
+{
+ "id": "S09",
+ "title": "The release gate, and admitting a seventh family",
+ "design_ref": "Evaluation: scorecards and no-regression gates; domains as plug-ins: admission test",
+ "purpose": "Judge every model the earlier scenarios produced against the current release with the design's gate, and show that a higher average does not get a model through. Then admit a seventh family the way the contract says: a proxy run at a small weight, the transfer row and column, and the gate for the six families already there.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "python release_gate.py recipes/gate.yaml   # each candidate against the current release (the equal-mixture generalist of S03, 60 steps; mean of three seeds)",
+   "output": "current release        mean 0.696   min 0.438   geomean 0.680\nnatural mixture        mean 0.655   min 0.495   geomean 0.641   gate REFUSED  regressed: instr -0.163 (allowed -0.058)\ntemperature 2          mean 0.690   min 0.507   geomean 0.678   gate PASS     \nsearched mixture       mean 0.652   min 0.512   geomean 0.641   gate REFUSED  regressed: code -0.136 (allowed -0.119), instr -0.141 (allowed -0.058)\nsequential             mean 0.744   min 0.237   geomean 0.668   gate REFUSED  regressed: code -0.504 (allowed -0.119)\nstaged + refresh       mean 0.870   min 0.532   geomean 0.853   gate PASS     \nmixed, 120 steps       mean 0.870   min 0.530   geomean 0.851   gate PASS     \nmerged (TIES)          mean 0.837   min 0.560   geomean 0.821   gate PASS     \nmerged (arithmetic)    mean 0.766   min 0.502   geomean 0.751   gate PASS     ",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python release_gate.py --margins recipes/domains.yaml --noise S03   # the tolerance of each family: its margin plus twice the noise measured over three training seeds",
+   "output": "                           math      code     instr     tools multiling    safety\nmargin                    0.030     0.030     0.030     0.030     0.030     0.050\nnoise (std of 3)          0.015     0.045     0.014     0.005     0.003     0.051\ntolerance                 0.060     0.119     0.058     0.039     0.037     0.153",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python gate_selftest.py   # the gate is itself tested",
+   "output": "the current release against itself: PASS\na copy that is 0.05 better on five families and 0.25 worse on safety (1.5 x its tolerance of 0.153 and a little more): REFUSED",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# sweep admission-s09: 2 cells read back from the state bucket (already complete)",
+   "output": "250 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python admission_test.py admission-s09   # the seventh family at 10% of the mixture; the existing six against the current release",
+   "output": "                           math      code     instr     tools multiling    safety   sorting\ncurrent release          +0.438    +0.741    +0.771    +0.892    +0.699    +0.634    +0.341\nwith sorting at 10%      +0.469    +0.731    +0.716    +0.893    +0.692    +0.651    +0.567\nchange                   +0.031    -0.010    -0.055    +0.001    -0.006    +0.017    +0.226\n\ngate for the six existing families: PASS  (math +0.031, code -0.010, instr -0.055, tools +0.001, multiling -0.006, safety +0.017)\neffect of boosting each existing family on sorting (S03's column): math +0.006, code +0.004, instr -0.004, tools +0.001, multiling -0.004, safety +0.007",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the gate has a candidate to judge for every earlier result: at least seven models, each scored on all seven families",
+   "passed": true,
+   "because": "Read from the bucket: S04's three mixtures and searched mixture, S05's three orders, S08's two merges."
+  },
+  {
+   "description": "the gate passes the current release against itself and refuses a model that is better on five families and worse on safety by more than its tolerance",
+   "passed": true,
+   "because": "The test is made of a model that raises five scores by 0.05 and drops one by more than its tolerance: the mean goes up, the gate says no. A gate that cannot say no is not a gate."
+  },
+  {
+   "description": "a higher average does not get a model through: at least one candidate has a higher mean than the current release and is refused",
+   "passed": true,
+   "because": "The design's scenario, on my own models: sequential raised the average and would have shipped under 'the average must go up'."
+  },
+  {
+   "description": "the gate is not hair-trigger: at least one candidate passes",
+   "passed": true,
+   "because": "The tolerance is the family's margin plus twice the noise measured over three training seeds; a model that is no worse than that on every family passes."
+  },
+  {
+   "description": "admitting the seventh family: it learns (sorting rises by at least 0.10 over the current release), and the gate passes for the six existing families",
+   "passed": true,
+   "because": "The contract's admission test is a proxy run with the new family at a small weight, the new family's row and column in the matrix, and the same gate for every family already in the mixture. Adding the seventh family needed one generator, one verifier, one registry entry and one run."
+  }
+ ],
+ "notes": [
+  "Current release scores: math 0.438, code 0.741, instr 0.771, tools 0.892, multiling 0.699, safety 0.634, sorting 0.341."
+ ]
+}

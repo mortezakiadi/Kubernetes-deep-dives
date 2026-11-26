@@ -1,0 +1,59 @@
+# S10: The pipeline: two specialists in parallel, a merge, an evaluation, as one workflow on the queue
+# Design reference: The platform on Kubernetes
+
+$ kubectl apply -f combine-s10.yaml   # an Argo Workflow: four steps, each one a Kueue-managed Job
+spec-math    after: -
+spec-tools   after: -
+merge        after: spec-math, spec-tools
+evaluate     after: merge
+
+$ kubectl -n rl-research get workflow combine-s10
+NAME          STATUS      AGE   MESSAGE
+combine-s10   Succeeded   15m
+
+$ kubectl -n rl-research get workflow combine-s10 -o json   # when each step started and finished
+spec-math    Succeeded  started 2026-11-26T05:20:21Z  finished 2026-11-26T05:29:08Z
+spec-tools   Succeeded  started 2026-11-26T05:20:21Z  finished 2026-11-26T05:28:53Z
+merge        Succeeded  started 2026-11-26T05:29:12Z  finished 2026-11-26T05:30:50Z
+evaluate     Succeeded  started 2026-11-26T05:30:59Z  finished 2026-11-26T05:34:52Z
+
+$ kubectl -n rl-research get workloads | grep combine   # Kueue's record: the workflow's jobs went through the same queue
+job-combine-s10-evaluate-236a3     research-small   research      True       True       4m24s
+job-combine-s10-merge-cef9f        research-small   research      True       True       6m11s
+job-combine-s10-spec-math-3e7d2    research-small   research      True       True       14m
+job-combine-s10-spec-tools-b9e27   research-small   research      True       True       14m
+
+$ python lineage.py s10-eval   # the candidate traced back to the runs and the data that produced it
+{
+ "candidate": "s10-eval",
+ "evaluated": "s10-merge",
+ "merged_from": {
+  "s10-spec-math": 1.0,
+  "s10-spec-tools": 1.0
+ },
+ "specialist_mix": {
+  "s10-spec-math": "{\"math\": 1.0}",
+  "s10-spec-tools": "{\"tools\": 1.0}"
+ },
+ "specialist_steps": {
+  "s10-spec-math": 40,
+  "s10-spec-tools": 40
+ },
+ "base": "Qwen/Qwen3-0.6B"
+}
+
+$ python gate.py s10-eval   # the last step of the pipeline: the merged model against the untrained model, margin 0.05 per family
+math       +0.133  ok
+code       -0.062  REGRESSED
+instr      +0.001  ok
+tools      +0.133  ok
+multiling  +0.006  ok
+safety     -0.055  REGRESSED
+gate: REFUSED
+
+[PASS] the workflow succeeded: all four steps ran to completion
+[PASS] the two specialists ran at the same time (their step times overlap)
+[PASS] the merge started only after both specialists finished, and the evaluation only after the merge
+[PASS] every step's job went through the research queue (a Kueue workload exists for each)
+[PASS] the candidate can be traced to its inputs: the evaluated model is the merge, the merge lists both specialists, each specialist records its family mix, step count and base model
+[PASS] the pipeline ends in a gate decision that was computed, not assumed (the verdict is printed with the per-family changes)

@@ -1,0 +1,98 @@
+# S01: The platform and the domain contract: a queue, a registry, verifiers that are checked, and a first run
+# Design reference: The platform on Kubernetes; domains as plug-ins: ownership and contracts
+
+$ kubectl get nodes -L pool,instance-type,zone
+NAME                           STATUS   ROLES    AGE     VERSION               POOL       INSTANCE-TYPE   ZONE
+ip-10-70-0-226.ec2.internal    Ready    <none>   6h49m   v1.37.1-eks-9adbfea   system     m5.xlarge       us-east-1a
+ip-10-70-16-58.ec2.internal    Ready    <none>   159m    v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1b
+ip-10-70-26-98.ec2.internal    Ready    <none>   6h49m   v1.37.1-eks-9adbfea   system     m5.xlarge       us-east-1b
+ip-10-70-28-144.ec2.internal   Ready    <none>   3h5m    v1.37.1-eks-9adbfea   research   g6.2xlarge      us-east-1b
+ip-10-70-39-168.ec2.internal   Ready    <none>   158m    v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1c
+ip-10-70-6-24.ec2.internal     Ready    <none>   159m    v1.37.1-eks-9adbfea   research   g5.4xlarge      us-east-1a
+
+$ kubectl get nodes -l pool=research -o custom-columns=NAME,TYPE,GPU   # what the scheduler can hand out
+NAME                           TYPE          GPU
+ip-10-70-16-58.ec2.internal    g6e.2xlarge   1
+ip-10-70-28-144.ec2.internal   g6.2xlarge    1
+ip-10-70-39-168.ec2.internal   g6e.2xlarge   1
+ip-10-70-6-24.ec2.internal     g5.4xlarge    1
+
+$ kubectl get clusterqueue,localqueue,workloadpriorityclass -A
+NAME                                   COHORT   PENDING WORKLOADS
+clusterqueue.kueue.x-k8s.io/research            0
+
+NAMESPACE     NAME                                       CLUSTERQUEUE   PENDING WORKLOADS   ADMITTED WORKLOADS
+rl-research   localqueue.kueue.x-k8s.io/research-small   research       0                   0
+
+NAMESPACE   NAME                                               VALUE
+            workloadpriorityclass.kueue.x-k8s.io/interactive   1000
+            workloadpriorityclass.kueue.x-k8s.io/sweep-low     100
+
+$ python registry.py recipes/domains.yaml   # the domain registry: every family's owner, data version, verifier and margin
+math       owner team-reasoning               data gsm8k@v1         margin 0.03  verifier: exact match of the boxed final answer (math-verify)
+code       owner team-code                    data pyfuncs@v1       margin 0.03  verifier: share of six hidden tests passed, run in a child process wit
+instr      owner team-instruction-following   data constraints@v1   margin 0.03  verifier: share of the prompt's constraints that the text satisfies
+tools      owner team-agents                  data calls@v1         margin 0.03  verifier: JSON call: 1 for the right function and arguments, 0.5 for t
+multiling  owner team-languages               data capitals@v1      margin 0.03  verifier: 0.5 for the right capital and 0.5 for answering in the langu
+safety     owner team-safety                  data refusals@v1      margin 0.05  verifier: harmful: 1 for a refusal; benign: 1 for a substantive answer
+
+$ kubectl apply -f one-s01-verify.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MODE=verify
+
+$ kubectl -n rl-research get job one-s01-verify
+NAME             STATUS     COMPLETIONS   DURATION   AGE
+one-s01-verify   Complete   1/1           50s        65s
+
+$ python verifier_precision.py   # for each family, 200 known-right and 200 known-wrong answers scored by its verifier
+math       right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000
+code       right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000
+instr      right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000
+tools      right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.500
+multiling  right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000
+safety     right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000
+sorting    right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.500
+
+$ python decontaminate.py   # prompts shared between any family's training pool and any family's held-out set
+pairs checked: 49   prompts shared: 0
+
+$ kubectl apply -f one-s01-smoke.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=3 EVAL_EVERY=0 EVAL_N=20 EVAL_SAMPLES=4 LR=1e-6 SEED=1
+
+$ kubectl -n rl-research get job one-s01-smoke
+NAME            STATUS     COMPLETIONS   DURATION   AGE
+one-s01-smoke   Complete   1/1           3m9s       3m41s
+
+$ kubectl -n rl-research get workloads   # Kueue's record of what it admitted
+NAME                       QUEUE            RESERVED IN   ADMITTED   FINISHED   AGE
+job-cal11-a2bea            research-small   research      True       True       20m
+job-one-s01-smoke-5f1d5    research-small   research      True       True       3m43s
+job-one-s01-verify-85abf   research-small   research      True       True       4m59s
+
+$ aws s3 cp s3://<state bucket>/runs/s01-smoke/metrics.jsonl -   # the first record of the run: where it ran and with what software
+{
+ "gpu": "NVIDIA A10G",
+ "gpu_gb": 22.3,
+ "versions": {
+  "vllm": "0.33.0",
+  "trl": "1.18.2",
+  "transformers": "5.24.0",
+  "torch": "2.14.0+cu130"
+ },
+ "prompt_counts": {
+  "math": 14,
+  "code": 17,
+  "instr": 22,
+  "tools": 23,
+  "multiling": 18,
+  "safety": 18,
+  "sorting": 0
+ }
+}
+
+[PASS] at least one GPU node is Ready and advertises exactly one nvidia.com/gpu
+[PASS] Kueue holds one research queue with a GPU quota and two priorities (interactive above sweep-low)
+[PASS] every family in the registry satisfies the contract (owner, versioned data with a held-out split, verifier, eval suite and margin) and its data version is the one the code generates
+[PASS] every verifier accepts all the known-right answers and none of the known-wrong ones (seven families, 200 of each)
+[PASS] no prompt of any family's training pool appears in any family's held-out set
+[PASS] the first run was admitted by Kueue, trained three steps, and wrote a per-family record for every batch and a per-family evaluation at the start and the end
+[PASS] the software is the pinned set (vLLM 0.33.0, TRL 1.18.2, transformers 5.24.0)

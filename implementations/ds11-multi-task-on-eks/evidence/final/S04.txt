@@ -1,0 +1,42 @@
+# S04: Designing the mixture: natural proportions, a temperature, a searched mixture
+# Design reference: Designing the mixture
+
+$ # sweep mixture-proxies-s04: 14 cells read back from the state bucket (already complete)
+1190 records
+
+$ python response_model.py mixture-proxies-s04   # the fit: predicted against measured scores on the fourteen proxy runs, and the weights the search chose
+fit residual (rms over runs and families): 0.0232   (a score's own noise is about 0.02)
+
+                           math      code     instr     tools multiling    safety
+natural (sizes)           0.552     0.296     0.089     0.037     0.022     0.004
+temperature 2             0.373     0.273     0.149     0.096     0.075     0.033
+uniform                   0.167     0.167     0.167     0.167     0.167     0.167
+searched                  0.436     0.041     0.074     0.115     0.294     0.040
+
+the response model predicts the weakest family gains +0.034 over the untrained model at the searched weights
+
+$ kubectl apply -f mixture-confirm-s04.yaml   # an Indexed Job on the research queue: 2 cells, 2 at a time
+ 0  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={"math": 0.436274, "code": 0.04125, "instr": 0.074225, "tools": 0.114547, "multiling": 0.293703, "safety": 0.04}
+ 1  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={"math": 0.436274, "code": 0.04125, "instr": 0.074225, "tools": 0.114547, "multiling": 0.293703, "safety": 0.04}
+
+$ kubectl -n rl-research get job mixture-confirm-s04
+NAME                  STATUS     COMPLETIONS   DURATION   AGE
+mixture-confirm-s04   Complete   2/2           13m        13m
+
+$ python confirm.py mixture-confirm-s04   # held-out score after 60 steps, mean of two seeds; the last rows are the gain over the untrained model
+                           math      code     instr     tools multiling    safety      mean       min
+natural                   0.495     0.779     0.608     0.868     0.676     0.502     0.655     0.495
+temperature2              0.507     0.779     0.724     0.888     0.682     0.561     0.690     0.507
+uniform                   0.426     0.682     0.757     0.894     0.686     0.657     0.684     0.426
+searched                  0.512     0.605     0.630     0.895     0.700     0.568     0.652     0.512
+
+                           math      code     instr     tools multiling    safety      mean     worst
+natural (gain)           +0.068    +0.204    +0.139    +0.019    +0.004    -0.009    +0.071    -0.009
+temperature2 (gain)      +0.081    +0.204    +0.254    +0.039    +0.011    +0.050    +0.106    +0.011
+uniform (gain)           -0.001    +0.107    +0.288    +0.045    +0.014    +0.146    +0.100    -0.001
+searched (gain)          +0.086    +0.030    +0.160    +0.046    +0.028    +0.056    +0.068    +0.028
+
+[PASS] all 22 runs (fourteen proxies, eight confirmations) completed
+[PASS] the response model fits the proxy runs to within the noise of a single score (rms residual under 0.04)
+[PASS] every family keeps at least its floor in the searched mixture (no capability silently disappears), and the weights sum to one
+[PASS] natural proportions starve the small families: the share of the smallest family is under 1% (the design's 100-to-1 example, here 125-to-1)

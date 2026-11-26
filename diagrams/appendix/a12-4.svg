@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="470px" viewBox="0 0 1420 470" style="background:#ffffff"><title>From families to a released model</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="470" fill="#ffffff"/><rect x="40" y="70" width="300" height="150" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="40" y="70" width="300" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="41" y="88" width="298" height="12" fill="#eff6ff"/>
+<text x="52" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">1. Families</text>
+<text x="52" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">six task families with verifiers</text>
+<text x="52" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">and held-out sets; a registry</text>
+<text x="52" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">entry per family; precision of</text>
+<text x="52" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each verifier measured</text>
+<rect x="400" y="70" width="300" height="150" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="400" y="70" width="300" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="401" y="88" width="298" height="12" fill="#eff6ff"/>
+<text x="412" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">2. Measure and choose</text>
+<text x="412" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">matrix: boost one family, score</text>
+<text x="412" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">all; proxy runs at random weights;</text>
+<text x="412" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a response model; a search for the</text>
+<text x="412" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">weights that lift the weakest</text>
+<rect x="760" y="70" width="300" height="150" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="760" y="70" width="300" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="761" y="88" width="298" height="12" fill="#eff6ff"/>
+<text x="772" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">3. Train</text>
+<text x="772" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">mixed, staged with refreshes, or</text>
+<text x="772" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">specialists merged; weights counted</text>
+<text x="772" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">in prompts or in tokens; a floor</text>
+<text x="772" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">for every family</text>
+<rect x="1100" y="70" width="280" height="150" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1100" y="70" width="280" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1101" y="88" width="278" height="12" fill="#fffbeb"/>
+<text x="1112" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">4. Gate</text>
+<text x="1112" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">every family scored; none may</text>
+<text x="1112" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fall below the current release by</text>
+<text x="1112" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">its margin plus twice its noise;</text>
+<text x="1112" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the average is not the test</text>
+<path d="M340 145 L400 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M700 145 L760 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1060 145 L1100 145" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1240 220 L1240 270 L550 270 L550 225" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#a-bad)"/>
+<rect x="793.7" y="251" width="212.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="900" y="263" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#dc2626">a regression: back to the mixture</text>
+<rect x="40" y="300" width="640" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="300" width="640" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="41" y="318" width="638" height="12" fill="#f8fafc"/>
+<text x="52" y="320" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">What a family has to bring (the contract)</text>
+<text x="52" y="348" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">versioned data with a held-out split that shares nothing with training; a verifier whose precision is measured;</text>
+<text x="52" y="365" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">an eval suite and a margin; an owner. Admission is a proxy run at a small weight: the new family's row and column</text>
+<text x="52" y="382" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">of the matrix, and the gate for every family already in.</text>
+<rect x="720" y="300" width="660" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="720" y="300" width="660" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="721" y="318" width="658" height="12" fill="#f8fafc"/>
+<text x="732" y="320" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">What the mixture team owns</text>
+<text x="732" y="348" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the weights, the floors, the order of stages, the merge weights and the gate. Domain teams do not negotiate</text>
+<text x="732" y="365" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">their share: they bring a better verifier or better data, and the matrix says what that is worth.</text></svg>

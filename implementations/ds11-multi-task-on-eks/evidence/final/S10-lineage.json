@@ -1,0 +1,17 @@
+{
+ "candidate": "s10-eval",
+ "evaluated": "s10-merge",
+ "merged_from": {
+  "s10-spec-math": 1.0,
+  "s10-spec-tools": 1.0
+ },
+ "specialist_mix": {
+  "s10-spec-math": "{\"math\": 1.0}",
+  "s10-spec-tools": "{\"tools\": 1.0}"
+ },
+ "specialist_steps": {
+  "s10-spec-math": 40,
+  "s10-spec-tools": 40
+ },
+ "base": "Qwen/Qwen3-0.6B"
+}

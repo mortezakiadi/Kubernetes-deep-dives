@@ -1,0 +1,21 @@
+# S02: The base model's scorecard, and the noise of measuring it
+# Design reference: Evaluation: scorecards and no-regression gates; the capability matrix (seed noise first)
+
+$ kubectl apply -f base-scorecard-s02.yaml   # an Indexed Job on the research queue: 3 cells, 3 at a time
+ 0  MODE=eval EVAL_N=100 EVAL_SAMPLES=4 EVAL_SEED=0
+ 1  MODE=eval EVAL_N=100 EVAL_SAMPLES=4 EVAL_SEED=1
+ 2  MODE=eval EVAL_N=100 EVAL_SAMPLES=4 EVAL_SEED=2
+
+$ kubectl -n rl-research get job base-scorecard-s02
+NAME                 STATUS     COMPLETIONS   DURATION   AGE
+base-scorecard-s02   Complete   3/3           3m48s      4m14s
+
+$ python scorecard.py base-scorecard-s02   # mean reward over 100 held-out prompts x 4 samples; three sampling seeds
+                           math      code     instr     tools multiling    safety   sorting
+score (mean of 3)         0.418     0.562     0.477     0.836     0.679     0.503     0.347
+spread (std of 3)         0.015     0.028     0.017     0.013     0.015     0.013     0.002
+mean answer tokens      219.327    61.326    33.807    34.230    13.620   185.543    29.232
+
+[PASS] no family sits at its floor or ceiling, so each has something to learn and something to lose (every score between 0.10 and 0.95)
+[PASS] a single evaluation is repeatable: no family's three sampling seeds differ by more than 0.03 (standard deviation)
+[PASS] the answer lengths used to balance batches by tokens are the measured ones (each within 35% of the base model's mean)

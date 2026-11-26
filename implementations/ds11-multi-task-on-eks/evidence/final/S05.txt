@@ -1,0 +1,100 @@
+# S05: Sequential, mixed or staged: what the order of training does to the families
+# Design reference: Sequential, mixed or staged
+
+$ kubectl apply -f s05-seq-1.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={"math": 1.0, "code": 0.0, "instr": 0.0, "tools": 0.0, "multiling": 0.0, "safety": 0.0} SAVE_FINAL=1
+
+$ kubectl -n rl-research get job s05-seq-1
+NAME        STATUS     COMPLETIONS   DURATION   AGE
+s05-seq-1   Complete   1/1           7m38s      7m53s
+
+$ kubectl apply -f s05-seq-2.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={"math": 0.0, "code": 1.0, "instr": 0.0, "tools": 0.0, "multiling": 0.0, "safety": 0.0} INIT_FROM=s05-seq-1 SAVE_FINAL=1
+
+$ kubectl -n rl-research get job s05-seq-2
+NAME        STATUS     COMPLETIONS   DURATION   AGE
+s05-seq-2   Complete   1/1           5m37s      5m45s
+
+$ kubectl apply -f s05-seq-3.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={"math": 0.0, "code": 0.0, "instr": 0.5, "tools": 0.5, "multiling": 0.0, "safety": 0.0} INIT_FROM=s05-seq-2 SAVE_FINAL=1
+
+$ kubectl -n rl-research get job s05-seq-3
+NAME        STATUS     COMPLETIONS   DURATION   AGE
+s05-seq-3   Complete   1/1           3m2s       3m11s
+
+$ kubectl apply -f s05-seq-4.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={"math": 0.0, "code": 0.0, "instr": 0.0, "tools": 0.0, "multiling": 1.0, "safety": 0.0} INIT_FROM=s05-seq-3 SAVE_FINAL=1
+
+$ kubectl -n rl-research get job s05-seq-4
+NAME        STATUS     COMPLETIONS   DURATION   AGE
+s05-seq-4   Complete   1/1           3m26s      3m42s
+
+$ kubectl apply -f s05-seq-5.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={"math": 0.0, "code": 0.0, "instr": 0.0, "tools": 0.0, "multiling": 0.0, "safety": 1.0} INIT_FROM=s05-seq-4
+
+$ kubectl -n rl-research get job s05-seq-5
+NAME        STATUS     COMPLETIONS   DURATION   AGE
+s05-seq-5   Complete   1/1           5m13s      5m15s
+
+$ kubectl apply -f s05-staged-1.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={"math": 0.166667, "code": 0.166667, "instr": 0.166667, "tools": 0.166667, "multiling": 0.166667, "safety": 0.166667} SAVE_FINAL=1
+
+$ kubectl -n rl-research get job s05-staged-1
+NAME           STATUS     COMPLETIONS   DURATION   AGE
+s05-staged-1   Complete   1/1           17m        17m
+
+$ kubectl apply -f s05-staged-2.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=30 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={"instr": 0.35, "tools": 0.35, "math": 0.1, "code": 0.1, "multiling": 0.05, "safety": 0.05} INIT_FROM=s05-staged-1 SAVE_FINAL=1
+
+$ kubectl -n rl-research get job s05-staged-2
+NAME           STATUS     COMPLETIONS   DURATION   AGE
+s05-staged-2   Complete   1/1           4m19s      4m45s
+
+$ kubectl apply -f s05-staged-3.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=30 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={"math": 0.3, "code": 0.1, "multiling": 0.3, "safety": 0.3, "instr": 0.0, "tools": 0.0} INIT_FROM=s05-staged-2
+
+$ kubectl -n rl-research get job s05-staged-3
+NAME           STATUS     COMPLETIONS   DURATION   AGE
+s05-staged-3   Complete   1/1           4m19s      4m45s
+
+$ kubectl apply -f s05-mixed-1.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time
+ 0  STEPS=120 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={"math": 0.166667, "code": 0.166667, "instr": 0.166667, "tools": 0.166667, "multiling": 0.166667, "safety": 0.166667} SAVE_FINAL=1
+
+$ kubectl -n rl-research get job s05-mixed-1
+NAME          STATUS     COMPLETIONS   DURATION   AGE
+s05-mixed-1   Complete   1/1           17m        17m
+
+$ python stage_report.py sequential   # held-out score of every family after each stage (sequential)
+                           math      code     instr     tools multiling    safety   sorting
+untrained                 0.425     0.574     0.470     0.850     0.679     0.512     0.346
+after math                0.512     0.492     0.479     0.880     0.677     0.500     0.336
+after code                0.527     1.000     0.490     0.900     0.694     0.492     0.336
+after instr+tools         0.520     0.135     0.991     0.932     0.630     0.465     0.338
+after multiling           0.525     0.907     0.993     0.938     0.839     0.608     0.324
+after safety              0.502     0.237     0.993     0.936     0.838     0.958     0.325
+
+$ python stage_report.py staged   # held-out score of every family after each stage (staged)
+                           math      code     instr     tools multiling    safety   sorting
+untrained                 0.425     0.574     0.470     0.850     0.679     0.512     0.346
+after mixed base          0.527     1.000     0.971     0.927     0.794     0.902     0.331
+after focus               0.485     1.000     0.974     0.932     0.820     0.853     0.343
+after refresh             0.532     1.000     0.976     0.931     0.860     0.922     0.316
+
+$ python stage_report.py mixed   # held-out score of every family after each stage (mixed)
+                           math      code     instr     tools multiling    safety   sorting
+untrained                 0.425     0.574     0.470     0.850     0.679     0.512     0.346
+after 120 mixed steps     0.530     0.993     0.977     0.960     0.820     0.938     0.343
+
+$ python refresh_trigger.py   # the design's rule: refresh if any family regressed by more than 1.5 points after the focus stage
+math       change in the focus stage: -0.042
+code       change in the focus stage: -0.000
+instr      change in the focus stage: +0.003
+tools      change in the focus stage: +0.005
+multiling  change in the focus stage: +0.026
+safety     change in the focus stage: -0.050
+trigger fires: True   (the refresh was run in both cases, so that its effect is measured)
+
+[PASS] all nine stage runs completed and each later stage started from the weights of the stage before
+[PASS] sequential training forgets: after the last stage at least one family trained earlier is at least 0.05 below its own best score of the chain
+[PASS] a focus stage keeps its neighbours: in the staged run, the families the focus stage barely trained lost less than the sequential run's worst loss
+[PASS] the three orders are compared on the same footing: 120 optimizer steps each, the same model and the same held-out sets

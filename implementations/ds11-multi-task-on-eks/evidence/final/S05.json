@@ -1,0 +1,166 @@
+{
+ "id": "S05",
+ "title": "Sequential, mixed or staged: what the order of training does to the families",
+ "design_ref": "Sequential, mixed or staged",
+ "purpose": "Train the same 120 steps (at 3e-6, three times the rate of the matrix, so that the weights move far enough for forgetting to show) three ways: one family group after another, everything mixed, and a mixed base followed by a focus stage and a short refresh. After every stage score every family, so forgetting shows up as a drop in a family the stage did not train.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f s05-seq-1.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={\"math\": 1.0, \"code\": 0.0, \"instr\": 0.0, \"tools\": 0.0, \"multiling\": 0.0, \"safety\": 0.0} SAVE_FINAL=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job s05-seq-1",
+   "output": "NAME        STATUS     COMPLETIONS   DURATION   AGE\ns05-seq-1   Complete   1/1           7m38s      7m53s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f s05-seq-2.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={\"math\": 0.0, \"code\": 1.0, \"instr\": 0.0, \"tools\": 0.0, \"multiling\": 0.0, \"safety\": 0.0} INIT_FROM=s05-seq-1 SAVE_FINAL=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job s05-seq-2",
+   "output": "NAME        STATUS     COMPLETIONS   DURATION   AGE\ns05-seq-2   Complete   1/1           5m37s      5m45s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f s05-seq-3.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={\"math\": 0.0, \"code\": 0.0, \"instr\": 0.5, \"tools\": 0.5, \"multiling\": 0.0, \"safety\": 0.0} INIT_FROM=s05-seq-2 SAVE_FINAL=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job s05-seq-3",
+   "output": "NAME        STATUS     COMPLETIONS   DURATION   AGE\ns05-seq-3   Complete   1/1           3m2s       3m11s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f s05-seq-4.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={\"math\": 0.0, \"code\": 0.0, \"instr\": 0.0, \"tools\": 0.0, \"multiling\": 1.0, \"safety\": 0.0} INIT_FROM=s05-seq-3 SAVE_FINAL=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job s05-seq-4",
+   "output": "NAME        STATUS     COMPLETIONS   DURATION   AGE\ns05-seq-4   Complete   1/1           3m26s      3m42s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f s05-seq-5.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=24 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={\"math\": 0.0, \"code\": 0.0, \"instr\": 0.0, \"tools\": 0.0, \"multiling\": 0.0, \"safety\": 1.0} INIT_FROM=s05-seq-4",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job s05-seq-5",
+   "output": "NAME        STATUS     COMPLETIONS   DURATION   AGE\ns05-seq-5   Complete   1/1           5m13s      5m15s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f s05-staged-1.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={\"math\": 0.166667, \"code\": 0.166667, \"instr\": 0.166667, \"tools\": 0.166667, \"multiling\": 0.166667, \"safety\": 0.166667} SAVE_FINAL=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job s05-staged-1",
+   "output": "NAME           STATUS     COMPLETIONS   DURATION   AGE\ns05-staged-1   Complete   1/1           17m        17m",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f s05-staged-2.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=30 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={\"instr\": 0.35, \"tools\": 0.35, \"math\": 0.1, \"code\": 0.1, \"multiling\": 0.05, \"safety\": 0.05} INIT_FROM=s05-staged-1 SAVE_FINAL=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job s05-staged-2",
+   "output": "NAME           STATUS     COMPLETIONS   DURATION   AGE\ns05-staged-2   Complete   1/1           4m19s      4m45s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f s05-staged-3.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=30 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={\"math\": 0.3, \"code\": 0.1, \"multiling\": 0.3, \"safety\": 0.3, \"instr\": 0.0, \"tools\": 0.0} INIT_FROM=s05-staged-2",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job s05-staged-3",
+   "output": "NAME           STATUS     COMPLETIONS   DURATION   AGE\ns05-staged-3   Complete   1/1           4m19s      4m45s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f s05-mixed-1.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=120 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 MIX={\"math\": 0.166667, \"code\": 0.166667, \"instr\": 0.166667, \"tools\": 0.166667, \"multiling\": 0.166667, \"safety\": 0.166667} SAVE_FINAL=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job s05-mixed-1",
+   "output": "NAME          STATUS     COMPLETIONS   DURATION   AGE\ns05-mixed-1   Complete   1/1           17m        17m",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python stage_report.py sequential   # held-out score of every family after each stage (sequential)",
+   "output": "                           math      code     instr     tools multiling    safety   sorting\nuntrained                 0.425     0.574     0.470     0.850     0.679     0.512     0.346\nafter math                0.512     0.492     0.479     0.880     0.677     0.500     0.336\nafter code                0.527     1.000     0.490     0.900     0.694     0.492     0.336\nafter instr+tools         0.520     0.135     0.991     0.932     0.630     0.465     0.338\nafter multiling           0.525     0.907     0.993     0.938     0.839     0.608     0.324\nafter safety              0.502     0.237     0.993     0.936     0.838     0.958     0.325",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python stage_report.py staged   # held-out score of every family after each stage (staged)",
+   "output": "                           math      code     instr     tools multiling    safety   sorting\nuntrained                 0.425     0.574     0.470     0.850     0.679     0.512     0.346\nafter mixed base          0.527     1.000     0.971     0.927     0.794     0.902     0.331\nafter focus               0.485     1.000     0.974     0.932     0.820     0.853     0.343\nafter refresh             0.532     1.000     0.976     0.931     0.860     0.922     0.316",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python stage_report.py mixed   # held-out score of every family after each stage (mixed)",
+   "output": "                           math      code     instr     tools multiling    safety   sorting\nuntrained                 0.425     0.574     0.470     0.850     0.679     0.512     0.346\nafter 120 mixed steps     0.530     0.993     0.977     0.960     0.820     0.938     0.343",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python refresh_trigger.py   # the design's rule: refresh if any family regressed by more than 1.5 points after the focus stage",
+   "output": "math       change in the focus stage: -0.042\ncode       change in the focus stage: -0.000\ninstr      change in the focus stage: +0.003\ntools      change in the focus stage: +0.005\nmultiling  change in the focus stage: +0.026\nsafety     change in the focus stage: -0.050\ntrigger fires: True   (the refresh was run in both cases, so that its effect is measured)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "all nine stage runs completed and each later stage started from the weights of the stage before",
+   "passed": true,
+   "because": "The stages of a chain are separate runs: each saves its final weights to the bucket and the next starts from them, so the chain is auditable run by run."
+  },
+  {
+   "description": "sequential training forgets: after the last stage at least one family trained earlier is at least 0.05 below its own best score of the chain",
+   "passed": true,
+   "because": "Each stage trains only its own families, so nothing holds the earlier families in place while the weights move; whatever they shared with the new stage is overwritten."
+  },
+  {
+   "description": "a focus stage keeps its neighbours: in the staged run, the families the focus stage barely trained lost less than the sequential run's worst loss",
+   "passed": true,
+   "because": "The focus stage is 70% instruction and tools and 30% the other four families, so the others keep receiving gradient while the focus families improve."
+  },
+  {
+   "description": "the three orders are compared on the same footing: 120 optimizer steps each, the same model and the same held-out sets",
+   "passed": true,
+   "because": "The steps are 24 x 5, 60 + 30 + 30 and 120; the comparison is of order, not of compute."
+  }
+ ],
+ "notes": [
+  "After 120 steps (mean over the six families / worst family): sequential 0.744 / 0.237, staged with refresh 0.870 / 0.532, mixed 0.869 / 0.530. One seed per order: differences of a few points are inside the noise of S03."
+ ]
+}

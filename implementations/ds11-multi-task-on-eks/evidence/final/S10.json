@@ -1,0 +1,78 @@
+{
+ "id": "S10",
+ "title": "The pipeline: two specialists in parallel, a merge, an evaluation, as one workflow on the queue",
+ "design_ref": "The platform on Kubernetes",
+ "purpose": "Run the design's workflow: two specialists train at the same time, a merge job waits for both, an evaluation job waits for the merge. Every step is a Job in the research queue; the workflow engine only orders them. Afterwards, trace the candidate back to its inputs from the records the runs wrote.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f combine-s10.yaml   # an Argo Workflow: four steps, each one a Kueue-managed Job",
+   "output": "spec-math    after: -\nspec-tools   after: -\nmerge        after: spec-math, spec-tools\nevaluate     after: merge",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get workflow combine-s10",
+   "output": "NAME          STATUS      AGE   MESSAGE\ncombine-s10   Succeeded   15m",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get workflow combine-s10 -o json   # when each step started and finished",
+   "output": "spec-math    Succeeded  started 2026-11-26T05:20:21Z  finished 2026-11-26T05:29:08Z\nspec-tools   Succeeded  started 2026-11-26T05:20:21Z  finished 2026-11-26T05:28:53Z\nmerge        Succeeded  started 2026-11-26T05:29:12Z  finished 2026-11-26T05:30:50Z\nevaluate     Succeeded  started 2026-11-26T05:30:59Z  finished 2026-11-26T05:34:52Z",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get workloads | grep combine   # Kueue's record: the workflow's jobs went through the same queue",
+   "output": "job-combine-s10-evaluate-236a3     research-small   research      True       True       4m24s\njob-combine-s10-merge-cef9f        research-small   research      True       True       6m11s\njob-combine-s10-spec-math-3e7d2    research-small   research      True       True       14m\njob-combine-s10-spec-tools-b9e27   research-small   research      True       True       14m",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python lineage.py s10-eval   # the candidate traced back to the runs and the data that produced it",
+   "output": "{\n \"candidate\": \"s10-eval\",\n \"evaluated\": \"s10-merge\",\n \"merged_from\": {\n  \"s10-spec-math\": 1.0,\n  \"s10-spec-tools\": 1.0\n },\n \"specialist_mix\": {\n  \"s10-spec-math\": \"{\\\"math\\\": 1.0}\",\n  \"s10-spec-tools\": \"{\\\"tools\\\": 1.0}\"\n },\n \"specialist_steps\": {\n  \"s10-spec-math\": 40,\n  \"s10-spec-tools\": 40\n },\n \"base\": \"Qwen/Qwen3-0.6B\"\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python gate.py s10-eval   # the last step of the pipeline: the merged model against the untrained model, margin 0.05 per family",
+   "output": "math       +0.133  ok\ncode       -0.062  REGRESSED\ninstr      +0.001  ok\ntools      +0.133  ok\nmultiling  +0.006  ok\nsafety     -0.055  REGRESSED\ngate: REFUSED",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the workflow succeeded: all four steps ran to completion",
+   "passed": true,
+   "because": "Each step creates one Indexed Job, waits for its success condition (a succeeded pod) or its failure condition, and reports to the controller."
+  },
+  {
+   "description": "the two specialists ran at the same time (their step times overlap)",
+   "passed": true,
+   "because": "The DAG gives the two specialists no dependency on each other, and the queue has four GPUs of quota, so both were admitted together."
+  },
+  {
+   "description": "the merge started only after both specialists finished, and the evaluation only after the merge",
+   "passed": true,
+   "because": "The dependencies are the workflow's only job: the merge reads the specialists' weights from the bucket, so it must not start before they are written."
+  },
+  {
+   "description": "every step's job went through the research queue (a Kueue workload exists for each)",
+   "passed": true,
+   "because": "The pipeline does not bypass admission: its jobs wait behind, and ahead of, other work by priority like any other."
+  },
+  {
+   "description": "the candidate can be traced to its inputs: the evaluated model is the merge, the merge lists both specialists, each specialist records its family mix, step count and base model",
+   "passed": true,
+   "because": "Every run writes its recipe as its first record, and the merge writes the runs it combined. Nothing was added by hand; the chain is read from the files."
+  },
+  {
+   "description": "the pipeline ends in a gate decision that was computed, not assumed (the verdict is printed with the per-family changes)",
+   "passed": true,
+   "because": "The last step compares the merged model with the untrained one per family with the same function the release gate uses."
+  }
+ ],
+ "notes": []
+}

@@ -1,0 +1,48 @@
+# S03: The capability matrix: what training on one family does to every other
+# Design reference: The capability matrix: transfer and interference
+
+$ kubectl apply -f transfer-matrix-s03.yaml   # an Indexed Job on the research queue: 15 cells, 4 at a time
+ 0  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={"math": 0.166667, "code": 0.166667, "instr": 0.166667, "tools": 0.166667, "multiling": 0.166667, "safety": 0.166667}
+ 1  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={"math": 0.166667, "code": 0.166667, "instr": 0.166667, "tools": 0.166667, "multiling": 0.166667, "safety": 0.166667}
+ 2  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=3 MIX={"math": 0.166667, "code": 0.166667, "instr": 0.166667, "tools": 0.166667, "multiling": 0.166667, "safety": 0.166667}
+ 3  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={"math": 0.305555, "code": 0.138889, "instr": 0.138889, "tools": 0.138889, "multiling": 0.138889, "safety": 0.138889}
+ 4  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={"math": 0.305555, "code": 0.138889, "instr": 0.138889, "tools": 0.138889, "multiling": 0.138889, "safety": 0.138889}
+ 5  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={"math": 0.138889, "code": 0.305555, "instr": 0.138889, "tools": 0.138889, "multiling": 0.138889, "safety": 0.138889}
+ 6  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={"math": 0.138889, "code": 0.305555, "instr": 0.138889, "tools": 0.138889, "multiling": 0.138889, "safety": 0.138889}
+ 7  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={"math": 0.138889, "code": 0.138889, "instr": 0.305555, "tools": 0.138889, "multiling": 0.138889, "safety": 0.138889}
+ 8  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={"math": 0.138889, "code": 0.138889, "instr": 0.305555, "tools": 0.138889, "multiling": 0.138889, "safety": 0.138889}
+ 9  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={"math": 0.138889, "code": 0.138889, "instr": 0.138889, "tools": 0.305555, "multiling": 0.138889, "safety": 0.138889}
+10  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={"math": 0.138889, "code": 0.138889, "instr": 0.138889, "tools": 0.305555, "multiling": 0.138889, "safety": 0.138889}
+11  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={"math": 0.138889, "code": 0.138889, "instr": 0.138889, "tools": 0.138889, "multiling": 0.305555, "safety": 0.138889}
+12  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={"math": 0.138889, "code": 0.138889, "instr": 0.138889, "tools": 0.138889, "multiling": 0.305555, "safety": 0.138889}
+13  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={"math": 0.138889, "code": 0.138889, "instr": 0.138889, "tools": 0.138889, "multiling": 0.138889, "safety": 0.305555}
+14  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={"math": 0.138889, "code": 0.138889, "instr": 0.138889, "tools": 0.138889, "multiling": 0.138889, "safety": 0.305555}
+
+$ kubectl -n rl-research get job transfer-matrix-s03
+NAME                  STATUS     COMPLETIONS   DURATION   AGE
+transfer-matrix-s03   Complete   15/15         52m        52m
+
+$ python transfer_matrix.py transfer-matrix-s03   # rows: the family boosted by 20 points of mixture weight; columns: the family evaluated; * = outside the noise band
+                             math      code     instr     tools multiling    safety   sorting
++20% math               +0.040*   +0.026    -0.067*   +0.001    -0.010*   +0.006    +0.006 
++20% code               -0.005    +0.088*   -0.037*   -0.000    +0.002    +0.013    +0.004 
++20% instr              +0.016    -0.098*   +0.048*   +0.007    +0.008*   +0.027    -0.004 
++20% tools              +0.010    -0.084*   -0.014    +0.027*   +0.016*   +0.052    +0.001 
++20% multiling          +0.036*   -0.074    -0.049*   +0.006    +0.006    -0.005    -0.004 
++20% safety             +0.029*   -0.038    -0.024    +0.009    -0.007*   +0.078    +0.007 
+noise (std of 3)            0.015     0.045     0.014     0.005     0.003     0.051     0.011
+baseline score              0.438     0.741     0.771     0.892     0.699     0.634     0.341
+untrained model             0.427     0.575     0.470     0.849     0.673     0.510     0.347
+
+$ python matrix_summary.py   # what the matrix says, in words
+diagonal (direct effect): math +0.040, code +0.088, instr +0.048, tools +0.027, multiling +0.006, safety +0.078
+off-diagonal cells inside the noise band: 19 of 30
+transfer outside the noise band: instr->multiling +0.008; tools->multiling +0.016; multiling->math +0.036; safety->math +0.029
+interference outside the noise band: math->instr -0.067; math->multiling -0.010; code->instr -0.037; instr->code -0.098; tools->code -0.084; multiling->instr -0.049; safety->multiling -0.007
+asymmetric pairs (A helps B by more than B helps A): 7
+
+[PASS] all fifteen runs completed
+[PASS] raising a family's weight raises its own held-out score in at least five of six families (the diagonal)
+[PASS] most apparent transfer is inside the seed noise: at least half of the off-diagonal cells are not outside the band
+[PASS] the matrix is directional: it is not symmetric (at least one pair differs by more than twice the noise between its two directions, or is significant in only one)
+[PASS] the new family's column was measured for free: the seventh family (sorting) has a baseline score and a noise estimate before it is admitted (S09)

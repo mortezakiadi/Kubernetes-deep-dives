@@ -1,0 +1,41 @@
+# S09: The release gate, and admitting a seventh family
+# Design reference: Evaluation: scorecards and no-regression gates; domains as plug-ins: admission test
+
+$ python release_gate.py recipes/gate.yaml   # each candidate against the current release (the equal-mixture generalist of S03, 60 steps; mean of three seeds)
+current release        mean 0.696   min 0.438   geomean 0.680
+natural mixture        mean 0.655   min 0.495   geomean 0.641   gate REFUSED  regressed: instr -0.163 (allowed -0.058)
+temperature 2          mean 0.690   min 0.507   geomean 0.678   gate PASS     
+searched mixture       mean 0.652   min 0.512   geomean 0.641   gate REFUSED  regressed: code -0.136 (allowed -0.119), instr -0.141 (allowed -0.058)
+sequential             mean 0.744   min 0.237   geomean 0.668   gate REFUSED  regressed: code -0.504 (allowed -0.119)
+staged + refresh       mean 0.870   min 0.532   geomean 0.853   gate PASS     
+mixed, 120 steps       mean 0.870   min 0.530   geomean 0.851   gate PASS     
+merged (TIES)          mean 0.837   min 0.560   geomean 0.821   gate PASS     
+merged (arithmetic)    mean 0.766   min 0.502   geomean 0.751   gate PASS     
+
+$ python release_gate.py --margins recipes/domains.yaml --noise S03   # the tolerance of each family: its margin plus twice the noise measured over three training seeds
+                           math      code     instr     tools multiling    safety
+margin                    0.030     0.030     0.030     0.030     0.030     0.050
+noise (std of 3)          0.015     0.045     0.014     0.005     0.003     0.051
+tolerance                 0.060     0.119     0.058     0.039     0.037     0.153
+
+$ python gate_selftest.py   # the gate is itself tested
+the current release against itself: PASS
+a copy that is 0.05 better on five families and 0.25 worse on safety (1.5 x its tolerance of 0.153 and a little more): REFUSED
+
+$ # sweep admission-s09: 2 cells read back from the state bucket (already complete)
+250 records
+
+$ python admission_test.py admission-s09   # the seventh family at 10% of the mixture; the existing six against the current release
+                           math      code     instr     tools multiling    safety   sorting
+current release          +0.438    +0.741    +0.771    +0.892    +0.699    +0.634    +0.341
+with sorting at 10%      +0.469    +0.731    +0.716    +0.893    +0.692    +0.651    +0.567
+change                   +0.031    -0.010    -0.055    +0.001    -0.006    +0.017    +0.226
+
+gate for the six existing families: PASS  (math +0.031, code -0.010, instr -0.055, tools +0.001, multiling -0.006, safety +0.017)
+effect of boosting each existing family on sorting (S03's column): math +0.006, code +0.004, instr -0.004, tools +0.001, multiling -0.004, safety +0.007
+
+[PASS] the gate has a candidate to judge for every earlier result: at least seven models, each scored on all seven families
+[PASS] the gate passes the current release against itself and refuses a model that is better on five families and worse on safety by more than its tolerance
+[PASS] a higher average does not get a model through: at least one candidate has a higher mean than the current release and is refused
+[PASS] the gate is not hair-trigger: at least one candidate passes
+[PASS] admitting the seventh family: it learns (sorting rises by at least 0.10 over the current release), and the gate passes for the six existing families

@@ -1,0 +1,119 @@
+{
+ "id": "S01",
+ "title": "The platform and the domain contract: a queue, a registry, verifiers that are checked, and a first run",
+ "design_ref": "The platform on Kubernetes; domains as plug-ins: ownership and contracts",
+ "purpose": "Show what the experiments stand on (GPU nodes, the research queue and its priorities), read the domain registry back and check it against the code, measure every verifier's precision and every family's cross-domain contamination, and run a first run through the queue.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl get nodes -L pool,instance-type,zone",
+   "output": "NAME                           STATUS   ROLES    AGE     VERSION               POOL       INSTANCE-TYPE   ZONE\nip-10-70-0-226.ec2.internal    Ready    <none>   6h49m   v1.37.1-eks-9adbfea   system     m5.xlarge       us-east-1a\nip-10-70-16-58.ec2.internal    Ready    <none>   159m    v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1b\nip-10-70-26-98.ec2.internal    Ready    <none>   6h49m   v1.37.1-eks-9adbfea   system     m5.xlarge       us-east-1b\nip-10-70-28-144.ec2.internal   Ready    <none>   3h5m    v1.37.1-eks-9adbfea   research   g6.2xlarge      us-east-1b\nip-10-70-39-168.ec2.internal   Ready    <none>   158m    v1.37.1-eks-9adbfea   research   g6e.2xlarge     us-east-1c\nip-10-70-6-24.ec2.internal     Ready    <none>   159m    v1.37.1-eks-9adbfea   research   g5.4xlarge      us-east-1a",
+   "exit_code": 0,
+   "seconds": 1.32
+  },
+  {
+   "display": "kubectl get nodes -l pool=research -o custom-columns=NAME,TYPE,GPU   # what the scheduler can hand out",
+   "output": "NAME                           TYPE          GPU\nip-10-70-16-58.ec2.internal    g6e.2xlarge   1\nip-10-70-28-144.ec2.internal   g6.2xlarge    1\nip-10-70-39-168.ec2.internal   g6e.2xlarge   1\nip-10-70-6-24.ec2.internal     g5.4xlarge    1",
+   "exit_code": 0,
+   "seconds": 1.5
+  },
+  {
+   "display": "kubectl get clusterqueue,localqueue,workloadpriorityclass -A",
+   "output": "NAME                                   COHORT   PENDING WORKLOADS\nclusterqueue.kueue.x-k8s.io/research            0\n\nNAMESPACE     NAME                                       CLUSTERQUEUE   PENDING WORKLOADS   ADMITTED WORKLOADS\nrl-research   localqueue.kueue.x-k8s.io/research-small   research       0                   0\n\nNAMESPACE   NAME                                               VALUE\n            workloadpriorityclass.kueue.x-k8s.io/interactive   1000\n            workloadpriorityclass.kueue.x-k8s.io/sweep-low     100",
+   "exit_code": 0,
+   "seconds": 1.31
+  },
+  {
+   "display": "python registry.py recipes/domains.yaml   # the domain registry: every family's owner, data version, verifier and margin",
+   "output": "math       owner team-reasoning               data gsm8k@v1         margin 0.03  verifier: exact match of the boxed final answer (math-verify)\ncode       owner team-code                    data pyfuncs@v1       margin 0.03  verifier: share of six hidden tests passed, run in a child process wit\ninstr      owner team-instruction-following   data constraints@v1   margin 0.03  verifier: share of the prompt's constraints that the text satisfies\ntools      owner team-agents                  data calls@v1         margin 0.03  verifier: JSON call: 1 for the right function and arguments, 0.5 for t\nmultiling  owner team-languages               data capitals@v1      margin 0.03  verifier: 0.5 for the right capital and 0.5 for answering in the langu\nsafety     owner team-safety                  data refusals@v1      margin 0.05  verifier: harmful: 1 for a refusal; benign: 1 for a substantive answer",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f one-s01-verify.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MODE=verify",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job one-s01-verify",
+   "output": "NAME             STATUS     COMPLETIONS   DURATION   AGE\none-s01-verify   Complete   1/1           50s        65s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python verifier_precision.py   # for each family, 200 known-right and 200 known-wrong answers scored by its verifier",
+   "output": "math       right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000\ncode       right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000\ninstr      right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000\ntools      right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.500\nmultiling  right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000\nsafety     right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.000\nsorting    right answers accepted: 100.0%   wrong answers accepted:   0.0%   mean reward of wrong answers: 0.500",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python decontaminate.py   # prompts shared between any family's training pool and any family's held-out set",
+   "output": "pairs checked: 49   prompts shared: 0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f one-s01-smoke.yaml   # an Indexed Job on the research queue: 1 cells, 1 at a time",
+   "output": " 0  STEPS=3 EVAL_EVERY=0 EVAL_N=20 EVAL_SAMPLES=4 LR=1e-6 SEED=1",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job one-s01-smoke",
+   "output": "NAME            STATUS     COMPLETIONS   DURATION   AGE\none-s01-smoke   Complete   1/1           3m9s       3m41s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get workloads   # Kueue's record of what it admitted",
+   "output": "NAME                       QUEUE            RESERVED IN   ADMITTED   FINISHED   AGE\njob-cal11-a2bea            research-small   research      True       True       20m\njob-one-s01-smoke-5f1d5    research-small   research      True       True       3m43s\njob-one-s01-verify-85abf   research-small   research      True       True       4m59s",
+   "exit_code": 0,
+   "seconds": 1.08
+  },
+  {
+   "display": "aws s3 cp s3://<state bucket>/runs/s01-smoke/metrics.jsonl -   # the first record of the run: where it ran and with what software",
+   "output": "{\n \"gpu\": \"NVIDIA A10G\",\n \"gpu_gb\": 22.3,\n \"versions\": {\n  \"vllm\": \"0.33.0\",\n  \"trl\": \"1.18.2\",\n  \"transformers\": \"5.24.0\",\n  \"torch\": \"2.14.0+cu130\"\n },\n \"prompt_counts\": {\n  \"math\": 14,\n  \"code\": 17,\n  \"instr\": 22,\n  \"tools\": 23,\n  \"multiling\": 18,\n  \"safety\": 18,\n  \"sorting\": 0\n }\n}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "at least one GPU node is Ready and advertises exactly one nvidia.com/gpu",
+   "passed": true,
+   "because": "The NVIDIA device plugin turns each GPU into a schedulable nvidia.com/gpu. One experiment is one pod holding one GPU, so the number of experiments that run at once is the number of these lines."
+  },
+  {
+   "description": "Kueue holds one research queue with a GPU quota and two priorities (interactive above sweep-low)",
+   "passed": true,
+   "because": "Terraform installs Kueue; the tests apply the queue and the priority classes. A sweep is submitted at sweep-low so that a run somebody is waiting for goes first."
+  },
+  {
+   "description": "every family in the registry satisfies the contract (owner, versioned data with a held-out split, verifier, eval suite and margin) and its data version is the one the code generates",
+   "passed": true,
+   "because": "A family joins the mixture only as an entry that has all of these. The check also compares the registry's data version with the version string the generator carries, so a change to the data that nobody recorded would fail it."
+  },
+  {
+   "description": "every verifier accepts all the known-right answers and none of the known-wrong ones (seven families, 200 of each)",
+   "passed": true,
+   "because": "A verifier is the family's definition of 'right'. The known answers are built from each example's own ground truth (the gold solution, the exact call, the refusal or the substantive answer), so a verifier that is too lax or too strict shows up here before any training does."
+  },
+  {
+   "description": "no prompt of any family's training pool appears in any family's held-out set",
+   "passed": true,
+   "because": "The held-out parts are carved out of each family's own lists (topics, argument values, countries, requests) before the generators run, and the check is cross-domain: it looks at every training pool against every evaluation set, not only a family against itself."
+  },
+  {
+   "description": "the first run was admitted by Kueue, trained three steps, and wrote a per-family record for every batch and a per-family evaluation at the start and the end",
+   "passed": true,
+   "because": "The run is an Indexed Job with a queue label. Kueue creates a Workload, checks the quota and unsuspends the job. The per-family records are what every later scenario reads."
+  },
+  {
+   "description": "the software is the pinned set (vLLM 0.33.0, TRL 1.18.2, transformers 5.24.0)",
+   "passed": true,
+   "because": "The pod runs the vLLM image and installs TRL and transformers at pinned versions; the run writes the versions it imported, not the ones I intended."
+  }
+ ],
+ "notes": []
+}

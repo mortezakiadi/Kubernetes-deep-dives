@@ -1,0 +1,49 @@
+{
+ "id": "S07",
+ "title": "Interference: do two families pull the weights in opposite directions, and where",
+ "design_ref": "Interference: detect it, then reduce it",
+ "purpose": "Take the gradient of each family's RL loss on a probe batch, on the untrained model and on the model trained on the equal mixture, and compare the families' gradients module by module. The whole-model cosine is one number; the design says to look per module.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "# sweep interference-probe-s07: 2 cells read back from the state bucket (already complete)",
+   "output": "16 records",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python gradient_conflict.py interference-probe-s07 --model base   # per pair: whole-model cosine, share of the gradient-product mass that is negative (matrices only), modules with cosine below -0.2",
+   "output": "gradient norm per family: math 0.79, code 1.59, instr 5.70, tools 1.82, multiling 5.73, safety 0.36\nmath|multiling     whole -0.023   negative share 0.86   strong modules   0   worst: L2.mlp.down_proj (-0.06)\nmath|instr         whole -0.025   negative share 0.85   strong modules   1   worst: L2.mlp.down_proj (-0.07)\ntools|safety       whole -0.016   negative share 0.80   strong modules   1   worst: L2.mlp.down_proj (-0.06)\nmath|safety        whole -0.014   negative share 0.74   strong modules   2   worst: L2.mlp.down_proj (-0.05)\ncode|multiling     whole -0.008   negative share 0.67   strong modules   0   worst: L2.mlp.down_proj (-0.04)\ninstr|tools        whole -0.007   negative share 0.65   strong modules   0   worst: L2.mlp.down_proj (-0.02)\nmath|code          whole -0.006   negative share 0.64   strong modules   1   worst: L2.mlp.down_proj (-0.01)\ncode|tools         whole -0.006   negative share 0.64   strong modules   1   worst: L17.self_attn.q_proj (-0.23)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python gradient_conflict.py interference-probe-s07 --model trained   # per pair: whole-model cosine, share of the gradient-product mass that is negative (matrices only), modules with cosine below -0.2",
+   "output": "gradient norm per family: math 1.14, code 3.41, instr 5.57, tools 4.44, multiling 3.75, safety 0.45\nmultiling|safety   whole -0.042   negative share 0.94   strong modules   2   worst: L2.mlp.down_proj (-0.04)\ninstr|multiling    whole -0.050   negative share 0.93   strong modules   7   worst: L2.mlp.down_proj (-0.10)\ncode|safety        whole -0.006   negative share 0.69   strong modules   0   worst: L2.mlp.down_proj (-0.02)\ntools|safety       whole -0.006   negative share 0.65   strong modules   1   worst: L17.self_attn.q_proj (-0.15)\ncode|tools         whole -0.003   negative share 0.59   strong modules   0   worst: L2.mlp.down_proj (-0.03)\ncode|instr         whole -0.003   negative share 0.58   strong modules   0   worst: L11.self_attn.v_proj (-0.06)\ninstr|tools        whole -0.003   negative share 0.57   strong modules   1   worst: L15.self_attn.v_proj (-0.05)\ncode|multiling     whole -0.001   negative share 0.55   strong modules   0   worst: L2.mlp.down_proj (-0.01)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python probe_vs_matrix.py   # does the gradient probe predict the transfer matrix?",
+   "output": "Spearman correlation across the 15 pairs between the probe's negative share and the matrix's mean transfer of the pair: +0.21 (a negative value means more conflict where there is less transfer)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the probe ran on both models for all six families, with a non-zero gradient for each",
+   "passed": true,
+   "because": "A family whose probe prompts all scored the same has no advantage and no gradient; 32 prompts per family with four answers each were enough for every family here."
+  },
+  {
+   "description": "the whole-model cosines are small (at most 0.15 in absolute value for every pair, on both models)",
+   "passed": true,
+   "because": "Two gradients of 0.6 billion numbers each, dominated by many modules that do not interact, come out nearly orthogonal when summed over the whole model: the design's first warning."
+  }
+ ],
+ "notes": [
+  "Two predictions written down before the probe ran, and what it said. (1) Per module the picture differs from the whole-model cosine: for at least one pair ten or more large modules with a cosine below -0.2: FAILED (the most for any pair on either model was 7; the lowest module cosine was -0.23). (2) The negative share of a pair is reproducible between the untrained and the trained model (Spearman above 0.3): FAILED (-0.16). The reading I draw: with 32 prompts per family, six families whose gradients are mostly noise at this scale, and a model this small, the probe does not separate pairs; what it does show is that no module is strongly conflicted, so the interference of the matrix (S03) is not a property of a few modules that a gradient probe can name here. A probe that is not reproducible between two nearby models is not an instrument yet; the design's own advice, to measure the noise first, applies to it as much as to the matrix.",
+  "Spearman correlation across the 15 pairs between the probe's negative share and the matrix's mean transfer of the pair: +0.21 (a negative value means more conflict where there is less transfer). I did not set a threshold on this correlation in advance: the claim is only that the two instruments, an evaluation delta and a gradient probe, can be compared on the same pairs."
+ ]
+}

@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="760px" viewBox="0 0 1420 760" style="background:#ffffff"><title>The cluster and the pipeline</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="760" fill="#ffffff"/><rect x="20" y="30" width="1380" height="710" rx="14" fill="#f8fafc" fill-opacity=".55" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#334155">EKS 1.37, ONE VPC, THREE ZONES</text>
+<rect x="40" y="70" width="330" height="650" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="54" y="94" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">SYSTEM POOL: 2 x m5.xlarge</text>
+<rect x="55" y="105" width="300" height="100" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="55" y="105" width="300" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="56" y="123" width="298" height="12" fill="#ecfdf5"/>
+<text x="67" y="125" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Kueue</text>
+<text x="67" y="153" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">ClusterQueue 'research': 4 GPUs</text>
+<text x="67" y="170" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">priorities: sweep-low, interactive</text>
+<text x="67" y="187" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a job is admitted as a whole</text>
+<rect x="55" y="230" width="300" height="100" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="55" y="230" width="300" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="56" y="248" width="298" height="12" fill="#ecfdf5"/>
+<text x="67" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Argo Workflows</text>
+<text x="67" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">orders the steps of a pipeline;</text>
+<text x="67" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each step creates one Kueue-</text>
+<text x="67" y="312" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">managed Job and waits for it</text>
+<rect x="55" y="355" width="300" height="70" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="55" y="355" width="300" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="56" y="373" width="298" height="12" fill="#ecfdf5"/>
+<text x="67" y="375" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">NVIDIA device plugin</text>
+<text x="67" y="403" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">advertises nvidia.com/gpu</text>
+<rect x="55" y="450" width="300" height="100" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="55" y="450" width="300" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="56" y="468" width="298" height="12" fill="#f8fafc"/>
+<text x="67" y="470" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">State bucket (S3)</text>
+<text x="67" y="498" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">runs/&lt;run&gt;/metrics.jsonl</text>
+<text x="67" y="515" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">runs/&lt;run&gt;/final/ (weights of</text>
+<text x="67" y="532" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">specialists and merged models)</text>
+<rect x="400" y="70" width="980" height="650" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="414" y="94" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">RESEARCH POOL: single-GPU nodes, one job per node</text>
+<rect x="420" y="110" width="450" height="150" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="420" y="110" width="450" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="421" y="128" width="448" height="12" fill="#eff6ff"/>
+<text x="432" y="130" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">A training run (MODE=train)</text>
+<text x="432" y="158" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">TRL GRPO with a colocated vLLM engine (8 GiB)</text>
+<text x="432" y="175" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the mixture decides which family each prompt is from</text>
+<text x="432" y="192" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one reward function dispatches to the family's verifier</text>
+<text x="432" y="209" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">per-family reward, signal and tokens logged per batch</text>
+<rect x="900" y="110" width="460" height="150" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="900" y="110" width="460" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="901" y="128" width="458" height="12" fill="#eff6ff"/>
+<text x="912" y="130" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Evaluation (every run, start and end)</text>
+<text x="912" y="158" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">200 held-out prompts x 4 samples per family,</text>
+<text x="912" y="175" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">seven families, same sampling seed;</text>
+<text x="912" y="192" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the six of the mixture and the one to admit</text>
+<rect x="420" y="290" width="220" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="420" y="290" width="220" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="421" y="308" width="218" height="12" fill="#f8fafc"/>
+<text x="432" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">MODE=merge</text>
+<text x="432" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reads the base and the</text>
+<text x="432" y="355" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">specialists' weights from</text>
+<text x="432" y="372" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the bucket; TIES or plain</text>
+<text x="432" y="389" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">task arithmetic</text>
+<rect x="660" y="290" width="220" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="660" y="290" width="220" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="661" y="308" width="218" height="12" fill="#f8fafc"/>
+<text x="672" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">MODE=probe</text>
+<text x="672" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">per-module gradients of</text>
+<text x="672" y="355" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each family's loss and</text>
+<text x="672" y="372" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">their cosines</text>
+<rect x="900" y="290" width="220" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="900" y="290" width="220" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="901" y="308" width="218" height="12" fill="#f8fafc"/>
+<text x="912" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">MODE=eval</text>
+<text x="912" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">scores any model from</text>
+<text x="912" y="355" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">its weights in the bucket</text>
+<rect x="1140" y="290" width="220" height="130" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1140" y="290" width="220" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1141" y="308" width="218" height="12" fill="#f8fafc"/>
+<text x="1152" y="310" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">MODE=verify</text>
+<text x="1152" y="338" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">verifier precision and</text>
+<text x="1152" y="355" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">cross-domain overlap of</text>
+<text x="1152" y="372" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">training and held-out data</text>
+<path d="M355 160 L420 160" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="364.9" y="143.0" width="45.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="387.5" y="155.0" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">admits</text>
+<path d="M355 280 L400 280" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="420" y="470" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">A pipeline (S10): two specialists train at once, the merge waits for both, the evaluation waits for the merge. Each step is one of the modes above,</text>
+<text x="420" y="490" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">run as a Job through the same queue as every sweep. Weights travel through the bucket; nothing needs a fast network between nodes.</text>
+<text x="420" y="530" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">Sweeps are Indexed Jobs: one pod per cell of the grid, admitted as a whole by Kueue.</text></svg>

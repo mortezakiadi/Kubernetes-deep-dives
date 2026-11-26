@@ -1,0 +1,24 @@
+# S06: A mixed RL batch: what each family contributes, by prompts and by tokens
+# Design reference: RL across domains: rewards, lengths and batches
+
+$ # sweep batch-balance-s06: 4 cells read back from the state bucket (already complete)
+500 records
+
+$ python batch_report.py batch-balance-s06 --prompt   # weights counted in prompts: the six families' contribution to the batch, averaged over two seeds
+                           math      code     instr     tools multiling    safety
+share of tokens           0.372     0.112     0.038     0.063     0.028     0.387
+groups per run          150.500   152.500   162.000   168.500   157.500   169.000
+groups with no signal     0.555     0.605     0.275     0.869     0.432     0.836
+signal of the rest        0.404     0.353     0.642     0.119     0.520     0.148
+
+$ python batch_report.py batch-balance-s06 --tok   # weights counted in tokens: the six families' contribution to the batch, averaged over two seeds
+                           math      code     instr     tools multiling    safety
+share of tokens           0.169     0.167     0.092     0.171     0.186     0.215
+groups per run           29.500    93.000   171.500   180.500   449.000    36.500
+groups with no signal     0.518     0.613     0.280     0.870     0.447     0.913
+signal of the rest        0.437     0.346     0.644     0.119     0.502     0.077
+
+[PASS] all four runs completed
+[PASS] counted in prompts, an equal mixture is far from equal in tokens: the largest family's share of tokens is at least twice the target (one sixth)
+[PASS] counted in tokens, the batch is much closer to the target: the worst family's distance from one sixth is less than half of what it is counted in prompts
+[PASS] the per-family report covers every family and every generation: groups, share without signal, signal strength

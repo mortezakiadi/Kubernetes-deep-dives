@@ -1,0 +1,45 @@
+{
+ "id": "S02",
+ "title": "The base model's scorecard, and the noise of measuring it",
+ "design_ref": "Evaluation: scorecards and no-regression gates; the capability matrix (seed noise first)",
+ "purpose": "Score the untrained model on every family's held-out set three times with different sampling seeds. The spread is the noise floor of a single evaluation; every difference reported later is read against it.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f base-scorecard-s02.yaml   # an Indexed Job on the research queue: 3 cells, 3 at a time",
+   "output": " 0  MODE=eval EVAL_N=100 EVAL_SAMPLES=4 EVAL_SEED=0\n 1  MODE=eval EVAL_N=100 EVAL_SAMPLES=4 EVAL_SEED=1\n 2  MODE=eval EVAL_N=100 EVAL_SAMPLES=4 EVAL_SEED=2",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job base-scorecard-s02",
+   "output": "NAME                 STATUS     COMPLETIONS   DURATION   AGE\nbase-scorecard-s02   Complete   3/3           3m48s      4m14s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python scorecard.py base-scorecard-s02   # mean reward over 100 held-out prompts x 4 samples; three sampling seeds",
+   "output": "                           math      code     instr     tools multiling    safety   sorting\nscore (mean of 3)         0.418     0.562     0.477     0.836     0.679     0.503     0.347\nspread (std of 3)         0.015     0.028     0.017     0.013     0.015     0.013     0.002\nmean answer tokens      219.327    61.326    33.807    34.230    13.620   185.543    29.232",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "no family sits at its floor or ceiling, so each has something to learn and something to lose (every score between 0.10 and 0.95)",
+   "passed": true,
+   "because": "I tuned the tools and instruction families after a first look (the first versions scored 1.00 and 0.89), because a family at its ceiling cannot show transfer and one at its floor cannot show interference."
+  },
+  {
+   "description": "a single evaluation is repeatable: no family's three sampling seeds differ by more than 0.03 (standard deviation)",
+   "passed": true,
+   "because": "Each score is a mean over 400 sampled answers. The spread printed here is what the matrix of S03 and the gate of S09 treat as noise from sampling; the noise from training seeds is measured separately in S03."
+  },
+  {
+   "description": "the answer lengths used to balance batches by tokens are the measured ones (each within 35% of the base model's mean)",
+   "passed": true,
+   "because": "Balancing a batch by tokens (S06) needs each family's mean answer length. The constants in the code are these measurements; a family whose answers get much longer or shorter under training makes the balance drift, which S06 shows."
+  }
+ ],
+ "notes": []
+}

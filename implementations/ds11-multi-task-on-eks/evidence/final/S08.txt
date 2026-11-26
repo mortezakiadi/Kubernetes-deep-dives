@@ -1,0 +1,51 @@
+# S08: Specialists, merged: what task arithmetic keeps of six specialists
+# Design reference: Merging and distilling specialists
+
+$ kubectl apply -f specialists-s08.yaml   # an Indexed Job on the research queue: 6 cells, 4 at a time
+ 0  STEPS=40 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 SAVE_FINAL=1 MIX={"math": 1.0}
+ 1  STEPS=40 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 SAVE_FINAL=1 MIX={"code": 1.0}
+ 2  STEPS=40 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 SAVE_FINAL=1 MIX={"instr": 1.0}
+ 3  STEPS=40 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 SAVE_FINAL=1 MIX={"tools": 1.0}
+ 4  STEPS=40 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 SAVE_FINAL=1 MIX={"multiling": 1.0}
+ 5  STEPS=40 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=3e-6 SEED=1 SAVE_FINAL=1 MIX={"safety": 1.0}
+
+$ kubectl -n rl-research get job specialists-s08
+NAME              STATUS     COMPLETIONS   DURATION   AGE
+specialists-s08   Complete   6/6           15m        15m
+
+$ kubectl apply -f merge-s08.yaml   # an Indexed Job on the research queue: 2 cells, 2 at a time
+ 0  MODE=merge MERGE_FROM={"s08-spec-math": 1.0, "s08-spec-code": 1.0, "s08-spec-instr": 1.0, "s08-spec-tools": 1.0, "s08-spec-multiling": 1.0, "s08-spec-safety": 1.0} MERGE_KEEP=0.2
+ 1  MODE=merge MERGE_FROM={"s08-spec-math": 1.0, "s08-spec-code": 1.0, "s08-spec-instr": 1.0, "s08-spec-tools": 1.0, "s08-spec-multiling": 1.0, "s08-spec-safety": 1.0} MERGE_KEEP=1.0
+
+$ kubectl -n rl-research get job merge-s08
+NAME        STATUS     COMPLETIONS   DURATION   AGE
+merge-s08   Complete   2/2           2m47s      3m10s
+
+$ kubectl apply -f merged-eval-s08.yaml   # an Indexed Job on the research queue: 2 cells, 2 at a time
+ 0  MODE=eval INIT_FROM=s08-merge-ties EVAL_N=100 EVAL_SAMPLES=4
+ 1  MODE=eval INIT_FROM=s08-merge-ta EVAL_N=100 EVAL_SAMPLES=4
+
+$ kubectl -n rl-research get job merged-eval-s08
+NAME              STATUS     COMPLETIONS   DURATION   AGE
+merged-eval-s08   Complete   2/2           2m10s      2m39s
+
+$ python merge_report.py specialists-s08 merge-s08 merged-eval-s08   # held-out score; the specialist row shows each family's own specialist on its own family
+                           math      code     instr     tools multiling    safety
+untrained model           0.430     0.579     0.471     0.848     0.661     0.505
+specialist (own family)    0.512     0.998     0.995     0.966     0.796     0.935
+merged, TIES keep 20%     0.560     1.000     0.970     0.956     0.724     0.812
+merged, task arithmetic    0.502     0.874     0.812     0.951     0.719     0.735
+generalist, 120 steps     0.530     0.993     0.977     0.960     0.820     0.938
+
+$ python gain_kept.py   # of each specialist's gain over the untrained model, how much the merged model keeps (families where the specialist gained at least 0.05)
+math       specialist gain +0.082   kept by TIES   1.58   kept by task arithmetic   0.88
+code       specialist gain +0.419   kept by TIES   1.01   kept by task arithmetic   0.71
+instr      specialist gain +0.524   kept by TIES   0.95   kept by task arithmetic   0.65
+tools      specialist gain +0.119   kept by TIES   0.92   kept by task arithmetic   0.87
+multiling  specialist gain +0.135   kept by TIES   0.46   kept by task arithmetic   0.43
+safety     specialist gain +0.430   kept by TIES   0.72   kept by task arithmetic   0.53
+
+[PASS] all six specialists, both merges and both evaluations completed
+[PASS] each specialist improves its own family: at least four of six by 0.05 or more
+[PASS] the merged models are complete models: every tensor of the base is present (310 of 310) and they score above zero on every family
+[PASS] merging keeps part of what the specialists learned: the TIES-merged model keeps a positive share of the gain in at least half of the families whose specialist gained

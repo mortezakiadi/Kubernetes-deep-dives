@@ -1,0 +1,5 @@
+# The no-regression gate: a candidate passes only if no family falls below the current release by more than its margin plus twice its seed noise.
+# The margins are the registry's (domains.yaml); the noise of each family is measured in S02 and S03, not set here.
+rule: no_family_regresses
+tolerance: "margin + 2 * noise"
+aggregates: [mean, min, geometric_mean]

@@ -1,0 +1,61 @@
+{
+ "id": "S03",
+ "title": "The capability matrix: what training on one family does to every other",
+ "design_ref": "The capability matrix: transfer and interference",
+ "purpose": "Train from the same start on an equal mixture, three times with different seeds (the noise), and on the same mixture with one family boosted by 20 points of weight, twice for each of the six families. The difference of scores is the transfer matrix; cells inside the noise band are shown grey.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f transfer-matrix-s03.yaml   # an Indexed Job on the research queue: 15 cells, 4 at a time",
+   "output": " 0  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={\"math\": 0.166667, \"code\": 0.166667, \"instr\": 0.166667, \"tools\": 0.166667, \"multiling\": 0.166667, \"safety\": 0.166667}\n 1  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={\"math\": 0.166667, \"code\": 0.166667, \"instr\": 0.166667, \"tools\": 0.166667, \"multiling\": 0.166667, \"safety\": 0.166667}\n 2  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=3 MIX={\"math\": 0.166667, \"code\": 0.166667, \"instr\": 0.166667, \"tools\": 0.166667, \"multiling\": 0.166667, \"safety\": 0.166667}\n 3  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={\"math\": 0.305555, \"code\": 0.138889, \"instr\": 0.138889, \"tools\": 0.138889, \"multiling\": 0.138889, \"safety\": 0.138889}\n 4  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={\"math\": 0.305555, \"code\": 0.138889, \"instr\": 0.138889, \"tools\": 0.138889, \"multiling\": 0.138889, \"safety\": 0.138889}\n 5  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={\"math\": 0.138889, \"code\": 0.305555, \"instr\": 0.138889, \"tools\": 0.138889, \"multiling\": 0.138889, \"safety\": 0.138889}\n 6  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={\"math\": 0.138889, \"code\": 0.305555, \"instr\": 0.138889, \"tools\": 0.138889, \"multiling\": 0.138889, \"safety\": 0.138889}\n 7  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={\"math\": 0.138889, \"code\": 0.138889, \"instr\": 0.305555, \"tools\": 0.138889, \"multiling\": 0.138889, \"safety\": 0.138889}\n 8  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={\"math\": 0.138889, \"code\": 0.138889, \"instr\": 0.305555, \"tools\": 0.138889, \"multiling\": 0.138889, \"safety\": 0.138889}\n 9  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={\"math\": 0.138889, \"code\": 0.138889, \"instr\": 0.138889, \"tools\": 0.305555, \"multiling\": 0.138889, \"safety\": 0.138889}\n10  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={\"math\": 0.138889, \"code\": 0.138889, \"instr\": 0.138889, \"tools\": 0.305555, \"multiling\": 0.138889, \"safety\": 0.138889}\n11  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={\"math\": 0.138889, \"code\": 0.138889, \"instr\": 0.138889, \"tools\": 0.138889, \"multiling\": 0.305555, \"safety\": 0.138889}\n12  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={\"math\": 0.138889, \"code\": 0.138889, \"instr\": 0.138889, \"tools\": 0.138889, \"multiling\": 0.305555, \"safety\": 0.138889}\n13  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=1 MIX={\"math\": 0.138889, \"code\": 0.138889, \"instr\": 0.138889, \"tools\": 0.138889, \"multiling\": 0.138889, \"safety\": 0.305555}\n14  STEPS=60 EVAL_EVERY=0 EVAL_N=100 EVAL_SAMPLES=4 LR=1e-6 SEED=2 MIX={\"math\": 0.138889, \"code\": 0.138889, \"instr\": 0.138889, \"tools\": 0.138889, \"multiling\": 0.138889, \"safety\": 0.305555}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n rl-research get job transfer-matrix-s03",
+   "output": "NAME                  STATUS     COMPLETIONS   DURATION   AGE\ntransfer-matrix-s03   Complete   15/15         52m        52m",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python transfer_matrix.py transfer-matrix-s03   # rows: the family boosted by 20 points of mixture weight; columns: the family evaluated; * = outside the noise band",
+   "output": "                             math      code     instr     tools multiling    safety   sorting\n+20% math               +0.040*   +0.026    -0.067*   +0.001    -0.010*   +0.006    +0.006 \n+20% code               -0.005    +0.088*   -0.037*   -0.000    +0.002    +0.013    +0.004 \n+20% instr              +0.016    -0.098*   +0.048*   +0.007    +0.008*   +0.027    -0.004 \n+20% tools              +0.010    -0.084*   -0.014    +0.027*   +0.016*   +0.052    +0.001 \n+20% multiling          +0.036*   -0.074    -0.049*   +0.006    +0.006    -0.005    -0.004 \n+20% safety             +0.029*   -0.038    -0.024    +0.009    -0.007*   +0.078    +0.007 \nnoise (std of 3)            0.015     0.045     0.014     0.005     0.003     0.051     0.011\nbaseline score              0.438     0.741     0.771     0.892     0.699     0.634     0.341\nuntrained model             0.427     0.575     0.470     0.849     0.673     0.510     0.347",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python matrix_summary.py   # what the matrix says, in words",
+   "output": "diagonal (direct effect): math +0.040, code +0.088, instr +0.048, tools +0.027, multiling +0.006, safety +0.078\noff-diagonal cells inside the noise band: 19 of 30\ntransfer outside the noise band: instr->multiling +0.008; tools->multiling +0.016; multiling->math +0.036; safety->math +0.029\ninterference outside the noise band: math->instr -0.067; math->multiling -0.010; code->instr -0.037; instr->code -0.098; tools->code -0.084; multiling->instr -0.049; safety->multiling -0.007\nasymmetric pairs (A helps B by more than B helps A): 7",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "all fifteen runs completed",
+   "passed": true,
+   "because": "Three baseline seeds and six boosts with two seeds each, as one Indexed Job on the research queue."
+  },
+  {
+   "description": "raising a family's weight raises its own held-out score in at least five of six families (the diagonal)",
+   "passed": true,
+   "because": "The direct effect is large by design: twenty more points of a family's share is that many more of its prompts in the batch, and the verifiers reward exactly what the held-out set measures."
+  },
+  {
+   "description": "most apparent transfer is inside the seed noise: at least half of the off-diagonal cells are not outside the band",
+   "passed": true,
+   "because": "The design's own warning: many apparent transfer effects are smaller than the variation between seeds, and the matrix is shown with those cells grey so that nobody argues from them. The band is twice the standard error of a difference of two means, with the noise taken from three baseline seeds."
+  },
+  {
+   "description": "the matrix is directional: it is not symmetric (at least one pair differs by more than twice the noise between its two directions, or is significant in only one)",
+   "passed": true,
+   "because": "'A helps B' does not mean 'B helps A': the families share different skills in different directions, and the matrix keeps rows (added) and columns (evaluated) apart."
+  },
+  {
+   "description": "the new family's column was measured for free: the seventh family (sorting) has a baseline score and a noise estimate before it is admitted (S09)",
+   "passed": true,
+   "because": "Every run evaluates the seventh family without training on it. The admission test of S09 then has its before-and-after for the existing families' effect on the newcomer."
+  }
+ ],
+ "notes": []
+}

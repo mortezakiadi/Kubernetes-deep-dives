@@ -1,0 +1,30 @@
+[
+ {
+  "id": "S04",
+  "title": "Designing the mixture: natural proportions, a temperature, a searched mixture",
+  "passed": true,
+  "checks": 4,
+  "failed": []
+ },
+ {
+  "id": "S06",
+  "title": "A mixed RL batch: what each family contributes, by prompts and by tokens",
+  "passed": true,
+  "checks": 4,
+  "failed": []
+ },
+ {
+  "id": "S07",
+  "title": "Interference: do two families pull the weights in opposite directions, and where",
+  "passed": true,
+  "checks": 2,
+  "failed": []
+ },
+ {
+  "id": "S09",
+  "title": "The release gate, and admitting a seventh family",
+  "passed": true,
+  "checks": 5,
+  "failed": []
+ }
+]
