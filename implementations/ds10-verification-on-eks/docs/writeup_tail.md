@@ -4,7 +4,7 @@
 
 | Not built | Why |
 |---|---|
-| **People reviewing anything** | The review job builds the queue a reviewer would open (S09), with priorities and a budget, but nobody reviews it. Where the design uses human gold labels on fresh policy outputs, S10 uses the evaluation team's verifier as the label, which shares no code with the training verifiers but is not a person. Inter-reviewer agreement is not measured. |
+| **Real people reviewing** | The review loop is built end to end (S11): queues, label upload, agreement, adjudication, human gold labels, regression cases, a contract change and the gate. The labels themselves are assumed inputs: two checklists and the owner's decisions written before the run and applied by a script. They show what the platform does with labels, not how real reviewers would label these answers, and their agreement figures are a property of the two checklists. Elsewhere (S10) the evaluation team's verifier labels policy outputs, which is not a person either. |
 | **Real tasks and real policy behaviour at scale** | The tasks are templated: 400 math problems, 8 code functions, 10 judge questions. The gold sets are labelled by construction, so their slices are the ones I thought of. The RL runs are 80 steps of a 0.5B model; the design's warning that hacking grows with compute is not tested. |
 | **A learned reward model, judges trained on labels** | The judges are general instruction models with a rubric. Training a judge on review labels and fuzz outputs, an open question of the design, is not built. |
 | **Model-based adversaries and judge adversarial suites per few hundred steps** | Fuzzing uses fixed mutations, and the nightly job builds them around the policy's own text. Prompting a model to write passing-but-wrong answers is not built, and the judges' adversarial suite is the judge gold set, run once, not re-run during training. |
@@ -58,5 +58,5 @@ The terminal screenshots above are rendered from recorded command output. I coul
 - EKS, Clusters: `ds10-verify`, its Compute tab with the three node groups, and the Add-ons tab.
 - EC2, Launch templates: `ds10-verify-sandbox-…` and its user data with the pinned gVisor release.
 - EC2, Instances: the three GPU instances and their type.
-- S3: the bucket with `data/`, `wheels/`, `registry/`, `runs/`, `fuzz/`, `evals/`, `rescore/` and `reviews/`.
+- S3: the bucket with `data/`, `wheels/`, `registry/`, `runs/`, `fuzz/`, `evals/`, `rescore/`, `reviews/` and `gold/`.
 - IAM, Roles: the `ds10-verify-*` roles for the cluster, the nodes and the store.

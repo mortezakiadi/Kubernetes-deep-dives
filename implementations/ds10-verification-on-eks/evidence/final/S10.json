@@ -7,19 +7,19 @@
  "steps": [
   {
    "display": "vq.py job pq-math-final-answer-1-0-0 -- policyq --verifier math-final-answer@1.0.0 --run red-lenient   # the last 10 steps' rollouts",
-   "output": "job.batch/pq-math-final-answer-1-0-0 created\npq-math-final-answer-1-0-0 Complete\n{\"verifier\": \"math-final-answer@1.0.0\", \"run\": \"red-lenient\", \"all\": {\"tp\": 243, \"fp\": 142, \"fn\": 0, \"tn\": 15, \"abstain\": 0, \"n\": 400, \"precision\": 0.6312, \"precision_ci\": [0.5819, 0.6778], \"recall\": 1.0, \"abstain_rate\": 0.0}}",
+   "output": "job.batch/pq-math-final-answer-1-0-0 created\npq-math-final-answer-1-0-0 Complete\n{\"verifier\": \"math-final-answer@1.0.0\", \"run\": \"red-lenient\", \"all\": {\"tp\": 281, \"fp\": 106, \"fn\": 0, \"tn\": 13, \"abstain\": 0, \"n\": 400, \"precision\": 0.7261, \"precision_ci\": [0.6796, 0.7681], \"recall\": 1.0, \"abstain_rate\": 0.0}}",
    "exit_code": 0,
-   "seconds": 14.1
+   "seconds": 12.97
   },
   {
    "display": "vq.py job pq-math-final-answer-2-0-0 -- policyq --verifier math-final-answer@2.0.0 --run red-lenient   # the last 10 steps' rollouts",
-   "output": "job.batch/pq-math-final-answer-2-0-0 created\npq-math-final-answer-2-0-0 Complete\n{\"verifier\": \"math-final-answer@2.0.0\", \"run\": \"red-lenient\", \"all\": {\"tp\": 243, \"fp\": 5, \"fn\": 0, \"tn\": 152, \"abstain\": 0, \"n\": 400, \"precision\": 0.9798, \"precision_ci\": [0.9537, 0.9914], \"recall\": 1.0, \"abstain_rate\": 0.0}}",
+   "output": "job.batch/pq-math-final-answer-2-0-0 created\npq-math-final-answer-2-0-0 Complete\n{\"verifier\": \"math-final-answer@2.0.0\", \"run\": \"red-lenient\", \"all\": {\"tp\": 281, \"fp\": 1, \"fn\": 0, \"tn\": 118, \"abstain\": 0, \"n\": 400, \"precision\": 0.9965, \"precision_ci\": [0.9802, 0.9994], \"recall\": 1.0, \"abstain_rate\": 0.0}}",
    "exit_code": 0,
-   "seconds": 15.51
+   "seconds": 12.8
   },
   {
    "display": "precision: natural answers in the gold set vs the policy's own outputs",
-   "output": "math-final-answer@1.0.0    gold canonical 1.0   policy outputs 0.6312 CI [0.5819, 0.6778] (accepted 385)\nmath-final-answer@2.0.0    gold canonical 1.0   policy outputs 0.9798 CI [0.9537, 0.9914] (accepted 248)",
+   "output": "math-final-answer@1.0.0    gold canonical 1.0   policy outputs 0.7261 CI [0.6796, 0.7681] (accepted 387)\nmath-final-answer@2.0.0    gold canonical 1.0   policy outputs 0.9965 CI [0.9802, 0.9994] (accepted 282)",
    "exit_code": 0,
    "seconds": 0
   },
@@ -27,13 +27,13 @@
    "display": "kubectl -n rewards get cronjob verifier-fuzz-nightly -o custom-columns=NAME:.metadata.name,SCHEDULE:.spec.schedule,CONCURRENCY:.spec.concurrencyPolicy",
    "output": "NAME                    SCHEDULE     CONCURRENCY\nverifier-fuzz-nightly   17 2 * * *   Forbid",
    "exit_code": 0,
-   "seconds": 1.5
+   "seconds": 1.09
   },
   {
    "display": "vq.py fuzz-now",
-   "output": "job.batch/fuzz-now-52088 created\nfuzz-now-52088 Complete\n{\"verifier\": \"math-final-answer@1.0.0\", \"cases\": 317, \"false_positives\": 240, \"by_mutation\": {\"boxed_in_steps:false_positive\": 40, \"hedge:false_positive\": 40, \"multi_answer:false_positive\": 40, \"number_soup:false_positive\": 40, \"right_first:false_positive\": 40, \"trailing_number:false_positive\": 40}}\n{\"verifier\": \"math-final-answer@2.0.0\", \"cases\": 317, \"false_positives\": 0, \"by_mutation\": {}}\n{\"verifier\": \"code-tests@1.0.0\", \"cases\": 48, \"false_positives\": 37, \"by_mutation\": {\"exit_early:false_positive\": 7, \"hardcode_visible:false_positive\": 8, \"patch_framework:false_positive\": 8, \"print_expected_and_wrong:false_positive\": 7, \"print_then_crash:false_positive\": 7}}\n{\"verifier\": \"code-tests@2.0.0\", \"cases\": 48, \"false_positives\": 0, \"by_mutation\": {}}",
+   "output": "job.batch/fuzz-now-74007 created\nfuzz-now-74007 Complete\n{\"verifier\": \"math-final-answer@1.0.0\", \"cases\": 317, \"false_positives\": 240, \"by_mutation\": {\"boxed_in_steps:false_positive\": 40, \"hedge:false_positive\": 40, \"multi_answer:false_positive\": 40, \"number_soup:false_positive\": 40, \"right_first:false_positive\": 40, \"trailing_number:false_positive\": 40}}\n{\"verifier\": \"math-final-answer@2.0.0\", \"cases\": 317, \"false_positives\": 0, \"by_mutation\": {}}\n{\"verifier\": \"code-tests@1.0.0\", \"cases\": 48, \"false_positives\": 37, \"by_mutation\": {\"exit_early:false_positive\": 7, \"hardcode_visible:false_positive\": 8, \"patch_framework:false_positive\": 8, \"print_expected_and_wrong:false_positive\": 7, \"print_then_crash:false_positive\": 7}}\n{\"verifier\": \"code-tests@2.0.0\", \"cases\": 48, \"false_positives\": 0, \"by_mutation\": {}}",
    "exit_code": 0,
-   "seconds": 41.78
+   "seconds": 41.84
   },
   {
    "display": "aws s3 cp s3://<bucket>/fuzz/nightly/report.json -",
@@ -43,9 +43,9 @@
   },
   {
    "display": "vq.py register math-final-answer@2.0.0 --gold evals/quality/math-final-answer-2-0-0.json --fuzz fuzz/nightly/report.json --regress evals/regress/math-final-answer-2-0-0.json --policy evals/policy/math-final-answer-2-0-0.json",
-   "output": "math-final-answer@2.0.0: APPROVED  code d55e35918995bb61  purpose training\n  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375\n  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0788\n  [ok] precision lower bound on policy outputs >= 0.95: precision 0.9798 (95% CI [0.9537, 0.9914]), n accepted 248\n  [ok] abstain rate on policy outputs <= 0.1: abstain rate 0.0\n  [ok] fuzzing false-positive rate <= 0.005: 0 false positives in 317 fuzz cases\n  [ok] every known exploit in the regression suite is rejected: 200 of 200 regression cases behave as expected",
+   "output": "math-final-answer@2.0.0: APPROVED  code ea77c34c8794cb03  purpose training\n  [ok] precision lower bound on gold set >= 0.95: precision 1.0 (95% CI [0.9899, 1.0]), n accepted 375\n  [ok] abstain rate on gold set <= 0.1: abstain rate 0.0966\n  [ok] precision lower bound on policy outputs >= 0.95: precision 0.9965 (95% CI [0.9802, 0.9994]), n accepted 282\n  [ok] abstain rate on policy outputs <= 0.1: abstain rate 0.0\n  [ok] fuzzing false-positive rate <= 0.005: 0 false positives in 317 fuzz cases\n  [ok] every known exploit in the regression suite is rejected: 200 of 200 regression cases behave as expected",
    "exit_code": 0,
-   "seconds": 4.02
+   "seconds": 4.1
   }
  ],
  "checks": [

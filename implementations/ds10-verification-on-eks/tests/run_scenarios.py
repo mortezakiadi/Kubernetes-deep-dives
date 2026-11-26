@@ -20,8 +20,9 @@ from harness import ROOT, Scenario  # noqa: E402
 from render_terminal import render as render_png  # noqa: E402
 from scen_a import s01, s02, s03, s04, s05  # noqa: E402
 from scen_b import s06, s07, s08, s09, s10  # noqa: E402
+from scen_c import s11  # noqa: E402
 
-SCENARIOS = {"S01": s01, "S02": s02, "S03": s03, "S04": s04, "S05": s05, "S06": s06, "S07": s07, "S08": s08, "S09": s09, "S10": s10}
+SCENARIOS = {"S01": s01, "S02": s02, "S03": s03, "S04": s04, "S05": s05, "S06": s06, "S07": s07, "S08": s08, "S09": s09, "S10": s10, "S11": s11}
 
 
 def save(sc, out):

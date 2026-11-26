@@ -74,7 +74,7 @@ resource "aws_iam_role_policy" "store" {
     Version = "2012-10-17"
     Statement = [
       { Effect = "Allow", Action = ["s3:GetObject"], Resource = ["${aws_s3_bucket.data.arn}/*"] },
-      { Effect = "Allow", Action = ["s3:PutObject"], Resource = [for p in ["runs", "fuzz", "reviews", "rescore", "evals"] : "${aws_s3_bucket.data.arn}/${p}/*"] },
+      { Effect = "Allow", Action = ["s3:PutObject"], Resource = [for p in ["runs", "fuzz", "reviews", "rescore", "evals", "gold"] : "${aws_s3_bucket.data.arn}/${p}/*"] },
       { Effect = "Allow", Action = ["s3:ListBucket"], Resource = aws_s3_bucket.data.arn },
     ]
   })

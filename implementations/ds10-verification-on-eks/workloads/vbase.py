@@ -68,6 +68,6 @@ class Verifier:
 def all_verifiers():
     from vcode import LenientCode, ReferenceCode, StrictCode
     from vjudge import JudgePair, JudgeSingle
-    from vmath import EvalMath, LenientMath, ReferenceMath, StrictMath
-    return {c.name + "@" + c.version: c for c in (LenientMath, StrictMath, ReferenceMath, EvalMath,
+    from vmath import EvalMath, LenientMath, ReferenceMath, StrictMath, StrictMathUnits
+    return {c.name + "@" + c.version: c for c in (LenientMath, StrictMath, StrictMathUnits, ReferenceMath, EvalMath,
                                                    LenientCode, StrictCode, ReferenceCode, JudgeSingle, JudgePair)}

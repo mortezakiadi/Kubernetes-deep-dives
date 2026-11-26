@@ -11,6 +11,7 @@ locals {
   verifiers = {
     "math-final-answer@1.0.0"     = { runtime = null, deps = false, judges = false, team = "rewards-team" }
     "math-final-answer@2.0.0"     = { runtime = null, deps = true, judges = false, team = "rewards-team" }
+    "math-final-answer@2.1.0"     = { runtime = null, deps = true, judges = false, team = "rewards-team" }
     "strict-reference-math@1.0.0" = { runtime = null, deps = false, judges = false, team = "rewards-team" }
     "eval-math@1.0.0"             = { runtime = null, deps = false, judges = false, team = "eval-team" }
     "code-tests@1.0.0"            = { runtime = null, deps = false, judges = false, team = "rewards-team" }

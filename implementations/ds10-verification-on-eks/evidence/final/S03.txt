@@ -4,22 +4,22 @@
 $ vq.py job q-math-final-answer-1-0-0 -- quality --verifier math-final-answer@1.0.0 --gold math_gold.jsonl
 job.batch/q-math-final-answer-1-0-0 created
 q-math-final-answer-1-0-0 Complete
-{"verifier": "math-final-answer@1.0.0", "all": {"tp": 455, "fp": 320, "fn": 80, "tn": 160, "abstain": 0, "n": 1015, "precision": 0.5871, "precision_ci": [0.5521, 0.6212], "recall": 0.8505, "abstain_rate": 0.0}, "per_kind": {"correct": {"pass": 80}, "wrong": {"fail": 80}, "multi_answer": {"pass": 80}, "right_first": {"pass": 80}, "hedge": {"pass": 80}, "number_soup": {"pass": 80}, "wrong_with_right_inside": {"fail": 80}, "no_box_correct": {"pass": 80}, "latex_inline": {"pass": 80}, "latex_display": {"pass": 80}, "units_in_box": {"fail": 80}, "equiv_decimal_form": {"pass": 71}, "equiv_latex_frac": {"pass": 32}, "equiv_unreduced_fraction": {"pass": 32}}}
+{"verifier": "math-final-answer@1.0.0", "all": {"tp": 455, "fp": 320, "fn": 80, "tn": 180, "abstain": 0, "n": 1035, "precision": 0.5871, "precision_ci": [0.5521, 0.6212], "recall": 0.8505, "abstain_rate": 0.0}, "per_kind": {"correct": {"pass": 80}, "wrong": {"fail": 80}, "multi_answer": {"pass": 80}, "right_first": {"pass": 80}, "hedge": {"pass": 80}, "number_soup": {"pass": 80}, "wrong_with_right_inside": {"fail": 80}, "no_box_correct": {"pass": 80}, "latex_inline": {"pass": 80}, "latex_display": {"pass": 80}, "units_in_box": {"fail": 80}, "equiv_decimal_form": {"pass": 71}, "equiv_latex_frac": {"pass": 32}, "equiv_unreduced_fraction": {"pass": 32}, "units_wrong": {"fail": 20}}}
 
 $ vq.py job q-math-final-answer-2-0-0 -- quality --verifier math-final-answer@2.0.0 --gold math_gold.jsonl
 job.batch/q-math-final-answer-2-0-0 created
 q-math-final-answer-2-0-0 Complete
-{"verifier": "math-final-answer@2.0.0", "all": {"tp": 375, "fp": 0, "fn": 80, "tn": 480, "abstain": 80, "n": 1015, "precision": 1.0, "precision_ci": [0.9899, 1.0], "recall": 0.8242, "abstain_rate": 0.0788}, "per_kind": {"correct": {"pass": 80}, "wrong": {"fail": 80}, "multi_answer": {"fail": 80}, "right_first": {"fail": 80}, "hedge": {"fail": 80}, "number_soup": {"fail": 80}, "wrong_with_right_inside": {"fail": 80}, "no_box_correct": {"fail": 80}, "latex_inline": {"pass": 80}, "latex_display": {"pass": 80}, "units_in_box": {"abstain": 80}, "equiv_decimal_form": {"pass": 71}, "equiv_latex_frac": {"pass": 32}, "equiv_unreduced_fraction": {"pass": 32}}}
+{"verifier": "math-final-answer@2.0.0", "all": {"tp": 375, "fp": 0, "fn": 80, "tn": 480, "abstain": 100, "n": 1035, "precision": 1.0, "precision_ci": [0.9899, 1.0], "recall": 0.8242, "abstain_rate": 0.0966}, "per_kind": {"correct": {"pass": 80}, "wrong": {"fail": 80}, "multi_answer": {"fail": 80}, "right_first": {"fail": 80}, "hedge": {"fail": 80}, "number_soup": {"fail": 80}, "wrong_with_right_inside": {"fail": 80}, "no_box_correct": {"fail": 80}, "latex_inline": {"pass": 80}, "latex_display": {"pass": 80}, "units_in_box": {"abstain": 80}, "equiv_decimal_form": {"pass": 71}, "equiv_latex_frac": {"pass": 32}, "equiv_unreduced_fraction": {"pass": 32}, "units_wrong": {"abstain": 20}}}
 
 $ vq.py job q-strict-reference-math-1-0-0 -- quality --verifier strict-reference-math@1.0.0 --gold math_gold.jsonl
 job.batch/q-strict-reference-math-1-0-0 created
 q-strict-reference-math-1-0-0 Complete
-{"verifier": "strict-reference-math@1.0.0", "all": {"tp": 375, "fp": 0, "fn": 80, "tn": 480, "abstain": 80, "n": 1015, "precision": 1.0, "precision_ci": [0.9899, 1.0], "recall": 0.8242, "abstain_rate": 0.0788}, "per_kind": {"correct": {"pass": 80}, "wrong": {"fail": 80}, "multi_answer": {"fail": 80}, "right_first": {"fail": 80}, "hedge": {"fail": 80}, "number_soup": {"fail": 80}, "wrong_with_right_inside": {"fail": 80}, "no_box_correct": {"fail": 80}, "latex_inline": {"pass": 80}, "latex_display": {"pass": 80}, "units_in_box": {"abstain": 80}, "equiv_decimal_form": {"pass": 71}, "equiv_latex_frac": {"pass": 32}, "equiv_unreduced_fraction": {"pass": 32}}}
+{"verifier": "strict-reference-math@1.0.0", "all": {"tp": 375, "fp": 0, "fn": 80, "tn": 480, "abstain": 100, "n": 1035, "precision": 1.0, "precision_ci": [0.9899, 1.0], "recall": 0.8242, "abstain_rate": 0.0966}, "per_kind": {"correct": {"pass": 80}, "wrong": {"fail": 80}, "multi_answer": {"fail": 80}, "right_first": {"fail": 80}, "hedge": {"fail": 80}, "number_soup": {"fail": 80}, "wrong_with_right_inside": {"fail": 80}, "no_box_correct": {"fail": 80}, "latex_inline": {"pass": 80}, "latex_display": {"pass": 80}, "units_in_box": {"abstain": 80}, "equiv_decimal_form": {"pass": 71}, "equiv_latex_frac": {"pass": 32}, "equiv_unreduced_fraction": {"pass": 32}, "units_wrong": {"abstain": 20}}}
 
 $ vq.py job q-eval-math-1-0-0 -- quality --verifier eval-math@1.0.0 --gold math_gold.jsonl
 job.batch/q-eval-math-1-0-0 created
 q-eval-math-1-0-0 Complete
-{"verifier": "eval-math@1.0.0", "all": {"tp": 375, "fp": 0, "fn": 80, "tn": 480, "abstain": 80, "n": 1015, "precision": 1.0, "precision_ci": [0.9899, 1.0], "recall": 0.8242, "abstain_rate": 0.0788}, "per_kind": {"correct": {"pass": 80}, "wrong": {"fail": 80}, "multi_answer": {"fail": 80}, "right_first": {"fail": 80}, "hedge": {"fail": 80}, "number_soup": {"fail": 80}, "wrong_with_right_inside": {"fail": 80}, "no_box_correct": {"fail": 80}, "latex_inline": {"pass": 80}, "latex_display": {"pass": 80}, "units_in_box": {"abstain": 80}, "equiv_decimal_form": {"pass": 71}, "equiv_latex_frac": {"pass": 32}, "equiv_unreduced_fraction": {"pass": 32}}}
+{"verifier": "eval-math@1.0.0", "all": {"tp": 375, "fp": 0, "fn": 80, "tn": 480, "abstain": 100, "n": 1035, "precision": 1.0, "precision_ci": [0.9899, 1.0], "recall": 0.8242, "abstain_rate": 0.0966}, "per_kind": {"correct": {"pass": 80}, "wrong": {"fail": 80}, "multi_answer": {"fail": 80}, "right_first": {"fail": 80}, "hedge": {"fail": 80}, "number_soup": {"fail": 80}, "wrong_with_right_inside": {"fail": 80}, "no_box_correct": {"fail": 80}, "latex_inline": {"pass": 80}, "latex_display": {"pass": 80}, "units_in_box": {"abstain": 80}, "equiv_decimal_form": {"pass": 71}, "equiv_latex_frac": {"pass": 32}, "equiv_unreduced_fraction": {"pass": 32}, "units_wrong": {"abstain": 20}}}
 
 $ vq.py job q-code-tests-1-0-0 -- quality --verifier code-tests@1.0.0 --gold code_gold.jsonl
 job.batch/q-code-tests-1-0-0 created
@@ -38,29 +38,29 @@ q-strict-reference-code-1-0-0 Complete
 
 $ aws s3 cp s3://<bucket>/evals/quality/<each>.json -   # per slice
 math-final-answer@1.0.0      adversarial            n  400  precision 0.0  CI [-0.0, 0.0119]  recall None  abstain 0.0
-math-final-answer@1.0.0      all                    n 1015  precision 0.5871  CI [0.5521, 0.6212]  recall 0.8505  abstain 0.0
-math-final-answer@1.0.0      answer_with_units      n   80  precision None  CI [None, None]  recall 0.0  abstain 0.0
+math-final-answer@1.0.0      all                    n 1035  precision 0.5871  CI [0.5521, 0.6212]  recall 0.8505  abstain 0.0
+math-final-answer@1.0.0      answer_with_units      n  100  precision None  CI [None, None]  recall 0.0  abstain 0.0
 math-final-answer@1.0.0      canonical              n  160  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0
 math-final-answer@1.0.0      contract_violation     n   80  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0
 math-final-answer@1.0.0      equivalent_form        n  135  precision 1.0  CI [0.9723, 1.0]  recall 1.0  abstain 0.0
 math-final-answer@1.0.0      latex_delimiters       n  160  precision 1.0  CI [0.9766, 1.0]  recall 1.0  abstain 0.0
 math-final-answer@2.0.0      adversarial            n  400  precision None  CI [None, None]  recall None  abstain 0.0
-math-final-answer@2.0.0      all                    n 1015  precision 1.0  CI [0.9899, 1.0]  recall 0.8242  abstain 0.0788
-math-final-answer@2.0.0      answer_with_units      n   80  precision None  CI [None, None]  recall None  abstain 1.0
+math-final-answer@2.0.0      all                    n 1035  precision 1.0  CI [0.9899, 1.0]  recall 0.8242  abstain 0.0966
+math-final-answer@2.0.0      answer_with_units      n  100  precision None  CI [None, None]  recall None  abstain 1.0
 math-final-answer@2.0.0      canonical              n  160  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0
 math-final-answer@2.0.0      contract_violation     n   80  precision None  CI [None, None]  recall 0.0  abstain 0.0
 math-final-answer@2.0.0      equivalent_form        n  135  precision 1.0  CI [0.9723, 1.0]  recall 1.0  abstain 0.0
 math-final-answer@2.0.0      latex_delimiters       n  160  precision 1.0  CI [0.9766, 1.0]  recall 1.0  abstain 0.0
 strict-reference-math@1.0.0  adversarial            n  400  precision None  CI [None, None]  recall None  abstain 0.0
-strict-reference-math@1.0.0  all                    n 1015  precision 1.0  CI [0.9899, 1.0]  recall 0.8242  abstain 0.0788
-strict-reference-math@1.0.0  answer_with_units      n   80  precision None  CI [None, None]  recall None  abstain 1.0
+strict-reference-math@1.0.0  all                    n 1035  precision 1.0  CI [0.9899, 1.0]  recall 0.8242  abstain 0.0966
+strict-reference-math@1.0.0  answer_with_units      n  100  precision None  CI [None, None]  recall None  abstain 1.0
 strict-reference-math@1.0.0  canonical              n  160  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0
 strict-reference-math@1.0.0  contract_violation     n   80  precision None  CI [None, None]  recall 0.0  abstain 0.0
 strict-reference-math@1.0.0  equivalent_form        n  135  precision 1.0  CI [0.9723, 1.0]  recall 1.0  abstain 0.0
 strict-reference-math@1.0.0  latex_delimiters       n  160  precision 1.0  CI [0.9766, 1.0]  recall 1.0  abstain 0.0
 eval-math@1.0.0              adversarial            n  400  precision None  CI [None, None]  recall None  abstain 0.0
-eval-math@1.0.0              all                    n 1015  precision 1.0  CI [0.9899, 1.0]  recall 0.8242  abstain 0.0788
-eval-math@1.0.0              answer_with_units      n   80  precision None  CI [None, None]  recall None  abstain 1.0
+eval-math@1.0.0              all                    n 1035  precision 1.0  CI [0.9899, 1.0]  recall 0.8242  abstain 0.0966
+eval-math@1.0.0              answer_with_units      n  100  precision None  CI [None, None]  recall None  abstain 1.0
 eval-math@1.0.0              canonical              n  160  precision 1.0  CI [0.9542, 1.0]  recall 1.0  abstain 0.0
 eval-math@1.0.0              contract_violation     n   80  precision None  CI [None, None]  recall 0.0  abstain 0.0
 eval-math@1.0.0              equivalent_form        n  135  precision 1.0  CI [0.9723, 1.0]  recall 1.0  abstain 0.0

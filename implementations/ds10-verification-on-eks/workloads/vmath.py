@@ -62,7 +62,7 @@ class StrictMath(Verifier):
         after = completion[completion.rfind("\\boxed"):][:80 + len(boxes[0])]
         if HEDGE.search(after[len("\\boxed{") + len(boxes[0]):]):
             return self.result(Verdict.FAIL, ["hedged_final_answer"])
-        expr = LATEX_FRAC.sub(r"(\1)/(\2)", boxes[0]).replace("$", "").replace("\\,", "").replace("\\cdot", "*").strip()
+        expr = self.expression(boxes[0])
         if not expr or not self.ALLOWED.match(expr):
             return self.result(Verdict.ABSTAIN, ["unparseable"])
         try:
@@ -72,6 +72,25 @@ class StrictMath(Verifier):
         except (sp.SympifyError, TypeError, ZeroDivisionError, SyntaxError):
             return self.result(Verdict.ABSTAIN, ["not_comparable"])
         return self.result(Verdict.PASS if ok else Verdict.FAIL, [] if ok else ["wrong_value"])
+
+    def expression(self, box):
+        return LATEX_FRAC.sub(r"(\1)/(\2)", box).replace("$", "").replace("\\,", "").replace("\\cdot", "*").strip()
+
+
+class StrictMathUnits(StrictMath):
+    """The contract change the reviewers' labels led to (S11): units, a currency sign and mixed numbers are accepted
+    inside the box; ratios and percentages still abstain, by the owner's decision on the slices reviewers disagreed on."""
+    version = "2.1.0"
+    contract = (StrictMath.contract + " Changed in 2.1.0 after review: the box may also hold the number followed by unit "
+                "words with no digits and no hedge word (\\text{} or plain), a leading $ or \\$, or a mixed number such as 2\\frac{1}{2}; "
+                "ratios (3:5) and percentages still abstain.")
+
+    def expression(self, box):
+        b = re.sub(r"\\text\{([^{}]*)\}", r" \1 ", box).replace("\\$", " ").replace("$", " ").strip()
+        if not HEDGE.search(b):
+            b = re.sub(r"^(.*?[0-9)}])\s*(?:[A-Za-z]+\s*)+\.?$", r"\1", b).strip()   # trailing unit words, no digits, no hedge
+        b = re.sub(r"^(-?\d+)\s*\\[dt]?frac\{(\d+)\}\{(\d+)\}$", r"\1+(\2)/(\3)", b)   # a mixed number
+        return super().expression(b)
 
 
 class _ExactBox(Verifier):

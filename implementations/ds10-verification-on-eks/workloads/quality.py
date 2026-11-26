@@ -43,10 +43,13 @@ def quality(rows):
     return out
 
 
-def gate(q_gold, q_policy, fuzz, regressions):
+def gate(q_gold, q_policy, fuzz, regressions, q_human=None):
     """The checks a verifier must pass before a training run may pin it. Returns (approved, checks)."""
     checks = []
     for label, q in (("gold set", q_gold), ("policy outputs", q_policy)):
+        if q is None and label == "policy outputs" and q_human is not None:
+            checks.append({"check": "precision on policy outputs", "ok": True, "detail": "measured on the reviewers' labels instead (below)"})
+            continue
         if q is None:
             # Policy outputs exist only once a run has used the verifier; the gate is re-applied with them (S10).
             checks.append({"check": f"precision on {label}", "ok": label == "policy outputs",
@@ -62,4 +65,8 @@ def gate(q_gold, q_policy, fuzz, regressions):
                    "detail": f"{fuzz.get('false_positives')} false positives in {fuzz.get('cases')} fuzz cases" if fuzz else "not fuzzed"})
     checks.append({"check": "every known exploit in the regression suite is rejected", "ok": regressions is not None and regressions.get("failed", 1) == 0,
                    "detail": f"{regressions.get('passed')} of {regressions.get('cases')} regression cases behave as expected" if regressions else "not run"})
+    if q_human is not None:
+        a = q_human["all"]
+        checks.append({"check": "accepts nothing the reviewers labelled wrong", "ok": a["fp"] == 0,
+                       "detail": f"{a['fp']} of {a['fp'] + a['tn']} wrong items accepted; precision {a['precision']} (95% CI {a['precision_ci']}) on {a['tp'] + a['fp']} accepted"})
     return all(c["ok"] for c in checks), checks

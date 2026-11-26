@@ -6,7 +6,7 @@ from common_scen import STATE, job, k, save_state, show, vq
 from harness import KUBECTL, Scenario
 from helpers import info, kj, kq, last_json, sj, skeys
 
-VERIFIERS = ["math-final-answer@1.0.0", "math-final-answer@2.0.0", "strict-reference-math@1.0.0", "eval-math@1.0.0",
+VERIFIERS = ["math-final-answer@1.0.0", "math-final-answer@2.0.0", "math-final-answer@2.1.0", "strict-reference-math@1.0.0", "eval-math@1.0.0",
              "code-tests@1.0.0", "code-tests@2.0.0", "strict-reference-code@1.0.0", "judge-single@1.0.0", "judge-pair@2.0.0"]
 JUDGES = {"judge-a": ("Qwen/Qwen2.5-7B-Instruct", "a09a35458c702b33eeacc393d103063234e8bc28"),
           "judge-b": ("mistralai/Mistral-7B-Instruct-v0.3", "c170c708c41dac9275d15a8fff4eca08d52bab71")}
@@ -31,7 +31,7 @@ def s01():
     sc = Scenario("S01", "The platform at rest: cluster, node pools, sandbox runtime, verifiers and judges", "The platform on Kubernetes",
                   "Check that the platform is what section 2 says before testing behaviour: a standard EKS cluster with a system pool, a GPU pool "
                   "and a gVisor sandbox pool; one Deployment per pinned verifier version; two judges of different families; the datasets; an "
-                  "empty registry.")
+                  "empty registry. Version 2.1.0 is deployed but not registered: S11 is where people's labels lead to it.")
     sc.aws("eks", "describe-cluster", "--name", "ds10-verify", "--query", "cluster.{status:status,version:version,autoMode:computeConfig.enabled}")
     c = json.loads(sc.raw or "{}")
     sc.expect("the cluster is ACTIVE on Kubernetes 1.37, standard EKS (Auto Mode off)", c.get("status") == "ACTIVE" and c.get("version") == "1.37" and not c.get("autoMode"),
@@ -53,7 +53,7 @@ def s01():
     sc.kube("-n", "rewards", "get", "deploy", "-L", "verifier,version,team", "-o", "wide")
     deps = {d["metadata"]["name"]: d for d in kj("-n", "rewards", "get", "deploy").get("items", [])}
     ready = [v for v in VERIFIERS if deps.get(svc(v), {}).get("status", {}).get("readyReplicas") == 2]
-    sc.expect("one Deployment per pinned verifier version, nine in all, each with two ready replicas", len(ready) == 9,
+    sc.expect("one Deployment per pinned verifier version, ten in all, each with two ready replicas", len(ready) == len(VERIFIERS),
               "The platform layer creates one Deployment and one Service per name@version.")
     models = {}
     for j, (repo, rev) in JUDGES.items():
@@ -77,10 +77,10 @@ def s02():
                   "Read what each verifier service says about itself, send the strict math verifier five completions that exercise its contract, "
                   "and try to start a training run on a verifier that has not been measured.")
     infos = {v: info(v) for v in VERIFIERS}
-    show(sc, "for v in <the nine services>; do kubectl -n rewards exec deploy/$v -- GET 127.0.0.1:8080/info; done   # id, purpose, owner, code hash",
+    show(sc, "for v in <the ten services>; do kubectl -n rewards exec deploy/$v -- GET 127.0.0.1:8080/info; done   # id, purpose, owner, code hash",
          "\n".join(f"{v:30s} {i.get('purpose', '?'):10s} {i.get('owner', '?'):13s} code {i.get('code_sha256', '?')[:16]}" for v, i in infos.items()))
     sc.expect("every service reports its own name@version, purpose, owner and a distinct code hash",
-              all(infos[v].get("verifier") == v for v in VERIFIERS) and len({i.get("code_sha256") for i in infos.values()}) == 9,
+              all(infos[v].get("verifier") == v for v in VERIFIERS) and len({i.get("code_sha256") for i in infos.values()}) == len(VERIFIERS),
               "The code hash covers the verifier class, its version and its source files.")
     i2 = infos["math-final-answer@2.0.0"]
     show(sc, "the contract of math-final-answer@2.0.0 (from /info)", i2.get("contract", ""))

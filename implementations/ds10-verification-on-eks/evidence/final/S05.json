@@ -7,15 +7,15 @@
  "steps": [
   {
    "display": "kubectl -n rewards get pods -l vid=code-tests-1-0-0 -o custom-columns=POD:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName",
-   "output": "POD                                 RUNTIME   NODE\ncode-tests-1-0-0-658694b4bc-mrvrj   <none>    ip-10-82-58-122.us-east-2.compute.internal\ncode-tests-1-0-0-658694b4bc-rkh5z   <none>    ip-10-82-40-0.us-east-2.compute.internal",
+   "output": "POD                                 RUNTIME   NODE\ncode-tests-1-0-0-6b74cd555c-9nz7z   <none>    ip-10-82-45-34.us-east-2.compute.internal\ncode-tests-1-0-0-6b74cd555c-bndn4   <none>    ip-10-82-17-59.us-east-2.compute.internal",
    "exit_code": 0,
-   "seconds": 1.44
+   "seconds": 1.43
   },
   {
    "display": "kubectl -n rewards get pods -l vid=code-tests-2-0-0 -o custom-columns=POD:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName",
-   "output": "POD                                 RUNTIME   NODE\ncode-tests-2-0-0-59f7786986-7fmgg   gvisor    ip-10-82-47-28.us-east-2.compute.internal\ncode-tests-2-0-0-59f7786986-lzmjt   gvisor    ip-10-82-47-28.us-east-2.compute.internal",
+   "output": "POD                                 RUNTIME   NODE\ncode-tests-2-0-0-867896d67b-bwjq4   gvisor    ip-10-82-51-79.us-east-2.compute.internal\ncode-tests-2-0-0-867896d67b-wv68p   gvisor    ip-10-82-51-79.us-east-2.compute.internal",
    "exit_code": 0,
-   "seconds": 1.56
+   "seconds": 1.33
   },
   {
    "display": "the kernel each service sees (/proc/version, from /info)",
@@ -24,16 +24,16 @@
    "seconds": 0
   },
   {
-   "display": "kubectl -n rewards exec code-tests-2-0-0-59f7786986-7fmgg -- python -c 'urllib.request.urlopen(\"https://pypi.org\", timeout=5)'",
+   "display": "kubectl -n rewards exec code-tests-2-0-0-867896d67b-bwjq4 -- python -c 'urllib.request.urlopen(\"https://pypi.org\", timeout=5)'",
    "output": "no internet: URLError",
    "exit_code": 0,
-   "seconds": 21.98
+   "seconds": 21.88
   },
   {
    "display": "kubectl -n rewards exec -i deploy/code-tests-2-0-0 -- POST /verify < tricks.json   # read_tests_via_FileIO, spin_forever, huge_memory, fork_bomb_os, correct",
    "output": "{\"verifier\": \"code-tests@2.0.0\", \"results\": [{\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"exit_code\", \"sandbox_denied\"], \"verifier\": \"code-tests@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"exit_code\"], \"verifier\": \"code-tests@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"exit_code\"], \"verifier\": \"code-tests@2.0.0\"}, {\"verdict\": \"fail\", \"score\": 0.0, \"reasons\": [\"exit_code\", \"sandbox_denied\"], \"verifier\": \"code-tests@2.0.0\"}, {\"verdict\": \"pass\", \"score\": 1.0, \"reasons\": [], \"verifier\": \"code-tests@2.0.0\"}]}",
    "exit_code": 0,
-   "seconds": 7.04
+   "seconds": 6.76
   },
   {
    "display": "verdicts",
@@ -45,7 +45,7 @@
    "display": "vq.py job strength -- strength --out evals/strength.json",
    "output": "job.batch/strength created\nstrength Complete\n{\"c-sum_evens\": {\"mutation_score\": 1.0, \"caught\": [true, true, true, true], \"hidden_cases\": 6, \"weak_by_design\": false, \"admitted\": true}, \"c-reverse_words\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-second_largest\": {\"mutation_score\": 1.0, \"caught\": [true, true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-run_length\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-merge_intervals\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}, \"c-count_vowels\": {\"mutation_score\": 0.5, \"caught\": [false, true, true, false], \"hidden_cases\": 1, \"weak_by_design\": true, \"admitted\": false}, \"c-clamp\": {\"mutation_score\": 0.667, \"caught\": [false, true, true], \"hidden_cases\": 1, \"weak_by_design\": true, \"admitted\": false}, \"c-dedupe\": {\"mutation_score\": 1.0, \"caught\": [true, true, true], \"hidden_cases\": 5, \"weak_by_design\": false, \"admitted\": true}}",
    "exit_code": 0,
-   "seconds": 14.47
+   "seconds": 14.24
   },
   {
    "display": "aws s3 cp s3://<bucket>/evals/strength.json -   # mutation score of each task's hidden tests",

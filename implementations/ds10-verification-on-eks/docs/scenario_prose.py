@@ -139,4 +139,21 @@ PROSE = {
             "The strict verifier stays precise because its contract rejects the shapes the policy learned; the gate approves it again with precision measured on both populations.",
         ],
     },
+    "S11": {
+        "intro": "The design routes uncertain and disputed cases to people, measures how often reviewers agree, and sends their labels "
+                 "back as gold labels, regression tests and contract fixes. Nobody reviewed anything in this build, so the reviewers' "
+                 "labels and the owner's decisions are ASSUMED inputs: two written checklists and a list of decisions, applied by a "
+                 "script to whatever the two RL runs' queues hold. Everything after that point is the platform's own work.",
+        "trust": [
+            "The inputs are marked as assumed in every place they appear: the files carry \"assumed\": true, each label carries the checklist line that produced it, and the checklists are in the repository.",
+            "The queues are built by the platform from the stored rollouts before any label exists; the labels job and the gate treat assumed labels exactly as they would treat real ones.",
+            "Each verifier's numbers on the human gold set come from its running service, and the re-scoring flips from sending the same stored text to version 2.1.0.",
+        ],
+        "why": [
+            "The reviewers agree on plain numbers and disagree on units, currency, mixed numbers and ratios because reviewer B reads the prompt literally and reviewer A reads the value; low agreement on a slice is the design's sign that the contract is unclear there.",
+            "The owner's decisions accept units, currency and mixed numbers and exclude ratios and percentages; version 2.1.0 implements exactly that, so it accepts more correct answers without accepting anything the people call wrong.",
+            "The exploits come from the red-team queue, where the old verifier passed answers with several different boxed values; each one becomes a regression case that 2.1.0 must reject.",
+            "Re-scoring turns abstentions into passes and no failure into a pass because 2.1.0 changes only what the box may hold.",
+        ],
+    },
 }

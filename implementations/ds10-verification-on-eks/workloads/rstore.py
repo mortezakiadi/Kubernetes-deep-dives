@@ -1,6 +1,6 @@
 """The store service: the only thing in the cluster with access to the bucket.
 
-    PUT  /o/<key>        write   runs/, fuzz/, reviews/, rescore/, evals/
+    PUT  /o/<key>        write   runs/, fuzz/, reviews/, rescore/, evals/, gold/ (human gold labels)
     GET  /o/<key>        read    the above, and data/, wheels/, registry/
     GET  /list/<prefix>  keys under a readable prefix
 
@@ -15,7 +15,7 @@ import boto3
 
 BUCKET = os.environ["BUCKET"]
 s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-2"))
-WRITE = ("runs/", "fuzz/", "reviews/", "rescore/", "evals/")
+WRITE = ("runs/", "fuzz/", "reviews/", "rescore/", "evals/", "gold/")
 READ = WRITE + ("data/", "wheels/", "registry/")
 
 

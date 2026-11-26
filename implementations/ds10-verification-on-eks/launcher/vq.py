@@ -9,6 +9,7 @@
                                                     launch a red-team RL run pinned to V; refused unless the registry
                                                     approved V for training (exit 3)
     vq.py fuzz-now                                  start the nightly fuzz CronJob now, as a Job
+    vq.py submit REVIEWER|decisions --run R --file F  upload what people returned for a run's review queue
 
 The registry (registry/ in the bucket) is written only here, with the operator's credentials: the cluster's store
 refuses writes to it, so nothing inside the cluster can approve a verifier.
@@ -155,7 +156,8 @@ def cmd_register(a):
         if rec and rec.get("verifier", a.verifier) != a.verifier:
             sys.exit(f"{name} record is for {rec['verifier']}, not {a.verifier}")
     stale = [n for n, rec in (("gold", gq), ("fuzz", fz), ("regress", rg)) if rec and rec.get("code_sha256") not in (None, info["code_sha256"])]
-    approved, checks = gate(gq["quality"] if gq else None, pq["quality"] if pq else None, fz, rg)
+    hq = get(a.human) if a.human else None
+    approved, checks = gate(gq["quality"] if gq else None, pq["quality"] if pq else None, fz, rg, hq["quality"] if hq else None)
     if info["purpose"] != "training":
         # Audit and evaluation verifiers are never fuzzed against themselves; only their measured quality is recorded.
         checks = [c for c in checks if c["check"].startswith(("precision", "abstain"))]
@@ -167,7 +169,7 @@ def cmd_register(a):
     name, version = a.verifier.split("@")
     entry = {"verifier": a.verifier, "name": name, "version": version, "purpose": info["purpose"], "owner": info["owner"], "contract": info["contract"],
              "code_sha256": info["code_sha256"], "image": info["image"], "status": "approved" if approved else ("rejected" if info["purpose"] == "training" else f"{info['purpose']} only"), "gate": GATE, "checks": checks,
-             "evidence": {"gold": a.gold, "policy": a.policy, "fuzz": a.fuzz, "regress": a.regress}, "registered_at": int(time.time())}
+             "evidence": {"gold": a.gold, "policy": a.policy, "human": a.human, "fuzz": a.fuzz, "regress": a.regress}, "registered_at": int(time.time())}
     put(f"registry/{name}/{version}.json", entry)
     print(f"{a.verifier}: {entry['status'].upper()}  code {info['code_sha256'][:16]}  purpose {info['purpose']}")
     for c in checks:
@@ -222,11 +224,23 @@ def cmd_rl(a):
             "red_team": bool(a.red_team), "stop_on_hacking": not a.no_stop,
             "hyperparameters": {"seed": 3, "steps": a.steps, "group": 8, "prompts_per_step": 8, "max_tokens": 320, "temperature": 1.0, "lr": a.lr},
             "launched_at": int(time.time())}
+    if a.dry_run:
+        print(json.dumps({k: spec[k]["id"] for k in ("verifier", "audit", "eval")} | {"pinned": "ok", "dry_run": True}))
+        return
     put(f"runs/{a.run}/resolved.json", spec)
     print(json.dumps({k: spec[k]["id"] for k in ("verifier", "audit", "eval")} | {"red_team": spec["red_team"]}))
     create(rl_job(a.run, a.steps))
     if not a.no_wait:
         print(f"rl-{a.run}", wait_job("training", f"rl-{a.run}"[:63], 7200))
+
+
+def cmd_submit(a):
+    """Upload what people returned: one reviewer's labels, or the owner's contract decisions. Written with the
+    operator's credentials, like the registry; the cluster only reads them."""
+    body = pathlib.Path(a.file).read_bytes()
+    key = f"reviews/{a.run}/{'decisions.json' if a.what == 'decisions' else f'labels-{a.what}.jsonl'}"
+    s3().put_object(Bucket=bucket(), Key=key, Body=body)
+    print(f"uploaded {key} ({len(body.splitlines())} lines)")
 
 
 def cmd_fuzz_now(a):
@@ -242,16 +256,18 @@ def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     j = sub.add_parser("job"); j.add_argument("name"); j.add_argument("rest", nargs=argparse.REMAINDER)
-    r = sub.add_parser("register"); r.add_argument("verifier"); r.add_argument("--gold"); r.add_argument("--fuzz"); r.add_argument("--regress"); r.add_argument("--policy")
+    r = sub.add_parser("register"); r.add_argument("verifier"); r.add_argument("--gold"); r.add_argument("--fuzz"); r.add_argument("--regress"); r.add_argument("--policy"); r.add_argument("--human")
     sub.add_parser("registry")
     rl = sub.add_parser("rl"); rl.add_argument("--run"); rl.add_argument("--verifier"); rl.add_argument("--steps", type=int, default=60)
     rl.add_argument("--lr", type=float, default=2e-6); rl.add_argument("--no-stop", action="store_true"); rl.add_argument("--no-wait", action="store_true")
     rl.add_argument("--red-team", action="store_true", help="allow a rejected training verifier, on purpose, to see what RL finds")
+    rl.add_argument("--dry-run", action="store_true", help="check the pins and stop: no run description, no Job")
+    sb = sub.add_parser("submit"); sb.add_argument("what", help="a reviewer name, or 'decisions'"); sb.add_argument("--run"); sb.add_argument("--file")
     sub.add_parser("fuzz-now")
     a = ap.parse_args()
     if a.cmd == "job" and a.rest and a.rest[0] == "--":
         a.rest = a.rest[1:]
-    {"job": cmd_job, "register": cmd_register, "registry": cmd_registry, "rl": cmd_rl, "fuzz-now": cmd_fuzz_now}[a.cmd](a)
+    {"job": cmd_job, "register": cmd_register, "registry": cmd_registry, "rl": cmd_rl, "fuzz-now": cmd_fuzz_now, "submit": cmd_submit}[a.cmd](a)
 
 
 if __name__ == "__main__":

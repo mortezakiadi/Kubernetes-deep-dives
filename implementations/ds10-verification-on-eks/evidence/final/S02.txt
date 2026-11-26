@@ -1,16 +1,17 @@
 # S02: A verifier is a product: contract, version, verdicts with reasons, and abstention
 # Design reference: A verifier is a product: contract, interface and lifecycle
 
-$ for v in <the nine services>; do kubectl -n rewards exec deploy/$v -- GET 127.0.0.1:8080/info; done   # id, purpose, owner, code hash
-math-final-answer@1.0.0        training   rewards-team  code 538e3487b994b8e5
-math-final-answer@2.0.0        training   rewards-team  code d55e35918995bb61
-strict-reference-math@1.0.0    audit      rewards-team  code af736720c0e2a246
-eval-math@1.0.0                evaluation eval-team     code c38802f5c9f3f6cd
-code-tests@1.0.0               training   rewards-team  code 08226fb54a2d5936
-code-tests@2.0.0               training   rewards-team  code 4d56b26995a4fb7e
-strict-reference-code@1.0.0    audit      rewards-team  code 357d49c9474776b3
-judge-single@1.0.0             training   rewards-team  code 165468fa4a1de2a7
-judge-pair@2.0.0               training   rewards-team  code c5dd47f12f0c8cfa
+$ for v in <the ten services>; do kubectl -n rewards exec deploy/$v -- GET 127.0.0.1:8080/info; done   # id, purpose, owner, code hash
+math-final-answer@1.0.0        training   rewards-team  code 0a5f06a66097c851
+math-final-answer@2.0.0        training   rewards-team  code ea77c34c8794cb03
+math-final-answer@2.1.0        training   rewards-team  code db6632d42f2ba058
+strict-reference-math@1.0.0    audit      rewards-team  code 9495d09756bd1ffe
+eval-math@1.0.0                evaluation eval-team     code a28315eba2645ec0
+code-tests@1.0.0               training   rewards-team  code bf623dd4dc71947e
+code-tests@2.0.0               training   rewards-team  code 94d04640c95e3c17
+strict-reference-code@1.0.0    audit      rewards-team  code 7943093c40188cc1
+judge-single@1.0.0             training   rewards-team  code 74d4cfe5b0e64650
+judge-pair@2.0.0               training   rewards-team  code 94bde5c319c45da6
 
 $ the contract of math-final-answer@2.0.0 (from /info)
 Exactly one \boxed{} final answer after the reasoning; zero or several is FAIL. No 'or', 'either', 'maybe' or 'between' within 80 characters after the box. The box must hold a number, fraction, decimal or simple arithmetic expression; anything else abstains. Equality is symbolic (SymPy), so 1/2, 0.5, 2/4 and \frac{1}{2} are equal.

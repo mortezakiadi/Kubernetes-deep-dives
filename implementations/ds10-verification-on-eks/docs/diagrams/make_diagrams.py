@@ -138,12 +138,29 @@ def judges():
     return s.render()
 
 
+def review_loop():
+    s = Svg(1420, 420, "People in the loop: from the queue to a new verifier version")
+    steps = [("1 Queue", ["suspected exploits first,", "abstentions, 5% of passes"], AMBER), ("2 Two reviewers", ["labels with a checklist", "(assumed inputs, S11)"], GREEN),
+             ("3 Agreement", ["per answer shape, kappa;", "< 0.8 = unclear contract"], BLUE), ("4 Owner decides", ["accept or exclude a shape", "(assumed input)"], GREEN),
+             ("5 Gold labels", ["agreed or settled only;", "never guessed"], GREY), ("6 New version", ["2.1.0 implements the", "decision; gate with labels"], PURPLE),
+             ("7 Re-score", ["stored rollouts with 2.1.0:", "abstain to pass, never", "fail to pass"], RED)]
+    for i, (t, lines, c) in enumerate(steps):
+        x = 30 + i * 196
+        s.box(x, 60, 178, 110, t, lines, c)
+        if i < len(steps) - 1:
+            s.arrow([(x + 178, 115), (x + 196, 115)], "flow")
+    s.arrow([(903, 170), (903, 250), (1110, 250), (1110, 170)], "muted", "confirmed exploits: regression cases", 1006, 244)
+    s.box(30, 290, 1360, 100, "What is assumed and what is not", ["Assumed: the two reviewers' labels and the owner's decisions (tests/assumed_reviewers.py), written before the run and marked assumed in every file.",
+                                                                  "Not assumed: the queues, the agreement figures, the gold set, the regression cases, the verifiers' verdicts, the gate and the re-scoring."], GREY, dash=True)
+    return s.render()
+
+
 def main():
     out = pathlib.Path(sys.argv[1])
     out.mkdir(parents=True, exist_ok=True)
-    for i, f in enumerate([context, topology, architecture, lifecycle, code_layers, monitor, judges], 1):
+    for i, f in enumerate([context, topology, architecture, lifecycle, code_layers, monitor, judges, review_loop], 1):
         (out / f"a11-{i}.svg").write_text(f())
-    print(f"wrote 7 diagrams to {out}")
+    print(f"wrote 8 diagrams to {out}")
 
 
 if __name__ == "__main__":

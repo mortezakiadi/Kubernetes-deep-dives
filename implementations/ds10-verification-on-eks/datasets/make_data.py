@@ -145,7 +145,10 @@ def math_gold(tasks, rng):
             ("latex_inline", f"{body}So the result is \\(\\boxed{{{r}}}\\).", True, "latex_delimiters"),
             ("latex_display", f"{body}So the result is\n\\[\n\\boxed{{{r}}}\n\\]", True, "latex_delimiters"),
             ("units_in_box", f"{body}So the result is \\boxed{{{r} {t.get('unit', 'items')}}}.", True, "answer_with_units"),
+            ("units_wrong", f"{body}So the result is \\boxed{{{wr} {t.get('unit', 'items')}}}.", False, "answer_with_units"),
         ]
+        if kinds[-1][0] == "units_wrong" and int(t["id"][-3:]) % 4:   # wrong answers with units for about a quarter of tasks
+            kinds.pop()
         for form, slice_ in equiv_forms(a):
             kinds.append((f"equiv_{slice_}", f"{body}So the result is \\boxed{{{form}}}.", True, "equivalent_form"))
         for kind, text, gold, slice_ in kinds:

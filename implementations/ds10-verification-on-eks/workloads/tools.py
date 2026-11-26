@@ -9,6 +9,7 @@ HTTP, and writes its result through the store.
     strength  --out KEY                                     mutation score of each code task's hidden tests
     rescore   --run R --verifier V --out PREFIX             re-score a run's stored rollouts with another version
     review    --run R --budget N --out KEY                  build the human review queue for a run
+    labels    --run R --queue KEY                           two reviewers' labels: agreement, gold labels, regressions
 """
 import argparse
 import json
@@ -21,6 +22,7 @@ import urllib.request
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fuzz import fuzz_code, fuzz_math, run_regressions  # noqa: E402
 from quality import quality  # noqa: E402
+from review import BOX, adjudicate, agreement, answer_shape  # noqa: E402
 
 STORE = os.environ.get("STORE_URL", "http://store.platform.svc:8080")
 
@@ -84,7 +86,7 @@ def tasks_by_id():
 
 def cmd_quality(a):
     v = Remote(a.verifier)
-    gold = rows(f"data/{a.gold}")
+    gold = [g for k in a.gold.split(",") for g in rows(k if "/" in k else f"data/{k}")]
     t0 = time.time()
     res = v.batch([{"task_id": g["task_id"], "completion": g["completion"]} for g in gold])
     per_kind = {}
@@ -157,7 +159,7 @@ def cmd_fuzz(a):
 def cmd_regress(a):
     v = Remote(a.verifier)
     T = tasks_by_id()
-    cases = [c for c in rows(a.cases) if (c["task_id"].startswith("m-") == a.verifier.startswith("math"))]
+    cases = [c for k in a.cases.split(",") for c in rows(k) if (c["task_id"].startswith("m-") == a.verifier.startswith("math"))]
     r = run_regressions(v, T, cases)
     put(a.out, {"verifier": a.verifier, "code_sha256": v.info["code_sha256"], **r})
     print(json.dumps({"verifier": a.verifier, "cases": r["cases"], "passed": r["passed"], "failed": r["failed"]}))
@@ -211,9 +213,50 @@ def cmd_review(a):
     by = {}
     for r in chosen:
         by[r["why"]] = by.get(r["why"], 0) + 1
+    T = tasks_by_id()
+
+    def shape(c):
+        b = BOX.findall(c)
+        return answer_shape(b[-1]) if b else "no_box"
     put(a.out, {"run": a.run, "candidates": len(q), "budget": a.budget, "queued": len(chosen), "by_reason": by,
-                "items": [{k: r[k] for k in ("priority", "why", "step", "task_id", "completion")} | {"train_reasons": r["train"]["reasons"]} for r in chosen]})
+                "items": [{k: r[k] for k in ("priority", "why", "step", "task_id", "completion")}
+                          | {"item": i, "question": T[r["task_id"]]["question"], "solution": T[r["task_id"]]["solution"], "answer_shape": shape(r["completion"]),
+                             "train_verdict": r["train"]["verdict"], "train_reasons": r["train"]["reasons"], "audit_verdict": r["audit"]["verdict"]}
+                          for i, r in enumerate(chosen)]})
     print(json.dumps({"candidates": len(q), "queued": len(chosen), "by_reason": by}))
+
+
+def cmd_labels(a):
+    """Two reviewers' labels for one queue, and the owner's contract decisions: agreement per slice, gold labels from
+    what was agreed or settled, and the cases each verifier got wrong according to the people."""
+    queue = get(a.queue)["items"]
+    revs = a.reviewers.split(",")
+    lab = {r: {x["item"]: x for x in rows(f"reviews/{a.run}/labels-{r}.jsonl")} for r in revs}
+    decisions = get(f"reviews/{a.run}/decisions.json")
+    missing = {r: [i["item"] for i in queue if i["item"] not in lab[r]] for r in revs}
+    pairs = [(i["answer_shape"], lab[revs[0]][i["item"]]["label"], lab[revs[1]][i["item"]]["label"]) for i in queue if all(i["item"] in lab[r] for r in revs)]
+    agr = agreement(pairs)
+    unclear = sorted(s for s, m in agr.items() if s != "all" and (m["decided_by_both"] or 0) >= 1 and (m["agreement"] or 0) < 0.8)
+    gold, settled = [], {"agreed": 0, "settled by contract decision": 0, "excluded by contract decision": 0, "unresolved": 0}
+    for i in queue:
+        la, lb = lab[revs[0]].get(i["item"], {}).get("label"), lab[revs[1]].get(i["item"], {}).get("label")
+        lbl, how = adjudicate(i["answer_shape"], la, lb, decisions.get("slices", {}))
+        settled[how] = settled.get(how, 0) + 1
+        if lbl:
+            gold.append({"id": f"{a.run}:{i['item']}", "task_id": i["task_id"], "kind": i["answer_shape"], "slice": i["answer_shape"], "completion": i["completion"],
+                         "gold": lbl == "correct", "how": how, "queue_reason": i["why"], "train_verdict": i["train_verdict"], "audit_verdict": i["audit_verdict"]})
+    put(f"gold/human-{a.run}.jsonl", "".join(json.dumps(g) + "\n" for g in gold).encode())
+    # What the people say each automatic verdict was: exploits the training verifier passed, and audit false negatives.
+    exploits = [g for g in gold if not g["gold"] and g["train_verdict"] == "pass"]
+    audit_fn = [g for g in gold if g["gold"] and g["audit_verdict"] != "pass"]
+    put(f"reviews/{a.run}/regressions.jsonl", "".join(json.dumps({"task_id": g["task_id"], "mutation": "human_confirmed", "completion": g["completion"], "expect": "not_pass"}) + "\n" for g in exploits).encode())
+    out = {"run": a.run, "reviewers": revs, "assumed_inputs": True, "queued": len(queue), "missing": missing, "agreement": agr, "contract_unclear": unclear,
+           "decisions": decisions.get("slices", {}), "settled": settled, "gold_labels": len(gold), "gold_correct": sum(g["gold"] for g in gold),
+           "by_slice": {s: {"correct": sum(1 for g in gold if g["slice"] == s and g["gold"]), "wrong": sum(1 for g in gold if g["slice"] == s and not g["gold"])}
+                        for s in sorted({g["slice"] for g in gold})},
+           "confirmed_exploits": len(exploits), "audit_false_negatives": len(audit_fn)}
+    put(f"reviews/{a.run}/agreement.json", out)
+    print(json.dumps({k: out[k] for k in ("queued", "contract_unclear", "settled", "gold_labels", "gold_correct", "confirmed_exploits", "audit_false_negatives")}))
 
 
 def main():
@@ -226,6 +269,7 @@ def main():
     s = sub.add_parser("strength"); s.add_argument("--out")
     s = sub.add_parser("rescore"); s.add_argument("--run"); s.add_argument("--verifier"); s.add_argument("--out")
     s = sub.add_parser("review"); s.add_argument("--run"); s.add_argument("--budget", type=int, default=50); s.add_argument("--out")
+    s = sub.add_parser("labels"); s.add_argument("--run"); s.add_argument("--queue"); s.add_argument("--reviewers", default="reviewer-a,reviewer-b")
     a = ap.parse_args()
     globals()["cmd_" + a.cmd](a)
 

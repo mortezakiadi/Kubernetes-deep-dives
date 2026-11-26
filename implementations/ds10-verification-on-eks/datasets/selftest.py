@@ -26,7 +26,7 @@ def main():
     math_tasks = {t["id"]: t for t in load(d, "math_train.jsonl") + load(d, "math_eval.jsonl")}
     code_tasks = {t["id"]: t for t in load(d, "code_tasks.jsonl")}
     bad = 0
-    for vid, gold, tasks in (("math-final-answer@1.0.0", "math_gold.jsonl", math_tasks), ("math-final-answer@2.0.0", "math_gold.jsonl", math_tasks),
+    for vid, gold, tasks in (("math-final-answer@1.0.0", "math_gold.jsonl", math_tasks), ("math-final-answer@2.0.0", "math_gold.jsonl", math_tasks), ("math-final-answer@2.1.0", "math_gold.jsonl", math_tasks),
                              ("strict-reference-math@1.0.0", "math_gold.jsonl", math_tasks), ("eval-math@1.0.0", "math_gold.jsonl", math_tasks),
                              ("code-tests@1.0.0", "code_gold.jsonl", code_tasks), ("code-tests@2.0.0", "code_gold.jsonl", code_tasks),
                              ("strict-reference-code@1.0.0", "code_gold.jsonl", code_tasks)):
@@ -44,7 +44,7 @@ def main():
             bad += q["fp"]
     ref_m, ref_c = V["strict-reference-math@1.0.0"](math_tasks), V["strict-reference-code@1.0.0"](code_tasks)
     sample = list(math_tasks.values())[:60]
-    for vid in ("math-final-answer@1.0.0", "math-final-answer@2.0.0"):
+    for vid in ("math-final-answer@1.0.0", "math-final-answer@2.0.0", "math-final-answer@2.1.0"):
         f = fuzz_math(V[vid](math_tasks), ref_m, sample)
         print(f"\nfuzz {vid}: {f['cases']} cases, {f['false_positives']} false positives; {f['by_mutation']}")
     for vid in ("code-tests@1.0.0", "code-tests@2.0.0"):
