@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="560px" viewBox="0 0 1420 560" style="background:#ffffff"><title>Who uses the platform, what it is made of, and what it talks to</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker></defs><rect width="1420" height="560" fill="#ffffff"/><rect x="20" y="30" width="270" height="500" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">WHO</text>
+<rect x="40" y="70" width="230" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="70" width="230" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="88" width="228" height="12" fill="#ecfdf5"/>
+<text x="52" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Rewards team</text>
+<text x="52" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">writes verifiers and contracts;</text>
+<text x="52" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">measures, fuzzes, registers</text>
+<text x="52" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">them with vq.py</text>
+<rect x="40" y="210" width="230" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="210" width="230" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="228" width="228" height="12" fill="#ecfdf5"/>
+<text x="52" y="230" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Training run</text>
+<text x="52" y="258" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pins a registered verifier;</text>
+<text x="52" y="275" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a monitor scores its rollouts</text>
+<text x="52" y="292" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">with the audit verifier</text>
+<rect x="40" y="350" width="230" height="150" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="350" width="230" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="368" width="228" height="12" fill="#ecfdf5"/>
+<text x="52" y="370" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Evaluation team</text>
+<text x="52" y="398" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">owns eval-math@1.0.0, which</text>
+<text x="52" y="415" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">no training run may pin;</text>
+<text x="52" y="432" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reads held-out results</text>
+<rect x="320" y="30" width="760" height="500" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="334" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">THE PLATFORM (standard EKS)</text>
+<rect x="340" y="70" width="340" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="340" y="70" width="340" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="341" y="88" width="338" height="12" fill="#eff6ff"/>
+<text x="352" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Verifier services (rewards)</text>
+<text x="352" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one Deployment per name@version: math,</text>
+<text x="352" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">code (gVisor), judge guards; audit and</text>
+<text x="352" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">evaluation verifiers as separate entries</text>
+<rect x="710" y="70" width="350" height="120" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="710" y="70" width="350" height="30" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="711" y="88" width="348" height="12" fill="#f5f3ff"/>
+<text x="722" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#5b21b6">Judges (judges)</text>
+<text x="722" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">two vLLM servers, one GPU each:</text>
+<text x="722" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Qwen2.5-7B-Instruct and</text>
+<text x="722" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Mistral-7B-Instruct-v0.3, pinned</text>
+<rect x="340" y="220" width="340" height="120" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="340" y="220" width="340" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="341" y="238" width="338" height="12" fill="#fffbeb"/>
+<text x="352" y="240" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Quality jobs (rewards)</text>
+<text x="352" y="268" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">gold-set quality, fuzzing, regressions,</text>
+<text x="352" y="285" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">test strength, re-scoring, review queue;</text>
+<text x="352" y="302" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a nightly fuzz CronJob</text>
+<rect x="710" y="220" width="350" height="120" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="710" y="220" width="350" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="711" y="238" width="348" height="12" fill="#fef2f2"/>
+<text x="722" y="240" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">Red-team RL runs (training)</text>
+<text x="722" y="268" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">GRPO on Qwen2.5-0.5B-Instruct, one GPU;</text>
+<text x="722" y="285" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reward from the pinned verifier, the</text>
+<text x="722" y="302" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reward-quality monitor every step</text>
+<rect x="340" y="370" width="720" height="110" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="340" y="370" width="720" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="341" y="388" width="718" height="12" fill="#f8fafc"/>
+<text x="352" y="390" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Store and registry (platform, S3)</text>
+<text x="352" y="418" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the store service is the only bucket writer in the cluster; registry/ is written only by the</text>
+<text x="352" y="435" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">operator's launcher after the gate, so nothing in the cluster can approve a verifier</text>
+<rect x="1110" y="30" width="290" height="500" rx="14" fill="#fef2f2" fill-opacity=".55" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="1124" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#991b1b">OUTSIDE THE PLATFORM</text>
+<rect x="1130" y="70" width="250" height="120" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1130" y="70" width="250" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1131" y="88" width="248" height="12" fill="#f8fafc"/>
+<text x="1142" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Hugging Face Hub</text>
+<text x="1142" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the three models,</text>
+<text x="1142" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each pinned to a commit</text>
+<rect x="1130" y="220" width="250" height="120" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1130" y="220" width="250" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="1131" y="238" width="248" height="12" fill="#f8fafc"/>
+<text x="1142" y="240" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Images and packages</text>
+<text x="1142" y="268" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">vLLM 0.33.0, Python 3.12 by digest;</text>
+<text x="1142" y="285" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">gVisor 20261116.0 by SHA-512;</text>
+<text x="1142" y="302" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">SymPy wheels by sha256</text>
+<path d="M270 130 L340 130" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M270 270 L300 270 L300 355 L900 355 L900 340" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="577.4" y="338" width="45.2" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="600" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">launch</text>
+<path d="M680 130 L710 130" fill="none" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#a-purple)"/>
+<path d="M740 220 L740 205 L620 205 L620 190" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="632.6" y="188" width="94.8" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="680" y="200" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">reward + audit</text>
+<path d="M510 220 L510 190" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M510 340 L510 370" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<path d="M860 340 L860 370" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<path d="M1130 130 L1095 130 L1095 50 L885 50 L885 70" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<rect x="964.3" y="34" width="51.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="990" y="46" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#94a3b8">weights</text></svg>

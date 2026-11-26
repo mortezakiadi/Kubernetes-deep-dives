@@ -1,0 +1,20 @@
+ok         EKS clusters: none
+ok         EC2 instances: none
+ok         EC2 instances (Project): none
+ok         Auto Scaling groups: none
+ok         Launch templates: none
+ok         NAT gateways: none
+ok         Elastic IPs: none
+ok         VPCs: none
+ok         VPC endpoints: none
+ok         Security groups: none
+ok         EBS volumes: none
+ok         CSI volumes: none
+ok         CSI snapshots: none
+ok         Network interfaces: none
+ok         S3 buckets: none
+ok         IAM roles: none
+ok         CloudWatch log groups: none
+info       tagging index still lists (it lags deletions): 5 item(s)
+
+CLEAN: nothing from ds10-verify remains in this account and region.

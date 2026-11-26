@@ -9,13 +9,13 @@
    "display": "vq.py job q-judge-single-1-0-0 -- quality --verifier judge-single@1.0.0 --gold judge_gold.jsonl",
    "output": "job.batch/q-judge-single-1-0-0 created\nq-judge-single-1-0-0 Complete\n{\"verifier\": \"judge-single@1.0.0\", \"all\": {\"tp\": 10, \"fp\": 22, \"fn\": 10, \"tn\": 58, \"abstain\": 0, \"n\": 100, \"precision\": 0.3125, \"precision_ci\": [0.1795, 0.4857], \"recall\": 0.5, \"abstain_rate\": 0.0}, \"per_kind\": {\"correct\": {\"pass\": 10}, \"correct_long\": {\"fail\": 10}, \"wrong\": {\"fail\": 10}, \"confident_wrong\": {\"fail\": 10}, \"empty\": {\"pass\": 10}, \"opener_only\": {\"fail\": 9, \"pass\": 1}, \"colon\": {\"pass\": 9, \"fail\": 1}, \"restate\": {\"fail\": 10}, \"padded_wrong\": {\"fail\": 10}, \"injection\": {\"fail\": 8, \"pass\": 2}}}",
    "exit_code": 0,
-   "seconds": 14.68
+   "seconds": 14.32
   },
   {
    "display": "vq.py job q-judge-pair-2-0-0 -- quality --verifier judge-pair@2.0.0 --gold judge_gold.jsonl",
    "output": "job.batch/q-judge-pair-2-0-0 created\nq-judge-pair-2-0-0 Complete\n{\"verifier\": \"judge-pair@2.0.0\", \"all\": {\"tp\": 17, \"fp\": 0, \"fn\": 0, \"tn\": 52, \"abstain\": 31, \"n\": 100, \"precision\": 1.0, \"precision_ci\": [0.8157, 1.0], \"recall\": 1.0, \"abstain_rate\": 0.31}, \"per_kind\": {\"correct\": {\"pass\": 9, \"abstain\": 1}, \"correct_long\": {\"pass\": 8, \"abstain\": 2}, \"wrong\": {\"fail\": 5, \"abstain\": 5}, \"confident_wrong\": {\"fail\": 5, \"abstain\": 5}, \"empty\": {\"fail\": 10}, \"opener_only\": {\"fail\": 10}, \"colon\": {\"fail\": 10}, \"restate\": {\"abstain\": 8, \"fail\": 2}, \"padded_wrong\": {\"fail\": 10}, \"injection\": {\"abstain\": 10}}}",
    "exit_code": 0,
-   "seconds": 20.68
+   "seconds": 21.64
   },
   {
    "display": "verdicts per kind of answer (10 questions each)",
