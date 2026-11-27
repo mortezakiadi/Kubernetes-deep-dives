@@ -1,0 +1,1 @@
+# KWOK v0.8.0 (Apache-2.0): controller.yaml from the release asset kwok.yaml (image pinned by digest), node stages from stage-fast.yaml, pod stages from kustomize/stage/pod/general. The general pod-complete stage honours the pod-complete.stage.kwok.x-k8s.io/delay annotation, which gives each simulated pod a runtime.

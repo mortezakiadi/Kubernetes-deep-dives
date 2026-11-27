@@ -1,0 +1,44 @@
+# Written for this build (not from KWOK): a pod that is being deleted while it still has finalizers (the Job
+# controller's batch.kubernetes.io/job-tracking) is marked Failed, as a real container stopped by the kubelet would be.
+# The Job controller then counts it, removes its finalizer, and KWOK's pod-delete stage removes the pod. Without this,
+# an evicted pod of a Job (drain, Kueue preemption) stays Terminating forever on a KWOK node.
+apiVersion: kwok.x-k8s.io/v1alpha1
+kind: Stage
+metadata:
+  name: pod-terminate
+spec:
+  resourceRef:
+    apiGroup: v1
+    kind: Pod
+  selector:
+    matchExpressions:
+    - key: '.metadata.deletionTimestamp'
+      operator: 'Exists'
+    - key: '.metadata.finalizers'
+      operator: 'Exists'
+    - key: '.status.phase'
+      operator: 'In'
+      values:
+      - 'Running'
+      - 'Pending'
+  weight: 1
+  delay:
+    durationMilliseconds: 1000
+  next:
+    statusTemplate: |
+      {{ $now := Now }}
+      containerStatuses:
+      {{ range $index, $item := .spec.containers }}
+      - image: {{ $item.image | Quote }}
+        name: {{ $item.name | Quote }}
+        ready: false
+        restartCount: 0
+        started: false
+        state:
+          terminated:
+            exitCode: 137
+            finishedAt: {{ $now | Quote }}
+            reason: Error
+            startedAt: {{ $now | Quote }}
+      {{ end }}
+      phase: Failed

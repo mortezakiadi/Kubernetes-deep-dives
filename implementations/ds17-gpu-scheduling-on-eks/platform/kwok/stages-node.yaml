@@ -1,0 +1,75 @@
+# From KWOK v0.8.0 stage-fast.yaml: the node stages only.
+apiVersion: kwok.x-k8s.io/v1alpha1
+kind: Stage
+metadata:
+  name: node-heartbeat-with-lease
+spec:
+  delay:
+    durationMilliseconds: 600000
+    jitterDurationMilliseconds: 610000
+  next:
+    statusTemplate: "{{ $now := Now }}\n{{ $lastTransitionTime := or .metadata.creationTimestamp\
+      \ $now }}\nconditions:\n{{ range NodeConditions }}\n- lastHeartbeatTime: {{\
+      \ $now | Quote }}\n  lastTransitionTime: {{ $lastTransitionTime | Quote }}\n\
+      \  message: {{ .message | Quote }}\n  reason: {{ .reason | Quote }}\n  status:\
+      \ {{ .status | Quote }}\n  type: {{ .type | Quote }}\n{{ end }}\n\naddresses:\n\
+      {{ with .status.addresses }}\n{{ YAML . 1 }}\n{{ else }}\n{{ with NodeIP }}\n\
+      - address: {{ . | Quote }}\n  type: InternalIP\n{{ end }}\n{{ with NodeName\
+      \ }}\n- address: {{ . | Quote }}\n  type: Hostname\n{{ end }}\n{{ end }}\n\n\
+      {{ with NodePort }}\ndaemonEndpoints:\n  kubeletEndpoint:\n    Port: {{ . }}\n\
+      {{ end }}\n"
+  resourceRef:
+    apiGroup: v1
+    kind: Node
+  selector:
+    matchExpressions:
+    - key: .status.phase
+      operator: In
+      values:
+      - Running
+    - key: .status.conditions.[] | select( .type == "Ready" ) | .status
+      operator: In
+      values:
+      - 'True'
+---
+apiVersion: kwok.x-k8s.io/v1alpha1
+kind: Stage
+metadata:
+  name: node-initialize
+spec:
+  next:
+    statusTemplate: "{{ $now := Now }}\n{{ $lastTransitionTime := or .metadata.creationTimestamp\
+      \ $now }}\nconditions:\n{{ range NodeConditions }}\n- lastHeartbeatTime: {{\
+      \ $now | Quote }}\n  lastTransitionTime: {{ $lastTransitionTime | Quote }}\n\
+      \  message: {{ .message | Quote }}\n  reason: {{ .reason | Quote }}\n  status:\
+      \ {{ .status | Quote }}\n  type: {{ .type  | Quote}}\n{{ end }}\n\n{{ $hasInternalIP\
+      \ := false }}\n{{ $hasHostname := false }}\n{{ range .status.addresses }}\n\
+      \  {{ if eq .type \"InternalIP\" }}\n    {{ $hasInternalIP = true }}\n  {{ end\
+      \ }}\n  {{ if eq .type \"Hostname\" }}\n    {{ $hasHostname = true }}\n  {{\
+      \ end }}\n{{ end }}\n{{ if or (not $hasInternalIP) (not $hasHostname) }}\naddresses:\n\
+      {{ end }}\n{{ if not $hasInternalIP }}\n{{ with NodeIP }}\n- address: {{ . |\
+      \ Quote }}\n  type: InternalIP\n{{ end }}\n{{ end }}\n{{ if not $hasHostname\
+      \ }}\n{{ with NodeName }}\n- address: {{ . | Quote }}\n  type: Hostname\n{{\
+      \ end }}\n{{ end }}\n\n{{ with NodePort }}\ndaemonEndpoints:\n  kubeletEndpoint:\n\
+      \    Port: {{ . }}\n{{ end }}\n\nallocatable:\n{{ with .status.allocatable }}\n\
+      {{ YAML . 1 }}\n{{ else }}\n  cpu: 1k\n  memory: 1Ti\n  pods: 1M\n{{ end }}\n\
+      capacity:\n{{ with .status.capacity }}\n{{ YAML . 1 }}\n{{ else }}\n  cpu: 1k\n\
+      \  memory: 1Ti\n  pods: 1M\n{{ end }}\n\n{{ $nodeInfo := .status.nodeInfo }}\n\
+      {{ $kwokVersion := printf \"kwok-%s\" Version }}\nnodeInfo:\n  architecture:\
+      \ {{ or $nodeInfo.architecture \"amd64\" }}\n  bootID: {{ or $nodeInfo.bootID\
+      \ `\"\"` }}\n  containerRuntimeVersion: {{ or $nodeInfo.containerRuntimeVersion\
+      \ $kwokVersion }}\n  kernelVersion: {{ or $nodeInfo.kernelVersion $kwokVersion\
+      \ }}\n  kubeProxyVersion: {{ or $nodeInfo.kubeProxyVersion $kwokVersion }}\n\
+      \  kubeletVersion: {{ or $nodeInfo.kubeletVersion $kwokVersion }}\n  machineID:\
+      \ {{ or $nodeInfo.machineID `\"\"` }}\n  operatingSystem: {{ or $nodeInfo.operatingSystem\
+      \ \"linux\" }}\n  osImage: {{ or $nodeInfo.osImage `\"\"` }}\n  systemUUID:\
+      \ {{ or $nodeInfo.systemUUID `\"\"` }}\nphase: Running\n"
+  resourceRef:
+    apiGroup: v1
+    kind: Node
+  selector:
+    matchExpressions:
+    - key: .status.conditions.[] | select( .type == "Ready" ) | .status
+      operator: NotIn
+      values:
+      - 'True'
