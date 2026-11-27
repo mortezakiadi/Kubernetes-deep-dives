@@ -1,0 +1,28 @@
+# S05: Topology-aware gang placement: whole jobs inside one block, slices inside one rack
+# Design reference: Topology-aware gang placement
+
+$ kubectl apply -f pretrain.yaml   # 8 pods x 8 GPUs, topology=network.ds17.io/block
+job.batch/pretrain created
+
+$ kubectl apply -f finetune.yaml   # 4 pods x 8 GPUs, topology=network.ds17.io/block, slice_topology=network.ds17.io/rack, slice_size=2
+job.batch/finetune created
+
+$ kubectl apply -f pretrain-2.yaml   # 8 pods x 8 GPUs, topology=network.ds17.io/block
+job.batch/pretrain-2 created
+
+$ kubectl apply -f flex.yaml   # 4 pods x 8 GPUs, preferred=network.ds17.io/rack
+job.batch/flex created
+
+$ where each job's pods landed (node labels network.ds17.io/block and rack)
+pretrain    admitted True  pods 8/8  blocks ['b1']  racks [('b1-r1', 4), ('b1-r2', 4)]
+finetune    admitted True  pods 4/4  blocks ['b2']  racks [('b2-r1', 4)]
+pretrain-2  admitted False pods 0/8  blocks []  racks []
+flex        admitted True  pods 4/4  blocks ['b2']  racks [('b2-r2', 4)]
+
+$ the second 8-node job's QuotaReserved condition
+couldn't assign flavors to pod set main: topology "ds17-fabric" allows to fit only 4 out of 8 pod(s); all pods must fit in a single "network.ds17.io/block" topology domain. Total nodes: 16; excluded: resource "nvidia.com/gpu": 12
+
+[PASS] the first 8-node job runs entirely inside one block
+[PASS] the sliced job runs in one block, with every rack holding a whole number of 2-node slices
+[PASS] the second 8-node job waits, holding nothing, because no block has 8 free nodes
+[PASS] the job that only prefers a rack is admitted anyway, in the smallest domain that fits

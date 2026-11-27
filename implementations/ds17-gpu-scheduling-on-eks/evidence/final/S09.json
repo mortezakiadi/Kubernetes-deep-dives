@@ -1,0 +1,82 @@
+{
+ "id": "S09",
+ "title": "Fair share: weighted shares of borrowed capacity, and admission fair sharing inside a team",
+ "design_ref": "Fair share: weighted shares and fairness over time",
+ "purpose": "A pool queue owns 96 GPUs and runs nothing; research (weight 1) and LLM (weight 2) own none and borrow. Research submits twelve 8-GPU jobs first and takes everything; then LLM submits twelve. Then, inside one team queue with 16 GPUs and usage-based admission fair sharing, a sweep project that has been using the queue competes with a paper project that has not.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f research-jobs.yaml   # 12 x 8 GPUs, weight 1",
+   "output": "job.batch/res-00 created\njob.batch/res-01 created\njob.batch/res-02 created\njob.batch/res-03 created\njob.batch/res-04 created\njob.batch/res-05 created\njob.batch/res-06 created\njob.batch/res-07 created\njob.batch/res-08 created\njob.batch/res-09 created\njob.batch/res-10 created\njob.batch/res-11 created",
+   "exit_code": 0,
+   "seconds": 5.09
+  },
+  {
+   "display": "research alone",
+   "output": "research 96 GPUs",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f llm-jobs.yaml   # 12 x 8 GPUs, weight 2",
+   "output": "job.batch/llm-00 created\njob.batch/llm-01 created\njob.batch/llm-02 created\njob.batch/llm-03 created\njob.batch/llm-04 created\njob.batch/llm-05 created\njob.batch/llm-06 created\njob.batch/llm-07 created\njob.batch/llm-08 created\njob.batch/llm-09 created\njob.batch/llm-10 created\njob.batch/llm-11 created",
+   "exit_code": 0,
+   "seconds": 5.15
+  },
+  {
+   "display": "kubectl get clusterqueue cq-research cq-llm -o custom-columns=QUEUE:.metadata.name,WEIGHT:.spec.fairSharing.weight,ADMITTED:.status.admittedWorkloads,WEIGHTED_SHARE:.status.fairSharing.weightedShare",
+   "output": "QUEUE         WEIGHT   ADMITTED   WEIGHTED_SHARE\ncq-research   1        4          334\ncq-llm        2        8          334",
+   "exit_code": 0,
+   "seconds": 1.07
+  },
+  {
+   "display": "after LLM arrives",
+   "output": "research 32 GPUs, LLM 64 GPUs; research workloads preempted: 8 (['InCohortFairSharing'])",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f sweeps-1.yaml   # 2 x 8 GPUs, 150 s each: the sweeps project uses the queue",
+   "output": "job.batch/sweep-0 created\njob.batch/sweep-1 created",
+   "exit_code": 0,
+   "seconds": 2.55
+  },
+  {
+   "display": "kubectl apply -f sweeps-2.yaml   # 4 more sweeps, queued first",
+   "output": "job.batch/sweep-2 created\njob.batch/sweep-3 created\njob.batch/sweep-4 created\njob.batch/sweep-5 created",
+   "exit_code": 0,
+   "seconds": 3.15
+  },
+  {
+   "display": "kubectl apply -f paper.yaml   # 1 paper job, queued after them",
+   "output": "job.batch/paper-0 created",
+   "exit_code": 0,
+   "seconds": 2.31
+  },
+  {
+   "display": "kubectl get localqueue -A -o custom-columns=QUEUE:.metadata.name,NAMESPACE:.metadata.namespace,CONSUMED_GPU:.status.fairSharing.admissionFairSharingStatus.consumedResources.nvidia\\.com/gpu,PENDING:.status.pendingWorkloads",
+   "output": "QUEUE    NAMESPACE         CONSUMED_GPU   PENDING\npaper    research-paper    302952517n     0\nsweeps   research-sweeps   3019798234n    3",
+   "exit_code": 0,
+   "seconds": 1.26
+  },
+  {
+   "display": "the jobs admitted into the two slots the first sweeps freed",
+   "output": "paper-0, sweep-3",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "fair sharing moves the borrowed 96 GPUs to the 2:1 weights: LLM 64, research 32 (within one 8-GPU job)",
+   "passed": true,
+   "because": "A queue below its weighted share preempts workloads of a queue above it; the strategies stop when shares are as fair as the 8-GPU jobs allow."
+  },
+  {
+   "description": "when capacity frees up, the paper project's job takes one of the two freed slots, ahead of three of the four sweeps queued before it",
+   "passed": true,
+   "because": "Usage-based admission fair sharing orders pending workloads by their LocalQueue's recent usage, decayed with a 10 min half-life."
+  }
+ ],
+ "notes": []
+}

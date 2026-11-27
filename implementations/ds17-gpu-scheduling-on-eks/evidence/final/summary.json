@@ -1,0 +1,74 @@
+{
+ "S01": {
+  "passed": true,
+  "checks": 6,
+  "failed": [],
+  "seconds": 13
+ },
+ "S02": {
+  "passed": false,
+  "checks": 3,
+  "failed": [
+   "both GPUs are allocated: 100% allocation",
+   "DCGM measures the trainer's GPU above 50% busy and the notebook's at 0%",
+   "the accounting service puts half of the allocated GPU-minutes in busy and half in allocated_idle"
+  ],
+  "seconds": 140
+ },
+ "S03": {
+  "passed": true,
+  "checks": 2,
+  "failed": [],
+  "seconds": 142
+ },
+ "S04": {
+  "passed": true,
+  "checks": 3,
+  "failed": [],
+  "seconds": 190
+ },
+ "S05": {
+  "passed": true,
+  "checks": 4,
+  "failed": [],
+  "seconds": 171
+ },
+ "S06": {
+  "passed": true,
+  "checks": 2,
+  "failed": [],
+  "seconds": 171
+ },
+ "S07": {
+  "passed": true,
+  "checks": 3,
+  "failed": [],
+  "seconds": 210
+ },
+ "S08": {
+  "passed": true,
+  "checks": 2,
+  "failed": [],
+  "seconds": 124
+ },
+ "S09": {
+  "passed": true,
+  "checks": 2,
+  "failed": [],
+  "seconds": 451
+ },
+ "S10": {
+  "passed": true,
+  "checks": 5,
+  "failed": [],
+  "seconds": 337
+ },
+ "S11": {
+  "passed": false,
+  "checks": 3,
+  "failed": [
+   "queue wait is reported per size class, from the workloads of S03 to S10"
+  ],
+  "seconds": 1
+ }
+}

@@ -1,0 +1,452 @@
+{
+ "t_start": 1795810049.97145,
+ "cuda_image": "nvcr.io/nvidia/k8s/cuda-sample:nbody@sha256:59261e419d6d48a772aad5bb213f9f1588fcdb042b115ceb7166c89a51f03363",
+ "s02": {
+  "util": {
+   "trainer-busy": 100.0
+  },
+  "breakdown": {
+   "allocated_idle": 2.2,
+   "free": 1.5,
+   "busy": 0.7
+  }
+ },
+ "waits": [
+  {
+   "scenario": "S03",
+   "job": "gang-a",
+   "gpus": 12,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S05",
+   "job": "pretrain",
+   "gpus": 64,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S05",
+   "job": "finetune",
+   "gpus": 32,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S05",
+   "job": "flex",
+   "gpus": 32,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S06",
+   "job": "gang-4x8",
+   "gpus": 32,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S06",
+   "job": "gang-4x8",
+   "gpus": 32,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S08",
+   "job": "llm-0",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S08",
+   "job": "llm-1",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S08",
+   "job": "llm-2",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S08",
+   "job": "llm-4",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S08",
+   "job": "llm-6",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S08",
+   "job": "vision-0",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S08",
+   "job": "vision-1",
+   "gpus": 8,
+   "wait_s": 1.0
+  },
+  {
+   "scenario": "S08",
+   "job": "vision-2",
+   "gpus": 8,
+   "wait_s": 2.0
+  },
+  {
+   "scenario": "S09",
+   "job": "res-00",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S09",
+   "job": "res-01",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S09",
+   "job": "res-02",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S09",
+   "job": "res-03",
+   "gpus": 8,
+   "wait_s": 0.0
+  },
+  {
+   "scenario": "S09",
+   "job": "llm-00",
+   "gpus": 8,
+   "wait_s": 2.0
+  },
+  {
+   "scenario": "S09",
+   "job": "llm-01",
+   "gpus": 8,
+   "wait_s": 6.0
+  },
+  {
+   "scenario": "S09",
+   "job": "llm-02",
+   "gpus": 8,
+   "wait_s": 2.0
+  },
+  {
+   "scenario": "S09",
+   "job": "llm-03",
+   "gpus": 8,
+   "wait_s": 4.0
+  },
+  {
+   "scenario": "S09",
+   "job": "llm-04",
+   "gpus": 8,
+   "wait_s": 3.0
+  },
+  {
+   "scenario": "S09",
+   "job": "llm-07",
+   "gpus": 8,
+   "wait_s": 8.0
+  },
+  {
+   "scenario": "S09",
+   "job": "llm-08",
+   "gpus": 8,
+   "wait_s": 7.0
+  },
+  {
+   "scenario": "S09",
+   "job": "llm-09",
+   "gpus": 8,
+   "wait_s": 6.0
+  },
+  {
+   "scenario": "S10",
+   "job": "train-32",
+   "gpus": 32,
+   "wait_s": 157.0
+  },
+  {
+   "scenario": "S10",
+   "job": "eval-24",
+   "gpus": 24,
+   "wait_s": 0.0
+  }
+ ],
+ "s06": {
+  "gpu-spread": {
+   "frag": {
+    "free_gpus": 64,
+    "whole_free_nodes": 0,
+    "fragmented_share": 1.0,
+    "largest_gang_of_8gpu_pods": 0,
+    "pods_of_1_that_fit": 64,
+    "pods_of_2_that_fit": 28,
+    "pods_of_4_that_fit": 12,
+    "pods_of_8_that_fit": 0
+   },
+   "gang": {
+    "running": 0,
+    "pending": 4,
+    "gpus_held": 0
+   },
+   "cats": {
+    "busy": 64,
+    "fragmented": 64
+   }
+  },
+  "gpu-binpack": {
+   "frag": {
+    "free_gpus": 64,
+    "whole_free_nodes": 8,
+    "fragmented_share": 0.0,
+    "largest_gang_of_8gpu_pods": 8,
+    "pods_of_1_that_fit": 64,
+    "pods_of_2_that_fit": 32,
+    "pods_of_4_that_fit": 16,
+    "pods_of_8_that_fit": 8
+   },
+   "gang": {
+    "running": 4,
+    "pending": 0,
+    "gpus_held": 32
+   },
+   "cats": {
+    "busy": 96,
+    "free": 32
+   }
+  }
+ },
+ "s07_trace": 31,
+ "s07": {
+  "before": {
+   "free_gpus": 64,
+   "whole_free_nodes": 0,
+   "fragmented_share": 1.0,
+   "largest_gang_of_8gpu_pods": 0,
+   "pods_of_1_that_fit": 64,
+   "pods_of_2_that_fit": 28,
+   "pods_of_4_that_fit": 12,
+   "pods_of_8_that_fit": 0
+  },
+  "after": {
+   "free_gpus": 32,
+   "whole_free_nodes": 0,
+   "fragmented_share": 1.0,
+   "largest_gang_of_8gpu_pods": 0,
+   "pods_of_1_that_fit": 32,
+   "pods_of_2_that_fit": 14,
+   "pods_of_4_that_fit": 2,
+   "pods_of_8_that_fit": 0
+  },
+  "plan": {
+   "drain": [
+    "fake-b1-r1-h3",
+    "fake-b1-r1-h4",
+    "fake-b1-r2-h2",
+    "fake-b1-r2-h3"
+   ],
+   "gpus_moved": 12,
+   "room_elsewhere": 44,
+   "feasible": true
+  },
+  "lost_gpu_minutes": 19.9
+ },
+ "s09": {
+  "research": 32,
+  "llm": 64
+ },
+ "s11": {
+  "breakdown": {
+   "samples": 193,
+   "sample_seconds": 10,
+   "gpu_minutes": 4187.8,
+   "share": {
+    "free": 0.412,
+    "busy": 0.318,
+    "blocked_by_quota": 0.22,
+    "fragmented": 0.027,
+    "waiting_for_gang": 0.021,
+    "allocated_idle": 0.001
+   },
+   "gpu_minutes_by_category": {
+    "free": 1727.3,
+    "busy": 1332.8,
+    "blocked_by_quota": 921.8,
+    "fragmented": 114.7,
+    "waiting_for_gang": 87.7,
+    "allocated_idle": 3.5
+   },
+   "by_team": {
+    "-": {
+     "free": 1727.3,
+     "blocked_by_quota": 921.8,
+     "fragmented": 114.7
+    },
+    "gpu": {
+     "allocated_idle": 3.5,
+     "busy": 0.7
+    },
+    "llm": {
+     "waiting_for_gang": 64.0,
+     "busy": 686.7
+    },
+    "nokueue": {
+     "busy": 101.3,
+     "waiting_for_gang": 15.7
+    },
+    "research": {
+     "busy": 528.2,
+     "waiting_for_gang": 4.0
+    },
+    "vision": {
+     "waiting_for_gang": 4.0,
+     "busy": 16.0
+    }
+   },
+   "lost_to_preemption_gpu_minutes": 66.7,
+   "preemptions": [
+    {
+     "t": 1795811146.708553,
+     "workload": "team-llm/job-llm-3-fba3a",
+     "team": "llm",
+     "gpus": 8,
+     "ran_seconds": 60,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: ae5f2130-de53-4b9f-a1fd-f4e9a60c5ed4, JobUID: 210b26ee-db1b-4c60-bfd0-bab61a2589b9) due to reclamation within the coho",
+     "lost_gpu_minutes": 8.0
+    },
+    {
+     "t": 1795811146.708553,
+     "workload": "team-llm/job-llm-5-5fa12",
+     "team": "llm",
+     "gpus": 8,
+     "ran_seconds": 60,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: 46b9779b-1d16-4115-b099-de976f7ac7c8, JobUID: 51add188-ed73-4b6b-ba11-ae0c79bffa0c) due to reclamation within the coho",
+     "lost_gpu_minutes": 8.0
+    },
+    {
+     "t": 1795811246.7092977,
+     "workload": "team-research/job-res-10-314be",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 30,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: 96a6f63e-b0f1-4d57-8a82-21dbade6d682, JobUID: 2d249c94-38f9-4c66-a31a-3f1ab91abfc8) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 4.0
+    },
+    {
+     "t": 1795811246.7092977,
+     "workload": "team-research/job-res-11-a7da0",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 30,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: 5f362006-d3b4-4789-a616-d2df9f4733f5, JobUID: 5dd62845-b863-49f5-b80d-7752e24cb0c8) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 4.0
+    },
+    {
+     "t": 1795811256.7093787,
+     "workload": "team-research/job-res-04-ff939",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 40,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: 1686724b-9e9c-4b48-85f5-ed205b50e3d2, JobUID: 8b38122b-d67c-4f8a-ab89-f7ba3725650c) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 5.33
+    },
+    {
+     "t": 1795811256.7093787,
+     "workload": "team-research/job-res-05-d018b",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 40,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: af332cbb-e38a-4349-8d9c-637a9018d0c9, JobUID: b4e9a9f0-9b67-4ee7-b8b5-9684c2493269) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 5.33
+    },
+    {
+     "t": 1795811256.7093787,
+     "workload": "team-research/job-res-06-3b487",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 40,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: da94eff7-edbf-4132-bdcd-e872f7d669cb, JobUID: 5f4bdb8e-daab-412c-a690-84edca12d1d5) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 5.33
+    },
+    {
+     "t": 1795811256.7093787,
+     "workload": "team-research/job-res-07-07ce1",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 40,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: a1e2ea55-ebe1-4c26-a7dc-afe2f470da11, JobUID: 89fa0115-1fd9-4c9c-a528-ed1822a478c0) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 5.33
+    },
+    {
+     "t": 1795811256.7093787,
+     "workload": "team-research/job-res-08-75523",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 40,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: 2532c4a0-f706-45ff-a0e9-10d9832081db, JobUID: 0c209f6f-6622-4eaf-b6b0-1c6c22915cc8) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 5.33
+    },
+    {
+     "t": 1795811256.7093787,
+     "workload": "team-research/job-res-09-31be8",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 40,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: aa1e9c37-8a82-4844-bf0f-a50f7dce1451, JobUID: e5af0b66-d496-4ee2-aef7-c8ccc1226396) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 5.33
+    },
+    {
+     "t": 1795811746.7132664,
+     "workload": "team-llm/job-sweep-2-bd996",
+     "team": "llm",
+     "gpus": 8,
+     "ran_seconds": 80,
+     "checkpoint_seconds": 600.0,
+     "reason": "Preempted to accommodate a workload (UID: 41da5a8e-b7e7-4798-ae8d-1fc3010410d4, JobUID: e471cb25-315d-424b-8f0a-517530c4acec) due to prioritization in the Clust",
+     "lost_gpu_minutes": 10.67
+    }
+   ]
+  },
+  "waits_by_size": {
+   "12-24": {
+    "n": 2,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "64": {
+    "n": 1,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "32": {
+    "n": 5,
+    "median": 0.0,
+    "max": 157.0
+   },
+   "8": {
+    "n": 20,
+    "median": 0.5,
+    "max": 8.0
+   }
+  }
+ }
+}

@@ -1,0 +1,77 @@
+# S01: The platform at rest: cluster, real and simulated GPUs, Kueue, the second scheduler, accounting
+# Design reference: Two layers: admission and placement
+
+$ aws eks describe-cluster --name ds17-sched --query cluster.{status:status,version:version,autoMode:computeConfig.enabled}
+{
+    "status": "ACTIVE",
+    "version": "1.37",
+    "autoMode": false
+}
+
+$ kubectl get nodes -L ds17/pool,node.kubernetes.io/instance-type,network.ds17.io/block,network.ds17.io/rack --sort-by=.metadata.name
+NAME                                         STATUS   ROLES    AGE     VERSION               POOL       INSTANCE-TYPE   BLOCK   RACK
+fake-b1-r1-h1                                Ready    <none>   11s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
+fake-b1-r1-h2                                Ready    <none>   11s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
+fake-b1-r1-h3                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
+fake-b1-r1-h4                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
+fake-b1-r2-h1                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
+fake-b1-r2-h2                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
+fake-b1-r2-h3                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
+fake-b1-r2-h4                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
+fake-b2-r1-h1                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b2      b2-r1
+fake-b2-r1-h2                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1
+fake-b2-r1-h3                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1
+fake-b2-r1-h4                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1
+fake-b2-r2-h1                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2
+fake-b2-r2-h2                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2
+fake-b2-r2-h3                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2
+fake-b2-r2-h4                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2
+ip-10-86-20-154.us-east-2.compute.internal   Ready    <none>   45m     v1.37.1-eks-9adbfea   system     m6i.2xlarge             
+ip-10-86-44-192.us-east-2.compute.internal   Ready    <none>   45m     v1.37.1-eks-9adbfea   system     m6i.2xlarge             
+ip-10-86-49-187.us-east-2.compute.internal   Ready    <none>   2m36s   v1.37.1-eks-9adbfea   gpu        g6e.2xlarge             
+ip-10-86-55-196.us-east-2.compute.internal   Ready    <none>   2m53s   v1.37.1-eks-9adbfea   gpu        g5.xlarge               
+
+$ GPUs each pool advertises (status.allocatable nvidia.com/gpu)
+simulated: 16 nodes, 128 GPUs, blocks ['b1', 'b2'], racks ['b1-r1', 'b1-r2', 'b2-r1', 'b2-r2']
+real: 2 nodes, 2 GPUs, types ['g5.xlarge', 'g6e.2xlarge']
+
+$ kubectl -n kueue-system get deploy kueue-controller-manager -o jsonpath='{..image}'
+registry.k8s.io/kueue/kueue:v0.20.8
+
+$ kubectl get topology,resourceflavor,workloadpriorityclass -o name
+topology.kueue.x-k8s.io/ds17-fabric
+resourceflavor.kueue.x-k8s.io/fake-h100
+resourceflavor.kueue.x-k8s.io/fake-h100-plain
+workloadpriorityclass.kueue.x-k8s.io/best-effort
+workloadpriorityclass.kueue.x-k8s.io/release
+workloadpriorityclass.kueue.x-k8s.io/standard
+
+$ the second scheduler's profiles (ds17-scheduler-config)
+          "weight": 10
+          "weight": 1
+          "weight": 1
+  "schedulerName": "gpu-binpack"
+          "weight": 10
+          "weight": 1
+          "weight": 1
+  "schedulerName": "gpu-spread"
+
+$ kubectl -n kube-system get deploy ds17-scheduler -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,IMAGE:.spec.template.spec.containers[0].image
+NAME             READY   IMAGE
+ds17-scheduler   1       registry.k8s.io/kube-scheduler:v1.37.1@sha256:b6e2474a6c20309f0df1e7337364281fda95c6a0722259ba7f032a1e177d3f29
+
+$ kubectl -n gpu-monitoring get pods -o wide
+NAME                  READY   STATUS    RESTARTS   AGE   IP             NODE                                         NOMINATED NODE   READINESS GATES
+dcgm-exporter-h4cdf   1/1     Running   0          87s   10.86.58.224   ip-10-86-55-196.us-east-2.compute.internal   <none>           <none>
+dcgm-exporter-zx22p   1/1     Running   0          87s   10.86.60.13    ip-10-86-49-187.us-east-2.compute.internal   <none>           <none>
+
+$ kubectl get jobs,workloads -A
+
+No resources found
+
+[PASS] the cluster is ACTIVE on Kubernetes 1.37, standard EKS (Auto Mode off)
+[PASS] 16 simulated nodes with 8 GPUs each (128 GPUs) in 2 blocks of 2 racks, all Ready; 2 real one-GPU nodes; 2 system nodes
+[PASS] Kueue runs with the topology ds17-fabric, two flavors over the simulated fleet and three priority classes
+[PASS] a second kube-scheduler runs with a bin-packing (MostAllocated) and a spreading (LeastAllocated) GPU profile
+[PASS] DCGM runs on both real GPU nodes, and the accounting service is sampling
+[PASS] no job and no workload exist yet

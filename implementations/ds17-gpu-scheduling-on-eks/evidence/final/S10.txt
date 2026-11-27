@@ -1,0 +1,60 @@
+# S10: Priority, preemption and backfill: urgent work, the cost of preemption, and bounded small jobs
+# Design reference: Priority, preemption and backfill
+
+$ kubectl apply -f sweeps.yaml   # 4 x 8 GPUs, priority best-effort
+job.batch/sweep-0 created
+job.batch/sweep-1 created
+job.batch/sweep-2 created
+job.batch/sweep-3 created
+
+$ kubectl apply -f rc-eval.yaml   # 1 x 8 GPUs, priority release
+job.batch/rc-eval created
+
+$ kubectl -n team-llm get workloads -o custom-columns=WORKLOAD:.metadata.name,PRIORITY:.spec.priority,ADMITTED:.status.conditions[?(@.type=='Admitted')].status,PREEMPTED:.status.conditions[?(@.type=='Preempted')].reason
+WORKLOAD            PRIORITY   ADMITTED   PREEMPTED
+job-rc-eval-74f35   1000       True       <none>
+job-sweep-0-b6dd9   10         True       <none>
+job-sweep-1-075de   10         True       <none>
+job-sweep-2-bd996   10         False      InClusterQueue
+job-sweep-3-e65c3   10         True       <none>
+
+$ accounting: work lost to that preemption
+{
+ "lost_to_preemption_gpu_minutes": 10.7,
+ "preemptions": [
+  {
+   "t": 1795811746.7132664,
+   "workload": "team-llm/job-sweep-2-bd996",
+   "team": "llm",
+   "gpus": 8,
+   "ran_seconds": 80,
+   "checkpoint_seconds": 600.0,
+   "reason": "Preempted to accommodate a workload (UID: 41da5a8e-b7e7-4798-ae8d-1fc3010410d4, JobUID: e471cb25-315d-424b-8f0a-517530c4acec) due to prioritization in the Clust",
+   "lost_gpu_minutes": 10.67
+  }
+ ]
+}
+
+$ kubectl apply -f eval-24.yaml   # 3 x 8 GPUs for 150 s
+job.batch/eval-24 created
+
+$ kubectl apply -f train-32.yaml   # 4 x 8 GPUs: must wait for eval-24
+job.batch/train-32 created
+
+$ kubectl apply -f probe-8.yaml   # 1 x 8 GPUs, kueue.x-k8s.io/max-exec-time-seconds: 90 (it would run 1 h)
+job.batch/probe-8 created
+
+$ 15 s later
+{"train-32_admitted": false, "probe-8_admitted": true}
+
+$ the bounded job after its limit
+{"condition": "Evicted", "reason": "DeactivatedDueToMaximumExecutionTimeExceeded", "message": "The workload is deactivated due to exceeding the maximum execution time", "active": false, "pods": {"running": 0, "pending": 0, "gpus_held": 0}}
+
+$ when eval-24 finished
+{"train-32": {"running": 4, "pending": 0, "gpus_held": 32}}
+
+[PASS] the release job is admitted at once by preempting one best-effort job (InClusterQueue)
+[PASS] the accounting service records the preempted job's work since its last checkpoint as lost
+[PASS] while the 32-GPU job waits, the bounded 8-GPU job runs in the gap
+[PASS] Kueue stops the bounded job at its declared 90 s although it would have run an hour, so it cannot delay the big job
+[PASS] the 32-GPU job starts when the 24-GPU job finishes

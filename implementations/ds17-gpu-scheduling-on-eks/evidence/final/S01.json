@@ -1,0 +1,96 @@
+{
+ "id": "S01",
+ "title": "The platform at rest: cluster, real and simulated GPUs, Kueue, the second scheduler, accounting",
+ "design_ref": "Two layers: admission and placement",
+ "purpose": "Check that the platform is what section 2 says before testing behaviour: a standard EKS cluster with a system and a real-GPU node group, 16 simulated 8-GPU nodes in two blocks of two racks, Kueue with the topology and flavors, a second scheduler with two GPU profiles, DCGM on the real GPUs, the accounting service, and no workload.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "aws eks describe-cluster --name ds17-sched --query cluster.{status:status,version:version,autoMode:computeConfig.enabled}",
+   "output": "{\n    \"status\": \"ACTIVE\",\n    \"version\": \"1.37\",\n    \"autoMode\": false\n}",
+   "exit_code": 0,
+   "seconds": 1.27
+  },
+  {
+   "display": "kubectl get nodes -L ds17/pool,node.kubernetes.io/instance-type,network.ds17.io/block,network.ds17.io/rack --sort-by=.metadata.name",
+   "output": "NAME                                         STATUS   ROLES    AGE     VERSION               POOL       INSTANCE-TYPE   BLOCK   RACK\nfake-b1-r1-h1                                Ready    <none>   11s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r1-h2                                Ready    <none>   11s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r1-h3                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r1-h4                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r2-h1                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b1-r2-h2                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b1-r2-h3                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b1-r2-h4                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b2-r1-h1                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r1-h2                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r1-h3                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r1-h4                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r2-h1                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2\nfake-b2-r2-h2                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2\nfake-b2-r2-h3                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2\nfake-b2-r2-h4                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2\nip-10-86-20-154.us-east-2.compute.internal   Ready    <none>   45m     v1.37.1-eks-9adbfea   system     m6i.2xlarge             \nip-10-86-44-192.us-east-2.compute.internal   Ready    <none>   45m     v1.37.1-eks-9adbfea   system     m6i.2xlarge             \nip-10-86-49-187.us-east-2.compute.internal   Ready    <none>   2m36s   v1.37.1-eks-9adbfea   gpu        g6e.2xlarge             \nip-10-86-55-196.us-east-2.compute.internal   Ready    <none>   2m53s   v1.37.1-eks-9adbfea   gpu        g5.xlarge               ",
+   "exit_code": 0,
+   "seconds": 1.22
+  },
+  {
+   "display": "GPUs each pool advertises (status.allocatable nvidia.com/gpu)",
+   "output": "simulated: 16 nodes, 128 GPUs, blocks ['b1', 'b2'], racks ['b1-r1', 'b1-r2', 'b2-r1', 'b2-r2']\nreal: 2 nodes, 2 GPUs, types ['g5.xlarge', 'g6e.2xlarge']",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n kueue-system get deploy kueue-controller-manager -o jsonpath='{..image}'",
+   "output": "registry.k8s.io/kueue/kueue:v0.20.8",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl get topology,resourceflavor,workloadpriorityclass -o name",
+   "output": "topology.kueue.x-k8s.io/ds17-fabric\nresourceflavor.kueue.x-k8s.io/fake-h100\nresourceflavor.kueue.x-k8s.io/fake-h100-plain\nworkloadpriorityclass.kueue.x-k8s.io/best-effort\nworkloadpriorityclass.kueue.x-k8s.io/release\nworkloadpriorityclass.kueue.x-k8s.io/standard",
+   "exit_code": 0,
+   "seconds": 1.23
+  },
+  {
+   "display": "the second scheduler's profiles (ds17-scheduler-config)",
+   "output": "          \"weight\": 10\n          \"weight\": 1\n          \"weight\": 1\n  \"schedulerName\": \"gpu-binpack\"\n          \"weight\": 10\n          \"weight\": 1\n          \"weight\": 1\n  \"schedulerName\": \"gpu-spread\"",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n kube-system get deploy ds17-scheduler -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,IMAGE:.spec.template.spec.containers[0].image",
+   "output": "NAME             READY   IMAGE\nds17-scheduler   1       registry.k8s.io/kube-scheduler:v1.37.1@sha256:b6e2474a6c20309f0df1e7337364281fda95c6a0722259ba7f032a1e177d3f29",
+   "exit_code": 0,
+   "seconds": 1.18
+  },
+  {
+   "display": "kubectl -n gpu-monitoring get pods -o wide",
+   "output": "NAME                  READY   STATUS    RESTARTS   AGE   IP             NODE                                         NOMINATED NODE   READINESS GATES\ndcgm-exporter-h4cdf   1/1     Running   0          87s   10.86.58.224   ip-10-86-55-196.us-east-2.compute.internal   <none>           <none>\ndcgm-exporter-zx22p   1/1     Running   0          87s   10.86.60.13    ip-10-86-49-187.us-east-2.compute.internal   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 1.27
+  },
+  {
+   "display": "kubectl get jobs,workloads -A",
+   "output": "\nNo resources found",
+   "exit_code": 0,
+   "seconds": 1.12
+  }
+ ],
+ "checks": [
+  {
+   "description": "the cluster is ACTIVE on Kubernetes 1.37, standard EKS (Auto Mode off)",
+   "passed": true,
+   "because": "Terraform creates a plain cluster with managed node groups and no compute configuration."
+  },
+  {
+   "description": "16 simulated nodes with 8 GPUs each (128 GPUs) in 2 blocks of 2 racks, all Ready; 2 real one-GPU nodes; 2 system nodes",
+   "passed": true,
+   "because": "KWOK keeps the Node objects up/make_fleet.py created Ready; the device plugin advertises the real GPUs."
+  },
+  {
+   "description": "Kueue runs with the topology ds17-fabric, two flavors over the simulated fleet and three priority classes",
+   "passed": true,
+   "because": "The platform layer creates them after the Kueue chart is ready."
+  },
+  {
+   "description": "a second kube-scheduler runs with a bin-packing (MostAllocated) and a spreading (LeastAllocated) GPU profile",
+   "passed": true,
+   "because": "Both profiles weight GPUs 10 to 1 over CPU and memory and differ only in strategy."
+  },
+  {
+   "description": "DCGM runs on both real GPU nodes, and the accounting service is sampling",
+   "passed": true,
+   "because": "The chart's DaemonSet selects the GPU pool; the accounting service samples every 10 s."
+  },
+  {
+   "description": "no job and no workload exist yet",
+   "passed": true,
+   "because": "A fresh build."
+  }
+ ],
+ "notes": []
+}

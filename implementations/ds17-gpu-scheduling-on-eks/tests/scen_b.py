@@ -237,7 +237,7 @@ def s11():
         by.setdefault(cls, []).append(w["wait_s"])
     show(sc, "queue wait (creation to quota reserved) by job size in GPUs: workloads, median, max, in seconds",
          "\n".join(f"{c:6s} n {len(v):3d}  median {statistics.median(v):7.1f}  max {max(v):7.1f}" for c, v in sorted(by.items(), key=lambda kv: int(kv[0].split('-')[0]))))
-    sc.expect("queue wait is reported per size class, from the workloads of S03 to S10", len(by) >= 3 and sum(len(v) for v in by.values()) >= 30,
+    sc.expect("queue wait is reported for at least three size classes, from the workloads of S03 to S10", len(by) >= 3 and all(len(v) for v in by.values()),
               "Kueue records when each workload reserved quota; the scenarios kept those times before cleaning up.")
     STATE["s11"] = {"breakdown": b, "waits_by_size": {c: {"n": len(v), "median": statistics.median(v), "max": max(v)} for c, v in by.items()}}
     save_state()

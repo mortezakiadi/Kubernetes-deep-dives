@@ -1,0 +1,75 @@
+{
+ "id": "S04",
+ "title": "Quota fit is not node fit: the pods-ready timeout, and topology-aware admission",
+ "design_ref": "Gang scheduling: all or nothing (waitForPodsReady); Topology-aware gang placement",
+ "purpose": "Rack b1-r1 has 8 free GPUs, but the queue has 16 GPUs of quota. Submit a 12-pod job through a queue without topology: Kueue admits it, only 8 pods can run, and waitForPodsReady (60 s here) must evict and requeue it. Then free the rack and watch it start. Finally submit the same job through a topology-aware queue, which checks the rack's real free GPUs before admitting.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f filler.yaml   # 3 pods x 8 GPUs: rack b1-r1 keeps 8 of 32 GPUs free",
+   "output": "job.batch/filler created",
+   "exit_code": 0,
+   "seconds": 2.33
+  },
+  {
+   "display": "kubectl apply -f train-12.yaml   # 12 pods x 1 GPU, queue plain (flavor without topology)",
+   "output": "job.batch/train-12 created",
+   "exit_code": 0,
+   "seconds": 2.35
+  },
+  {
+   "display": "pods 15 s after admission",
+   "output": "{'running': 8, 'pending': 4, 'gpus_held': 8}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n team-llm get workload <train-12's> -o jsonpath='{.status.conditions[?(@.type==\"Evicted\")]} {.status.requeueState}'",
+   "output": "{\"reason\": \"PodsReadyTimeout\", \"message\": \"Exceeded the PodsReady timeout team-llm/job-train-12-b2ea8\", \"requeueState\": {\"count\": 1, \"requeueAt\": \"2026-11-27T20:13:45Z\"}}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "after the filler is deleted (rack fully free)",
+   "output": "{'running': 12, 'pending': 0, 'gpus_held': 12}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f filler.yaml   # the same 3 x 8 GPUs: rack b1-r1 keeps 8 free",
+   "output": "job.batch/filler created",
+   "exit_code": 0,
+   "seconds": 2.34
+  },
+  {
+   "display": "kubectl apply -f train-12-tas.yaml   # the same job, queue tas (flavor with topology), podset-required-topology: rack",
+   "output": "job.batch/train-12 created",
+   "exit_code": 0,
+   "seconds": 2.16
+  },
+  {
+   "display": "the workload 30 s later",
+   "output": "{\"admitted\": false, \"pods\": {\"running\": 0, \"pending\": 0, \"gpus_held\": 0}, \"message\": \"couldn't assign flavors to pod set main: topology \\\"ds17-fabric\\\" allows to fit only 8 out of 12 pod(s); all pods must fit in a single \\\"network.ds17.io/rack\\\" topology domain. Total nodes: 16; excluded: nodeSelector: 12, resource \\\"nvidia.com/gpu\\\": 3\"}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "Kueue admits the job on quota, 8 pods run and 4 stay pending, and after the 60 s timeout the workload is evicted (PodsReadyTimeout) and requeued with backoff",
+   "passed": true,
+   "because": "waitForPodsReady: all pods of an admitted workload must be ready within the timeout, or it gives its quota back and waits."
+  },
+  {
+   "description": "once the rack has room, the requeued workload is admitted again and all 12 pods run",
+   "passed": true,
+   "because": "The requeue backoff expired and the quota still fitted; this time the nodes did too."
+  },
+  {
+   "description": "through the topology-aware queue the job is not admitted while the rack lacks 12 free GPUs, and holds none",
+   "passed": true,
+   "because": "TAS checks the free GPUs of the topology domain, including those used by pods Kueue does not manage, before it admits."
+  }
+ ],
+ "notes": []
+}

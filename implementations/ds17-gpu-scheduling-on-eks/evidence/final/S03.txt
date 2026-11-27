@@ -1,0 +1,37 @@
+# S03: Gang scheduling: per-pod placement deadlocks two jobs; Kueue admits one whole job
+# Design reference: Gang scheduling: all or nothing
+
+$ kubectl apply -f filler.yaml   # 2 pods x 8 GPUs in rack b1-r1: 16 of its 32 GPUs remain free
+job.batch/filler created
+
+$ kubectl apply -f gang-a.yaml -f gang-b.yaml   # no queue: every pod goes straight to the scheduler; parallelism 2 of 12
+job.batch/gang-a created
+job.batch/gang-b created
+
+$ kubectl -n nokueue get jobs   # after raising both to parallelism 12 in alternating steps of 2
+JOB      PARALLELISM   COMPLETIONS
+gang-a   12            12
+gang-b   12            12
+
+$ pods of each job after 40 s
+gang-a {'running': 8, 'pending': 4, 'gpus_held': 8}
+gang-b {'running': 8, 'pending': 4, 'gpus_held': 8}
+
+$ accounting /now: GPUs waiting for a gang
+16
+
+$ kubectl apply -f gang-a.yaml -f gang-b.yaml   # labelled kueue.x-k8s.io/queue-name: gangs (ClusterQueue quota 16 GPUs)
+job.batch/gang-a created
+job.batch/gang-b created
+
+$ kubectl -n team-llm get workloads -o custom-columns=WORKLOAD:.metadata.name,ADMITTED:.status.conditions[?(@.type=='Admitted')].status,PENDING:.status.conditions[?(@.type=='QuotaReserved')].message
+WORKLOAD           ADMITTED   PENDING
+job-gang-a-3abef   True       Quota reserved in ClusterQueue cq-gang
+job-gang-b-62eab   False      couldn't assign flavors to pod set main: insufficient unused quota for nvidia.com/gpu in flavor fake-h100-plain, 8 more needed
+
+$ pods of each job after admission
+gang-a {'running': 12, 'pending': 0, 'gpus_held': 12}
+gang-b {'running': 0, 'pending': 0, 'gpus_held': 0}
+
+[PASS] without admission both jobs start part of their pods and neither has all 12: a deadlock that holds GPUs
+[PASS] with Kueue one job is admitted whole (12 pods running) and the other holds nothing until it fits; no GPU waits for a gang

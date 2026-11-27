@@ -45,6 +45,16 @@ python3 "$ROOT/platform/make_fleet.py" | $K apply -f - >/dev/null
 for i in $(seq 1 30); do [ "$($K get nodes -l ds17/pool=fake-gpu --no-headers 2>/dev/null | grep -c ' Ready')" = 16 ] && break; sleep 5; done
 $K get nodes -l ds17/pool=fake-gpu -L network.ds17.io/block,network.ds17.io/rack --no-headers | awk '{print $1, $2, $6, $7}' | head -3
 echo "fake GPU nodes Ready: $($K get nodes -l ds17/pool=fake-gpu --no-headers | grep -c ' Ready') of 16"
+# The real GPU nodes must both be Ready and advertising their GPU, and stay so for a minute: when EC2 refuses a type for
+# capacity, the node group can replace an instance after the apply returns, and S02 needs both GPUs to stay put.
+stable=0
+for i in $(seq 1 90); do
+  n="$($K get nodes -l ds17/pool=gpu -o jsonpath='{range .items[*]}{.status.allocatable.nvidia\.com/gpu}{" "}{end}' 2>/dev/null | tr ' ' '\n' | grep -c '^1$')"
+  if [ "$n" = "${GPU_NODES}" ]; then stable=$((stable+1)); else stable=0; fi
+  [ "$stable" -ge 6 ] && break
+  sleep 10
+done
+echo "real GPU nodes Ready with a GPU: $n of ${GPU_NODES}"
 $K -n kube-system rollout status deploy/ds17-scheduler --timeout=300s
 $K -n platform rollout status deploy/accounting --timeout=300s
 echo "Ready. Run: python3 tests/run_scenarios.py all"

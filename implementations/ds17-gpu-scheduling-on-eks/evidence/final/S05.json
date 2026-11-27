@@ -1,0 +1,68 @@
+{
+ "id": "S05",
+ "title": "Topology-aware gang placement: whole jobs inside one block, slices inside one rack",
+ "design_ref": "Topology-aware gang placement",
+ "purpose": "Through one queue on the topology-aware flavor, with more quota (256 GPUs) than the 128 GPUs exist so that only placement can hold a job back, submit in order: an 8-node job that requires one block, a 4-node job that requires one block with slices of 2 nodes that each require one rack, a second 8-node job that requires one block (no block has 8 free nodes left), and a 4-node job that only prefers one rack.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f pretrain.yaml   # 8 pods x 8 GPUs, topology=network.ds17.io/block",
+   "output": "job.batch/pretrain created",
+   "exit_code": 0,
+   "seconds": 2.44
+  },
+  {
+   "display": "kubectl apply -f finetune.yaml   # 4 pods x 8 GPUs, topology=network.ds17.io/block, slice_topology=network.ds17.io/rack, slice_size=2",
+   "output": "job.batch/finetune created",
+   "exit_code": 0,
+   "seconds": 2.41
+  },
+  {
+   "display": "kubectl apply -f pretrain-2.yaml   # 8 pods x 8 GPUs, topology=network.ds17.io/block",
+   "output": "job.batch/pretrain-2 created",
+   "exit_code": 0,
+   "seconds": 2.31
+  },
+  {
+   "display": "kubectl apply -f flex.yaml   # 4 pods x 8 GPUs, preferred=network.ds17.io/rack",
+   "output": "job.batch/flex created",
+   "exit_code": 0,
+   "seconds": 2.42
+  },
+  {
+   "display": "where each job's pods landed (node labels network.ds17.io/block and rack)",
+   "output": "pretrain    admitted True  pods 8/8  blocks ['b1']  racks [('b1-r1', 4), ('b1-r2', 4)]\nfinetune    admitted True  pods 4/4  blocks ['b2']  racks [('b2-r1', 4)]\npretrain-2  admitted False pods 0/8  blocks []  racks []\nflex        admitted True  pods 4/4  blocks ['b2']  racks [('b2-r2', 4)]",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "the second 8-node job's QuotaReserved condition",
+   "output": "couldn't assign flavors to pod set main: topology \"ds17-fabric\" allows to fit only 4 out of 8 pod(s); all pods must fit in a single \"network.ds17.io/block\" topology domain. Total nodes: 16; excluded: resource \"nvidia.com/gpu\": 12",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the first 8-node job runs entirely inside one block",
+   "passed": true,
+   "because": "podset-required-topology: block; Kueue picks a block with 8 free nodes and pins each pod to a node in it."
+  },
+  {
+   "description": "the sliced job runs in one block, with every rack holding a whole number of 2-node slices",
+   "passed": true,
+   "because": "podset-slice-required-topology: rack with podset-slice-size 2."
+  },
+  {
+   "description": "the second 8-node job waits, holding nothing, because no block has 8 free nodes",
+   "passed": true,
+   "because": "Required topology waits for a domain rather than spreading the job."
+  },
+  {
+   "description": "the job that only prefers a rack is admitted anyway, in the smallest domain that fits",
+   "passed": true,
+   "because": "podset-preferred-topology tries one rack and falls back to a wider domain; BestEffortFIFO lets it pass the waiting job."
+  }
+ ],
+ "notes": []
+}

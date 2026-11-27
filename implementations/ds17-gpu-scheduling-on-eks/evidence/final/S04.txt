@@ -1,0 +1,30 @@
+# S04: Quota fit is not node fit: the pods-ready timeout, and topology-aware admission
+# Design reference: Gang scheduling: all or nothing (waitForPodsReady); Topology-aware gang placement
+
+$ kubectl apply -f filler.yaml   # 3 pods x 8 GPUs: rack b1-r1 keeps 8 of 32 GPUs free
+job.batch/filler created
+
+$ kubectl apply -f train-12.yaml   # 12 pods x 1 GPU, queue plain (flavor without topology)
+job.batch/train-12 created
+
+$ pods 15 s after admission
+{'running': 8, 'pending': 4, 'gpus_held': 8}
+
+$ kubectl -n team-llm get workload <train-12's> -o jsonpath='{.status.conditions[?(@.type=="Evicted")]} {.status.requeueState}'
+{"reason": "PodsReadyTimeout", "message": "Exceeded the PodsReady timeout team-llm/job-train-12-b2ea8", "requeueState": {"count": 1, "requeueAt": "2026-11-27T20:13:45Z"}}
+
+$ after the filler is deleted (rack fully free)
+{'running': 12, 'pending': 0, 'gpus_held': 12}
+
+$ kubectl apply -f filler.yaml   # the same 3 x 8 GPUs: rack b1-r1 keeps 8 free
+job.batch/filler created
+
+$ kubectl apply -f train-12-tas.yaml   # the same job, queue tas (flavor with topology), podset-required-topology: rack
+job.batch/train-12 created
+
+$ the workload 30 s later
+{"admitted": false, "pods": {"running": 0, "pending": 0, "gpus_held": 0}, "message": "couldn't assign flavors to pod set main: topology \"ds17-fabric\" allows to fit only 8 out of 12 pod(s); all pods must fit in a single \"network.ds17.io/rack\" topology domain. Total nodes: 16; excluded: nodeSelector: 12, resource \"nvidia.com/gpu\": 3"}
+
+[PASS] Kueue admits the job on quota, 8 pods run and 4 stay pending, and after the 60 s timeout the workload is evicted (PodsReadyTimeout) and requeued with backoff
+[PASS] once the rack has room, the requeued workload is admitted again and all 12 pods run
+[PASS] through the topology-aware queue the job is not admitted while the rack lacks 12 free GPUs, and holds none

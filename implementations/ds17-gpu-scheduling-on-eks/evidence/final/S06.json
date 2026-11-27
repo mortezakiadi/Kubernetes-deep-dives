@@ -1,0 +1,72 @@
+{
+ "id": "S06",
+ "title": "Bin-packing against spreading: the same 64 GPUs of small jobs, and a 4-node gang after them",
+ "design_ref": "Bin-packing to reduce fragmentation",
+ "purpose": "Replay the same seeded trace of single-pod 1-, 2- and 4-GPU jobs (64 GPUs) twice, once with the spreading profile and once with the bin-packing profile of the second scheduler, through a queue on the flavor without topology so that only the scheduler decides placement. After each, read the fragmentation and submit a gang of 4 pods with 8 GPUs each.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f trace.yaml   # 31 single-pod jobs of 1, 2 or 4 GPUs (64 GPUs), schedulerName gpu-spread",
+   "output": "job.batch/small-00 created\njob.batch/small-01 created\njob.batch/small-02 created\njob.batch/small-03 created\njob.batch/small-04 created\njob.batch/small-05 created\njob.batch/small-06 created\njob.batch/small-07 created\njob.batch/small-08 created\njob.batch/small-09 created\njob.batch/small-10 created\njob.batch/small-11 created\njob.batch/small-12 created\njob.batch/small-13 created\njob.batch/small-14 created\njob.batch/small-15 created\njob.batch/small-16 created\njob.batch/small-17 created\njob.batch/small-18 created\njob.batch/small-19 created\njob.batch/small-20 created\njob.batch/small-21 created\njob.batch/small-22 created\njob.batch/small-23 created\njob.batch/small-24 created\njob.batch/small-25 created\njob.batch/small-26 created\njob.batch/small-27 created\njob.batch/small-28 created\njob.batch/small-29 created\njob.batch/small-30 created",
+   "exit_code": 0,
+   "seconds": 9.03
+  },
+  {
+   "display": "gpu-spread: free GPUs per node, then the fragmentation report",
+   "output": "4 5 2 5 4 5 5 5 4 5 2 5 2 4 3 4\n{\"free_gpus\": 64, \"whole_free_nodes\": 0, \"fragmented_share\": 1.0, \"largest_gang_of_8gpu_pods\": 0, \"pods_of_1_that_fit\": 64, \"pods_of_2_that_fit\": 28, \"pods_of_4_that_fit\": 12, \"pods_of_8_that_fit\": 0}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f gang-4x8.yaml   # 4 pods x 8 GPUs, schedulerName gpu-spread",
+   "output": "job.batch/gang-4x8 created",
+   "exit_code": 0,
+   "seconds": 3.03
+  },
+  {
+   "display": "gpu-spread: the gang 30 s after submission, and accounting /now for the simulated fleet (GPUs per category)",
+   "output": "{\"gang\": {\"running\": 0, \"pending\": 4, \"gpus_held\": 0}, \"categories\": {\"busy\": 64, \"fragmented\": 64}}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f trace.yaml   # 31 single-pod jobs of 1, 2 or 4 GPUs (64 GPUs), schedulerName gpu-binpack",
+   "output": "job.batch/small-00 created\njob.batch/small-01 created\njob.batch/small-02 created\njob.batch/small-03 created\njob.batch/small-04 created\njob.batch/small-05 created\njob.batch/small-06 created\njob.batch/small-07 created\njob.batch/small-08 created\njob.batch/small-09 created\njob.batch/small-10 created\njob.batch/small-11 created\njob.batch/small-12 created\njob.batch/small-13 created\njob.batch/small-14 created\njob.batch/small-15 created\njob.batch/small-16 created\njob.batch/small-17 created\njob.batch/small-18 created\njob.batch/small-19 created\njob.batch/small-20 created\njob.batch/small-21 created\njob.batch/small-22 created\njob.batch/small-23 created\njob.batch/small-24 created\njob.batch/small-25 created\njob.batch/small-26 created\njob.batch/small-27 created\njob.batch/small-28 created\njob.batch/small-29 created\njob.batch/small-30 created",
+   "exit_code": 0,
+   "seconds": 9.1
+  },
+  {
+   "display": "gpu-binpack: free GPUs per node, then the fragmentation report",
+   "output": "0 0 0 0 0 8 0 8 0 8 0 8 8 8 8 8\n{\"free_gpus\": 64, \"whole_free_nodes\": 8, \"fragmented_share\": 0.0, \"largest_gang_of_8gpu_pods\": 8, \"pods_of_1_that_fit\": 64, \"pods_of_2_that_fit\": 32, \"pods_of_4_that_fit\": 16, \"pods_of_8_that_fit\": 8}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f gang-4x8.yaml   # 4 pods x 8 GPUs, schedulerName gpu-binpack",
+   "output": "job.batch/gang-4x8 created",
+   "exit_code": 0,
+   "seconds": 3.07
+  },
+  {
+   "display": "gpu-binpack: the gang 30 s after submission, and accounting /now for the simulated fleet (GPUs per category)",
+   "output": "{\"gang\": {\"running\": 4, \"pending\": 0, \"gpus_held\": 32}, \"categories\": {\"busy\": 96, \"free\": 32}}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "spreading leaves almost no whole free node; bin-packing leaves at least 6 of 16",
+   "passed": true,
+   "because": "MostAllocated scores the fullest node highest, so small jobs fill few nodes; LeastAllocated puts each on the emptiest node."
+  },
+  {
+   "description": "after spreading the 4-node gang cannot start, and its waiting GPUs are counted as fragmented; after packing it runs",
+   "passed": true,
+   "because": "The free GPUs are the same in total; only their arrangement decides whether an 8-GPU pod fits."
+  }
+ ],
+ "notes": [
+  "Whole free nodes: spreading 0, packing 8; fragmented share 1.0 vs 0.0."
+ ]
+}

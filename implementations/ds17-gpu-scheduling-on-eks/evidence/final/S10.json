@@ -1,0 +1,97 @@
+{
+ "id": "S10",
+ "title": "Priority, preemption and backfill: urgent work, the cost of preemption, and bounded small jobs",
+ "design_ref": "Priority, preemption and backfill",
+ "purpose": "One team queue with 32 GPUs. Four best-effort 8-GPU jobs (checkpoint every 600 s) fill it; a release job arrives. Then a 32-GPU job waits behind a 24-GPU job while an 8-GPU job with a declared 90 s runtime limit fills the gap.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f sweeps.yaml   # 4 x 8 GPUs, priority best-effort",
+   "output": "job.batch/sweep-0 created\njob.batch/sweep-1 created\njob.batch/sweep-2 created\njob.batch/sweep-3 created",
+   "exit_code": 0,
+   "seconds": 3.26
+  },
+  {
+   "display": "kubectl apply -f rc-eval.yaml   # 1 x 8 GPUs, priority release",
+   "output": "job.batch/rc-eval created",
+   "exit_code": 0,
+   "seconds": 2.77
+  },
+  {
+   "display": "kubectl -n team-llm get workloads -o custom-columns=WORKLOAD:.metadata.name,PRIORITY:.spec.priority,ADMITTED:.status.conditions[?(@.type=='Admitted')].status,PREEMPTED:.status.conditions[?(@.type=='Preempted')].reason",
+   "output": "WORKLOAD            PRIORITY   ADMITTED   PREEMPTED\njob-rc-eval-74f35   1000       True       <none>\njob-sweep-0-b6dd9   10         True       <none>\njob-sweep-1-075de   10         True       <none>\njob-sweep-2-bd996   10         False      InClusterQueue\njob-sweep-3-e65c3   10         True       <none>",
+   "exit_code": 0,
+   "seconds": 1.4
+  },
+  {
+   "display": "accounting: work lost to that preemption",
+   "output": "{\n \"lost_to_preemption_gpu_minutes\": 10.7,\n \"preemptions\": [\n  {\n   \"t\": 1795811746.7132664,\n   \"workload\": \"team-llm/job-sweep-2-bd996\",\n   \"team\": \"llm\",\n   \"gpus\": 8,\n   \"ran_seconds\": 80,\n   \"checkpoint_seconds\": 600.0,\n   \"reason\": \"Preempted to accommodate a workload (UID: 41da5a8e-b7e7-4798-ae8d-1fc3010410d4, JobUID: e471cb25-315d-424b-8f0a-517530c4acec) due to prioritization in the Clust\",\n   \"lost_gpu_minutes\": 10.67\n  }\n ]\n}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f eval-24.yaml   # 3 x 8 GPUs for 150 s",
+   "output": "job.batch/eval-24 created",
+   "exit_code": 0,
+   "seconds": 2.44
+  },
+  {
+   "display": "kubectl apply -f train-32.yaml   # 4 x 8 GPUs: must wait for eval-24",
+   "output": "job.batch/train-32 created",
+   "exit_code": 0,
+   "seconds": 2.6
+  },
+  {
+   "display": "kubectl apply -f probe-8.yaml   # 1 x 8 GPUs, kueue.x-k8s.io/max-exec-time-seconds: 90 (it would run 1 h)",
+   "output": "job.batch/probe-8 created",
+   "exit_code": 0,
+   "seconds": 2.82
+  },
+  {
+   "display": "15 s later",
+   "output": "{\"train-32_admitted\": false, \"probe-8_admitted\": true}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "the bounded job after its limit",
+   "output": "{\"condition\": \"Evicted\", \"reason\": \"DeactivatedDueToMaximumExecutionTimeExceeded\", \"message\": \"The workload is deactivated due to exceeding the maximum execution time\", \"active\": false, \"pods\": {\"running\": 0, \"pending\": 0, \"gpus_held\": 0}}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "when eval-24 finished",
+   "output": "{\"train-32\": {\"running\": 4, \"pending\": 0, \"gpus_held\": 32}}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the release job is admitted at once by preempting one best-effort job (InClusterQueue)",
+   "passed": true,
+   "because": "withinClusterQueue: LowerPriority; release 1000 against best-effort 10."
+  },
+  {
+   "description": "the accounting service records the preempted job's work since its last checkpoint as lost",
+   "passed": true,
+   "because": "8 GPUs times the time since the last 600 s checkpoint boundary."
+  },
+  {
+   "description": "while the 32-GPU job waits, the bounded 8-GPU job runs in the gap",
+   "passed": true,
+   "because": "BestEffortFIFO admits a later workload that fits when the head of the queue does not."
+  },
+  {
+   "description": "Kueue stops the bounded job at its declared 90 s although it would have run an hour, so it cannot delay the big job",
+   "passed": true,
+   "because": "kueue.x-k8s.io/max-exec-time-seconds: the workload is deactivated when its admitted time passes the limit."
+  },
+  {
+   "description": "the 32-GPU job starts when the 24-GPU job finishes",
+   "passed": true,
+   "because": "Its whole request fits once eval-24's quota is released."
+  }
+ ],
+ "notes": []
+}

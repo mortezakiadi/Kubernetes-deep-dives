@@ -1,0 +1,70 @@
+{
+ "id": "S03",
+ "title": "Gang scheduling: per-pod placement deadlocks two jobs; Kueue admits one whole job",
+ "design_ref": "Gang scheduling: all or nothing",
+ "purpose": "Leave 16 free GPUs in rack b1-r1 and submit two 12-pod jobs (one GPU per pod) at the same time, first straight to the scheduler, then through a Kueue queue with a 16-GPU quota. Distributed training needs all 12 workers.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f filler.yaml   # 2 pods x 8 GPUs in rack b1-r1: 16 of its 32 GPUs remain free",
+   "output": "job.batch/filler created",
+   "exit_code": 0,
+   "seconds": 2.45
+  },
+  {
+   "display": "kubectl apply -f gang-a.yaml -f gang-b.yaml   # no queue: every pod goes straight to the scheduler; parallelism 2 of 12",
+   "output": "job.batch/gang-a created\njob.batch/gang-b created",
+   "exit_code": 0,
+   "seconds": 2.88
+  },
+  {
+   "display": "kubectl -n nokueue get jobs   # after raising both to parallelism 12 in alternating steps of 2",
+   "output": "JOB      PARALLELISM   COMPLETIONS\ngang-a   12            12\ngang-b   12            12",
+   "exit_code": 0,
+   "seconds": 1.28
+  },
+  {
+   "display": "pods of each job after 40 s",
+   "output": "gang-a {'running': 8, 'pending': 4, 'gpus_held': 8}\ngang-b {'running': 8, 'pending': 4, 'gpus_held': 8}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "accounting /now: GPUs waiting for a gang",
+   "output": "16",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f gang-a.yaml -f gang-b.yaml   # labelled kueue.x-k8s.io/queue-name: gangs (ClusterQueue quota 16 GPUs)",
+   "output": "job.batch/gang-a created\njob.batch/gang-b created",
+   "exit_code": 0,
+   "seconds": 2.72
+  },
+  {
+   "display": "kubectl -n team-llm get workloads -o custom-columns=WORKLOAD:.metadata.name,ADMITTED:.status.conditions[?(@.type=='Admitted')].status,PENDING:.status.conditions[?(@.type=='QuotaReserved')].message",
+   "output": "WORKLOAD           ADMITTED   PENDING\njob-gang-a-3abef   True       Quota reserved in ClusterQueue cq-gang\njob-gang-b-62eab   False      couldn't assign flavors to pod set main: insufficient unused quota for nvidia.com/gpu in flavor fake-h100-plain, 8 more needed",
+   "exit_code": 0,
+   "seconds": 1.13
+  },
+  {
+   "display": "pods of each job after admission",
+   "output": "gang-a {'running': 12, 'pending': 0, 'gpus_held': 12}\ngang-b {'running': 0, 'pending': 0, 'gpus_held': 0}",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "without admission both jobs start part of their pods and neither has all 12: a deadlock that holds GPUs",
+   "passed": true,
+   "because": "The scheduler places each pod alone as GPUs are free; both jobs take part of the 16 and wait for the rest."
+  },
+  {
+   "description": "with Kueue one job is admitted whole (12 pods running) and the other holds nothing until it fits; no GPU waits for a gang",
+   "passed": true,
+   "because": "Kueue admits a workload only if its whole request fits the quota; the second one stays suspended with no pods."
+  }
+ ],
+ "notes": []
+}

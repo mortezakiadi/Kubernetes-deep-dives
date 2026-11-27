@@ -1,0 +1,32 @@
+# S02: Allocation is not utilization: two real GPUs, one working, one held by an idle notebook
+# Design reference: Where GPU-hours go
+
+$ kubectl apply -f real-gpu-pods.yaml   # trainer-busy (n-body loop), notebook-idle (sleep)
+pod/trainer-busy created
+pod/notebook-idle created
+
+$ kubectl -n gpu-real get pods -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName,PHASE:.status.phase,GPU:.spec.containers[0].resources.limits.nvidia\.com/gpu
+POD            NODE                                         PHASE     GPU
+trainer-busy   ip-10-86-49-187.us-east-2.compute.internal   Running   1
+
+$ DCGM_FI_DEV_GPU_UTIL_RATIO from each DCGM exporter pod (kubectl get --raw .../pods/<exporter>:9400/proxy/metrics)
+DCGM_FI_DEV_GPU_UTIL_RATIO{gpu="0",UUID="GPU-e282bf92-f391-4cd9-a936-1d7470912c28",pci_bus_id="00000000:30:00.0",device="nvidia0",modelName="NVIDIA L40S",hostname="ip-10-86-49-187.us-east-2.compute.internal",DCGM_FI_SYSTEM_DRIVER_VERSION="580.178.04",container="c",namespace="gpu-real",pod="trainer-busy"} 1
+
+$ accounting: GPU-minutes of the real pool over the last 90 s, by category
+{
+ "samples": 10,
+ "gpu_minutes_by_category": {
+  "allocated_idle": 2.2,
+  "free": 1.5,
+  "busy": 0.7
+ },
+ "share": {
+  "allocated_idle": 0.5,
+  "free": 0.346,
+  "busy": 0.154
+ }
+}
+
+[FAIL] both GPUs are allocated: 100% allocation
+[FAIL] DCGM measures the trainer's GPU above 50% busy and the notebook's at 0%
+[FAIL] the accounting service puts half of the allocated GPU-minutes in busy and half in allocated_idle

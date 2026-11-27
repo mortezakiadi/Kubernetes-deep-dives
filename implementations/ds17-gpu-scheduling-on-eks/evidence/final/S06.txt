@@ -1,0 +1,91 @@
+# S06: Bin-packing against spreading: the same 64 GPUs of small jobs, and a 4-node gang after them
+# Design reference: Bin-packing to reduce fragmentation
+
+$ kubectl apply -f trace.yaml   # 31 single-pod jobs of 1, 2 or 4 GPUs (64 GPUs), schedulerName gpu-spread
+job.batch/small-00 created
+job.batch/small-01 created
+job.batch/small-02 created
+job.batch/small-03 created
+job.batch/small-04 created
+job.batch/small-05 created
+job.batch/small-06 created
+job.batch/small-07 created
+job.batch/small-08 created
+job.batch/small-09 created
+job.batch/small-10 created
+job.batch/small-11 created
+job.batch/small-12 created
+job.batch/small-13 created
+job.batch/small-14 created
+job.batch/small-15 created
+job.batch/small-16 created
+job.batch/small-17 created
+job.batch/small-18 created
+job.batch/small-19 created
+job.batch/small-20 created
+job.batch/small-21 created
+job.batch/small-22 created
+job.batch/small-23 created
+job.batch/small-24 created
+job.batch/small-25 created
+job.batch/small-26 created
+job.batch/small-27 created
+job.batch/small-28 created
+job.batch/small-29 created
+job.batch/small-30 created
+
+$ gpu-spread: free GPUs per node, then the fragmentation report
+4 5 2 5 4 5 5 5 4 5 2 5 2 4 3 4
+{"free_gpus": 64, "whole_free_nodes": 0, "fragmented_share": 1.0, "largest_gang_of_8gpu_pods": 0, "pods_of_1_that_fit": 64, "pods_of_2_that_fit": 28, "pods_of_4_that_fit": 12, "pods_of_8_that_fit": 0}
+
+$ kubectl apply -f gang-4x8.yaml   # 4 pods x 8 GPUs, schedulerName gpu-spread
+job.batch/gang-4x8 created
+
+$ gpu-spread: the gang 30 s after submission, and accounting /now for the simulated fleet (GPUs per category)
+{"gang": {"running": 0, "pending": 4, "gpus_held": 0}, "categories": {"busy": 64, "fragmented": 64}}
+
+$ kubectl apply -f trace.yaml   # 31 single-pod jobs of 1, 2 or 4 GPUs (64 GPUs), schedulerName gpu-binpack
+job.batch/small-00 created
+job.batch/small-01 created
+job.batch/small-02 created
+job.batch/small-03 created
+job.batch/small-04 created
+job.batch/small-05 created
+job.batch/small-06 created
+job.batch/small-07 created
+job.batch/small-08 created
+job.batch/small-09 created
+job.batch/small-10 created
+job.batch/small-11 created
+job.batch/small-12 created
+job.batch/small-13 created
+job.batch/small-14 created
+job.batch/small-15 created
+job.batch/small-16 created
+job.batch/small-17 created
+job.batch/small-18 created
+job.batch/small-19 created
+job.batch/small-20 created
+job.batch/small-21 created
+job.batch/small-22 created
+job.batch/small-23 created
+job.batch/small-24 created
+job.batch/small-25 created
+job.batch/small-26 created
+job.batch/small-27 created
+job.batch/small-28 created
+job.batch/small-29 created
+job.batch/small-30 created
+
+$ gpu-binpack: free GPUs per node, then the fragmentation report
+0 0 0 0 0 8 0 8 0 8 0 8 8 8 8 8
+{"free_gpus": 64, "whole_free_nodes": 8, "fragmented_share": 0.0, "largest_gang_of_8gpu_pods": 8, "pods_of_1_that_fit": 64, "pods_of_2_that_fit": 32, "pods_of_4_that_fit": 16, "pods_of_8_that_fit": 8}
+
+$ kubectl apply -f gang-4x8.yaml   # 4 pods x 8 GPUs, schedulerName gpu-binpack
+job.batch/gang-4x8 created
+
+$ gpu-binpack: the gang 30 s after submission, and accounting /now for the simulated fleet (GPUs per category)
+{"gang": {"running": 4, "pending": 0, "gpus_held": 32}, "categories": {"busy": 96, "free": 32}}
+
+[PASS] spreading leaves almost no whole free node; bin-packing leaves at least 6 of 16
+[PASS] after spreading the 4-node gang cannot start, and its waiting GPUs are counted as fragmented; after packing it runs

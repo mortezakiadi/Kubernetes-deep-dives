@@ -1,0 +1,65 @@
+# S09: Fair share: weighted shares of borrowed capacity, and admission fair sharing inside a team
+# Design reference: Fair share: weighted shares and fairness over time
+
+$ kubectl apply -f research-jobs.yaml   # 12 x 8 GPUs, weight 1
+job.batch/res-00 created
+job.batch/res-01 created
+job.batch/res-02 created
+job.batch/res-03 created
+job.batch/res-04 created
+job.batch/res-05 created
+job.batch/res-06 created
+job.batch/res-07 created
+job.batch/res-08 created
+job.batch/res-09 created
+job.batch/res-10 created
+job.batch/res-11 created
+
+$ research alone
+research 96 GPUs
+
+$ kubectl apply -f llm-jobs.yaml   # 12 x 8 GPUs, weight 2
+job.batch/llm-00 created
+job.batch/llm-01 created
+job.batch/llm-02 created
+job.batch/llm-03 created
+job.batch/llm-04 created
+job.batch/llm-05 created
+job.batch/llm-06 created
+job.batch/llm-07 created
+job.batch/llm-08 created
+job.batch/llm-09 created
+job.batch/llm-10 created
+job.batch/llm-11 created
+
+$ kubectl get clusterqueue cq-research cq-llm -o custom-columns=QUEUE:.metadata.name,WEIGHT:.spec.fairSharing.weight,ADMITTED:.status.admittedWorkloads,WEIGHTED_SHARE:.status.fairSharing.weightedShare
+QUEUE         WEIGHT   ADMITTED   WEIGHTED_SHARE
+cq-research   1        4          334
+cq-llm        2        8          334
+
+$ after LLM arrives
+research 32 GPUs, LLM 64 GPUs; research workloads preempted: 8 (['InCohortFairSharing'])
+
+$ kubectl apply -f sweeps-1.yaml   # 2 x 8 GPUs, 150 s each: the sweeps project uses the queue
+job.batch/sweep-0 created
+job.batch/sweep-1 created
+
+$ kubectl apply -f sweeps-2.yaml   # 4 more sweeps, queued first
+job.batch/sweep-2 created
+job.batch/sweep-3 created
+job.batch/sweep-4 created
+job.batch/sweep-5 created
+
+$ kubectl apply -f paper.yaml   # 1 paper job, queued after them
+job.batch/paper-0 created
+
+$ kubectl get localqueue -A -o custom-columns=QUEUE:.metadata.name,NAMESPACE:.metadata.namespace,CONSUMED_GPU:.status.fairSharing.admissionFairSharingStatus.consumedResources.nvidia\.com/gpu,PENDING:.status.pendingWorkloads
+QUEUE    NAMESPACE         CONSUMED_GPU   PENDING
+paper    research-paper    302952517n     0
+sweeps   research-sweeps   3019798234n    3
+
+$ the jobs admitted into the two slots the first sweeps freed
+paper-0, sweep-3
+
+[PASS] fair sharing moves the borrowed 96 GPUs to the 2:1 weights: LLM 64, research 32 (within one 8-GPU job)
+[PASS] when capacity frees up, the paper project's job takes one of the two freed slots, ahead of three of the four sweeps queued before it

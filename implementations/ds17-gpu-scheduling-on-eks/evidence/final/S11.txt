@@ -1,0 +1,43 @@
+# S11: Measuring the scheduler: where every GPU-hour of this run went, and queue wait by job size
+# Design reference: Measuring and tuning the scheduler; Where GPU-hours go
+
+$ kubectl get --raw .../services/accounting:8080/proxy/breakdown?since=<S01>   # all GPUs
+{
+ "samples": 193,
+ "gpu_minutes": 4187.8,
+ "share": {
+  "free": 0.412,
+  "busy": 0.318,
+  "blocked_by_quota": 0.22,
+  "fragmented": 0.027,
+  "waiting_for_gang": 0.021,
+  "allocated_idle": 0.001
+ },
+ "gpu_minutes_by_category": {
+  "free": 1727.3,
+  "busy": 1332.8,
+  "blocked_by_quota": 921.8,
+  "fragmented": 114.7,
+  "waiting_for_gang": 87.7,
+  "allocated_idle": 3.5
+ },
+ "lost_to_preemption_gpu_minutes": 66.7
+}
+
+$ by team (GPU-minutes; '-' is free capacity)
+-         {"free": 1727.3, "blocked_by_quota": 921.8, "fragmented": 114.7}
+gpu       {"allocated_idle": 3.5, "busy": 0.7}
+llm       {"waiting_for_gang": 64.0, "busy": 686.7}
+nokueue   {"busy": 101.3, "waiting_for_gang": 15.7}
+research  {"busy": 528.2, "waiting_for_gang": 4.0}
+vision    {"waiting_for_gang": 4.0, "busy": 16.0}
+
+$ queue wait (creation to quota reserved) by job size in GPUs: workloads, median, max, in seconds
+8      n  20  median     0.5  max     8.0
+12-24  n   2  median     0.0  max     0.0
+32     n   5  median     0.0  max   157.0
+64     n   1  median     0.0  max     0.0
+
+[PASS] every sampled GPU-minute of 130 GPUs is in exactly one category (total within 2% of 130 GPUs times the sampled time)
+[PASS] each cause the design names was observed: busy, allocated but idle, waiting for a gang, fragmented, blocked by quota, and lost to preemption
+[FAIL] queue wait is reported per size class, from the workloads of S03 to S10

@@ -1,0 +1,39 @@
+# S08: Quotas: nominal shares, borrowing, a lending limit, and reclaim
+# Design reference: Quotas: nominal, borrowing and lending
+
+$ kubectl apply -f llm-jobs.yaml   # 8 jobs x 8 GPUs = 64 GPUs; nominal 32
+job.batch/llm-0 created
+job.batch/llm-1 created
+job.batch/llm-2 created
+job.batch/llm-3 created
+job.batch/llm-4 created
+job.batch/llm-5 created
+job.batch/llm-6 created
+job.batch/llm-7 created
+
+$ kubectl get clusterqueue cq-llm cq-vision -o custom-columns=QUEUE:.metadata.name,ADMITTED:.status.admittedWorkloads,PENDING:.status.pendingWorkloads,USAGE:.status.flavorsUsage[0].resources[0].total,BORROWED:.status.flavorsUsage[0].resources[0].borrowed
+QUEUE       ADMITTED   PENDING   USAGE   BORROWED
+cq-llm      7          1         7       0
+cq-vision   0          0         0       0
+
+$ the pending LLM job's QuotaReserved condition
+couldn't assign flavors to pod set main: insufficient unused quota for nvidia.com/gpu in flavor fake-h100-plain, 8 more needed
+
+$ accounting /now: free GPUs blocked by quota policy while that job waits
+72
+
+$ kubectl apply -f vision-jobs.yaml   # vision returns: 3 jobs x 8 GPUs
+job.batch/vision-0 created
+job.batch/vision-1 created
+job.batch/vision-2 created
+
+$ kubectl get clusterqueue cq-llm cq-vision -o custom-columns=QUEUE:.metadata.name,ADMITTED:.status.admittedWorkloads,PENDING:.status.pendingWorkloads,USAGE:.status.flavorsUsage[0].resources[0].total,BORROWED:.status.flavorsUsage[0].resources[0].borrowed
+QUEUE       ADMITTED   PENDING   USAGE   BORROWED
+cq-llm      5          3         5       0
+cq-vision   3          0         3       0
+
+$ LLM workloads preempted, with the reason
+{"llm-3": "InCohortReclamation", "llm-5": "InCohortReclamation"}
+
+[PASS] LLM runs 56 GPUs: its 32 plus the 24 vision may lend; the eighth job waits although the fleet has free GPUs
+[PASS] vision gets its 24 GPUs at once: one job from its reserved 8, two by reclaiming borrowed GPUs from LLM (InCohortReclamation)

@@ -1,0 +1,91 @@
+# S07: Defragmentation: drain the cheapest nodes so a waiting 4-node gang can start
+# Design reference: Defragmentation and right-sizing
+
+$ kubectl apply -f trace.yaml   # 31 single-pod jobs of 1, 2 or 4 GPUs (64 GPUs), schedulerName gpu-spread
+job.batch/small-00 created
+job.batch/small-01 created
+job.batch/small-02 created
+job.batch/small-03 created
+job.batch/small-04 created
+job.batch/small-05 created
+job.batch/small-06 created
+job.batch/small-07 created
+job.batch/small-08 created
+job.batch/small-09 created
+job.batch/small-10 created
+job.batch/small-11 created
+job.batch/small-12 created
+job.batch/small-13 created
+job.batch/small-14 created
+job.batch/small-15 created
+job.batch/small-16 created
+job.batch/small-17 created
+job.batch/small-18 created
+job.batch/small-19 created
+job.batch/small-20 created
+job.batch/small-21 created
+job.batch/small-22 created
+job.batch/small-23 created
+job.batch/small-24 created
+job.batch/small-25 created
+job.batch/small-26 created
+job.batch/small-27 created
+job.batch/small-28 created
+job.batch/small-29 created
+job.batch/small-30 created
+
+$ kubectl apply -f gang-4x8.yaml   # 4 pods x 8 GPUs, waits for whole nodes
+job.batch/gang-4x8 created
+
+$ before: fragmentation, and the gang
+{"fragmentation": {"free_gpus": 64, "whole_free_nodes": 0, "fragmented_share": 1.0, "largest_gang_of_8gpu_pods": 0, "pods_of_1_that_fit": 64, "pods_of_2_that_fit": 28, "pods_of_4_that_fit": 12, "pods_of_8_that_fit": 0}, "gang": {"running": 0, "pending": 4, "gpus_held": 0}}
+
+$ the compaction plan (fewest GPUs moved first)
+{"drain": ["fake-b1-r1-h3", "fake-b1-r1-h4", "fake-b1-r2-h2", "fake-b1-r2-h3"], "gpus_moved": 12, "room_elsewhere": 44, "feasible": true}
+
+$ kubectl drain fake-b1-r1-h3 --pod-selector=ds17/gang   # evict the small pods, cordon the node
+node/fake-b1-r1-h3 cordoned
+evicting pod team-research/small-20-0-lttl7
+evicting pod team-research/small-01-0-g5h2k
+pod/small-20-0-lttl7 evicted
+pod/small-01-0-g5h2k evicted
+node/fake-b1-r1-h3 drained
+
+$ kubectl drain fake-b1-r1-h4 --pod-selector=ds17/gang   # evict the small pods, cordon the node
+node/fake-b1-r1-h4 cordoned
+evicting pod team-research/small-21-0-w45x5
+evicting pod team-research/small-02-0-rhh9q
+pod/small-21-0-w45x5 evicted
+pod/small-02-0-rhh9q evicted
+node/fake-b1-r1-h4 drained
+
+$ kubectl drain fake-b1-r2-h2 --pod-selector=ds17/gang   # evict the small pods, cordon the node
+node/fake-b1-r2-h2 cordoned
+evicting pod team-research/small-29-0-5zjvh
+evicting pod team-research/small-15-0-9r74s
+pod/small-29-0-5zjvh evicted
+pod/small-15-0-9r74s evicted
+node/fake-b1-r2-h2 drained
+
+$ kubectl drain fake-b1-r2-h3 --pod-selector=ds17/gang   # evict the small pods, cordon the node
+node/fake-b1-r2-h3 cordoned
+evicting pod team-research/small-22-0-j245x
+evicting pod team-research/small-01-0-b2ngv
+evicting pod team-research/small-07-0-bpkvd
+pod/small-01-0-b2ngv evicted
+pod/small-22-0-j245x evicted
+pod/small-07-0-bpkvd evicted
+node/fake-b1-r2-h3 drained
+
+$ kubectl uncordon fake-b1-r1-h3 fake-b1-r1-h4 fake-b1-r2-h2 fake-b1-r2-h3   # the empty nodes take new pods again
+node/fake-b1-r1-h3 already uncordoned
+node/fake-b1-r1-h4 already uncordoned
+node/fake-b1-r2-h2 already uncordoned
+node/fake-b1-r2-h3 already uncordoned
+
+$ after: the gang, the small jobs, fragmentation and the work lost
+{"gang": {"running": 4, "pending": 0, "gpus_held": 32}, "small_pods_running": 31, "fragmentation": {"free_gpus": 32, "whole_free_nodes": 0, "fragmented_share": 1.0, "largest_gang_of_8gpu_pods": 0, "pods_of_1_that_fit": 32, "pods_of_2_that_fit": 14, "pods_of_4_that_fit": 2, "pods_of_8_that_fit": 0}, "lost_gpu_minutes_since_checkpoint": 19.9}
+
+[PASS] the plan empties 4 nodes and the moved GPUs fit on the other nodes
+[PASS] after the drain every small job runs again elsewhere, and the 4-node gang runs on the emptied nodes
+[PASS] compaction cost work: the moved pods lost the time since their last checkpoint

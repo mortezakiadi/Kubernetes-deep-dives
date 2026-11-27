@@ -97,7 +97,8 @@ def s02():
         util[labels.get("pod")] = float(l.rsplit(" ", 1)[1]) * 100
     b = accounting("/breakdown", since=str(t0), until=str(time.time()), pool="gpu")
     show(sc, "accounting: GPU-minutes of the real pool over the last 90 s, by category", json.dumps({k_: b.get(k_) for k_ in ("samples", "gpu_minutes_by_category", "share")}, indent=1))
-    sc.expect("both GPUs are allocated: 100% allocation", len(kj("-n", "gpu-real", "get", "pods").get("items", [])) == 2 and len(util) == 2,
+    pods = kj("-n", "gpu-real", "get", "pods").get("items", [])
+    sc.expect("both GPUs are allocated, on two different nodes: 100% allocation", len(pods) == 2 and len({p["spec"].get("nodeName") for p in pods}) == 2 and len(util) == 2,
               "Each pod requests one nvidia.com/gpu; the device plugin assigns each a whole device.")
     sc.expect("DCGM measures the trainer's GPU above 50% busy and the notebook's at 0%", util.get("trainer-busy", 0) > 50 and util.get("notebook-idle", 100) < 5,
               "Allocation counts requests; DCGM counts the GPU's own activity.")
