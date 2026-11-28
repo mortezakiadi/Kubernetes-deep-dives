@@ -1,0 +1,99 @@
+# S01: The platform, the workload and one GPU: what every later number stands on
+# Design reference: Capacity planning: KV cache is the budget; goodput, not throughput, is the metric
+
+$ kubectl get nodes -L pool,instance-type,zone
+NAME                           STATUS   ROLES    AGE   VERSION               POOL      INSTANCE-TYPE   ZONE
+ip-10-70-13-105.ec2.internal   Ready    <none>   18h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1a
+ip-10-70-28-87.ec2.internal    Ready    <none>   18h   v1.37.1-eks-9adbfea   loadgen   c6i.4xlarge     us-east-1b
+ip-10-70-33-144.ec2.internal   Ready    <none>   18h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1c
+ip-10-70-35-3.ec2.internal     Ready    <none>   15h   v1.37.1-eks-9adbfea   serving   g4dn.12xlarge   us-east-1c
+
+$ kubectl get nodes -l pool=serving -o custom-columns=NAME,TYPE,GPU   # what the scheduler can hand out
+NAME                         TYPE            GPU
+ip-10-70-35-3.ec2.internal   g4dn.12xlarge   4
+
+$ nvidia-smi --query-gpu=index,name,memory.total,pcie.link.gen.max,pcie.link.width.max --format=csv
+index, name, memory.total [MiB], pcie.link.gen.max, pcie.link.width.max
+0, Tesla T4, 15360 MiB, 3, 16
+1, Tesla T4, 15360 MiB, 3, 16
+2, Tesla T4, 15360 MiB, 3, 16
+3, Tesla T4, 15360 MiB, 3, 16
+
+$ nvidia-smi topo -m   # how the four GPUs reach each other
+[4mGPU0	GPU1	GPU2	GPU3	CPU Affinity	NUMA Affinity	GPU NUMA ID[0m
+GPU0	 X 	PHB	PHB	PHB	0-47	0		N/A
+GPU1	PHB	 X 	PHB	PHB	0-47	0		N/A
+GPU2	PHB	PHB	 X 	PHB	0-47	0		N/A
+GPU3	PHB	PHB	PHB	 X 	0-47	0		N/A
+
+$ python3 probe_defaults.py   # EngineArgs(...).create_engine_config(), the defaults this vLLM picks for this GPU
+max_num_batched_tokens 2048 max_num_seqs 256 chunked True async True
+prefix_caching True
+
+$ python3 -c 'print the attention shape of Qwen/Qwen3-4B from its config.json'
+{"num_hidden_layers": 36, "num_key_value_heads": 8, "head_dim": 128, "hidden_size": 2560, "num_attention_heads": 32, "vocab_size": 151936}
+bytes of KV cache per token = 2 (K and V) x 36 layers x 8 KV heads x 128 head size x 2 bytes (fp16) = 147,456
+
+$ # download Qwen/Qwen3-4B to the node's disk (once)
+/hf/hub/models--Qwen--Qwen3-4B/snapshots/1cfa9a7208912126459214e8b04321603b3df60c
+(2 s)
+
+$ kubectl apply -f one.yaml   # one: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]
+one: servers s-one-0
+
+$ kubectl -n serving get pods -o wide -l role=experiment
+NAME                      READY   STATUS    RESTARTS   AGE     IP            NODE                         NOMINATED NODE   READINESS GATES
+s-one-0-8b74d9b89-mwk9b   1/1     Running   0          2m10s   10.70.40.48   ip-10-70-35-3.ec2.internal   <none>           <none>
+
+$ kubectl -n serving logs deploy/s-one-0 | grep -E 'Model loading|Available KV|GPU KV cache size|attention backend'
+weights 7.56 GiB; memory left for KV cache 4.36 GiB; engine-reported capacity 31,776 tokens; attention backend TRITON_ATTN
+predicted from the formula: 4.36 GiB / 147,456 bytes = 31,749 tokens   (difference 0.09%)
+
+$ python3 probe_workload.py   # 600 requests of the trace (seed 1, 2 req/s), tokenised with the model's own tokenizer
+requests: 602
+chat: {"n": 424, "prompt_tokens_p50": 298, "prompt_tokens_p95": 557, "output_tokens_p50": 123, "output_tokens_p95": 240, "shared_prefix_tokens": 100, "shared_share": 0.348, "groups": 1}
+code: {"n": 178, "prompt_tokens_p50": 1298, "prompt_tokens_p95": 1374, "output_tokens_p50": 80, "output_tokens_p95": 136, "shared_prefix_tokens": 1200, "shared_share": 0.923, "groups": 45}
+arrivals: {"mean_gap_s": 0.497, "p99_gap_s": 2.05, "min_gap_s": 0.0002}
+
+$ kubectl apply -f lg-s01-one.yaml   # one: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1
+target http://s-one-0:8000, 1 GPU(s)
+
+$ kubectl -n serving logs job/lg-s01-one   # one
+rate 0.3: goodput 41.8 tok/s/gpu, attainment 0.96, completed 27/28
+rate 0.6: goodput 62.8 tok/s/gpu, attainment 0.87, completed 47/47
+rate 0.9: goodput 61.0 tok/s/gpu, attainment 0.46, completed 82/82
+rate 1.2: goodput 46.1 tok/s/gpu, attainment 0.33, completed 88/88
+rate 1.5: goodput 4.8 tok/s/gpu, attainment 0.05, completed 106/106
+done
+
+$ # one T4, default engine settings: goodput and latency by load level
+    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95
+          0.3          41.77          0.964          0.269           53.4          1.226          144.6
+          0.6          62.76          0.872           1.51          210.1          1.699          210.9
+          0.9          61.04          0.463          2.361         1184.3          3.814         1379.6
+          1.2          46.13           0.33          2.559          375.9          2.466         1145.9
+          1.5           4.76          0.047          2.404         1271.0          3.402         1451.5
+
+$ # what the cluster's Prometheus saw during each level: busiest GPU's utilisation, queue length, requests in the batch, KV cache usage
+req/s   gpu util   waiting   running   KV usage
+  0.3        79%       0.0       2.3        3%
+  0.6        76%       0.0       4.5        9%
+  0.9       100%       0.0      12.8       24%
+  1.2       100%       0.0      14.1       25%
+  1.5        89%       0.0      30.0       52%
+
+$ # counters from the server's own /metrics over the whole sweep
+prefix cache: 60,000 of 240,744 prompt tokens found in the cache (25%)
+preemptions: 0
+time in prefill 266 s, time in decode 5,766 s (summed over requests)
+
+[PASS] the serving pool is one node of four GPUs, advertised to the scheduler by the NVIDIA device plugin
+[PASS] the four GPUs are joined by PCIe only (no NVLink in the topology matrix)
+[PASS] the server loads the model and answers its health check
+[PASS] the KV capacity computed from the model's shape matches the engine's own figure within 2%
+[PASS] the engine reports its attention backend as Triton (FlashAttention needs a newer GPU than a T4)
+[PASS] the two products differ the way the design says: chat is mostly its own text, code is mostly a shared repository prefix
+[PASS] at the lightest load nearly every request meets both targets, so the targets are reachable on this hardware
+[PASS] a knee exists: past some load the share meeting the targets collapses and goodput falls below its peak
+[PASS] the number of requests in the system (waiting plus running) rises at every step of load and is at least 5 times higher when overloaded than at the lightest level
+[PASS] the prefix cache serves part of the prompt tokens (the code product's shared repository text)

@@ -1,0 +1,279 @@
+{
+ "summary": {
+  "unified": {
+   "capacity_rps_gpu": 0.6,
+   "goodput": 55.62,
+   "goodput_at_rps_gpu": 0.6
+  },
+  "pd2p2d": {
+   "capacity_rps_gpu": 0.418,
+   "goodput": 28.26,
+   "goodput_at_rps_gpu": 0.3
+  },
+  "pd1p3d": {
+   "capacity_rps_gpu": 0.0,
+   "goodput": 0.0,
+   "goodput_at_rps_gpu": 0.0
+  }
+ },
+ "transfer": {
+  "pd2p2d": {
+   "bytes": 167418003456.0,
+   "transfers": 1635.0,
+   "xfer_s_mean": 0.8044297143730889,
+   "failed": 0.0,
+   "ext_hit_share": 1.0,
+   "gen_tokens_decode": 159442.0,
+   "gen_tokens_prefill": 1635.0,
+   "prompt_tokens_prefill": 1644999.0
+  },
+  "pd1p3d": {
+   "bytes": 164056006656.0,
+   "transfers": 1635.0,
+   "xfer_s_mean": 0.8841237125382265,
+   "failed": 0.0,
+   "ext_hit_share": 1.0,
+   "gen_tokens_decode": 159442.0,
+   "gen_tokens_prefill": 1635.0,
+   "prompt_tokens_prefill": 1644999.0
+  }
+ },
+ "rows": {
+  "unified": [
+   {
+    "rate": 1.2,
+    "rate_per_gpu": 0.3,
+    "goodput": 29.17,
+    "throughput": 29.17,
+    "attain": 0.989,
+    "completed": 87,
+    "requests": 88,
+    "chat_ttft_p50": 0.2,
+    "chat_ttft_p95": 0.402,
+    "chat_itl_p95": 53.2,
+    "code_ttft_p50": 1.108,
+    "code_ttft_p95": 1.232,
+    "code_itl_p95": 53.2
+   },
+   {
+    "rate": 2.4,
+    "rate_per_gpu": 0.6,
+    "goodput": 55.62,
+    "throughput": 58.02,
+    "attain": 0.951,
+    "completed": 185,
+    "requests": 185,
+    "chat_ttft_p50": 0.231,
+    "chat_ttft_p95": 1.028,
+    "chat_itl_p95": 159.0,
+    "code_ttft_p50": 1.11,
+    "code_ttft_p95": 1.332,
+    "code_itl_p95": 172.7
+   },
+   {
+    "rate": 3.6,
+    "rate_per_gpu": 0.9,
+    "goodput": 10.0,
+    "throughput": 89.47,
+    "attain": 0.122,
+    "completed": 271,
+    "requests": 271,
+    "chat_ttft_p50": 0.45,
+    "chat_ttft_p95": 2.042,
+    "chat_itl_p95": 1140.4,
+    "code_ttft_p50": 1.261,
+    "code_ttft_p95": 2.314,
+    "code_itl_p95": 1131.6
+   },
+   {
+    "rate": 4.8,
+    "rate_per_gpu": 1.2,
+    "goodput": 0.41,
+    "throughput": 122.44,
+    "attain": 0.003,
+    "completed": 370,
+    "requests": 370,
+    "chat_ttft_p50": 1.514,
+    "chat_ttft_p95": 11.256,
+    "chat_itl_p95": 1452.9,
+    "code_ttft_p50": 2.646,
+    "code_ttft_p95": 12.579,
+    "code_itl_p95": 1457.6
+   },
+   {
+    "rate": 6.0,
+    "rate_per_gpu": 1.5,
+    "goodput": 0.0,
+    "throughput": 148.35,
+    "attain": 0.0,
+    "completed": 458,
+    "requests": 458,
+    "chat_ttft_p50": 12.377,
+    "chat_ttft_p95": 31.381,
+    "chat_itl_p95": 1465.4,
+    "code_ttft_p50": 12.664,
+    "code_ttft_p95": 31.859,
+    "code_itl_p95": 1474.5
+   }
+  ],
+  "pd2p2d": [
+   {
+    "rate": 1.2,
+    "rate_per_gpu": 0.3,
+    "goodput": 28.26,
+    "throughput": 29.47,
+    "attain": 0.977,
+    "completed": 88,
+    "requests": 88,
+    "chat_ttft_p50": 0.627,
+    "chat_ttft_p95": 2.319,
+    "chat_itl_p95": 62.1,
+    "code_ttft_p50": 1.742,
+    "code_ttft_p95": 3.261,
+    "code_itl_p95": 66.3
+   },
+   {
+    "rate": 2.4,
+    "rate_per_gpu": 0.6,
+    "goodput": 52.03,
+    "throughput": 58.02,
+    "attain": 0.908,
+    "completed": 185,
+    "requests": 185,
+    "chat_ttft_p50": 1.485,
+    "chat_ttft_p95": 3.175,
+    "chat_itl_p95": 91.5,
+    "code_ttft_p50": 1.902,
+    "code_ttft_p95": 3.97,
+    "code_itl_p95": 92.9
+   },
+   {
+    "rate": 3.6,
+    "rate_per_gpu": 0.9,
+    "goodput": 41.91,
+    "throughput": 89.47,
+    "attain": 0.55,
+    "completed": 271,
+    "requests": 271,
+    "chat_ttft_p50": 3.547,
+    "chat_ttft_p95": 5.962,
+    "chat_itl_p95": 171.1,
+    "code_ttft_p50": 3.872,
+    "code_ttft_p95": 6.471,
+    "code_itl_p95": 173.6
+   },
+   {
+    "rate": 4.8,
+    "rate_per_gpu": 1.2,
+    "goodput": 3.34,
+    "throughput": 122.44,
+    "attain": 0.027,
+    "completed": 370,
+    "requests": 370,
+    "chat_ttft_p50": 8.511,
+    "chat_ttft_p95": 20.934,
+    "chat_itl_p95": 239.1,
+    "code_ttft_p50": 13.746,
+    "code_ttft_p95": 21.417,
+    "code_itl_p95": 242.8
+   },
+   {
+    "rate": 6.0,
+    "rate_per_gpu": 1.5,
+    "goodput": 0.0,
+    "throughput": 148.35,
+    "attain": 0.0,
+    "completed": 458,
+    "requests": 458,
+    "chat_ttft_p50": 27.079,
+    "chat_ttft_p95": 43.902,
+    "chat_itl_p95": 201.1,
+    "code_ttft_p50": 27.238,
+    "code_ttft_p95": 44.517,
+    "code_itl_p95": 234.5
+   }
+  ],
+  "pd1p3d": [
+   {
+    "rate": 1.2,
+    "rate_per_gpu": 0.3,
+    "goodput": 24.47,
+    "throughput": 29.47,
+    "attain": 0.852,
+    "completed": 88,
+    "requests": 88,
+    "chat_ttft_p50": 1.627,
+    "chat_ttft_p95": 4.15,
+    "chat_itl_p95": 52.7,
+    "code_ttft_p50": 2.52,
+    "code_ttft_p95": 5.247,
+    "code_itl_p95": 52.9
+   },
+   {
+    "rate": 2.4,
+    "rate_per_gpu": 0.6,
+    "goodput": 2.25,
+    "throughput": 58.02,
+    "attain": 0.038,
+    "completed": 185,
+    "requests": 185,
+    "chat_ttft_p50": 15.125,
+    "chat_ttft_p95": 18.527,
+    "chat_itl_p95": 61.9,
+    "code_ttft_p50": 15.435,
+    "code_ttft_p95": 18.565,
+    "code_itl_p95": 64.0
+   },
+   {
+    "rate": 3.6,
+    "rate_per_gpu": 0.9,
+    "goodput": 0.0,
+    "throughput": 89.47,
+    "attain": 0.0,
+    "completed": 271,
+    "requests": 271,
+    "chat_ttft_p50": 45.191,
+    "chat_ttft_p95": 71.988,
+    "chat_itl_p95": 65.7,
+    "code_ttft_p50": 49.091,
+    "code_ttft_p95": 72.101,
+    "code_itl_p95": 65.9
+   },
+   {
+    "rate": 4.8,
+    "rate_per_gpu": 1.2,
+    "goodput": 0.0,
+    "throughput": 122.44,
+    "attain": 0.0,
+    "completed": 370,
+    "requests": 370,
+    "chat_ttft_p50": 64.723,
+    "chat_ttft_p95": 123.369,
+    "chat_itl_p95": 72.7,
+    "code_ttft_p50": 79.466,
+    "code_ttft_p95": 126.492,
+    "code_itl_p95": 74.8
+   },
+   {
+    "rate": 6.0,
+    "rate_per_gpu": 1.5,
+    "goodput": 0.0,
+    "throughput": 148.35,
+    "attain": 0.0,
+    "completed": 458,
+    "requests": 458,
+    "chat_ttft_p50": 100.979,
+    "chat_ttft_p95": 171.403,
+    "chat_itl_p95": 67.7,
+    "code_ttft_p50": 101.228,
+    "code_ttft_p95": 171.374,
+    "code_itl_p95": 70.2
+   }
+  ]
+ },
+ "best": "unified",
+ "mix": {
+  "chat": 0.3,
+  "code": 0.7
+ }
+}

@@ -1,0 +1,407 @@
+{
+ "gate": {
+  "awq": {
+   "accuracy": 0.8775,
+   "drop_points": -0.49999999999998934,
+   "agreement": 0.8925,
+   "pass": false,
+   "by_kind": {
+    "add": 0.99,
+    "mul": 1.0,
+    "word": 0.9,
+    "chain": 0.62
+   }
+  },
+  "kv8": {
+   "accuracy": 0.8775,
+   "drop_points": -0.49999999999998934,
+   "agreement": 0.985,
+   "pass": true,
+   "by_kind": {
+    "add": 0.99,
+    "mul": 1.0,
+    "word": 0.85,
+    "chain": 0.67
+   }
+  },
+  "awq-kv8": {
+   "accuracy": 0.86,
+   "drop_points": 1.2500000000000067,
+   "agreement": 0.8675,
+   "pass": false,
+   "by_kind": {
+    "add": 0.99,
+    "mul": 1.0,
+    "word": 0.82,
+    "chain": 0.63
+   }
+  }
+ },
+ "summary": {
+  "fp16": {
+   "capacity_rps_gpu": 0.441,
+   "goodput": 43.11,
+   "goodput_at_rps_gpu": 0.3
+  },
+  "awq": {
+   "capacity_rps_gpu": 0.653,
+   "goodput": 68.47,
+   "goodput_at_rps_gpu": 0.6
+  },
+  "kv8": {
+   "capacity_rps_gpu": 0.418,
+   "goodput": 43.11,
+   "goodput_at_rps_gpu": 0.3
+  },
+  "awq-kv8": {
+   "capacity_rps_gpu": 0.653,
+   "goodput": 68.47,
+   "goodput_at_rps_gpu": 0.6
+  }
+ },
+ "memory": {
+  "fp16": {
+   "kv_tokens": 31776,
+   "weights_gib": 7.56,
+   "kv_gib": 4.36
+  },
+  "awq": {
+   "kv_tokens": 67760,
+   "weights_gib": 2.5,
+   "kv_gib": 9.31
+  },
+  "kv8": {
+   "kv_tokens": 61632,
+   "weights_gib": 7.56,
+   "kv_gib": 4.36
+  },
+  "awq-kv8": {
+   "kv_tokens": 131424,
+   "weights_gib": 2.5,
+   "kv_gib": 9.31
+  }
+ },
+ "adopt": {
+  "awq": false,
+  "kv8": false,
+  "awq-kv8": false
+ },
+ "reference": {
+  "add": 0.99,
+  "mul": 1.0,
+  "word": 0.85,
+  "chain": 0.65
+ },
+ "reference_all": 0.8725,
+ "failed_to_start": [],
+ "rows": {
+  "fp16": [
+   {
+    "rate": 0.3,
+    "rate_per_gpu": 0.3,
+    "goodput": 43.11,
+    "throughput": 43.11,
+    "attain": 1.0,
+    "completed": 28,
+    "requests": 28,
+    "chat_ttft_p50": 0.17,
+    "chat_ttft_p95": 0.256,
+    "chat_itl_p95": 48.3,
+    "code_ttft_p50": 1.153,
+    "code_ttft_p95": 1.168,
+    "code_itl_p95": 134.8
+   },
+   {
+    "rate": 0.6,
+    "rate_per_gpu": 0.6,
+    "goodput": 63.75,
+    "throughput": 70.19,
+    "attain": 0.894,
+    "completed": 47,
+    "requests": 47,
+    "chat_ttft_p50": 0.267,
+    "chat_ttft_p95": 1.468,
+    "chat_itl_p95": 197.7,
+    "code_ttft_p50": 1.145,
+    "code_ttft_p95": 1.644,
+    "code_itl_p95": 198.2
+   },
+   {
+    "rate": 0.9,
+    "rate_per_gpu": 0.9,
+    "goodput": 67.12,
+    "throughput": 121.07,
+    "attain": 0.524,
+    "completed": 82,
+    "requests": 82,
+    "chat_ttft_p50": 0.316,
+    "chat_ttft_p95": 2.221,
+    "chat_itl_p95": 1120.6,
+    "code_ttft_p50": 1.24,
+    "code_ttft_p95": 3.471,
+    "code_itl_p95": 1280.1
+   },
+   {
+    "rate": 1.2,
+    "rate_per_gpu": 1.2,
+    "goodput": 53.69,
+    "throughput": 140.36,
+    "attain": 0.375,
+    "completed": 88,
+    "requests": 88,
+    "chat_ttft_p50": 0.372,
+    "chat_ttft_p95": 2.425,
+    "chat_itl_p95": 351.3,
+    "code_ttft_p50": 1.222,
+    "code_ttft_p95": 2.373,
+    "code_itl_p95": 1096.7
+   },
+   {
+    "rate": 1.5,
+    "rate_per_gpu": 1.5,
+    "goodput": 10.59,
+    "throughput": 170.29,
+    "attain": 0.094,
+    "completed": 106,
+    "requests": 106,
+    "chat_ttft_p50": 0.49,
+    "chat_ttft_p95": 2.315,
+    "chat_itl_p95": 1163.9,
+    "code_ttft_p50": 1.308,
+    "code_ttft_p95": 3.365,
+    "code_itl_p95": 1207.9
+   }
+  ],
+  "awq": [
+   {
+    "rate": 0.3,
+    "rate_per_gpu": 0.3,
+    "goodput": 43.11,
+    "throughput": 43.11,
+    "attain": 1.0,
+    "completed": 28,
+    "requests": 28,
+    "chat_ttft_p50": 0.12,
+    "chat_ttft_p95": 0.203,
+    "chat_itl_p95": 22.2,
+    "code_ttft_p50": 1.184,
+    "code_ttft_p95": 1.216,
+    "code_itl_p95": 22.7
+   },
+   {
+    "rate": 0.6,
+    "rate_per_gpu": 0.6,
+    "goodput": 68.47,
+    "throughput": 70.19,
+    "attain": 0.979,
+    "completed": 47,
+    "requests": 47,
+    "chat_ttft_p50": 0.207,
+    "chat_ttft_p95": 1.444,
+    "chat_itl_p95": 60.0,
+    "code_ttft_p50": 1.154,
+    "code_ttft_p95": 1.66,
+    "code_itl_p95": 109.3
+   },
+   {
+    "rate": 0.9,
+    "rate_per_gpu": 0.9,
+    "goodput": 102.6,
+    "throughput": 121.07,
+    "attain": 0.817,
+    "completed": 82,
+    "requests": 82,
+    "chat_ttft_p50": 0.201,
+    "chat_ttft_p95": 1.356,
+    "chat_itl_p95": 209.7,
+    "code_ttft_p50": 0.61,
+    "code_ttft_p95": 2.651,
+    "code_itl_p95": 290.9
+   },
+   {
+    "rate": 1.2,
+    "rate_per_gpu": 1.2,
+    "goodput": 118.8,
+    "throughput": 140.36,
+    "attain": 0.83,
+    "completed": 88,
+    "requests": 88,
+    "chat_ttft_p50": 0.259,
+    "chat_ttft_p95": 1.437,
+    "chat_itl_p95": 180.9,
+    "code_ttft_p50": 0.319,
+    "code_ttft_p95": 1.592,
+    "code_itl_p95": 350.0
+   },
+   {
+    "rate": 1.5,
+    "rate_per_gpu": 1.5,
+    "goodput": 69.88,
+    "throughput": 170.29,
+    "attain": 0.387,
+    "completed": 106,
+    "requests": 106,
+    "chat_ttft_p50": 0.339,
+    "chat_ttft_p95": 1.868,
+    "chat_itl_p95": 396.8,
+    "code_ttft_p50": 1.183,
+    "code_ttft_p95": 3.172,
+    "code_itl_p95": 396.8
+   }
+  ],
+  "kv8": [
+   {
+    "rate": 0.3,
+    "rate_per_gpu": 0.3,
+    "goodput": 43.11,
+    "throughput": 43.11,
+    "attain": 1.0,
+    "completed": 28,
+    "requests": 28,
+    "chat_ttft_p50": 0.174,
+    "chat_ttft_p95": 0.243,
+    "chat_itl_p95": 52.6,
+    "code_ttft_p50": 1.206,
+    "code_ttft_p95": 1.218,
+    "code_itl_p95": 142.3
+   },
+   {
+    "rate": 0.6,
+    "rate_per_gpu": 0.6,
+    "goodput": 62.76,
+    "throughput": 70.19,
+    "attain": 0.872,
+    "completed": 47,
+    "requests": 47,
+    "chat_ttft_p50": 0.291,
+    "chat_ttft_p95": 1.502,
+    "chat_itl_p95": 207.0,
+    "code_ttft_p50": 1.2,
+    "code_ttft_p95": 1.698,
+    "code_itl_p95": 208.8
+   },
+   {
+    "rate": 0.9,
+    "rate_per_gpu": 0.9,
+    "goodput": 69.35,
+    "throughput": 121.07,
+    "attain": 0.537,
+    "completed": 82,
+    "requests": 82,
+    "chat_ttft_p50": 0.329,
+    "chat_ttft_p95": 1.554,
+    "chat_itl_p95": 320.9,
+    "code_ttft_p50": 1.219,
+    "code_ttft_p95": 2.646,
+    "code_itl_p95": 396.7
+   },
+   {
+    "rate": 1.2,
+    "rate_per_gpu": 1.2,
+    "goodput": 77.56,
+    "throughput": 140.36,
+    "attain": 0.489,
+    "completed": 88,
+    "requests": 88,
+    "chat_ttft_p50": 0.356,
+    "chat_ttft_p95": 1.535,
+    "chat_itl_p95": 284.1,
+    "code_ttft_p50": 0.459,
+    "code_ttft_p95": 1.7,
+    "code_itl_p95": 480.5
+   },
+   {
+    "rate": 1.5,
+    "rate_per_gpu": 1.5,
+    "goodput": 7.09,
+    "throughput": 170.29,
+    "attain": 0.066,
+    "completed": 106,
+    "requests": 106,
+    "chat_ttft_p50": 0.492,
+    "chat_ttft_p95": 1.955,
+    "chat_itl_p95": 1160.0,
+    "code_ttft_p50": 1.355,
+    "code_ttft_p95": 3.354,
+    "code_itl_p95": 1184.1
+   }
+  ],
+  "awq-kv8": [
+   {
+    "rate": 0.3,
+    "rate_per_gpu": 0.3,
+    "goodput": 43.11,
+    "throughput": 43.11,
+    "attain": 1.0,
+    "completed": 28,
+    "requests": 28,
+    "chat_ttft_p50": 0.123,
+    "chat_ttft_p95": 0.204,
+    "chat_itl_p95": 21.9,
+    "code_ttft_p50": 1.161,
+    "code_ttft_p95": 1.191,
+    "code_itl_p95": 22.5
+   },
+   {
+    "rate": 0.6,
+    "rate_per_gpu": 0.6,
+    "goodput": 68.47,
+    "throughput": 70.19,
+    "attain": 0.979,
+    "completed": 47,
+    "requests": 47,
+    "chat_ttft_p50": 0.209,
+    "chat_ttft_p95": 1.407,
+    "chat_itl_p95": 56.0,
+    "code_ttft_p50": 1.124,
+    "code_ttft_p95": 1.623,
+    "code_itl_p95": 107.6
+   },
+   {
+    "rate": 0.9,
+    "rate_per_gpu": 0.9,
+    "goodput": 102.6,
+    "throughput": 121.07,
+    "attain": 0.817,
+    "completed": 82,
+    "requests": 82,
+    "chat_ttft_p50": 0.189,
+    "chat_ttft_p95": 1.3,
+    "chat_itl_p95": 205.4,
+    "code_ttft_p50": 0.576,
+    "code_ttft_p95": 2.6,
+    "code_itl_p95": 285.3
+   },
+   {
+    "rate": 1.2,
+    "rate_per_gpu": 1.2,
+    "goodput": 127.92,
+    "throughput": 140.36,
+    "attain": 0.909,
+    "completed": 88,
+    "requests": 88,
+    "chat_ttft_p50": 0.224,
+    "chat_ttft_p95": 1.111,
+    "chat_itl_p95": 174.9,
+    "code_ttft_p50": 0.269,
+    "code_ttft_p95": 1.234,
+    "code_itl_p95": 213.5
+   },
+   {
+    "rate": 1.5,
+    "rate_per_gpu": 1.5,
+    "goodput": 146.8,
+    "throughput": 170.29,
+    "attain": 0.868,
+    "completed": 106,
+    "requests": 106,
+    "chat_ttft_p50": 0.216,
+    "chat_ttft_p95": 1.023,
+    "chat_itl_p95": 171.5,
+    "code_ttft_p50": 0.243,
+    "code_ttft_p95": 1.744,
+    "code_itl_p95": 160.3
+   }
+  ]
+ }
+}

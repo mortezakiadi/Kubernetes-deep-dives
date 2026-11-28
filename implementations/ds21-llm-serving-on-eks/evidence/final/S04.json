@@ -1,0 +1,313 @@
+{
+ "id": "S04",
+ "title": "Engine tuning: the chunk size, the batch limit, prefix caching, async scheduling and speculation",
+ "design_ref": "Engine tuning: batching, chunked prefill, speculative decoding",
+ "purpose": "Change one engine setting at a time on one GPU each (four settings at once, one per GPU, same traffic and seed), keep an unchanged control to measure the noise, and read which settings move capacity beyond that noise.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f default.yaml chunk256.yaml chunk512.yaml chunk8192.yaml   # default: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]; chunk256: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --max-num-batched-tokens 256]; chunk512: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --max-num-batched-tokens 512]; chunk8192: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --max-num-batched-tokens 8192]",
+   "output": "default: servers s-default-0\nchunk256: servers s-chunk256-0\nchunk512: servers s-chunk512-0\nchunk8192: servers s-chunk8192-0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                             READY   STATUS    RESTARTS   AGE     IP             NODE                         NOMINATED NODE   READINESS GATES\ns-chunk256-0-59446f854b-7qv9h    1/1     Running   0          2m23s   10.70.32.243   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-chunk512-0-79c5b5f679-6sdwh    1/1     Running   0          2m20s   10.70.32.244   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-chunk8192-0-5b7d86f9dc-wq8vs   1/1     Running   0          2m17s   10.70.32.245   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-default-0-744fc8798f-4m7c7     1/1     Running   0          2m25s   10.70.32.241   ip-10-70-35-3.ec2.internal   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-default.yaml   # default: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-default-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-chunk256.yaml   # chunk256: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-chunk256-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-chunk512.yaml   # chunk512: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-chunk512-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-chunk8192.yaml   # chunk8192: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-chunk8192-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-default   # default",
+   "output": "rate 0.3: goodput 43.1 tok/s/gpu, attainment 1.00, completed 28/28\nrate 0.6: goodput 62.8 tok/s/gpu, attainment 0.87, completed 47/47\nrate 0.9: goodput 57.2 tok/s/gpu, attainment 0.44, completed 82/82\nrate 1.2: goodput 46.1 tok/s/gpu, attainment 0.33, completed 88/88\nrate 1.5: goodput 7.1 tok/s/gpu, attainment 0.07, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-chunk256   # chunk256",
+   "output": "rate 0.3: goodput 41.3 tok/s/gpu, attainment 0.93, completed 28/28\nrate 0.6: goodput 39.3 tok/s/gpu, attainment 0.57, completed 47/47\nrate 0.9: goodput 28.3 tok/s/gpu, attainment 0.22, completed 82/82\nrate 1.2: goodput 29.1 tok/s/gpu, attainment 0.23, completed 88/88\nrate 1.5: goodput 3.2 tok/s/gpu, attainment 0.03, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-chunk512   # chunk512",
+   "output": "rate 0.3: goodput 41.3 tok/s/gpu, attainment 0.93, completed 28/28\nrate 0.6: goodput 38.9 tok/s/gpu, attainment 0.55, completed 47/47\nrate 0.9: goodput 36.5 tok/s/gpu, attainment 0.29, completed 82/82\nrate 1.2: goodput 35.1 tok/s/gpu, attainment 0.26, completed 88/88\nrate 1.5: goodput 2.5 tok/s/gpu, attainment 0.03, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-chunk8192   # chunk8192",
+   "output": "rate 0.3: goodput 43.1 tok/s/gpu, attainment 1.00, completed 28/28\nrate 0.6: goodput 63.7 tok/s/gpu, attainment 0.89, completed 47/47\nrate 0.9: goodput 67.1 tok/s/gpu, attainment 0.52, completed 82/82\nrate 1.2: goodput 59.4 tok/s/gpu, attainment 0.42, completed 88/88\nrate 1.5: goodput 11.3 tok/s/gpu, attainment 0.10, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# default: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          43.11            1.0           0.27           53.2          1.226          144.0\n          0.6          62.76          0.872          1.514          208.4          1.695          209.0\n          0.9          57.23          0.439          2.325         1185.0          3.747         1379.8\n          1.2          46.13           0.33          2.573          375.1          2.475         1147.1\n          1.5           7.09          0.066          2.434         1256.6          3.406         1454.2",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# chunk256: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          41.27          0.929          0.266          124.2          1.317          259.0\n          0.6          39.31          0.574          1.162          272.7          1.839          229.7\n          0.9          28.33           0.22           2.56          322.8          4.256          325.9\n          1.2          29.05          0.227          2.175          300.7          2.686          319.1\n          1.5           3.21          0.028          3.859          345.1          4.715          349.4",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# chunk512: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          41.27          0.929          0.257           50.4          1.226          370.2\n          0.6          38.91          0.553          1.018          403.9          1.715          310.0\n          0.9          36.53          0.293          2.191          525.8          3.352          556.2\n          1.2          35.15          0.261          1.887          473.6           2.24          487.9\n          1.5           2.53          0.028          2.595          545.7          3.449          565.5",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# chunk8192: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          43.11            1.0          0.256           48.7           1.15          138.1\n          0.6          63.75          0.894          1.468          198.6          1.636          198.3\n          0.9          67.12          0.524          2.304         1110.4          3.321         1133.0\n          1.2           59.4           0.42          2.391          346.6          2.424         1093.8\n          1.5          11.32          0.104          2.374         1150.0          4.147         1200.0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f seqs32.yaml seqs64.yaml no-prefix.yaml sync.yaml   # seqs32: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --max-num-seqs 32]; seqs64: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --max-num-seqs 64]; no-prefix: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --no-enable-prefix-caching]; sync: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --no-async-scheduling]",
+   "output": "seqs32: servers s-seqs32-0\nseqs64: servers s-seqs64-0\nno-prefix: servers s-no-prefix-0\nsync: servers s-sync-0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                            READY   STATUS    RESTARTS   AGE     IP             NODE                         NOMINATED NODE   READINESS GATES\ns-no-prefix-0-d66567c95-zgmwx   1/1     Running   0          2m19s   10.70.32.247   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-seqs32-0-5f468d946b-bzffl     1/1     Running   0          2m25s   10.70.32.248   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-seqs64-0-64bc54f6c7-g94pr     1/1     Running   0          2m22s   10.70.32.246   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-sync-0-6c464cfbc8-xrw49       1/1     Running   0          2m17s   10.70.32.249   ip-10-70-35-3.ec2.internal   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-seqs32.yaml   # seqs32: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-seqs32-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-seqs64.yaml   # seqs64: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-seqs64-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-no-prefix.yaml   # no-prefix: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-no-prefix-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-sync.yaml   # sync: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-sync-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-seqs32   # seqs32",
+   "output": "rate 0.3: goodput 43.1 tok/s/gpu, attainment 1.00, completed 28/28\nrate 0.6: goodput 63.7 tok/s/gpu, attainment 0.89, completed 47/47\nrate 0.9: goodput 67.5 tok/s/gpu, attainment 0.52, completed 82/82\nrate 1.2: goodput 66.5 tok/s/gpu, attainment 0.47, completed 88/88\nrate 1.5: goodput 7.7 tok/s/gpu, attainment 0.07, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-seqs64   # seqs64",
+   "output": "rate 0.3: goodput 43.1 tok/s/gpu, attainment 1.00, completed 28/28\nrate 0.6: goodput 62.8 tok/s/gpu, attainment 0.87, completed 47/47\nrate 0.9: goodput 64.9 tok/s/gpu, attainment 0.50, completed 82/82\nrate 1.2: goodput 52.2 tok/s/gpu, attainment 0.36, completed 88/88\nrate 1.5: goodput 6.6 tok/s/gpu, attainment 0.07, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-no-prefix   # no-prefix",
+   "output": "rate 0.3: goodput 43.1 tok/s/gpu, attainment 1.00, completed 28/28\nrate 0.6: goodput 57.8 tok/s/gpu, attainment 0.79, completed 47/47\nrate 0.9: goodput 40.8 tok/s/gpu, attainment 0.34, completed 82/82\nrate 1.2: goodput 20.6 tok/s/gpu, attainment 0.11, completed 88/88\nrate 1.5: goodput 0.0 tok/s/gpu, attainment 0.00, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-sync   # sync",
+   "output": "rate 0.3: goodput 43.1 tok/s/gpu, attainment 1.00, completed 28/28\nrate 0.6: goodput 59.7 tok/s/gpu, attainment 0.83, completed 47/47\nrate 0.9: goodput 54.3 tok/s/gpu, attainment 0.41, completed 82/82\nrate 1.2: goodput 36.3 tok/s/gpu, attainment 0.26, completed 88/88\nrate 1.5: goodput 3.8 tok/s/gpu, attainment 0.04, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# seqs32: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          43.11            1.0          0.253           48.8          1.153          136.1\n          0.6          63.75          0.894          1.477          198.9          1.644          201.0\n          0.9          67.51          0.524          2.195         1117.7          3.452         1269.2\n          1.2          66.45          0.466          2.388          280.8          2.066         1066.0\n          1.5           7.71          0.066          7.683         1091.2          8.944         1094.2",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# seqs64: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          43.11            1.0          0.258           49.2          1.191          140.2\n          0.6          62.76          0.872          1.502          202.5          1.686          204.9\n          0.9          64.85            0.5          2.271         1158.1           3.64         1367.8\n          1.2          52.23          0.364          2.519          292.7          2.094         1099.6\n          1.5            6.6          0.066          2.458         1222.4          3.464         1385.9",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# no-prefix: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          43.11            1.0          0.312           51.1          1.149          164.9\n          0.6          57.76          0.787          1.481          213.0          1.643          223.3\n          0.9          40.83          0.341          2.721         1403.9          3.991         1437.6\n          1.2          20.61          0.114          2.593         1214.3          2.986         1247.0\n          1.5            0.0            0.0          8.455         1406.8          9.835         1444.4",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# sync: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          43.11            1.0          0.217           54.5          1.184          143.0\n          0.6          59.71           0.83          1.032          215.5          1.597          217.2\n          0.9          54.32          0.415          2.183         1227.3          3.489         1396.3\n          1.2          36.25          0.261          2.257          371.6          2.263         1147.7\n          1.5           3.76          0.038          2.149         1266.0           3.16         1280.2",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f control.yaml ngram4.yaml ngram2.yaml   # control: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]; ngram4: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --speculative-config '{\"method\":\"ngram\",\"num_speculative_tokens\":4,\"prompt_lookup_max\":4,\"prompt_lookup_min\":2}']; ngram2: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --speculative-config '{\"method\":\"ngram\",\"num_speculative_tokens\":2,\"prompt_lookup_max\":3,\"prompt_lookup_min\":2}']",
+   "output": "control: servers s-control-0\nngram4: servers s-ngram4-0\nngram2: servers s-ngram2-0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                           READY   STATUS    RESTARTS   AGE     IP             NODE                         NOMINATED NODE   READINESS GATES\ns-control-0-788b546fdf-4h2q8   1/1     Running   0          2m43s   10.70.32.244   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-ngram2-0-67bbf5d54c-sn22w    1/1     Running   0          2m37s   10.70.32.243   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-ngram4-0-57677c88cd-xns7k    1/1     Running   0          2m40s   10.70.32.241   ip-10-70-35-3.ec2.internal   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-control.yaml   # control: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-control-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-ngram4.yaml   # ngram4: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-ngram4-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s04-ngram2.yaml   # ngram2: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-ngram2-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-control   # control",
+   "output": "rate 0.3: goodput 43.1 tok/s/gpu, attainment 1.00, completed 28/28\nrate 0.6: goodput 63.7 tok/s/gpu, attainment 0.89, completed 47/47\nrate 0.9: goodput 67.1 tok/s/gpu, attainment 0.52, completed 82/82\nrate 1.2: goodput 53.7 tok/s/gpu, attainment 0.38, completed 88/88\nrate 1.5: goodput 10.6 tok/s/gpu, attainment 0.09, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-ngram4   # ngram4",
+   "output": "rate 0.3: goodput 43.1 tok/s/gpu, attainment 1.00, completed 28/28\nrate 0.6: goodput 62.2 tok/s/gpu, attainment 0.87, completed 47/47\nrate 0.9: goodput 57.4 tok/s/gpu, attainment 0.44, completed 82/82\nrate 1.2: goodput 66.0 tok/s/gpu, attainment 0.47, completed 88/88\nrate 1.5: goodput 39.6 tok/s/gpu, attainment 0.25, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s04-ngram2   # ngram2",
+   "output": "rate 0.3: goodput 43.1 tok/s/gpu, attainment 1.00, completed 28/28\nrate 0.6: goodput 63.7 tok/s/gpu, attainment 0.89, completed 47/47\nrate 0.9: goodput 68.4 tok/s/gpu, attainment 0.52, completed 82/82\nrate 1.2: goodput 83.9 tok/s/gpu, attainment 0.58, completed 88/88\nrate 1.5: goodput 81.1 tok/s/gpu, attainment 0.48, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# control: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          43.11            1.0           0.25           48.5          1.164          137.0\n          0.6          63.75          0.894          1.446          198.5          1.627          199.2\n          0.9          67.12          0.524          2.221         1122.3          3.492         1278.4\n          1.2          53.69          0.375          2.418          352.3          2.402         1091.5\n          1.5          10.59          0.094          2.401         1183.9          3.291         1206.4",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# ngram4: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          43.11            1.0          0.279           59.9          1.128           22.9\n          0.6          62.19          0.872          1.464          202.0          1.666          190.9\n          0.9          57.39          0.439          2.213         1088.8          3.605          491.9\n          1.2          65.96          0.466          2.612          441.4            2.5          517.7\n          1.5          39.63          0.245          2.426         1134.5          3.379          524.3",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# ngram2: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          43.11            1.0           0.27           52.1          1.181           52.3\n          0.6          63.75          0.894          1.483          195.7          1.668          199.7\n          0.9          68.44          0.524          2.277          760.7          3.622          526.6\n          1.2          83.88           0.58          2.443          436.0          2.382          553.4\n          1.5          81.09          0.481          2.203         1081.3          2.991          502.0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# capacity and goodput of every setting, one GPU each",
+   "output": "setting      capacity req/s   goodput tok/s   vs default (capacity)\ndefault           0.42           43.1          +0%\nchunk256          0.00            0.0        -100%\nchunk512          0.00            0.0        -100%\nchunk8192         0.44           43.1          +6%\nseqs32            0.44           43.1          +6%\nseqs64            0.42           43.1          +0%\nno-prefix         0.37           43.1         -11%\nsync              0.39           43.1          -7%\ncontrol           0.44           43.1          +6%\nngram4            0.42           43.1          +0%\nngram2            0.44           43.1          +6%",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# the control: the same default setting on another GPU in another round",
+   "output": "default 0.42 req/s, 43.1 tok/s; control 0.44 req/s, 43.1 tok/s -> noise 0.02 req/s (6%), 0.0 tok/s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# chat inter-token latency p95 at 0.9 req/s, by chunk size",
+   "output": "chunk256       323 ms   (code TTFT p95 4.26 s)\nchunk512       526 ms   (code TTFT p95 3.35 s)\ndefault       1185 ms   (code TTFT p95 3.75 s)\nchunk8192     1110 ms   (code TTFT p95 3.32 s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# n-gram speculation: the engine's own counters",
+   "output": "ngram4: 25,992 drafts, 103,968 drafted tokens, 20,130 accepted (19%), tokens per verification step 1.77\nngram2: 27,103 drafts, 54,206 drafted tokens, 18,932 accepted (35%)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# which settings move capacity by more than the noise (or one grid step, 0.3 req/s/GPU, whichever is larger)",
+   "output": "chunk256   worse\nchunk512   worse\nchunk8192  no change beyond the noise\nseqs32     no change beyond the noise\nseqs64     no change beyond the noise\nno-prefix  no change beyond the noise\nsync       no change beyond the noise\nngram4     no change beyond the noise\nngram2     no change beyond the noise",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "round 1: all 4 servers start (default, chunk256, chunk512, chunk8192)",
+   "passed": true,
+   "because": "Each server holds one GPU; they run side by side on one node, so a small amount of CPU and PCIe contention is shared by all and is part of the noise measured by the control."
+  },
+  {
+   "description": "round 2: all 4 servers start (seqs32, seqs64, no-prefix, sync)",
+   "passed": true,
+   "because": "Each server holds one GPU; they run side by side on one node, so a small amount of CPU and PCIe contention is shared by all and is part of the noise measured by the control."
+  },
+  {
+   "description": "round 3: all 3 servers start (control, ngram4, ngram2)",
+   "passed": true,
+   "because": "Each server holds one GPU; they run side by side on one node, so a small amount of CPU and PCIe contention is shared by all and is part of the noise measured by the control."
+  },
+  {
+   "description": "the control (same setting, different GPU and time) lands within 25% of the default's capacity, so the measurement is repeatable enough to read effects larger than that",
+   "passed": true,
+   "because": "Capacity 0.42 against 0.44 req/s per GPU. The grid of load levels is [0.3, 0.6, 0.9, 1.2, 1.5], so a difference of one grid step is the smallest that can be seen at all."
+  },
+  {
+   "description": "the prefill chunk size moves inter-token latency the way the mechanism says: the largest chunk gives a higher ITL p95 than the smallest at 0.9 req/s",
+   "passed": true,
+   "because": "Every engine step does one batch of decode tokens plus whatever prompt tokens fit under the limit; on a T4 a step with 8,192 prompt tokens takes seconds, and every running request waits for it. ITL p95: 323 ms at 256, 526 ms at 512, 1185 ms at the default (2,048), 1110 ms at 8,192."
+  },
+  {
+   "description": "with prefix caching off the engine reports no prefix-cache hits, and code requests wait longer for their first token",
+   "passed": true,
+   "because": "Hits 0 of 0; code TTFT p50 at 0.9 req/s 1.40 s against 1.33 s with the cache (hit rate 25%)."
+  },
+  {
+   "description": "speculation ran: drafts were made and some were accepted, and the acceptance rate is read from the engine's own counters",
+   "passed": true,
+   "because": "Acceptance 19% of drafted tokens. The n-gram drafter proposes the words that followed the last match in the prompt; it helps when answers repeat the prompt. The synthetic prompts here are random words, so a moderate acceptance is the honest figure for this traffic, and a code-completion workload would differ."
+  }
+ ],
+ "notes": [
+  "Settings with an effect beyond the noise: none. A setting that shows 'no change beyond the noise' stays at its default in S09; a change is adopted only when the data supports it."
+ ]
+}

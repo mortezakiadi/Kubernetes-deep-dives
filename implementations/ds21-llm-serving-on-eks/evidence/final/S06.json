@@ -1,0 +1,159 @@
+{
+ "id": "S06",
+ "title": "Routing: round robin, least loaded, or by prefix",
+ "design_ref": "Routing: prefix-aware routing and the endpoint picker",
+ "purpose": "Put the same four replicas behind three routing policies and measure the prefix-cache hit rate the servers report, the wait for the first token of code requests, and goodput; the router is a small stand-in for the gateway's endpoint picker and says so.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f route-rr.yaml   # route-rr: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]",
+   "output": "route-rr: servers s-route-rr-0, s-route-rr-1, s-route-rr-2, s-route-rr-3, router policy rr",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                            READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES\nr-route-rr-59bbf585fb-nwgkc     1/1     Running   0          2m25s   10.70.19.1     ip-10-70-28-87.ec2.internal   <none>           <none>\ns-route-rr-0-8c8cbbf75-nbxq6    1/1     Running   0          2m27s   10.70.32.243   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-route-rr-1-59b6f4db68-r7vbp   1/1     Running   0          2m26s   10.70.32.241   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-route-rr-2-659f99bb77-4l9dz   1/1     Running   0          2m26s   10.70.32.244   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-route-rr-3-54c8c44b74-q75dw   1/1     Running   0          2m25s   10.70.32.246   ip-10-70-35-3.ec2.internal    <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s06-route-rr.yaml   # route-rr: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://r-route-rr:8000, 4 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s06-route-rr   # route-rr",
+   "output": "rate 1.2: goodput 35.1 tok/s/gpu, attainment 1.00, completed 88/88\nrate 2.4: goodput 71.2 tok/s/gpu, attainment 0.99, completed 185/185\nrate 3.6: goodput 80.7 tok/s/gpu, attainment 0.72, completed 271/271\nrate 4.8: goodput 15.0 tok/s/gpu, attainment 0.08, completed 370/370\nrate 6.0: goodput 5.5 tok/s/gpu, attainment 0.03, completed 458/458\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# rr: prefix cache and balance",
+   "output": "prefix cache hit rate across the four servers: 25% of 1,009,808 prompt tokens; preemptions 4\nrequests per replica: {\"s-route-rr-0\": 409, \"s-route-rr-1\": 409, \"s-route-rr-2\": 409, \"s-route-rr-3\": 408}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# rr: goodput and latency by load level (per GPU)",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          35.09            1.0          0.343           49.3          1.174           50.0\n          0.6          71.17          0.989          0.389           65.2          1.435          110.4\n          0.9          80.71          0.723          0.853          213.1          1.523          428.1\n          1.2          14.98          0.084          1.577         1151.3          2.018         1181.8\n          1.5           5.54          0.026          2.865         1352.2          3.626         1403.8",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f route-least.yaml   # route-least: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]",
+   "output": "route-least: servers s-route-least-0, s-route-least-1, s-route-least-2, s-route-least-3, router policy least",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                               READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES\nr-route-least-56779d9fd8-clt6m     1/1     Running   0          2m26s   10.70.29.114   ip-10-70-28-87.ec2.internal   <none>           <none>\ns-route-least-0-6df45c7d97-khh8j   1/1     Running   0          2m28s   10.70.32.247   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-route-least-1-7d7f54d67b-b8gbm   1/1     Running   0          2m27s   10.70.32.245   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-route-least-2-667b496c79-274dl   1/1     Running   0          2m27s   10.70.32.248   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-route-least-3-5787f7f55d-sfdsh   1/1     Running   0          2m26s   10.70.32.249   ip-10-70-35-3.ec2.internal    <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s06-route-least.yaml   # route-least: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://r-route-least:8000, 4 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s06-route-least   # route-least",
+   "output": "rate 1.2: goodput 35.1 tok/s/gpu, attainment 1.00, completed 88/88\nrate 2.4: goodput 72.0 tok/s/gpu, attainment 1.00, completed 185/185\nrate 3.6: goodput 84.8 tok/s/gpu, attainment 0.77, completed 271/271\nrate 4.8: goodput 20.1 tok/s/gpu, attainment 0.12, completed 370/370\nrate 6.0: goodput 9.7 tok/s/gpu, attainment 0.05, completed 458/458\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# least: prefix cache and balance",
+   "output": "prefix cache hit rate across the four servers: 27% of 1,009,808 prompt tokens; preemptions 0\nrequests per replica: {\"s-route-least-0\": 415, \"s-route-least-1\": 402, \"s-route-least-2\": 409, \"s-route-least-3\": 409}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# least: goodput and latency by load level (per GPU)",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          35.09            1.0          0.477           47.0          1.218           49.5\n          0.6          71.97            1.0          0.572           56.8          1.208           93.0\n          0.9          84.78          0.775          0.936          208.6          1.499          443.4\n          1.2          20.09          0.119           1.55         1098.5          2.456         1106.9\n          1.5           9.73           0.05          1.989         1208.4          2.744         1227.4",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f route-prefix.yaml   # route-prefix: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]",
+   "output": "route-prefix: servers s-route-prefix-0, s-route-prefix-1, s-route-prefix-2, s-route-prefix-3, router policy prefix",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                                READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES\nr-route-prefix-5954747cf6-fmdt5     1/1     Running   0          2m30s   10.70.29.112   ip-10-70-28-87.ec2.internal   <none>           <none>\ns-route-prefix-0-54b868d6cf-9zcj4   1/1     Running   0          2m31s   10.70.32.243   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-route-prefix-1-57449d8fcb-d4lpc   1/1     Running   0          2m31s   10.70.32.241   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-route-prefix-2-cc7779865-lpsqd    1/1     Running   0          2m31s   10.70.32.244   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-route-prefix-3-5dfbbcc586-zwbhm   1/1     Running   0          2m30s   10.70.32.246   ip-10-70-35-3.ec2.internal    <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s06-route-prefix.yaml   # route-prefix: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://r-route-prefix:8000, 4 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s06-route-prefix   # route-prefix",
+   "output": "rate 1.2: goodput 35.1 tok/s/gpu, attainment 1.00, completed 88/88\nrate 2.4: goodput 71.8 tok/s/gpu, attainment 0.99, completed 185/185\nrate 3.6: goodput 100.2 tok/s/gpu, attainment 0.90, completed 271/271\nrate 4.8: goodput 46.2 tok/s/gpu, attainment 0.33, completed 370/370\nrate 6.0: goodput 33.0 tok/s/gpu, attainment 0.18, completed 458/458\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# prefix: prefix cache and balance",
+   "output": "prefix cache hit rate across the four servers: 53% of 1,009,808 prompt tokens; preemptions 0\nrequests per replica: {\"s-route-prefix-0\": 578, \"s-route-prefix-1\": 497, \"s-route-prefix-2\": 257, \"s-route-prefix-3\": 303}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# prefix: goodput and latency by load level (per GPU)",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          35.09            1.0          0.386           47.9          1.167           56.3\n          0.6          71.81          0.995          0.369          108.1          1.146           62.4\n          0.9         100.24          0.904          0.483          180.8          2.188          453.4\n          1.2           46.2           0.33          0.637          226.4          1.813         1090.6\n          1.5           33.0          0.177          0.683          266.0          2.311         1162.3",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# the three policies side by side",
+   "output": "policy    cache hit rate   code TTFT p50 at 0.9/GPU   capacity req/s/GPU   goodput tok/s/GPU\nrr                25%               1.19 s             0.64             71.2\nleast             27%               1.19 s             0.67             72.0\nprefix            53%               0.32 s             0.75             71.8",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "policy rr: four replicas and the router start",
+   "passed": true,
+   "because": "Started in 136.5 s."
+  },
+  {
+   "description": "policy least: four replicas and the router start",
+   "passed": true,
+   "because": "Started in 137.2 s."
+  },
+  {
+   "description": "policy prefix: four replicas and the router start",
+   "passed": true,
+   "because": "Started in 140.0 s."
+  },
+  {
+   "description": "the prefix-aware policy gets a higher prefix-cache hit rate from the same servers than round robin does",
+   "passed": true,
+   "because": "Hit rate 53% against 25%. Round robin sends each repository's requests to all four servers, so each server must cache all 48 repositories (about 57,000 tokens) in room for about 20,000; the prefix policy sends a repository to the server that already holds it, so each holds about a quarter."
+  },
+  {
+   "description": "the prefix policy sends requests to servers that already had the prefix (the router counts the matches it made)",
+   "passed": true,
+   "because": "The router's own counter of prefix matches: 1574 of 1635 requests."
+  },
+  {
+   "description": "the prefix policy does not pile everything on one replica: the busiest replica takes less than 1.6 times the average",
+   "passed": true,
+   "because": "Busiest replica 1.41 times the mean. The router skips a replica that is well above the average load, so one popular repository cannot saturate one server."
+  }
+ ],
+ "notes": [
+  "Best policy by capacity then goodput: prefix. Round robin and least-loaded ignore what is cached; the gap between them and the prefix policy is the part of the traffic that repeats.",
+  "This router is 150 lines of Python in this repository. The Gateway API Inference Extension implements the same two ideas (load-aware and prefix-aware picking) as a component of the gateway; it is not installed here, so what was measured is the policy and not that product."
+ ]
+}

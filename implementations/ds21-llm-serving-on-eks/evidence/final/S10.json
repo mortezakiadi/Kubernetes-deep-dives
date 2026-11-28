@@ -1,0 +1,111 @@
+{
+ "id": "S10",
+ "title": "Autoscaling on queue depth and on GPU utilisation",
+ "design_ref": "Autoscaling: scale on the queue the user feels, not on a counter that saturates; cold start is the cost",
+ "purpose": "Start with one replica at a quiet load, step the load to what four replicas can carry, and let KEDA scale the same Deployment on two different signals (the number of requests waiting plus running, and GPU utilisation); record when each decided, how long the new replicas took to be ready, and the share of requests inside their targets over time.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "# the settings come from S01's measurements",
+   "output": "requests in the system (waiting + running) at the last healthy level of one GPU: 2.3  -> threshold per replica\none GPU's capacity 0.35 req/s -> quiet phase 0.17 req/s (half a replica), step to 1.11 req/s (3.2 replicas)\nGPU utilisation counter scale: ratio; target 80% of one GPU per replica",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f auto-queue.yaml   # one server behind the router, which re-reads the headless service every 2 s",
+   "output": "first replica Ready after 126.2 s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f so-auto-queue.yaml   # KEDA ScaledObject, Prometheus trigger, 1 to 4 replicas",
+   "output": "query: sum(vllm:num_requests_waiting) + sum(vllm:num_requests_running)\nthreshold per replica: 2.3",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s10-queue.yaml   # 0.17 req/s for 420 s, then a step to 1.11 req/s for 420 s",
+   "output": "",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s10-queue",
+   "output": "rate 0.17: goodput 5.6 tok/s/gpu, attainment 1.00, completed 75/75\nrate 1.11: goodput 26.5 tok/s/gpu, attainment 0.82, completed 474/474\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f auto-util.yaml   # one server behind the router, which re-reads the headless service every 2 s",
+   "output": "first replica Ready after 126.2 s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f so-auto-util.yaml   # KEDA ScaledObject, Prometheus trigger, 1 to 4 replicas",
+   "output": "query: sum(DCGM_FI_DEV_GPU_UTIL_RATIO)\nthreshold per replica: 0.8",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s10-util.yaml   # 0.17 req/s for 420 s, then a step to 1.11 req/s for 420 s",
+   "output": "",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s10-util",
+   "output": "rate 0.17: goodput 5.6 tok/s/gpu, attainment 1.00, completed 75/75\nrate 1.11: goodput 32.2 tok/s/gpu, attainment 1.00, completed 474/474\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# signal: queue",
+   "output": "Ready replicas when the step arrived: 1 (mean over the quiet phase 1.0); replica-seconds used in the whole run: 1,195\ndecision to add replicas 19.50591540336609 s after the step; three replicas Ready after 150.82531332969666 s; most replicas Ready 4\neach new replica took [125.0, 129.0, 130.0, 132.0] s from creation to Ready (the first took 126.2 s)\nshare of requests inside targets: quiet phase 1.00, step phase 0.82; back above 0.9 (two windows in a row) 150 s after the step\n30 s windows after the step: 0s:0.54 30s:0.49 60s:0.84 90s:0.12 120s:0.52 150s:1.00 180s:1.00 210s:1.00 240s:1.00 270s:1.00 300s:1.00 330s:1.00 360s:1.00 390s:1.00",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# signal: util",
+   "output": "Ready replicas when the step arrived: 2 (mean over the quiet phase 1.6); replica-seconds used in the whole run: 1,535\ndecision to add replicas 51.99502754211426 s after the step; three replicas Ready after 19.78549575805664 s; most replicas Ready 4\neach new replica took [123.0, 124.0, 126.0, 126.0] s from creation to Ready (the first took 126.2 s)\nshare of requests inside targets: quiet phase 1.00, step phase 1.00; back above 0.9 (two windows in a row) 0 s after the step\n30 s windows after the step: 0s:1.00 30s:1.00 60s:1.00 90s:1.00 120s:1.00 150s:1.00 180s:1.00 210s:1.00 240s:1.00 270s:1.00 300s:1.00 330s:1.00 360s:1.00 390s:1.00",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "both runs completed: the quiet phase and the step were both driven and recorded",
+   "passed": true,
+   "because": "Each run is one Deployment behind the router with one signal driving KEDA."
+  },
+  {
+   "description": "signal queue: the autoscaler added replicas after the step (more than one replica became Ready)",
+   "passed": true,
+   "because": "Most replicas Ready: 4."
+  },
+  {
+   "description": "signal queue: a new replica is not useful at once: it took at least 60 s from creation to Ready",
+   "passed": true,
+   "because": "Creation to Ready took [125.0, 129.0, 130.0, 132.0] s with the image and weights already on the node's disk; with the model downloaded first it would be longer, and with a new GPU node longer again. This delay, not the decision, is the floor under any scale-up."
+  },
+  {
+   "description": "signal util: the autoscaler added replicas after the step (more than one replica became Ready)",
+   "passed": true,
+   "because": "Most replicas Ready: 4."
+  },
+  {
+   "description": "signal util: a new replica is not useful at once: it took at least 60 s from creation to Ready",
+   "passed": true,
+   "because": "Creation to Ready took [123.0, 124.0, 126.0, 126.0] s with the image and weights already on the node's disk; with the model downloaded first it would be longer, and with a new GPU node longer again. This delay, not the decision, is the floor under any scale-up."
+  },
+  {
+   "description": "at the quiet load (about half of one replica's capacity) the utilisation signal held more replicas than the queue signal did",
+   "passed": true,
+   "because": "Mean Ready replicas during the quiet phase: 1.0 (queue) against 1.6 (utilisation); Ready when the step arrived: 1 against 2. This check was added after the first run showed the pattern: it is a claim about that run's mechanism, stated here so that a different result would fail it."
+  }
+ ],
+ "notes": [
+  "Replica-seconds used in the run: queue 1,195, utilisation 1,535. Share of requests inside their targets during the step: queue signal 0.82, utilisation signal 1.00. First decision after the step: queue 19.50591540336609 s, utilisation 51.99502754211426 s. Quiet-phase attainment: queue 1.00, utilisation 1.00.",
+  "Not run: scaling the number of GPU nodes (the GPU node group was not allowed to grow beyond the one node that EC2 would give), traffic-based scale from zero, and KServe canary rollouts."
+ ]
+}

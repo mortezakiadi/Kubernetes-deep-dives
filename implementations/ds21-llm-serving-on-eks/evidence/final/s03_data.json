@@ -1,0 +1,222 @@
+{
+ "summary": {
+  "moe-tp4": {
+   "capacity_rps_gpu": 0.065,
+   "goodput": 3.8,
+   "goodput_at_rps_gpu": 0.05
+  },
+  "moe-ep4": {
+   "capacity_rps_gpu": 0.207,
+   "goodput": 19.69,
+   "goodput_at_rps_gpu": 0.2
+  }
+ },
+ "kv": {
+  "tp4": [
+   {
+    "server": "s-moe-tp4-0",
+    "weights_gib": 4.02,
+    "kv_gib": 7.01,
+    "kv_tokens": 306128,
+    "max_concurrency": 74.74,
+    "max_batched_tokens": null,
+    "max_seqs": null,
+    "attention": "TRITON_ATTN",
+    "chunked": null
+   }
+  ],
+  "ep4": [
+   {
+    "server": "s-moe-ep4-0",
+    "weights_gib": 5.15,
+    "kv_gib": 5.72,
+    "kv_tokens": 62480,
+    "max_concurrency": 15.25,
+    "max_batched_tokens": 2048,
+    "max_seqs": null,
+    "attention": "TRITON_ATTN",
+    "chunked": null
+   }
+  ]
+ },
+ "weights_gib": {
+  "tp4": 4.02,
+  "ep4": 5.15
+ },
+ "total_kv": {
+  "tp4": 306128,
+  "ep4": 62480
+ },
+ "accuracy": {
+  "tp4": 0.96,
+  "ep4": 0.96
+ },
+ "agreement": 1.0,
+ "rows": {
+  "moe-tp4": [
+   {
+    "rate": 0.08,
+    "rate_per_gpu": 0.02,
+    "goodput": 1.46,
+    "throughput": 1.46,
+    "attain": 1.0,
+    "completed": 5,
+    "requests": 5,
+    "chat_ttft_p50": 0.538,
+    "chat_ttft_p95": 0.562,
+    "chat_itl_p95": 22.8,
+    "code_ttft_p50": 2.295,
+    "code_ttft_p95": 2.828,
+    "code_itl_p95": 23.7
+   },
+   {
+    "rate": 0.2,
+    "rate_per_gpu": 0.05,
+    "goodput": 3.8,
+    "throughput": 3.8,
+    "attain": 1.0,
+    "completed": 9,
+    "requests": 9,
+    "chat_ttft_p50": 0.526,
+    "chat_ttft_p95": 0.685,
+    "chat_itl_p95": 32.8,
+    "code_ttft_p50": 1.777,
+    "code_ttft_p95": 1.889,
+    "code_itl_p95": 34.7
+   },
+   {
+    "rate": 0.4,
+    "rate_per_gpu": 0.1,
+    "goodput": 10.76,
+    "throughput": 12.83,
+    "attain": 0.829,
+    "completed": 35,
+    "requests": 35,
+    "chat_ttft_p50": 0.51,
+    "chat_ttft_p95": 3.052,
+    "chat_itl_p95": 255.1,
+    "code_ttft_p50": 1.793,
+    "code_ttft_p95": 3.376,
+    "code_itl_p95": 381.2
+   },
+   {
+    "rate": 0.8,
+    "rate_per_gpu": 0.2,
+    "goodput": 8.67,
+    "throughput": 20.4,
+    "attain": 0.382,
+    "completed": 55,
+    "requests": 55,
+    "chat_ttft_p50": 0.808,
+    "chat_ttft_p95": 2.592,
+    "chat_itl_p95": 560.7,
+    "code_ttft_p50": 0.972,
+    "code_ttft_p95": 2.543,
+    "code_itl_p95": 665.6
+   },
+   {
+    "rate": 1.2,
+    "rate_per_gpu": 0.3,
+    "goodput": 4.85,
+    "throughput": 35.09,
+    "attain": 0.102,
+    "completed": 88,
+    "requests": 88,
+    "chat_ttft_p50": 0.926,
+    "chat_ttft_p95": 3.562,
+    "chat_itl_p95": 771.3,
+    "code_ttft_p50": 0.914,
+    "code_ttft_p95": 3.822,
+    "code_itl_p95": 839.1
+   }
+  ],
+  "moe-ep4": [
+   {
+    "rate": 0.08,
+    "rate_per_gpu": 0.02,
+    "goodput": 1.46,
+    "throughput": 1.46,
+    "attain": 1.0,
+    "completed": 5,
+    "requests": 5,
+    "chat_ttft_p50": 0.307,
+    "chat_ttft_p95": 1.062,
+    "chat_itl_p95": 13.9,
+    "code_ttft_p50": 1.23,
+    "code_ttft_p95": 1.251,
+    "code_itl_p95": 15.5
+   },
+   {
+    "rate": 0.2,
+    "rate_per_gpu": 0.05,
+    "goodput": 3.8,
+    "throughput": 3.8,
+    "attain": 1.0,
+    "completed": 9,
+    "requests": 9,
+    "chat_ttft_p50": 0.251,
+    "chat_ttft_p95": 0.406,
+    "chat_itl_p95": 15.8,
+    "code_ttft_p50": 1.252,
+    "code_ttft_p95": 1.353,
+    "code_itl_p95": 16.2
+   },
+   {
+    "rate": 0.4,
+    "rate_per_gpu": 0.1,
+    "goodput": 12.53,
+    "throughput": 12.83,
+    "attain": 0.971,
+    "completed": 35,
+    "requests": 35,
+    "chat_ttft_p50": 0.212,
+    "chat_ttft_p95": 1.689,
+    "chat_itl_p95": 21.9,
+    "code_ttft_p50": 1.351,
+    "code_ttft_p95": 2.204,
+    "code_itl_p95": 77.9
+   },
+   {
+    "rate": 0.8,
+    "rate_per_gpu": 0.2,
+    "goodput": 19.69,
+    "throughput": 20.4,
+    "attain": 0.964,
+    "completed": 55,
+    "requests": 55,
+    "chat_ttft_p50": 0.28,
+    "chat_ttft_p95": 1.753,
+    "chat_itl_p95": 22.4,
+    "code_ttft_p50": 1.301,
+    "code_ttft_p95": 1.764,
+    "code_itl_p95": 151.5
+   },
+   {
+    "rate": 1.2,
+    "rate_per_gpu": 0.3,
+    "goodput": 28.45,
+    "throughput": 35.09,
+    "attain": 0.773,
+    "completed": 88,
+    "requests": 88,
+    "chat_ttft_p50": 0.318,
+    "chat_ttft_p95": 2.465,
+    "chat_itl_p95": 217.0,
+    "code_ttft_p50": 1.327,
+    "code_ttft_p95": 2.218,
+    "code_itl_p95": 1197.9
+   }
+  ]
+ },
+ "eplb_refusal": [
+  "NotImplementedError: EPLB is not supported AutoGPTQMoEMethod."
+ ],
+ "gpu_memory": {
+  "moe-tp4": "0, 13797 MiB\n1, 13797 MiB\n2, 13797 MiB\n3, 13797 MiB",
+  "moe-ep4": "0, 14045 MiB\n1, 14045 MiB\n2, 14045 MiB\n3, 14045 MiB"
+ },
+ "start_s": {
+  "moe-tp4": 216.0,
+  "moe-ep4": 227.7
+ }
+}

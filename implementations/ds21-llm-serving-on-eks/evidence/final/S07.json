@@ -1,0 +1,124 @@
+{
+ "id": "S07",
+ "title": "KV cache offload to host memory",
+ "design_ref": "KV cache offload: a second tier for prefixes that no longer fit in GPU memory",
+ "purpose": "Give three single-GPU servers a host-memory tier of 0, 8 and 24 GiB (plus an unchanged control), drive them with a code-heavy mix whose repositories do not fit in GPU memory together, and read how much the second tier served, what it cost, and whether code requests got their first token sooner.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f base.yaml control.yaml off8.yaml off24.yaml   # base: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]; control: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]; off8: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --kv-offloading-size 8 --kv-offloading-backend native]; off24: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --kv-offloading-size 24 --kv-offloading-backend native]",
+   "output": "base: servers s-base-0\ncontrol: servers s-control-0\noff8: servers s-off8-0\noff24: servers s-off24-0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                           READY   STATUS    RESTARTS   AGE     IP             NODE                         NOMINATED NODE   READINESS GATES\ns-base-0-668c458d65-q68zj      1/1     Running   0          2m36s   10.70.32.247   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-control-0-5b66d6c4bf-5v9hj   1/1     Running   0          2m33s   10.70.32.245   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-off24-0-79b49449c8-4z8qq     1/1     Running   0          2m27s   10.70.32.248   ip-10-70-35-3.ec2.internal   <none>           <none>\ns-off8-0-dc48d448b-mmvh5       1/1     Running   0          2m30s   10.70.32.246   ip-10-70-35-3.ec2.internal   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s07-base.yaml   # base: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-base-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s07-control.yaml   # control: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-control-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s07-off8.yaml   # off8: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-off8-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s07-off24.yaml   # off24: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-off24-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s07-base   # base",
+   "output": "rate 0.3: goodput 39.1 tok/s/gpu, attainment 0.96, completed 28/28\nrate 0.6: goodput 34.3 tok/s/gpu, attainment 0.60, completed 47/47\nrate 0.9: goodput 0.0 tok/s/gpu, attainment 0.00, completed 82/82\nrate 1.2: goodput 0.0 tok/s/gpu, attainment 0.00, completed 88/88\nrate 1.5: goodput 0.0 tok/s/gpu, attainment 0.00, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s07-control   # control",
+   "output": "rate 0.3: goodput 39.1 tok/s/gpu, attainment 0.96, completed 28/28\nrate 0.6: goodput 34.3 tok/s/gpu, attainment 0.60, completed 47/47\nrate 0.9: goodput 0.0 tok/s/gpu, attainment 0.00, completed 82/82\nrate 1.2: goodput 0.0 tok/s/gpu, attainment 0.00, completed 88/88\nrate 1.5: goodput 0.0 tok/s/gpu, attainment 0.00, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s07-off8   # off8",
+   "output": "rate 0.3: goodput 39.1 tok/s/gpu, attainment 0.96, completed 28/28\nrate 0.6: goodput 42.7 tok/s/gpu, attainment 0.70, completed 47/47\nrate 0.9: goodput 27.9 tok/s/gpu, attainment 0.26, completed 82/82\nrate 1.2: goodput 18.3 tok/s/gpu, attainment 0.15, completed 88/88\nrate 1.5: goodput 8.7 tok/s/gpu, attainment 0.08, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s07-off24   # off24",
+   "output": "rate 0.3: goodput 39.1 tok/s/gpu, attainment 0.96, completed 28/28\nrate 0.6: goodput 39.8 tok/s/gpu, attainment 0.68, completed 47/47\nrate 0.9: goodput 28.7 tok/s/gpu, attainment 0.26, completed 82/82\nrate 1.2: goodput 31.5 tok/s/gpu, attainment 0.28, completed 88/88\nrate 1.5: goodput 15.1 tok/s/gpu, attainment 0.13, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# base: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          39.12          0.964           1.37           66.0          1.281          355.2\n          0.6          34.33          0.596           0.45          723.8          2.337         1069.7\n          0.9            0.0            0.0         10.657         1464.7          10.25         1469.3\n          1.2            0.0            0.0         19.134         1454.6         20.114         1454.4\n          1.5            0.0            0.0         18.022         1452.6         28.019         1463.7",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# control: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          39.12          0.964          1.415           66.8          1.339          365.4\n          0.6          34.33          0.596          0.485          930.3          2.399         1102.3\n          0.9            0.0            0.0         11.562         1456.2         10.821         1458.9\n          1.2            0.0            0.0         20.018         1447.6         20.641         1461.2\n          1.5            0.0            0.0         19.095         1464.9         28.466         1469.5",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# off8: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          39.12          0.964          1.407           65.4          1.317          355.4\n          0.6          42.73          0.702          0.445          239.3          1.869         1037.1\n          0.9          27.91          0.256          1.412          369.2          2.374          773.4\n          1.2          18.33          0.148          0.642          336.2          2.201          468.4\n          1.5           8.69          0.075          5.685         1174.9          7.904         1277.7",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# off24: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          39.12          0.964          1.472           67.7          1.389          372.4\n          0.6          39.76          0.681          0.506          247.4          1.968         1094.8\n          0.9          28.67          0.256          0.692          305.5          1.591          309.7\n          1.2          31.53          0.284          0.605          269.6          1.609          294.9\n          1.5          15.13          0.132          0.561          305.9          1.612          310.6",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# where the prompt tokens were found",
+   "output": "server    GPU cache   host tier   moved over PCIe   copy time   code TTFT p50 at 0.9   code TTFT p95   capacity   goodput\nbase           33%         0%          0.0 GiB       0.0 s             2.06 s        10.25 s     0.31      39.1\ncontrol        34%         0%          0.0 GiB       0.0 s             2.14 s        10.82 s     0.31      39.1\noff8           35%        27%         37.7 GiB       6.4 s             0.96 s         2.37 s     0.32      39.1\noff24          35%        39%         37.4 GiB       6.4 s             0.97 s         1.59 s     0.32      39.1",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "all four servers start (the offload tiers are allocated in pinned host memory at start)",
+   "passed": true,
+   "because": "base 124.9 s; control 1.2 s; off8 12.5 s; off24 1.2 s"
+  },
+  {
+   "description": "the servers with a host tier report tokens served from it and bytes moved over PCIe; the servers without report none",
+   "passed": true,
+   "because": "The connector's own counters: external prefix-cache hits and total offloaded bytes. A tier that was configured but never read would show zero here."
+  },
+  {
+   "description": "a bigger host tier serves more of the prompt: the share found in the host tier grows from 8 GiB to 24 GiB",
+   "passed": true,
+   "because": "Host-tier share 27% at 8 GiB, 39% at 24 GiB. 8 GiB holds about 58,000 tokens of this model's KV cache and 24 GiB about 175,000; the 48 repositories need about 57,000."
+  },
+  {
+   "description": "with a host tier, a larger share of all prompt tokens is found without recomputing them than on the server without one",
+   "passed": true,
+   "because": "Found in GPU or host memory: 33% (base), 34% (control), 62% (8 GiB), 74% (24 GiB)."
+  }
+ ],
+ "notes": [
+  "Capacity per GPU: base 0.31, control 0.31 (noise 0.00), 8 GiB 0.32, 24 GiB 0.32 req/s. The host tier did not raise capacity by more than the noise on this traffic: the copies and the T4's compute, not the lost prefixes, set the limit."
+ ]
+}

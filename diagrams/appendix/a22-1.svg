@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="520px" viewBox="0 0 1420 520" style="background:#ffffff"><title>Who uses the serving platform and what it is made of</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="520" fill="#ffffff"/><rect x="20" y="30" width="270" height="460" rx="14" fill="#ecfdf5" fill-opacity=".55" stroke="#059669" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#065f46">WHO</text>
+<rect x="40" y="70" width="230" height="110" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="70" width="230" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="88" width="228" height="12" fill="#ecfdf5"/>
+<text x="52" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Product teams</text>
+<text x="52" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">chat and code products, each</text>
+<text x="52" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">with its own prompt shape and</text>
+<text x="52" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">its own latency targets</text>
+<rect x="40" y="210" width="230" height="110" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="210" width="230" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="228" width="228" height="12" fill="#ecfdf5"/>
+<text x="52" y="230" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Serving engineers</text>
+<text x="52" y="258" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">own the layout, the engine</text>
+<text x="52" y="275" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">settings, the routing and the</text>
+<text x="52" y="292" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">autoscaling; run the tuning loop</text>
+<rect x="40" y="350" width="230" height="110" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="40" y="350" width="230" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="41" y="368" width="228" height="12" fill="#ecfdf5"/>
+<text x="52" y="370" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">Platform team</text>
+<text x="52" y="398" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">owns the cluster, the GPU</text>
+<text x="52" y="415" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pool, the metrics and the</text>
+<text x="52" y="432" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">capacity and cost</text>
+<rect x="330" y="30" width="1070" height="460" rx="14" fill="#eff6ff" fill-opacity=".55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="344" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#1e40af">THE SERVING PLATFORM</text>
+<rect x="360" y="70" width="230" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="360" y="70" width="230" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="361" y="88" width="228" height="12" fill="#eff6ff"/>
+<text x="372" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Traffic and targets</text>
+<text x="372" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">two products, bursty arrivals,</text>
+<text x="372" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">shared prefixes; targets for the</text>
+<text x="372" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">first token and each next token</text>
+<circle cx="586" cy="74" r="12" fill="#1e293b"/><text x="586" y="78.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">1</text>
+<rect x="630" y="70" width="230" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="630" y="70" width="230" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="631" y="88" width="228" height="12" fill="#eff6ff"/>
+<text x="642" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Router</text>
+<text x="642" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">round robin, least loaded or by</text>
+<text x="642" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">prefix; or splits a request into</text>
+<text x="642" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">prefill and decode</text>
+<circle cx="856" cy="74" r="12" fill="#1e293b"/><text x="856" y="78.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">2</text>
+<rect x="900" y="70" width="230" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="900" y="70" width="230" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="901" y="88" width="228" height="12" fill="#eff6ff"/>
+<text x="912" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Engine replicas</text>
+<text x="912" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">vLLM with a layout (TP, EP), a</text>
+<text x="912" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">batch limit, a prefix cache, an</text>
+<text x="912" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">optional host tier, a precision</text>
+<circle cx="1126" cy="74" r="12" fill="#1e293b"/><text x="1126" y="78.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">3</text>
+<rect x="1160" y="70" width="210" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1160" y="70" width="210" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="1161" y="88" width="208" height="12" fill="#eff6ff"/>
+<text x="1172" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">GPU node</text>
+<text x="1172" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">four T4s on one PCIe</text>
+<text x="1172" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">fabric; the unit that every</text>
+<text x="1172" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">layout is placed on</text>
+<circle cx="1366" cy="74" r="12" fill="#1e293b"/><text x="1366" y="78.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">4</text>
+<rect x="360" y="250" width="230" height="120" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="360" y="250" width="230" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="361" y="268" width="228" height="12" fill="#fffbeb"/>
+<text x="372" y="270" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Metrics</text>
+<text x="372" y="298" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">each server's /metrics, GPU</text>
+<text x="372" y="315" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">counters, scraped every 5 s by</text>
+<text x="372" y="332" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Prometheus</text>
+<circle cx="586" cy="254" r="12" fill="#1e293b"/><text x="586" y="258.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">5</text>
+<rect x="630" y="250" width="230" height="120" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="630" y="250" width="230" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="631" y="268" width="228" height="12" fill="#fffbeb"/>
+<text x="642" y="270" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Autoscaler</text>
+<text x="642" y="298" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">KEDA turns a metric query into</text>
+<text x="642" y="315" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a replica count for the Deployment</text>
+<circle cx="856" cy="254" r="12" fill="#1e293b"/><text x="856" y="258.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">6</text>
+<rect x="900" y="250" width="230" height="120" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="900" y="250" width="230" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="901" y="268" width="228" height="12" fill="#fffbeb"/>
+<text x="912" y="270" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Accuracy gate</text>
+<text x="912" y="298" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">400 exact-answer questions; a</text>
+<text x="912" y="315" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">quantized setting is adopted</text>
+<text x="912" y="332" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">only if it passes</text>
+<circle cx="1126" cy="254" r="12" fill="#1e293b"/><text x="1126" y="258.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">7</text>
+<rect x="1160" y="250" width="210" height="120" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1160" y="250" width="210" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="1161" y="268" width="208" height="12" fill="#fffbeb"/>
+<text x="1172" y="270" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">Tuning loop</text>
+<text x="1172" y="298" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">one change at a time, a</text>
+<text x="1172" y="315" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">control for the noise, repeats</text>
+<text x="1172" y="332" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">at the end</text>
+<circle cx="1366" cy="254" r="12" fill="#1e293b"/><text x="1366" y="258.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">8</text>
+<path d="M590 130 L630 130" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M860 130 L900 130" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1130 130 L1160 130" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<path d="M1015 190 L1015 250" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#a-blue)"/>
+<path d="M745 250 L745 190" fill="none" stroke="#2563eb" stroke-width="1.8" marker-end="url(#a-blue)"/>
+<rect x="716.2" y="211" width="57.6" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="745" y="223" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#2563eb">replicas</text>
+<text x="360" y="440" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">Goodput = tokens per second per GPU from requests that met both their first-token and their inter-token targets.</text></svg>

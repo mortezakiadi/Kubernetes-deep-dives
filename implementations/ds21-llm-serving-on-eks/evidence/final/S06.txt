@@ -1,0 +1,117 @@
+# S06: Routing: round robin, least loaded, or by prefix
+# Design reference: Routing: prefix-aware routing and the endpoint picker
+
+$ kubectl apply -f route-rr.yaml   # route-rr: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]
+route-rr: servers s-route-rr-0, s-route-rr-1, s-route-rr-2, s-route-rr-3, router policy rr
+
+$ kubectl -n serving get pods -o wide -l role=experiment
+NAME                            READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES
+r-route-rr-59bbf585fb-nwgkc     1/1     Running   0          2m25s   10.70.19.1     ip-10-70-28-87.ec2.internal   <none>           <none>
+s-route-rr-0-8c8cbbf75-nbxq6    1/1     Running   0          2m27s   10.70.32.243   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-route-rr-1-59b6f4db68-r7vbp   1/1     Running   0          2m26s   10.70.32.241   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-route-rr-2-659f99bb77-4l9dz   1/1     Running   0          2m26s   10.70.32.244   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-route-rr-3-54c8c44b74-q75dw   1/1     Running   0          2m25s   10.70.32.246   ip-10-70-35-3.ec2.internal    <none>           <none>
+
+$ kubectl apply -f lg-s06-route-rr.yaml   # route-rr: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1
+target http://r-route-rr:8000, 4 GPU(s)
+
+$ kubectl -n serving logs job/lg-s06-route-rr   # route-rr
+rate 1.2: goodput 35.1 tok/s/gpu, attainment 1.00, completed 88/88
+rate 2.4: goodput 71.2 tok/s/gpu, attainment 0.99, completed 185/185
+rate 3.6: goodput 80.7 tok/s/gpu, attainment 0.72, completed 271/271
+rate 4.8: goodput 15.0 tok/s/gpu, attainment 0.08, completed 370/370
+rate 6.0: goodput 5.5 tok/s/gpu, attainment 0.03, completed 458/458
+done
+
+$ # rr: prefix cache and balance
+prefix cache hit rate across the four servers: 25% of 1,009,808 prompt tokens; preemptions 4
+requests per replica: {"s-route-rr-0": 409, "s-route-rr-1": 409, "s-route-rr-2": 409, "s-route-rr-3": 408}
+
+$ # rr: goodput and latency by load level (per GPU)
+    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95
+          0.3          35.09            1.0          0.343           49.3          1.174           50.0
+          0.6          71.17          0.989          0.389           65.2          1.435          110.4
+          0.9          80.71          0.723          0.853          213.1          1.523          428.1
+          1.2          14.98          0.084          1.577         1151.3          2.018         1181.8
+          1.5           5.54          0.026          2.865         1352.2          3.626         1403.8
+
+$ kubectl apply -f route-least.yaml   # route-least: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]
+route-least: servers s-route-least-0, s-route-least-1, s-route-least-2, s-route-least-3, router policy least
+
+$ kubectl -n serving get pods -o wide -l role=experiment
+NAME                               READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES
+r-route-least-56779d9fd8-clt6m     1/1     Running   0          2m26s   10.70.29.114   ip-10-70-28-87.ec2.internal   <none>           <none>
+s-route-least-0-6df45c7d97-khh8j   1/1     Running   0          2m28s   10.70.32.247   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-route-least-1-7d7f54d67b-b8gbm   1/1     Running   0          2m27s   10.70.32.245   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-route-least-2-667b496c79-274dl   1/1     Running   0          2m27s   10.70.32.248   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-route-least-3-5787f7f55d-sfdsh   1/1     Running   0          2m26s   10.70.32.249   ip-10-70-35-3.ec2.internal    <none>           <none>
+
+$ kubectl apply -f lg-s06-route-least.yaml   # route-least: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1
+target http://r-route-least:8000, 4 GPU(s)
+
+$ kubectl -n serving logs job/lg-s06-route-least   # route-least
+rate 1.2: goodput 35.1 tok/s/gpu, attainment 1.00, completed 88/88
+rate 2.4: goodput 72.0 tok/s/gpu, attainment 1.00, completed 185/185
+rate 3.6: goodput 84.8 tok/s/gpu, attainment 0.77, completed 271/271
+rate 4.8: goodput 20.1 tok/s/gpu, attainment 0.12, completed 370/370
+rate 6.0: goodput 9.7 tok/s/gpu, attainment 0.05, completed 458/458
+done
+
+$ # least: prefix cache and balance
+prefix cache hit rate across the four servers: 27% of 1,009,808 prompt tokens; preemptions 0
+requests per replica: {"s-route-least-0": 415, "s-route-least-1": 402, "s-route-least-2": 409, "s-route-least-3": 409}
+
+$ # least: goodput and latency by load level (per GPU)
+    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95
+          0.3          35.09            1.0          0.477           47.0          1.218           49.5
+          0.6          71.97            1.0          0.572           56.8          1.208           93.0
+          0.9          84.78          0.775          0.936          208.6          1.499          443.4
+          1.2          20.09          0.119           1.55         1098.5          2.456         1106.9
+          1.5           9.73           0.05          1.989         1208.4          2.744         1227.4
+
+$ kubectl apply -f route-prefix.yaml   # route-prefix: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]
+route-prefix: servers s-route-prefix-0, s-route-prefix-1, s-route-prefix-2, s-route-prefix-3, router policy prefix
+
+$ kubectl -n serving get pods -o wide -l role=experiment
+NAME                                READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES
+r-route-prefix-5954747cf6-fmdt5     1/1     Running   0          2m30s   10.70.29.112   ip-10-70-28-87.ec2.internal   <none>           <none>
+s-route-prefix-0-54b868d6cf-9zcj4   1/1     Running   0          2m31s   10.70.32.243   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-route-prefix-1-57449d8fcb-d4lpc   1/1     Running   0          2m31s   10.70.32.241   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-route-prefix-2-cc7779865-lpsqd    1/1     Running   0          2m31s   10.70.32.244   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-route-prefix-3-5dfbbcc586-zwbhm   1/1     Running   0          2m30s   10.70.32.246   ip-10-70-35-3.ec2.internal    <none>           <none>
+
+$ kubectl apply -f lg-s06-route-prefix.yaml   # route-prefix: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1
+target http://r-route-prefix:8000, 4 GPU(s)
+
+$ kubectl -n serving logs job/lg-s06-route-prefix   # route-prefix
+rate 1.2: goodput 35.1 tok/s/gpu, attainment 1.00, completed 88/88
+rate 2.4: goodput 71.8 tok/s/gpu, attainment 0.99, completed 185/185
+rate 3.6: goodput 100.2 tok/s/gpu, attainment 0.90, completed 271/271
+rate 4.8: goodput 46.2 tok/s/gpu, attainment 0.33, completed 370/370
+rate 6.0: goodput 33.0 tok/s/gpu, attainment 0.18, completed 458/458
+done
+
+$ # prefix: prefix cache and balance
+prefix cache hit rate across the four servers: 53% of 1,009,808 prompt tokens; preemptions 0
+requests per replica: {"s-route-prefix-0": 578, "s-route-prefix-1": 497, "s-route-prefix-2": 257, "s-route-prefix-3": 303}
+
+$ # prefix: goodput and latency by load level (per GPU)
+    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95
+          0.3          35.09            1.0          0.386           47.9          1.167           56.3
+          0.6          71.81          0.995          0.369          108.1          1.146           62.4
+          0.9         100.24          0.904          0.483          180.8          2.188          453.4
+          1.2           46.2           0.33          0.637          226.4          1.813         1090.6
+          1.5           33.0          0.177          0.683          266.0          2.311         1162.3
+
+$ # the three policies side by side
+policy    cache hit rate   code TTFT p50 at 0.9/GPU   capacity req/s/GPU   goodput tok/s/GPU
+rr                25%               1.19 s             0.64             71.2
+least             27%               1.19 s             0.67             72.0
+prefix            53%               0.32 s             0.75             71.8
+
+[PASS] policy rr: four replicas and the router start
+[PASS] policy least: four replicas and the router start
+[PASS] policy prefix: four replicas and the router start
+[PASS] the prefix-aware policy gets a higher prefix-cache hit rate from the same servers than round robin does
+[PASS] the prefix policy sends requests to servers that already had the prefix (the router counts the matches it made)
+[PASS] the prefix policy does not pile everything on one replica: the busiest replica takes less than 1.6 times the average

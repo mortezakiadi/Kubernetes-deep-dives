@@ -1,0 +1,114 @@
+# S03: Mixture of experts on four GPUs: tensor parallelism or expert parallelism
+# Design reference: Parallelism for MoE: expert parallelism, all-to-all and load balancing
+
+$ # download Qwen/Qwen3-30B-A3B-GPTQ-Int4 to the node's disk (once)
+/hf/hub/models--Qwen--Qwen3-30B-A3B-GPTQ-Int4/snapshots/9b534e4318b7ebc3c961a839f13eb18b1833f441
+(3 s)
+
+$ kubectl apply -f moe-tp4.yaml   # moe-tp4: 1 x Qwen3-30B-A3B-GPTQ-Int4 on 4 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --tensor-parallel-size 4]
+moe-tp4: servers s-moe-tp4-0
+
+$ kubectl -n serving get pods -o wide -l role=experiment
+NAME                           READY   STATUS    RESTARTS   AGE     IP             NODE                         NOMINATED NODE   READINESS GATES
+s-moe-tp4-0-7b9694b4cf-f9t74   1/1     Running   0          3m39s   10.70.32.243   ip-10-70-35-3.ec2.internal   <none>           <none>
+
+$ nvidia-smi --query-gpu=index,memory.used --format=csv,noheader   # moe-tp4
+0, 13797 MiB
+1, 13797 MiB
+2, 13797 MiB
+3, 13797 MiB
+
+$ kubectl -n serving logs job/lg-s03-quality-tp4   # the accuracy questions, moe-tp4
+accuracy {"add": 1.0, "mul": 1.0, "word": 1.0, "chain": 0.84} all 0.96
+
+$ kubectl apply -f lg-s03-moe-tp4.yaml   # moe-tp4: levels [0.08, 0.2, 0.4, 0.8, 1.2] req/s, 90 s each, first 15 s not scored, seed 1
+target http://s-moe-tp4-0:8000, 4 GPU(s)
+
+$ kubectl -n serving logs job/lg-s03-moe-tp4   # moe-tp4
+rate 0.08: goodput 1.5 tok/s/gpu, attainment 1.00, completed 5/5
+rate 0.2: goodput 3.8 tok/s/gpu, attainment 1.00, completed 9/9
+rate 0.4: goodput 10.8 tok/s/gpu, attainment 0.83, completed 35/35
+rate 0.8: goodput 8.7 tok/s/gpu, attainment 0.38, completed 55/55
+rate 1.2: goodput 4.9 tok/s/gpu, attainment 0.10, completed 88/88
+done
+
+$ # moe-tp4: goodput and latency by load level (per GPU)
+    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95
+         0.02           1.46            1.0          0.562           22.8          2.828           23.7
+         0.05            3.8            1.0          0.685           32.8          1.889           34.7
+          0.1          10.76          0.829          3.052          255.1          3.376          381.2
+          0.2           8.67          0.382          2.592          560.7          2.543          665.6
+          0.3           4.85          0.102          3.562          771.3          3.822          839.1
+
+$ kubectl apply -f moe-ep4.yaml   # moe-ep4: 1 x Qwen3-30B-A3B-GPTQ-Int4 on 4 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --data-parallel-size 4 --enable-expert-parallel]
+moe-ep4: servers s-moe-ep4-0
+
+$ kubectl -n serving get pods -o wide -l role=experiment
+NAME                           READY   STATUS    RESTARTS   AGE     IP             NODE                         NOMINATED NODE   READINESS GATES
+s-moe-ep4-0-54749cdf54-fjljb   1/1     Running   0          3m51s   10.70.37.209   ip-10-70-35-3.ec2.internal   <none>           <none>
+
+$ kubectl -n serving logs deploy/s-moe-ep4-0 | grep -E 'Expert parallelism|all2all|Experts|KV cache size'
+INFO 11-27 22:11:39 [cuda_communicator.py:280] Using AgRsAll2AllManager all2all manager.
+INFO 11-27 22:11:41 [expert_map_manager.py:250] [EP Rank 0/4] Expert parallelism is enabled. Expert placement strategy: linear. Local/global number of experts: 32/128. Experts local to global index map: 0->0, 1->1, 2->2,
+INFO 11-27 22:11:54 [int_wna16.py:472] Using MarlinExperts
+INFO 11-27 22:13:07 [kv_cache_utils.py:1147] GPU KV cache size: 62,480 tokens, Maximum concurrency for 4,096 tokens per request: 15.25x
+INFO 11-27 22:13:07 [kv_cache_utils.py:1147] GPU KV cache size: 62,480 tokens, Maximum concurrency for 4,096 tokens per request: 15.25x
+INFO 11-27 22:13:07 [kv_cache_utils.py:1147] GPU KV cache size: 62,480 tokens, Maximum concurrency for 4,096 tokens per request: 15.25x
+INFO 11-27 22:13:07 [kv_cache_utils.py:1147] GPU KV cache size: 62,480 tokens, Maximum concurrency for 4,096 tokens per request: 15.25x
+
+$ nvidia-smi --query-gpu=index,memory.used --format=csv,noheader   # moe-ep4
+0, 14045 MiB
+1, 14045 MiB
+2, 14045 MiB
+3, 14045 MiB
+
+$ kubectl apply -f lg-s03-moe-ep4.yaml   # moe-ep4: levels [0.08, 0.2, 0.4, 0.8, 1.2] req/s, 90 s each, first 15 s not scored, seed 1
+target http://s-moe-ep4-0:8000, 4 GPU(s)
+
+$ kubectl -n serving logs job/lg-s03-moe-ep4   # moe-ep4
+rate 0.08: goodput 1.5 tok/s/gpu, attainment 1.00, completed 5/5
+rate 0.2: goodput 3.8 tok/s/gpu, attainment 1.00, completed 9/9
+rate 0.4: goodput 12.5 tok/s/gpu, attainment 0.97, completed 35/35
+rate 0.8: goodput 19.7 tok/s/gpu, attainment 0.96, completed 55/55
+rate 1.2: goodput 28.4 tok/s/gpu, attainment 0.77, completed 88/88
+done
+
+$ # moe-ep4: goodput and latency by load level (per GPU)
+    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95
+         0.02           1.46            1.0          1.062           13.9          1.251           15.5
+         0.05            3.8            1.0          0.406           15.8          1.353           16.2
+          0.1          12.53          0.971          1.689           21.9          2.204           77.9
+          0.2          19.69          0.964          1.753           22.4          1.764          151.5
+          0.3          28.45          0.773          2.465          217.0          2.218         1197.9
+
+$ kubectl -n serving logs job/lg-s03-quality-ep4   # the accuracy questions, moe-ep4
+accuracy {"add": 1.0, "mul": 1.0, "word": 1.0, "chain": 0.84} all 0.96
+
+$ # weights and KV cache of the two layouts
+TP4: weights 4.02 GiB per GPU, KV 7.01 GiB per GPU, 306,128 tokens in total (one shared cache)
+EP4: weights 5.15 GiB per GPU, KV 5.72 GiB per GPU, engine-reported 62,480 tokens per engine, 4 engines
+
+$ # capacity and goodput per GPU
+layout     capacity req/s/GPU   goodput tok/s/GPU
+moe-tp4              0.07              3.8
+moe-ep4              0.21             19.7
+
+$ # the lightest and the heaviest level, side by side
+moe-tp4   0.02 req/s/GPU: chat TTFT p50 0.54 s, chat ITL p95 23 ms, attainment 1.00   |     0.3 req/s/GPU: chat ITL p95 771 ms, attainment 0.10
+moe-ep4   0.02 req/s/GPU: chat TTFT p50 0.31 s, chat ITL p95 14 ms, attainment 1.00   |     0.3 req/s/GPU: chat ITL p95 217 ms, attainment 0.77
+
+$ # the accuracy questions (25 per kind) answered by each layout
+TP4: 0.96
+EP4: 0.96
+
+$ kubectl -n serving logs deploy/s-moe-eplb-0 | grep NotImplementedError   # the same four-engine layout, with --enable-eplb
+NotImplementedError: EPLB is not supported AutoGPTQMoEMethod.
+
+[PASS] moe-tp4: the server starts
+[PASS] moe-ep4: the server starts
+[PASS] under expert parallelism each of the four ranks holds a quarter of the 128 experts
+[PASS] the all-to-all runs through all-gather and reduce-scatter (the PCIe-friendly path); the NVLink and InfiniBand kernels are not selected
+[PASS] expert parallelism keeps more weights on each GPU than tensor parallelism does (attention is replicated)
+[PASS] both sweeps ran: at the lightest level at least 90% of the offered requests completed on both layouts
+[PASS] the two layouts compute the same model: at least 90% of their answers to 100 questions are identical
+[PASS] asking for expert load balancing on this checkpoint is refused by the engine with a clear message instead of being ignored

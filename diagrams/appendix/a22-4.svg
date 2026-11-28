@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="560px" viewBox="0 0 1420 560" style="background:#ffffff"><title>Layouts: four copies, wider groups, expert parallel, and split phases</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="560" fill="#ffffff"/><text x="30" y="68" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">4 x TP1 (four copies)</text>
+<rect x="240" y="50" width="110" height="46" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="295" y="78" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1e40af">GPU0 full</text>
+<rect x="365" y="50" width="110" height="46" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="420" y="78" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1e40af">GPU1 full</text>
+<rect x="490" y="50" width="110" height="46" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="545" y="78" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1e40af">GPU2 full</text>
+<rect x="615" y="50" width="110" height="46" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="670" y="78" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1e40af">GPU3 full</text>
+<text x="30" y="138" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">2 x TP2</text>
+<rect x="240" y="120" width="110" height="46" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="295" y="148" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#065f46">GPU0 half</text>
+<rect x="365" y="120" width="110" height="46" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="420" y="148" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#065f46">GPU1 half</text>
+<rect x="490" y="120" width="110" height="46" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="545" y="148" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#065f46">GPU2 half</text>
+<rect x="615" y="120" width="110" height="46" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="670" y="148" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#065f46">GPU3 half</text>
+<text x="30" y="208" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">1 x TP4</text>
+<rect x="240" y="190" width="110" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="295" y="218" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">GPU0 quarter</text>
+<rect x="365" y="190" width="110" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="420" y="218" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">GPU1 quarter</text>
+<rect x="490" y="190" width="110" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="545" y="218" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">GPU2 quarter</text>
+<rect x="615" y="190" width="110" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="670" y="218" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">GPU3 quarter</text>
+<text x="30" y="308" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">MoE: TP4</text>
+<rect x="240" y="290" width="110" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="295" y="318" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">1/4 of every layer</text>
+<rect x="365" y="290" width="110" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="420" y="318" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">1/4 of every layer</text>
+<rect x="490" y="290" width="110" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="545" y="318" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">1/4 of every layer</text>
+<rect x="615" y="290" width="110" height="46" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<text x="670" y="318" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#92400e">1/4 of every layer</text>
+<text x="30" y="378" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">MoE: 4 x DP + EP</text>
+<rect x="240" y="360" width="110" height="46" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="295" y="388" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#065f46">attn + 32 experts</text>
+<rect x="365" y="360" width="110" height="46" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="420" y="388" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#065f46">attn + 32 experts</text>
+<rect x="490" y="360" width="110" height="46" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="545" y="388" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#065f46">attn + 32 experts</text>
+<rect x="615" y="360" width="110" height="46" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="670" y="388" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#065f46">attn + 32 experts</text>
+<text x="30" y="468" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155">P/D: 2P + 2D</text>
+<rect x="240" y="450" width="110" height="46" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="295" y="478" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#991b1b">prefill</text>
+<rect x="365" y="450" width="110" height="46" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="420" y="478" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#991b1b">prefill</text>
+<rect x="490" y="450" width="110" height="46" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="545" y="478" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1e40af">decode</text>
+<rect x="615" y="450" width="110" height="46" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="670" y="478" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1e40af">decode</text>
+<text x="760" y="80" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Four copies of the weights; no communication;</text>
+<text x="760" y="98" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">the cache is what is left in each GPU.</text>
+<text x="760" y="150" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Weights shared by two GPUs; one all-reduce per</text>
+<text x="760" y="168" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">layer over PCIe; more room for the cache.</text>
+<text x="760" y="220" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Weights shared by four; the most cache; four-way</text>
+<text x="760" y="238" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">all-reduce over PCIe for every layer.</text>
+<text x="760" y="320" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Experts and attention are both split; all-reduce.</text>
+<text x="760" y="390" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">Attention is replicated; experts are split;</text>
+<text x="760" y="408" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">tokens travel between ranks for the experts (all-to-all).</text>
+<text x="760" y="480" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">The prompt is computed on a prefill GPU and the</text>
+<text x="760" y="498" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#334155">KV cache is copied to a decode GPU (NIXL, over PCIe).</text></svg>

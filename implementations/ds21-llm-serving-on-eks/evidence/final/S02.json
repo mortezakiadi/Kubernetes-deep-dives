@@ -1,0 +1,153 @@
+{
+ "id": "S02",
+ "title": "Dense model on four GPUs: four copies, two pairs, or one wide server",
+ "design_ref": "Parallelism: tensor parallelism trades per-GPU efficiency for memory; replicas trade memory for independence",
+ "purpose": "Serve one 4B model on the same four GPUs three ways (4 x TP1, 2 x TP2, 1 x TP4), predict the KV cache each leaves, and compare goodput per GPU on identical traffic.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl apply -f tp1x4.yaml   # tp1x4: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]",
+   "output": "tp1x4: servers s-tp1x4-0, s-tp1x4-1, s-tp1x4-2, s-tp1x4-3, router policy least",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                         READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES\nr-tp1x4-759fff5bd6-wcqtw     1/1     Running   0          2m28s   10.70.29.112   ip-10-70-28-87.ec2.internal   <none>           <none>\ns-tp1x4-0-7d58fbd689-92h2s   1/1     Running   0          2m30s   10.70.37.214   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-tp1x4-1-55985bb8cb-gxtvw   1/1     Running   0          2m30s   10.70.37.211   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-tp1x4-2-98fff4cd7-hd2t9    1/1     Running   0          2m29s   10.70.40.49    ip-10-70-35-3.ec2.internal    <none>           <none>\ns-tp1x4-3-6bdd994786-wv9b6   1/1     Running   0          2m29s   10.70.37.212   ip-10-70-35-3.ec2.internal    <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s02-tp1x4.yaml   # tp1x4: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://r-tp1x4:8000, 4 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s02-tp1x4   # tp1x4",
+   "output": "rate 1.2: goodput 35.1 tok/s/gpu, attainment 1.00, completed 88/88\nrate 2.4: goodput 71.8 tok/s/gpu, attainment 0.99, completed 185/185\nrate 3.6: goodput 89.7 tok/s/gpu, attainment 0.80, completed 271/271\nrate 4.8: goodput 16.2 tok/s/gpu, attainment 0.10, completed 370/370\nrate 6.0: goodput 6.2 tok/s/gpu, attainment 0.03, completed 458/458\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# tp1x4: goodput and latency by load level (per GPU)",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          35.09            1.0          0.425           47.0          1.179           48.7\n          0.6          71.76          0.995           0.43           58.3          1.343          104.4\n          0.9          89.71          0.804          1.063          216.0           2.13          215.7\n          1.2          16.17          0.097          1.618         1098.6          2.492         1114.1\n          1.5            6.2          0.033          2.015         1263.1          2.837         1457.7",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f tp2x2.yaml   # tp2x2: 2 x Qwen3-4B on 2 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --tensor-parallel-size 2]",
+   "output": "tp2x2: servers s-tp2x2-0, s-tp2x2-1, router policy least",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                         READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES\nr-tp2x2-cd86d74b-cf4nf       1/1     Running   0          2m41s   10.70.29.114   ip-10-70-28-87.ec2.internal   <none>           <none>\ns-tp2x2-0-6c9dd466b5-4ndht   1/1     Running   0          2m42s   10.70.37.213   ip-10-70-35-3.ec2.internal    <none>           <none>\ns-tp2x2-1-cf96c4d6-j2q9w     1/1     Running   0          2m41s   10.70.37.215   ip-10-70-35-3.ec2.internal    <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s02-tp2x2.yaml   # tp2x2: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://r-tp2x2:8000, 4 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s02-tp2x2   # tp2x2",
+   "output": "rate 1.2: goodput 35.1 tok/s/gpu, attainment 1.00, completed 88/88\nrate 2.4: goodput 72.0 tok/s/gpu, attainment 1.00, completed 185/185\nrate 3.6: goodput 108.9 tok/s/gpu, attainment 1.00, completed 271/271\nrate 4.8: goodput 83.8 tok/s/gpu, attainment 0.62, completed 370/370\nrate 6.0: goodput 35.1 tok/s/gpu, attainment 0.22, completed 458/458\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# tp2x2: goodput and latency by load level (per GPU)",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          35.09            1.0          0.399           31.6          0.764           31.8\n          0.6          71.97            1.0          0.693           85.7           0.88          111.5\n          0.9         108.85          0.996          0.414          137.5          1.147          141.7\n          1.2          83.82          0.622          0.771          221.7          0.886          269.2\n          1.5          35.06          0.223          0.951          454.3          1.031          685.0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f tp4x1.yaml   # tp4x1: 1 x Qwen3-4B on 4 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --tensor-parallel-size 4]",
+   "output": "tp4x1: servers s-tp4x1-0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                         READY   STATUS    RESTARTS   AGE     IP             NODE                         NOMINATED NODE   READINESS GATES\ns-tp4x1-0-68bdc7fccc-rjzsz   1/1     Running   0          2m31s   10.70.37.214   ip-10-70-35-3.ec2.internal   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s02-tp4x1.yaml   # tp4x1: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-tp4x1-0:8000, 4 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s02-tp4x1   # tp4x1",
+   "output": "rate 1.2: goodput 35.1 tok/s/gpu, attainment 1.00, completed 88/88\nrate 2.4: goodput 72.0 tok/s/gpu, attainment 1.00, completed 185/185\nrate 3.6: goodput 109.1 tok/s/gpu, attainment 1.00, completed 271/271\nrate 4.8: goodput 139.5 tok/s/gpu, attainment 0.97, completed 370/370\nrate 6.0: goodput 43.1 tok/s/gpu, attainment 0.28, completed 458/458\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# tp4x1: goodput and latency by load level (per GPU)",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          35.09            1.0          0.433           47.4          0.472           73.1\n          0.6          71.97            1.0          0.237           77.5          0.471           80.4\n          0.9         109.05            1.0          0.338          109.7          0.722          116.1\n          1.2         139.49          0.973          0.369          143.4          0.372          160.2\n          1.5          43.14          0.279          0.554          232.3          0.507          232.3",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# KV cache each layout leaves, against the prediction 'sharding weights over n GPUs frees (1 - 1/n) of them on each GPU'",
+   "output": "layout    weights/GPU   KV memory/GPU (measured)   (predicted)   KV tokens in total\ntp1x4         7.56 GiB         4.36 GiB            4.36 GiB       127,104\ntp2x2         3.82 GiB         8.05 GiB            8.14 GiB       234,528\ntp4x1         1.89 GiB         9.80 GiB           10.03 GiB       285,536",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# the lightest level (0.3 req/s per GPU): what one request feels",
+   "output": "layout    chat TTFT p50   chat ITL p95   code TTFT p50\ntp1x4          0.176 s          47 ms        1.114 s\ntp2x2          0.125 s          32 ms        0.666 s\ntp4x1          0.113 s          47 ms        0.433 s",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# capacity (highest load per GPU with 95% of requests inside their targets) and goodput at it",
+   "output": "layout    capacity req/s/GPU   goodput tok/s/GPU\ntp1x4               0.67             71.8\ntp2x2               0.94            108.8\ntp4x1               1.21            139.5",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "tp1x4: every server starts and answers its health check",
+   "passed": true,
+   "because": "Started in 139.8 s."
+  },
+  {
+   "description": "tp2x2: every server starts and answers its health check",
+   "passed": true,
+   "because": "Started in 153.7 s."
+  },
+  {
+   "description": "tp4x1: every server starts and answers its health check",
+   "passed": true,
+   "because": "Started in 148.7 s."
+  },
+  {
+   "description": "the KV memory per GPU follows the sharding arithmetic within 8% for every layout",
+   "passed": true,
+   "because": "Weights are split over the group, so each GPU keeps (1 - 1/n) of the weight size for cache. Largest difference 2.3% (the engine also reserves a little more for activations and communication buffers as groups widen)."
+  },
+  {
+   "description": "a wider tensor-parallel group holds more tokens in total: 1 x TP4 > 2 x TP2 > 4 x TP1",
+   "passed": true,
+   "because": "Total KV tokens 127,104 (4 x TP1), 234,528 (2 x TP2), 285,536 (1 x TP4). Four copies of the weights waste 3 x 7.6 GiB that one sharded copy gives back to the cache."
+  },
+  {
+   "description": "every layout has a measured capacity: some load level kept 95% of requests inside their targets",
+   "passed": true,
+   "because": "A layout whose lightest level already fails would be reporting the targets, not the layout."
+  }
+ ],
+ "notes": [
+  "PREDICTED goodput per GPU, best to worst: tp1x4 > tp2x2 > tp4x1 (a 4B model fits on one T4; extra communication over PCIe buys nothing the model needs). MEASURED: tp4x1 > tp2x2 > tp1x4. The prediction did not hold; see the numbers above for which effect won (memory freed for cache, or decode reading half the weights per GPU).",
+  "Lightest-load latency: chat ITL p95 47 ms (TP1), 32 ms (TP2), 47 ms (TP4). Decode is limited by reading the weights from memory each step; a wider group reads less per GPU and adds an all-reduce over PCIe per layer."
+ ]
+}

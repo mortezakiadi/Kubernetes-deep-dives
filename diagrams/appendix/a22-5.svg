@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="420px" viewBox="0 0 1420 420" style="background:#ffffff"><title>The tuning loop: measure, change one thing, compare to a control, gate, adopt</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs><rect width="1420" height="420" fill="#ffffff"/><rect x="30" y="120" width="180" height="120" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="30" y="120" width="180" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="31" y="138" width="178" height="12" fill="#f8fafc"/>
+<text x="42" y="140" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">1 Workload and targets</text>
+<text x="42" y="168" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">measure lengths, shared prefix,</text>
+<text x="42" y="185" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">arrivals; fix the targets</text>
+<rect x="225" y="120" width="180" height="120" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="225" y="120" width="180" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="226" y="138" width="178" height="12" fill="#f8fafc"/>
+<text x="237" y="140" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">2 Baseline</text>
+<text x="237" y="168" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">defaults on one GPU and on</text>
+<text x="237" y="185" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the whole node; goodput curve</text>
+<path d="M210 180 L225 180" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="420" y="120" width="180" height="120" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="420" y="120" width="180" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="421" y="138" width="178" height="12" fill="#eff6ff"/>
+<text x="432" y="140" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">3 Change one thing</text>
+<text x="432" y="168" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">layout, chunk size, batch limit,</text>
+<text x="432" y="185" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">routing, host tier, precision</text>
+<path d="M405 180 L420 180" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="615" y="120" width="180" height="120" rx="10" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<rect x="615" y="120" width="180" height="30" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+<rect x="616" y="138" width="178" height="12" fill="#fffbeb"/>
+<text x="627" y="140" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#92400e">4 Control</text>
+<text x="627" y="168" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the same setting twice to</text>
+<text x="627" y="185" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">measure the noise</text>
+<path d="M600 180 L615 180" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="810" y="120" width="180" height="120" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="810" y="120" width="180" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="811" y="138" width="178" height="12" fill="#fef2f2"/>
+<text x="822" y="140" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">5 Gate</text>
+<text x="822" y="168" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">quantized setting? accuracy</text>
+<text x="822" y="185" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">questions first, speed after</text>
+<path d="M795 180 L810 180" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1005" y="120" width="180" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="1005" y="120" width="180" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="1006" y="138" width="178" height="12" fill="#ecfdf5"/>
+<text x="1017" y="140" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">6 Adopt or drop</text>
+<text x="1017" y="168" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">only what beat the noise</text>
+<text x="1017" y="185" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">enters the tuned stack</text>
+<path d="M990 180 L1005 180" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1200" y="120" width="180" height="120" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="1200" y="120" width="180" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="1201" y="138" width="178" height="12" fill="#ecfdf5"/>
+<text x="1212" y="140" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">7 Repeat the stack</text>
+<text x="1212" y="168" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">tuned against default, three</text>
+<text x="1212" y="185" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">seeds each; compare to the range</text>
+<path d="M1185 180 L1200 180" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<text x="30" y="300" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#334155">A setting that does not beat the control by more than the noise stays at its default, whatever the folklore says about it.</text>
+<text x="30" y="330" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#64748b">Goodput is measured per GPU against the targets; throughput that arrives too late is not counted.</text></svg>

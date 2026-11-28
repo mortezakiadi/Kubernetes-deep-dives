@@ -1,0 +1,160 @@
+{
+ "id": "S01",
+ "title": "The platform, the workload and one GPU: what every later number stands on",
+ "design_ref": "Capacity planning: KV cache is the budget; goodput, not throughput, is the metric",
+ "purpose": "Show the GPU node and how its four GPUs are connected, predict the KV cache from the model's shape and compare it with what the engine reports, describe the traffic, and measure one GPU's goodput curve with default settings.",
+ "passed": true,
+ "steps": [
+  {
+   "display": "kubectl get nodes -L pool,instance-type,zone",
+   "output": "NAME                           STATUS   ROLES    AGE   VERSION               POOL      INSTANCE-TYPE   ZONE\nip-10-70-13-105.ec2.internal   Ready    <none>   18h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1a\nip-10-70-28-87.ec2.internal    Ready    <none>   18h   v1.37.1-eks-9adbfea   loadgen   c6i.4xlarge     us-east-1b\nip-10-70-33-144.ec2.internal   Ready    <none>   18h   v1.37.1-eks-9adbfea   system    m5.xlarge       us-east-1c\nip-10-70-35-3.ec2.internal     Ready    <none>   15h   v1.37.1-eks-9adbfea   serving   g4dn.12xlarge   us-east-1c",
+   "exit_code": 0,
+   "seconds": 1.58
+  },
+  {
+   "display": "kubectl get nodes -l pool=serving -o custom-columns=NAME,TYPE,GPU   # what the scheduler can hand out",
+   "output": "NAME                         TYPE            GPU\nip-10-70-35-3.ec2.internal   g4dn.12xlarge   4",
+   "exit_code": 0,
+   "seconds": 1.57
+  },
+  {
+   "display": "nvidia-smi --query-gpu=index,name,memory.total,pcie.link.gen.max,pcie.link.width.max --format=csv",
+   "output": "index, name, memory.total [MiB], pcie.link.gen.max, pcie.link.width.max\n0, Tesla T4, 15360 MiB, 3, 16\n1, Tesla T4, 15360 MiB, 3, 16\n2, Tesla T4, 15360 MiB, 3, 16\n3, Tesla T4, 15360 MiB, 3, 16",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "nvidia-smi topo -m   # how the four GPUs reach each other",
+   "output": "\u001b[4mGPU0\tGPU1\tGPU2\tGPU3\tCPU Affinity\tNUMA Affinity\tGPU NUMA ID\u001b[0m\nGPU0\t X \tPHB\tPHB\tPHB\t0-47\t0\t\tN/A\nGPU1\tPHB\t X \tPHB\tPHB\t0-47\t0\t\tN/A\nGPU2\tPHB\tPHB\t X \tPHB\t0-47\t0\t\tN/A\nGPU3\tPHB\tPHB\tPHB\t X \t0-47\t0\t\tN/A",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python3 probe_defaults.py   # EngineArgs(...).create_engine_config(), the defaults this vLLM picks for this GPU",
+   "output": "max_num_batched_tokens 2048 max_num_seqs 256 chunked True async True\nprefix_caching True",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python3 -c 'print the attention shape of Qwen/Qwen3-4B from its config.json'",
+   "output": "{\"num_hidden_layers\": 36, \"num_key_value_heads\": 8, \"head_dim\": 128, \"hidden_size\": 2560, \"num_attention_heads\": 32, \"vocab_size\": 151936}\nbytes of KV cache per token = 2 (K and V) x 36 layers x 8 KV heads x 128 head size x 2 bytes (fp16) = 147,456",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# download Qwen/Qwen3-4B to the node's disk (once)",
+   "output": "/hf/hub/models--Qwen--Qwen3-4B/snapshots/1cfa9a7208912126459214e8b04321603b3df60c\n(2 s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f one.yaml   # one: 1 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]",
+   "output": "one: servers s-one-0",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving get pods -o wide -l role=experiment",
+   "output": "NAME                      READY   STATUS    RESTARTS   AGE     IP            NODE                         NOMINATED NODE   READINESS GATES\ns-one-0-8b74d9b89-mwk9b   1/1     Running   0          2m10s   10.70.40.48   ip-10-70-35-3.ec2.internal   <none>           <none>",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs deploy/s-one-0 | grep -E 'Model loading|Available KV|GPU KV cache size|attention backend'",
+   "output": "weights 7.56 GiB; memory left for KV cache 4.36 GiB; engine-reported capacity 31,776 tokens; attention backend TRITON_ATTN\npredicted from the formula: 4.36 GiB / 147,456 bytes = 31,749 tokens   (difference 0.09%)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "python3 probe_workload.py   # 600 requests of the trace (seed 1, 2 req/s), tokenised with the model's own tokenizer",
+   "output": "requests: 602\nchat: {\"n\": 424, \"prompt_tokens_p50\": 298, \"prompt_tokens_p95\": 557, \"output_tokens_p50\": 123, \"output_tokens_p95\": 240, \"shared_prefix_tokens\": 100, \"shared_share\": 0.348, \"groups\": 1}\ncode: {\"n\": 178, \"prompt_tokens_p50\": 1298, \"prompt_tokens_p95\": 1374, \"output_tokens_p50\": 80, \"output_tokens_p95\": 136, \"shared_prefix_tokens\": 1200, \"shared_share\": 0.923, \"groups\": 45}\narrivals: {\"mean_gap_s\": 0.497, \"p99_gap_s\": 2.05, \"min_gap_s\": 0.0002}",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl apply -f lg-s01-one.yaml   # one: levels [0.3, 0.6, 0.9, 1.2, 1.5] req/s, 90 s each, first 15 s not scored, seed 1",
+   "output": "target http://s-one-0:8000, 1 GPU(s)",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "kubectl -n serving logs job/lg-s01-one   # one",
+   "output": "rate 0.3: goodput 41.8 tok/s/gpu, attainment 0.96, completed 27/28\nrate 0.6: goodput 62.8 tok/s/gpu, attainment 0.87, completed 47/47\nrate 0.9: goodput 61.0 tok/s/gpu, attainment 0.46, completed 82/82\nrate 1.2: goodput 46.1 tok/s/gpu, attainment 0.33, completed 88/88\nrate 1.5: goodput 4.8 tok/s/gpu, attainment 0.05, completed 106/106\ndone",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# one T4, default engine settings: goodput and latency by load level",
+   "output": "    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95\n          0.3          41.77          0.964          0.269           53.4          1.226          144.6\n          0.6          62.76          0.872           1.51          210.1          1.699          210.9\n          0.9          61.04          0.463          2.361         1184.3          3.814         1379.6\n          1.2          46.13           0.33          2.559          375.9          2.466         1145.9\n          1.5           4.76          0.047          2.404         1271.0          3.402         1451.5",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# what the cluster's Prometheus saw during each level: busiest GPU's utilisation, queue length, requests in the batch, KV cache usage",
+   "output": "req/s   gpu util   waiting   running   KV usage\n  0.3        79%       0.0       2.3        3%\n  0.6        76%       0.0       4.5        9%\n  0.9       100%       0.0      12.8       24%\n  1.2       100%       0.0      14.1       25%\n  1.5        89%       0.0      30.0       52%",
+   "exit_code": 0,
+   "seconds": 0
+  },
+  {
+   "display": "# counters from the server's own /metrics over the whole sweep",
+   "output": "prefix cache: 60,000 of 240,744 prompt tokens found in the cache (25%)\npreemptions: 0\ntime in prefill 266 s, time in decode 5,766 s (summed over requests)",
+   "exit_code": 0,
+   "seconds": 0
+  }
+ ],
+ "checks": [
+  {
+   "description": "the serving pool is one node of four GPUs, advertised to the scheduler by the NVIDIA device plugin",
+   "passed": true,
+   "because": "Every experiment is one or more pods holding whole GPUs, so the number of GPUs on the node is the number of servers (or the width of one server) that can run at a time."
+  },
+  {
+   "description": "the four GPUs are joined by PCIe only (no NVLink in the topology matrix)",
+   "passed": true,
+   "because": "The matrix lists the link between every pair; the values seen are ['PHB', 'X']. PCIe/host-bridge paths run at tens of GB/s, an order of magnitude below NVLink, so every GPU-to-GPU transfer in the later scenarios (tensor-parallel all-reduce, expert all-to-all, KV transfer) is paid for at that speed."
+  },
+  {
+   "description": "the server loads the model and answers its health check",
+   "passed": true,
+   "because": "Start-up (pull the image from the node's cache, load 8 GB of weights, compile, capture CUDA graphs) took 127.2 s; that figure matters later, when a replica has to be added under load."
+  },
+  {
+   "description": "the KV capacity computed from the model's shape matches the engine's own figure within 2%",
+   "passed": true,
+   "because": "The engine pre-allocates fixed-size blocks of KV cache from whatever memory is left after weights and activations; tokens = bytes / (2 x layers x KV heads x head size x 2). It follows from the shape alone, which is why capacity can be planned before anything is deployed. Measured difference 0.09%."
+  },
+  {
+   "description": "the engine reports its attention backend as Triton (FlashAttention needs a newer GPU than a T4)",
+   "passed": true,
+   "because": "The log line 'Cannot use FA version 2 ... compute capability >= 8' appears just before the backend is chosen. Every number in this appendix is therefore for the Triton kernels; a newer GPU would be faster and would move every threshold, but not the shapes of the curves."
+  },
+  {
+   "description": "the two products differ the way the design says: chat is mostly its own text, code is mostly a shared repository prefix",
+   "passed": true,
+   "because": "Share of a prompt's tokens that comes from the group's shared prefix: code 0.92, chat 0.35. A prefix cache can only help the first; routing by prefix (S06) and offloading (S07) are aimed at it."
+  },
+  {
+   "description": "at the lightest load nearly every request meets both targets, so the targets are reachable on this hardware",
+   "passed": true,
+   "because": "At 0.3 req/s the share of requests meeting both targets is 0.96. Targets that the idle server cannot meet would make every later comparison a comparison of zeros."
+  },
+  {
+   "description": "a knee exists: past some load the share meeting the targets collapses and goodput falls below its peak",
+   "passed": true,
+   "because": "Goodput peaks at 62.8 tok/s but at 1.5 req/s it is 4.8 with 0.05 of requests inside their targets, while raw throughput is 170.3. The server is still busy and producing tokens; most of them are late. That gap is why the metric is goodput."
+  },
+  {
+   "description": "the number of requests in the system (waiting plus running) rises at every step of load and is at least 5 times higher when overloaded than at the lightest level",
+   "passed": true,
+   "because": "Requests in the system per level: 2.3, 4.5, 12.8, 14.1, 30.0. This is the signal S10 scales on. The waiting queue alone stayed at 0.0: the engine admits up to 256 sequences into the batch, so a T4 that is too slow shows it as slow steps (inter-token latency), not as a queue."
+  },
+  {
+   "description": "the prefix cache serves part of the prompt tokens (the code product's shared repository text)",
+   "passed": true,
+   "because": "25% of prompt tokens were found in cache. With 48 repositories of 1,200 tokens (about 57,000 tokens) and room for about 20,000 beside the running requests, only the recently used repositories stay cached; S06 and S07 change that."
+  }
+ ],
+ "notes": [
+  "GPU utilisation as the scaling signal: 79% at the lightest level (attainment 0.96), 79% at the last healthy level and 89% when overloaded (attainment 0.05). The counter says 'busy', not 'late', and it is already near its ceiling at a fraction of the capacity; S10 shows what that does to an autoscaler."
+ ]
+}

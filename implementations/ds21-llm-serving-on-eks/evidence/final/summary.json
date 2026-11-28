@@ -1,0 +1,9 @@
+[
+ {
+  "id": "S10",
+  "title": "Autoscaling on queue depth and on GPU utilisation",
+  "passed": true,
+  "checks": 6,
+  "failed": []
+ }
+]

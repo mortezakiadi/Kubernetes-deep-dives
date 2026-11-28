@@ -1,0 +1,118 @@
+# S05: Prefill/decode disaggregation: separate servers for the two phases, with the KV cache moved between them
+# Design reference: Prefill/decode disaggregation: when it pays and what it costs
+
+$ kubectl apply -f unified.yaml   # unified: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90]
+unified: servers s-unified-0, s-unified-1, s-unified-2, s-unified-3, router policy least
+
+$ kubectl -n serving get pods -o wide -l role=experiment
+NAME                           READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES
+r-unified-68b8f8b449-txstl     1/1     Running   0          2m24s   10.70.29.112   ip-10-70-28-87.ec2.internal   <none>           <none>
+s-unified-0-84fcd87fbf-8l9p2   1/1     Running   0          2m26s   10.70.37.209   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-unified-1-697d8d75b8-f8wxn   1/1     Running   0          2m26s   10.70.37.210   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-unified-2-68d6c8d6dc-wh8mc   1/1     Running   0          2m25s   10.70.32.245   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-unified-3-8647478f58-8rbzj   1/1     Running   0          2m25s   10.70.37.211   ip-10-70-35-3.ec2.internal    <none>           <none>
+
+$ kubectl apply -f lg-s05-unified.yaml   # unified: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1
+target http://r-unified:8000, 4 GPU(s)
+
+$ kubectl -n serving logs job/lg-s05-unified   # unified
+rate 1.2: goodput 29.2 tok/s/gpu, attainment 0.99, completed 87/88
+rate 2.4: goodput 55.6 tok/s/gpu, attainment 0.95, completed 185/185
+rate 3.6: goodput 10.0 tok/s/gpu, attainment 0.12, completed 271/271
+rate 4.8: goodput 0.4 tok/s/gpu, attainment 0.00, completed 370/370
+rate 6.0: goodput 0.0 tok/s/gpu, attainment 0.00, completed 458/458
+done
+
+$ # unified: goodput and latency by load level (per GPU)
+    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95
+          0.3          29.17          0.989          0.402           53.2          1.232           53.2
+          0.6          55.62          0.951          1.028          159.0          1.332          172.7
+          0.9           10.0          0.122          2.042         1140.4          2.314         1131.6
+          1.2           0.41          0.003         11.256         1452.9         12.579         1457.6
+          1.5            0.0            0.0         31.381         1465.4         31.859         1474.5
+
+$ kubectl apply -f pd2p2d.yaml   # pd2p2d: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_both"}']
+pd2p2d: servers s-pd2p2d-0, s-pd2p2d-1, s-pd2p2d-2, s-pd2p2d-3, router policy pd
+
+$ kubectl -n serving get pods -o wide -l role=experiment
+NAME                          READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES
+r-pd2p2d-99bcb5566-cn74v      1/1     Running   0          2m25s   10.70.29.113   ip-10-70-28-87.ec2.internal   <none>           <none>
+s-pd2p2d-0-f6d45dbdb-lbbpk    1/1     Running   0          2m27s   10.70.32.241   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-pd2p2d-1-68b69c6577-ltzr4   1/1     Running   0          2m27s   10.70.32.243   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-pd2p2d-2-78647d4556-vtltg   1/1     Running   0          2m26s   10.70.32.244   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-pd2p2d-3-54f49df75f-44skd   1/1     Running   0          2m26s   10.70.32.246   ip-10-70-35-3.ec2.internal    <none>           <none>
+
+$ kubectl apply -f lg-s05-pd2p2d.yaml   # pd2p2d: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1
+target http://r-pd2p2d:8000, 4 GPU(s)
+
+$ kubectl -n serving logs job/lg-s05-pd2p2d   # pd2p2d
+rate 1.2: goodput 28.3 tok/s/gpu, attainment 0.98, completed 88/88
+rate 2.4: goodput 52.0 tok/s/gpu, attainment 0.91, completed 185/185
+rate 3.6: goodput 41.9 tok/s/gpu, attainment 0.55, completed 271/271
+rate 4.8: goodput 3.3 tok/s/gpu, attainment 0.03, completed 370/370
+rate 6.0: goodput 0.0 tok/s/gpu, attainment 0.00, completed 458/458
+done
+
+$ # pd2p2d: goodput and latency by load level (per GPU)
+    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95
+          0.3          28.26          0.977          2.319           62.1          3.261           66.3
+          0.6          52.03          0.908          3.175           91.5           3.97           92.9
+          0.9          41.91           0.55          5.962          171.1          6.471          173.6
+          1.2           3.34          0.027         20.934          239.1         21.417          242.8
+          1.5            0.0            0.0         43.902          201.1         44.517          234.5
+
+$ # pd2p2d: the transfer, from the servers' own NIXL counters
+1,635 transfers, 155.92 GiB moved, mean 804.4 ms each; failed transfers 0
+decode servers took 100% of their prompt tokens from the transferred KV cache; prompt tokens processed by the prefill servers 1,644,999; tokens generated by decode servers 159,442, by prefill servers 1,635
+
+$ kubectl apply -f pd1p3d.yaml   # pd1p3d: 4 x Qwen3-4B on 1 GPU(s) [--dtype half --max-model-len 4096 --gpu-memory-utilization 0.90 --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_both"}']
+pd1p3d: servers s-pd1p3d-0, s-pd1p3d-1, s-pd1p3d-2, s-pd1p3d-3, router policy pd
+
+$ kubectl -n serving get pods -o wide -l role=experiment
+NAME                          READY   STATUS    RESTARTS   AGE     IP             NODE                          NOMINATED NODE   READINESS GATES
+r-pd1p3d-5d969cd5b-9kkcq      1/1     Running   0          2m24s   10.70.29.114   ip-10-70-28-87.ec2.internal   <none>           <none>
+s-pd1p3d-0-85b7c8b758-f5m5d   1/1     Running   0          2m26s   10.70.32.245   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-pd1p3d-1-767dd66785-qpcl5   1/1     Running   0          2m26s   10.70.32.247   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-pd1p3d-2-586498b7fb-ww98r   1/1     Running   0          2m25s   10.70.32.248   ip-10-70-35-3.ec2.internal    <none>           <none>
+s-pd1p3d-3-6fd8bfdfb7-gbgdc   1/1     Running   0          2m25s   10.70.37.209   ip-10-70-35-3.ec2.internal    <none>           <none>
+
+$ kubectl apply -f lg-s05-pd1p3d.yaml   # pd1p3d: levels [1.2, 2.4, 3.6, 4.8, 6.0] req/s, 90 s each, first 15 s not scored, seed 1
+target http://r-pd1p3d:8000, 4 GPU(s)
+
+$ kubectl -n serving logs job/lg-s05-pd1p3d   # pd1p3d
+rate 1.2: goodput 24.5 tok/s/gpu, attainment 0.85, completed 88/88
+rate 2.4: goodput 2.2 tok/s/gpu, attainment 0.04, completed 185/185
+rate 3.6: goodput 0.0 tok/s/gpu, attainment 0.00, completed 271/271
+rate 4.8: goodput 0.0 tok/s/gpu, attainment 0.00, completed 370/370
+rate 6.0: goodput 0.0 tok/s/gpu, attainment 0.00, completed 458/458
+done
+
+$ # pd1p3d: goodput and latency by load level (per GPU)
+    req/s/GPU        goodput         attain  chat TTFT p95   chat ITL p95  code TTFT p95   code ITL p95
+          0.3          24.47          0.852           4.15           52.7          5.247           52.9
+          0.6           2.25          0.038         18.527           61.9         18.565           64.0
+          0.9            0.0            0.0         71.988           65.7         72.101           65.9
+          1.2            0.0            0.0        123.369           72.7        126.492           74.8
+          1.5            0.0            0.0        171.403           67.7        171.374           70.2
+
+$ # pd1p3d: the transfer, from the servers' own NIXL counters
+1,635 transfers, 152.79 GiB moved, mean 884.1 ms each; failed transfers 0
+decode servers took 100% of their prompt tokens from the transferred KV cache; prompt tokens processed by the prefill servers 1,644,999; tokens generated by decode servers 159,442, by prefill servers 1,635
+
+$ # capacity and goodput per GPU on the prompt-heavy mix (30% chat, 70% code)
+layout     capacity req/s/GPU   goodput tok/s/GPU
+unified              0.60             55.6
+pd2p2d               0.42             28.3
+pd1p3d               0.00              0.0
+
+$ # decode smoothness at 0.6 req/s per GPU (chat ITL p95) and first-token wait (code TTFT p50)
+unified   chat ITL p95    159 ms   code TTFT p50 1.11 s
+pd2p2d    chat ITL p95     92 ms   code TTFT p50 1.90 s
+pd1p3d    chat ITL p95     62 ms   code TTFT p50 15.44 s
+
+[PASS] unified: all servers start
+[PASS] pd2p2d: all servers start
+[PASS] pd2p2d: the KV cache moved between servers: transfers happened, none failed, and the decode servers took most of their prompt from them
+[PASS] pd1p3d: all servers start
+[PASS] pd1p3d: the KV cache moved between servers: transfers happened, none failed, and the decode servers took most of their prompt from them
+[PASS] every layout served its lightest level completely (at least 95% of requests finished), so the curves are comparable
