@@ -9,13 +9,13 @@
    "display": "kubectl apply -f filler.yaml   # 3 pods x 8 GPUs: rack b1-r1 keeps 8 of 32 GPUs free",
    "output": "job.batch/filler created",
    "exit_code": 0,
-   "seconds": 2.33
+   "seconds": 3.18
   },
   {
    "display": "kubectl apply -f train-12.yaml   # 12 pods x 1 GPU, queue plain (flavor without topology)",
    "output": "job.batch/train-12 created",
    "exit_code": 0,
-   "seconds": 2.35
+   "seconds": 2.61
   },
   {
    "display": "pods 15 s after admission",
@@ -25,7 +25,7 @@
   },
   {
    "display": "kubectl -n team-llm get workload <train-12's> -o jsonpath='{.status.conditions[?(@.type==\"Evicted\")]} {.status.requeueState}'",
-   "output": "{\"reason\": \"PodsReadyTimeout\", \"message\": \"Exceeded the PodsReady timeout team-llm/job-train-12-b2ea8\", \"requeueState\": {\"count\": 1, \"requeueAt\": \"2026-11-27T20:13:45Z\"}}",
+   "output": "{\"reason\": \"PodsReadyTimeout\", \"message\": \"Exceeded the PodsReady timeout team-llm/job-train-12-f0d95\", \"requeueState\": {\"count\": 1, \"requeueAt\": \"2026-11-27T23:35:09Z\"}}",
    "exit_code": 0,
    "seconds": 0
   },
@@ -39,13 +39,13 @@
    "display": "kubectl apply -f filler.yaml   # the same 3 x 8 GPUs: rack b1-r1 keeps 8 free",
    "output": "job.batch/filler created",
    "exit_code": 0,
-   "seconds": 2.34
+   "seconds": 2.59
   },
   {
    "display": "kubectl apply -f train-12-tas.yaml   # the same job, queue tas (flavor with topology), podset-required-topology: rack",
    "output": "job.batch/train-12 created",
    "exit_code": 0,
-   "seconds": 2.16
+   "seconds": 2.93
   },
   {
    "display": "the workload 30 s later",

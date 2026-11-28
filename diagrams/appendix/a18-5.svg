@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="430px" viewBox="0 0 1420 430" style="background:#ffffff"><title>Quotas in a cohort: nominal, borrowing, lending, reclaim (S08)</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker></defs><rect width="1420" height="430" fill="#ffffff"/><rect x="20" y="30" width="1380" height="260" rx="14" fill="#fffbeb" fill-opacity=".55" stroke="#d97706" stroke-width="1.5" stroke-dasharray="7 5"/>
+<text x="34" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing=".06em" fill="#92400e">COHORT fleet</text>
+<rect x="40" y="70" width="420" height="190" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="40" y="70" width="420" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="41" y="88" width="418" height="12" fill="#eff6ff"/>
+<text x="52" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">ClusterQueue cq-llm</text>
+<text x="52" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nominal 32 GPUs, borrowingLimit 32</text>
+<text x="52" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">reclaimWithinCohort: Any</text>
+<text x="52" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">runs 7 x 8 GPUs while vision is idle:</text>
+<text x="52" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">32 own + 24 borrowed; the 8th job waits</text>
+<rect x="500" y="70" width="420" height="190" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="500" y="70" width="420" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="501" y="88" width="418" height="12" fill="#ecfdf5"/>
+<text x="512" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">ClusterQueue cq-vision</text>
+<text x="512" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nominal 32 GPUs, lendingLimit 24</text>
+<text x="512" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">8 GPUs always kept for vision</text>
+<text x="512" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">returns with 3 x 8 GPUs: 1 from the kept 8,</text>
+<text x="512" y="169" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">2 by reclaiming LLM's borrowed GPUs</text>
+<rect x="960" y="70" width="420" height="190" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="960" y="70" width="420" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="961" y="88" width="418" height="12" fill="#f8fafc"/>
+<text x="972" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">What the accounting service sees</text>
+<text x="972" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">while LLM's 8th job waits: free GPUs</text>
+<text x="972" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the queue could use but may not:</text>
+<text x="972" y="152" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">blocked_by_quota</text>
+<rect x="40" y="310" width="1340" height="100" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="310" width="1340" height="30" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="41" y="328" width="1338" height="12" fill="#f8fafc"/>
+<text x="52" y="330" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#334155">Fair sharing (S09) and priority (S10) use the same objects</text>
+<text x="52" y="358" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a pool queue owns 96 GPUs; research (weight 1) and LLM (weight 2) borrow; preemption moves shares to 32 and 64.</text>
+<text x="52" y="375" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">inside one queue: a release-priority job preempts a best-effort one; a job with a declared runtime limit fills a gap.</text>
+<path d="M500 165 L460 165" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="454.3" y="147" width="51.4" height="16" rx="3" fill="#fff" fill-opacity=".92"/>
+<text x="480" y="159" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#334155">lend 24</text></svg>

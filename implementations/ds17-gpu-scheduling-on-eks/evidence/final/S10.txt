@@ -12,24 +12,24 @@ job.batch/rc-eval created
 
 $ kubectl -n team-llm get workloads -o custom-columns=WORKLOAD:.metadata.name,PRIORITY:.spec.priority,ADMITTED:.status.conditions[?(@.type=='Admitted')].status,PREEMPTED:.status.conditions[?(@.type=='Preempted')].reason
 WORKLOAD            PRIORITY   ADMITTED   PREEMPTED
-job-rc-eval-74f35   1000       True       <none>
-job-sweep-0-b6dd9   10         True       <none>
-job-sweep-1-075de   10         True       <none>
-job-sweep-2-bd996   10         False      InClusterQueue
-job-sweep-3-e65c3   10         True       <none>
+job-rc-eval-c404d   1000       True       <none>
+job-sweep-0-f7399   10         True       <none>
+job-sweep-1-cf2ba   10         True       <none>
+job-sweep-2-733ac   10         False      InClusterQueue
+job-sweep-3-2b8d1   10         True       <none>
 
 $ accounting: work lost to that preemption
 {
  "lost_to_preemption_gpu_minutes": 10.7,
  "preemptions": [
   {
-   "t": 1795811746.7132664,
-   "workload": "team-llm/job-sweep-2-bd996",
+   "t": 1795823820.02433,
+   "workload": "team-llm/job-sweep-2-733ac",
    "team": "llm",
    "gpus": 8,
    "ran_seconds": 80,
    "checkpoint_seconds": 600.0,
-   "reason": "Preempted to accommodate a workload (UID: 41da5a8e-b7e7-4798-ae8d-1fc3010410d4, JobUID: e471cb25-315d-424b-8f0a-517530c4acec) due to prioritization in the Clust",
+   "reason": "Preempted to accommodate a workload (UID: f5fb4c15-66e3-4455-a540-f8c7036bfbf8, JobUID: 3eae00bf-0035-465f-88fc-4ea5f02e39ca) due to prioritization in the Clust",
    "lost_gpu_minutes": 10.67
   }
  ]

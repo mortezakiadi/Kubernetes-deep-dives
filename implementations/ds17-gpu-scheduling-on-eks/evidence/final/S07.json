@@ -9,13 +9,13 @@
    "display": "kubectl apply -f trace.yaml   # 31 single-pod jobs of 1, 2 or 4 GPUs (64 GPUs), schedulerName gpu-spread",
    "output": "job.batch/small-00 created\njob.batch/small-01 created\njob.batch/small-02 created\njob.batch/small-03 created\njob.batch/small-04 created\njob.batch/small-05 created\njob.batch/small-06 created\njob.batch/small-07 created\njob.batch/small-08 created\njob.batch/small-09 created\njob.batch/small-10 created\njob.batch/small-11 created\njob.batch/small-12 created\njob.batch/small-13 created\njob.batch/small-14 created\njob.batch/small-15 created\njob.batch/small-16 created\njob.batch/small-17 created\njob.batch/small-18 created\njob.batch/small-19 created\njob.batch/small-20 created\njob.batch/small-21 created\njob.batch/small-22 created\njob.batch/small-23 created\njob.batch/small-24 created\njob.batch/small-25 created\njob.batch/small-26 created\njob.batch/small-27 created\njob.batch/small-28 created\njob.batch/small-29 created\njob.batch/small-30 created",
    "exit_code": 0,
-   "seconds": 9.21
+   "seconds": 9.09
   },
   {
    "display": "kubectl apply -f gang-4x8.yaml   # 4 pods x 8 GPUs, waits for whole nodes",
    "output": "job.batch/gang-4x8 created",
    "exit_code": 0,
-   "seconds": 2.26
+   "seconds": 2.18
   },
   {
    "display": "before: fragmentation, and the gang",
@@ -25,43 +25,43 @@
   },
   {
    "display": "the compaction plan (fewest GPUs moved first)",
-   "output": "{\"drain\": [\"fake-b1-r1-h3\", \"fake-b1-r1-h4\", \"fake-b1-r2-h2\", \"fake-b1-r2-h3\"], \"gpus_moved\": 12, \"room_elsewhere\": 44, \"feasible\": true}",
+   "output": "{\"drain\": [\"fake-b1-r1-h1\", \"fake-b1-r1-h2\", \"fake-b1-r2-h3\", \"fake-b2-r1-h1\"], \"gpus_moved\": 12, \"room_elsewhere\": 44, \"feasible\": true}",
    "exit_code": 0,
    "seconds": 0
   },
   {
-   "display": "kubectl drain fake-b1-r1-h3 --pod-selector=ds17/gang   # evict the small pods, cordon the node",
-   "output": "node/fake-b1-r1-h3 cordoned\nevicting pod team-research/small-20-0-lttl7\nevicting pod team-research/small-01-0-g5h2k\npod/small-20-0-lttl7 evicted\npod/small-01-0-g5h2k evicted\nnode/fake-b1-r1-h3 drained",
+   "display": "kubectl drain fake-b1-r1-h1 --pod-selector=ds17/gang   # evict the small pods, cordon the node",
+   "output": "node/fake-b1-r1-h1 cordoned\nevicting pod team-research/small-21-0-tfvpv\nevicting pod team-research/small-04-0-hhwc8\npod/small-21-0-tfvpv evicted\npod/small-04-0-hhwc8 evicted\nnode/fake-b1-r1-h1 drained",
    "exit_code": 0,
-   "seconds": 3.63
+   "seconds": 3.52
   },
   {
-   "display": "kubectl drain fake-b1-r1-h4 --pod-selector=ds17/gang   # evict the small pods, cordon the node",
-   "output": "node/fake-b1-r1-h4 cordoned\nevicting pod team-research/small-21-0-w45x5\nevicting pod team-research/small-02-0-rhh9q\npod/small-21-0-w45x5 evicted\npod/small-02-0-rhh9q evicted\nnode/fake-b1-r1-h4 drained",
+   "display": "kubectl drain fake-b1-r1-h2 --pod-selector=ds17/gang   # evict the small pods, cordon the node",
+   "output": "node/fake-b1-r1-h2 cordoned\nevicting pod team-research/small-20-0-zwwqx\nevicting pod team-research/small-02-0-nxhwf\npod/small-02-0-nxhwf evicted\npod/small-20-0-zwwqx evicted\nnode/fake-b1-r1-h2 drained",
    "exit_code": 0,
-   "seconds": 5.25
-  },
-  {
-   "display": "kubectl drain fake-b1-r2-h2 --pod-selector=ds17/gang   # evict the small pods, cordon the node",
-   "output": "node/fake-b1-r2-h2 cordoned\nevicting pod team-research/small-29-0-5zjvh\nevicting pod team-research/small-15-0-9r74s\npod/small-29-0-5zjvh evicted\npod/small-15-0-9r74s evicted\nnode/fake-b1-r2-h2 drained",
-   "exit_code": 0,
-   "seconds": 3.62
+   "seconds": 3.59
   },
   {
    "display": "kubectl drain fake-b1-r2-h3 --pod-selector=ds17/gang   # evict the small pods, cordon the node",
-   "output": "node/fake-b1-r2-h3 cordoned\nevicting pod team-research/small-22-0-j245x\nevicting pod team-research/small-01-0-b2ngv\nevicting pod team-research/small-07-0-bpkvd\npod/small-01-0-b2ngv evicted\npod/small-22-0-j245x evicted\npod/small-07-0-bpkvd evicted\nnode/fake-b1-r2-h3 drained",
+   "output": "node/fake-b1-r2-h3 cordoned\nevicting pod team-research/small-22-0-bbm9v\nevicting pod team-research/small-12-0-wtbt2\npod/small-12-0-wtbt2 evicted\npod/small-22-0-bbm9v evicted\nnode/fake-b1-r2-h3 drained",
    "exit_code": 0,
-   "seconds": 3.63
+   "seconds": 4.46
   },
   {
-   "display": "kubectl uncordon fake-b1-r1-h3 fake-b1-r1-h4 fake-b1-r2-h2 fake-b1-r2-h3   # the empty nodes take new pods again",
-   "output": "node/fake-b1-r1-h3 already uncordoned\nnode/fake-b1-r1-h4 already uncordoned\nnode/fake-b1-r2-h2 already uncordoned\nnode/fake-b1-r2-h3 already uncordoned",
+   "display": "kubectl drain fake-b2-r1-h1 --pod-selector=ds17/gang   # evict the small pods, cordon the node",
+   "output": "node/fake-b2-r1-h1 cordoned\nevicting pod team-research/small-21-0-f5xbn\nevicting pod team-research/small-16-0-rxv5w\nevicting pod team-research/small-05-0-9b9m7\npod/small-21-0-f5xbn evicted\npod/small-05-0-9b9m7 evicted\npod/small-16-0-rxv5w evicted\nnode/fake-b2-r1-h1 drained",
    "exit_code": 0,
-   "seconds": 1.42
+   "seconds": 3.6
+  },
+  {
+   "display": "kubectl uncordon fake-b1-r1-h1 fake-b1-r1-h2 fake-b1-r2-h3 fake-b2-r1-h1   # the empty nodes take new pods again",
+   "output": "node/fake-b1-r1-h1 already uncordoned\nnode/fake-b1-r1-h2 already uncordoned\nnode/fake-b1-r2-h3 already uncordoned\nnode/fake-b2-r1-h1 already uncordoned",
+   "exit_code": 0,
+   "seconds": 1.3
   },
   {
    "display": "after: the gang, the small jobs, fragmentation and the work lost",
-   "output": "{\"gang\": {\"running\": 4, \"pending\": 0, \"gpus_held\": 32}, \"small_pods_running\": 31, \"fragmentation\": {\"free_gpus\": 32, \"whole_free_nodes\": 0, \"fragmented_share\": 1.0, \"largest_gang_of_8gpu_pods\": 0, \"pods_of_1_that_fit\": 32, \"pods_of_2_that_fit\": 14, \"pods_of_4_that_fit\": 2, \"pods_of_8_that_fit\": 0}, \"lost_gpu_minutes_since_checkpoint\": 19.9}",
+   "output": "{\"gang\": {\"running\": 4, \"pending\": 0, \"gpus_held\": 32}, \"small_pods_running\": 31, \"fragmentation\": {\"free_gpus\": 32, \"whole_free_nodes\": 0, \"fragmented_share\": 1.0, \"largest_gang_of_8gpu_pods\": 0, \"pods_of_1_that_fit\": 32, \"pods_of_2_that_fit\": 13, \"pods_of_4_that_fit\": 1, \"pods_of_8_that_fit\": 0}, \"lost_gpu_minutes_since_checkpoint\": 19.7}",
    "exit_code": 0,
    "seconds": 0
   }

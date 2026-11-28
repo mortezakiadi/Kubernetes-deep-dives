@@ -5,16 +5,16 @@ ok         Auto Scaling groups: none
 ok         Launch templates: none
 ok         NAT gateways: none
 ok         Elastic IPs: none
-LEFT OVER  VPCs: vpc-0200c4503b63042a7
+ok         VPCs: none
 ok         VPC endpoints: none
-LEFT OVER  Security groups: sg-03c9bb85b133490ef
+ok         Security groups: none
 ok         EBS volumes: none
 ok         CSI volumes: none
 ok         CSI snapshots: none
-LEFT OVER  Network interfaces: eni-0e64fc68ba5ac49f6
+ok         Network interfaces: none
 ok         S3 buckets: none
 ok         IAM roles: none
 ok         CloudWatch log groups: none
-info       tagging index still lists (it lags deletions): 5 item(s)
+info       tagging index still lists (it lags deletions): 8 item(s)
 
-NOT CLEAN: see the lines above.
+CLEAN: nothing from ds17-sched remains in this account and region.

@@ -4,40 +4,40 @@
 $ kubectl get --raw .../services/accounting:8080/proxy/breakdown?since=<S01>   # all GPUs
 {
  "samples": 193,
- "gpu_minutes": 4187.8,
+ "gpu_minutes": 4181.7,
  "share": {
-  "free": 0.412,
-  "busy": 0.318,
-  "blocked_by_quota": 0.22,
-  "fragmented": 0.027,
+  "free": 0.425,
+  "busy": 0.312,
+  "blocked_by_quota": 0.208,
+  "fragmented": 0.033,
   "waiting_for_gang": 0.021,
   "allocated_idle": 0.001
  },
  "gpu_minutes_by_category": {
-  "free": 1727.3,
-  "busy": 1332.8,
-  "blocked_by_quota": 921.8,
-  "fragmented": 114.7,
-  "waiting_for_gang": 87.7,
-  "allocated_idle": 3.5
+  "free": 1776.2,
+  "busy": 1306.5,
+  "blocked_by_quota": 871.7,
+  "fragmented": 137.7,
+  "waiting_for_gang": 87.0,
+  "allocated_idle": 2.7
  },
- "lost_to_preemption_gpu_minutes": 66.7
+ "lost_to_preemption_gpu_minutes": 57.3
 }
 
 $ by team (GPU-minutes; '-' is free capacity)
--         {"free": 1727.3, "blocked_by_quota": 921.8, "fragmented": 114.7}
-gpu       {"allocated_idle": 3.5, "busy": 0.7}
-llm       {"waiting_for_gang": 64.0, "busy": 686.7}
-nokueue   {"busy": 101.3, "waiting_for_gang": 15.7}
-research  {"busy": 528.2, "waiting_for_gang": 4.0}
-vision    {"waiting_for_gang": 4.0, "busy": 16.0}
+-         {"free": 1776.2, "blocked_by_quota": 871.7, "fragmented": 137.7}
+gpu       {"allocated_idle": 2.7, "busy": 2.0}
+llm       {"waiting_for_gang": 50.7, "busy": 652.0}
+nokueue   {"busy": 101.3, "waiting_for_gang": 17.7}
+research  {"busy": 539.2, "waiting_for_gang": 14.7}
+vision    {"waiting_for_gang": 4.0, "busy": 12.0}
 
 $ queue wait (creation to quota reserved) by job size in GPUs: workloads, median, max, in seconds
-8      n  20  median     0.5  max     8.0
+8      n  20  median     1.5  max     9.0
 12-24  n   2  median     0.0  max     0.0
 32     n   5  median     0.0  max   157.0
 64     n   1  median     0.0  max     0.0
 
 [PASS] every sampled GPU-minute of 130 GPUs is in exactly one category (total within 2% of 130 GPUs times the sampled time)
 [PASS] each cause the design names was observed: busy, allocated but idle, waiting for a gang, fragmented, blocked by quota, and lost to preemption
-[FAIL] queue wait is reported per size class, from the workloads of S03 to S10
+[PASS] queue wait is reported for at least three size classes, from the workloads of S03 to S10

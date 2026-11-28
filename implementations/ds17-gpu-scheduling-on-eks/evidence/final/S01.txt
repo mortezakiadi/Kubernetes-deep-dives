@@ -10,30 +10,30 @@ $ aws eks describe-cluster --name ds17-sched --query cluster.{status:status,vers
 
 $ kubectl get nodes -L ds17/pool,node.kubernetes.io/instance-type,network.ds17.io/block,network.ds17.io/rack --sort-by=.metadata.name
 NAME                                         STATUS   ROLES    AGE     VERSION               POOL       INSTANCE-TYPE   BLOCK   RACK
-fake-b1-r1-h1                                Ready    <none>   11s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
-fake-b1-r1-h2                                Ready    <none>   11s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
-fake-b1-r1-h3                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
-fake-b1-r1-h4                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
-fake-b1-r2-h1                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
-fake-b1-r2-h2                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
-fake-b1-r2-h3                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
-fake-b1-r2-h4                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
-fake-b2-r1-h1                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b2      b2-r1
-fake-b2-r1-h2                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1
-fake-b2-r1-h3                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1
-fake-b2-r1-h4                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1
-fake-b2-r2-h1                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2
-fake-b2-r2-h2                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2
-fake-b2-r2-h3                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2
-fake-b2-r2-h4                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2
-ip-10-86-20-154.us-east-2.compute.internal   Ready    <none>   45m     v1.37.1-eks-9adbfea   system     m6i.2xlarge             
-ip-10-86-44-192.us-east-2.compute.internal   Ready    <none>   45m     v1.37.1-eks-9adbfea   system     m6i.2xlarge             
-ip-10-86-49-187.us-east-2.compute.internal   Ready    <none>   2m36s   v1.37.1-eks-9adbfea   gpu        g6e.2xlarge             
-ip-10-86-55-196.us-east-2.compute.internal   Ready    <none>   2m53s   v1.37.1-eks-9adbfea   gpu        g5.xlarge               
+fake-b1-r1-h1                                Ready    <none>   70s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
+fake-b1-r1-h2                                Ready    <none>   70s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
+fake-b1-r1-h3                                Ready    <none>   70s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
+fake-b1-r1-h4                                Ready    <none>   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r1
+fake-b1-r2-h1                                Ready    <none>   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
+fake-b1-r2-h2                                Ready    <none>   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
+fake-b1-r2-h3                                Ready    <none>   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
+fake-b1-r2-h4                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b1      b1-r2
+fake-b2-r1-h1                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1
+fake-b2-r1-h2                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1
+fake-b2-r1-h3                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1
+fake-b2-r1-h4                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1
+fake-b2-r2-h1                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r2
+fake-b2-r2-h2                                Ready    <none>   67s     kwok-v0.8.0           fake-gpu                   b2      b2-r2
+fake-b2-r2-h3                                Ready    <none>   67s     kwok-v0.8.0           fake-gpu                   b2      b2-r2
+fake-b2-r2-h4                                Ready    <none>   67s     kwok-v0.8.0           fake-gpu                   b2      b2-r2
+ip-10-86-16-85.us-east-2.compute.internal    Ready    <none>   5m21s   v1.37.1-eks-9adbfea   system     m6i.2xlarge             
+ip-10-86-25-255.us-east-2.compute.internal   Ready    <none>   5m14s   v1.37.1-eks-9adbfea   gpu        g6e.xlarge              
+ip-10-86-48-4.us-east-2.compute.internal     Ready    <none>   5m22s   v1.37.1-eks-9adbfea   system     m6i.2xlarge             
+ip-10-86-52-153.us-east-2.compute.internal   Ready    <none>   5m14s   v1.37.1-eks-9adbfea   gpu        g6e.2xlarge             
 
 $ GPUs each pool advertises (status.allocatable nvidia.com/gpu)
 simulated: 16 nodes, 128 GPUs, blocks ['b1', 'b2'], racks ['b1-r1', 'b1-r2', 'b2-r1', 'b2-r2']
-real: 2 nodes, 2 GPUs, types ['g5.xlarge', 'g6e.2xlarge']
+real: 2 nodes, 2 GPUs, types ['g6e.2xlarge', 'g6e.xlarge']
 
 $ kubectl -n kueue-system get deploy kueue-controller-manager -o jsonpath='{..image}'
 registry.k8s.io/kueue/kueue:v0.20.8
@@ -61,9 +61,9 @@ NAME             READY   IMAGE
 ds17-scheduler   1       registry.k8s.io/kube-scheduler:v1.37.1@sha256:b6e2474a6c20309f0df1e7337364281fda95c6a0722259ba7f032a1e177d3f29
 
 $ kubectl -n gpu-monitoring get pods -o wide
-NAME                  READY   STATUS    RESTARTS   AGE   IP             NODE                                         NOMINATED NODE   READINESS GATES
-dcgm-exporter-h4cdf   1/1     Running   0          87s   10.86.58.224   ip-10-86-55-196.us-east-2.compute.internal   <none>           <none>
-dcgm-exporter-zx22p   1/1     Running   0          87s   10.86.60.13    ip-10-86-49-187.us-east-2.compute.internal   <none>           <none>
+NAME                  READY   STATUS    RESTARTS   AGE    IP             NODE                                         NOMINATED NODE   READINESS GATES
+dcgm-exporter-2pddk   1/1     Running   0          4m7s   10.86.61.247   ip-10-86-52-153.us-east-2.compute.internal   <none>           <none>
+dcgm-exporter-748jz   1/1     Running   0          4m7s   10.86.25.39    ip-10-86-25-255.us-east-2.compute.internal   <none>           <none>
 
 $ kubectl get jobs,workloads -A
 

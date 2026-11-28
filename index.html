@@ -293,7 +293,8 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
 <li class="notes"><a href="#appendix-design-08-eks">I. Design 08 on EKS (built and tested)</a></li>
 <li class="notes"><a href="#appendix-design-09-eks">J. Design 09 on AWS (built and tested)</a></li>
 <li class="notes"><a href="#appendix-design-10-eks">K. Design 10 on EKS (built and tested)</a></li>
-<li class="notes"><a href="#appendix-design-11-eks">L. Design 11 on AWS (built and tested)</a></li></ul>
+<li class="notes"><a href="#appendix-design-11-eks">L. Design 11 on AWS (built and tested)</a></li>
+<li class="notes"><a href="#appendix-design-17-eks">R. Design 17 on EKS (built and tested)</a></li></ul>
     </nav>
   </aside>
   <main>
@@ -308,7 +309,7 @@ footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line);
       <ul class="stats">
         <li>18 deep dives</li>
         <li>39 designs</li>
-        <li>1262 scenario sections</li>
+        <li>1279 scenario sections</li>
         <li>Diagrams drawn in draw.io</li>
       </ul>
     </header>
@@ -26192,6 +26193,805 @@ The order is the one a reader needs: first the context, then the software I used
 - <strong>Capacity against mixture.</strong> Not tested.
 - <strong>Merging RL-trained specialists.</strong> In this setting, with small RL updates from one base, the specialists merged with little loss (S08); I did not train SFT specialists to compare.
 - <strong>Automatic refreshes.</strong> The trigger of the design's own rule fired on the staged run (a family fell by more than 1.5 points in the focus stage), and the refresh that followed recovered both of the families that had fallen (maths 0.485 to 0.532, safety 0.853 to 0.922); scheduling that without a person was not built.</p></div>
+</section>
+
+<section class="entry appendix" id="appendix-design-17-eks" aria-labelledby="appendix-design-17-eks-h">
+  <header class="entry-head">
+    <span class="tag">Appendix</span>
+    <h2 id="appendix-design-17-eks-h">Appendix R: Design 17 built and tested on Amazon EKS</h2>
+  </header>
+  <nav class="toc" aria-label="Sections in this deep dive"><ol><li><a href="#a18-1">Context: the problem, the actors and who talks to whom</a></li><li><a href="#appendix-design-17-eks-1-the-software-components-i-implemented">1. The software components I implemented</a></li><li><a href="#a18-2">2. EKS topology and instances</a></li><li><a href="#a18-3">3. Architecture</a></li><li><a href="#appendix-design-17-eks-4-how-i-implemented-it">4. How I implemented it</a></li><li><a href="#appendix-design-17-eks-5-the-scenarios-i-tested">5. The scenarios I tested</a></li><li><a href="#appendix-design-17-eks-s01-the-platform-at-rest-cluster-real-and-simulated-gpus-kueue-the-second-scheduler-accounting">S01: The platform at rest: cluster, real and simulated GPUs, Kueue, the second scheduler, accounting</a></li><li><a href="#appendix-design-17-eks-s02-allocation-is-not-utilization-two-real-gpus-one-working-one-held-by-an-idle-notebook">S02: Allocation is not utilization: two real GPUs, one working, one held by an idle notebook</a></li><li><a href="#appendix-design-17-eks-s03-gang-scheduling-per-pod-placement-deadlocks-two-jobs-kueue-admits-one-whole-job">S03: Gang scheduling: per-pod placement deadlocks two jobs; Kueue admits one whole job</a></li><li><a href="#appendix-design-17-eks-s04-quota-fit-is-not-node-fit-the-pods-ready-timeout-and-topology-aware-admission">S04: Quota fit is not node fit: the pods-ready timeout, and topology-aware admission</a></li><li><a href="#appendix-design-17-eks-s05-topology-aware-gang-placement-whole-jobs-inside-one-block-slices-inside-one-rack">S05: Topology-aware gang placement: whole jobs inside one block, slices inside one rack</a></li><li><a href="#appendix-design-17-eks-s06-bin-packing-against-spreading-the-same-64-gpus-of-small-jobs-and-a-4-node-gang-after-them">S06: Bin-packing against spreading: the same 64 GPUs of small jobs, and a 4-node gang after them</a></li><li><a href="#appendix-design-17-eks-s07-defragmentation-drain-the-cheapest-nodes-so-a-waiting-4-node-gang-can-start">S07: Defragmentation: drain the cheapest nodes so a waiting 4-node gang can start</a></li><li><a href="#appendix-design-17-eks-s08-quotas-nominal-shares-borrowing-a-lending-limit-and-reclaim">S08: Quotas: nominal shares, borrowing, a lending limit, and reclaim</a></li><li><a href="#appendix-design-17-eks-s09-fair-share-weighted-shares-of-borrowed-capacity-and-admission-fair-sharing-inside-a-team">S09: Fair share: weighted shares of borrowed capacity, and admission fair sharing inside a team</a></li><li><a href="#appendix-design-17-eks-s10-priority-preemption-and-backfill-urgent-work-the-cost-of-preemption-and-bounded-small-jobs">S10: Priority, preemption and backfill: urgent work, the cost of preemption, and bounded small jobs</a></li><li><a href="#appendix-design-17-eks-s11-measuring-the-scheduler-where-every-gpu-hour-of-this-run-went-and-queue-wait-by-job-size">S11: Measuring the scheduler: where every GPU-hour of this run went, and queue wait by job size</a></li><li><a href="#appendix-design-17-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</a></li><li><a href="#appendix-design-17-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</a></li><li><a href="#appendix-design-17-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</a></li></ol></nav>
+  <div class="prose"><p>This appendix describes a working, scaled-down implementation of <a href="#design-gpu-scheduling">Design 17: Scheduling that keeps accelerators busy</a>. I built it with Terraform on a standard Amazon EKS cluster in one AWS account: <mark class="kw-tool">Kueue</mark> for <mark class="kw-act">admission</mark> (<mark class="kw">quotas</mark> in <mark class="kw">cohorts</mark>, <mark class="kw-act">borrowing</mark> and lending, <mark class="kw">fair sharing</mark>, priorities, the pods-ready timeout and <mark class="kw">topology-aware</mark> admission), a second <mark class="kw-tool">kube-scheduler</mark> with a <mark class="kw-act">bin-packing</mark> and a <mark class="kw-act">spreading</mark> GPU profile for placement, a GPU-hour accounting service that puts every GPU into one category every 10 seconds, two real GPUs measured with <mark class="kw-tool">DCGM</mark>, and a simulated fleet of 128 GPUs on which the scheduling behaviour is tested.</p>
+<p>The order is the one a reader needs: first the context, then the software I implemented, the EKS topology and instances, the architecture, how it is implemented, and then the scenarios I tested, with the commands, the results, why the results can be trusted and why the system produces them. Section 6 says plainly what I did not build. (Appendices M to Q are kept for Designs 12 to 16, which are not built yet.)</p>
+<p><strong>What "scaled down" and "simulated" mean here.</strong> The design is about a 1,024-GPU cluster of 128 nodes with 8 H100s each. This build has two real GPUs and a simulated fleet of 16 nodes with 8 GPUs each, 128 in all, in 2 network blocks of 2 racks of 4 hosts. The simulated nodes are Kubernetes Node objects run by KWOK: no machine stands behind them, their GPUs do not exist, and pods bound to them are never started, only moved through their lifecycle (ready, then complete after the run time set on each pod). That is enough for this design, because everything it is about happens in the control plane: Kueue <mark class="kw-act">admits</mark>, <mark class="kw-act">preempts</mark> and orders real Workload objects, the real kube-scheduler binary <mark class="kw-act">scores</mark> and <mark class="kw-act">binds</mark> real Pod objects to those nodes, and the accounting service reads the same API. What a simulated GPU cannot show is whether it is busy, so the real GPUs are used for exactly that (S02), and simulated pods declare their activity.</p>
+<p>11 of 11 scenarios passed, 35 of 35 checks.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Title</th>
+<th>Checks passed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S01</td>
+<td>The platform at rest: cluster, real and simulated GPUs, Kueue, the second scheduler, accounting</td>
+<td>6 of 6</td>
+</tr>
+<tr>
+<td>S02</td>
+<td>Allocation is not utilization: two real GPUs, one working, one held by an idle notebook</td>
+<td>3 of 3</td>
+</tr>
+<tr>
+<td>S03</td>
+<td>Gang scheduling: per-pod placement deadlocks two jobs; Kueue admits one whole job</td>
+<td>2 of 2</td>
+</tr>
+<tr>
+<td>S04</td>
+<td>Quota fit is not node fit: the pods-ready timeout, and topology-aware admission</td>
+<td>3 of 3</td>
+</tr>
+<tr>
+<td>S05</td>
+<td>Topology-aware gang placement: whole jobs inside one block, slices inside one rack</td>
+<td>4 of 4</td>
+</tr>
+<tr>
+<td>S06</td>
+<td>Bin-packing against spreading: the same 64 GPUs of small jobs, and a 4-node gang after them</td>
+<td>2 of 2</td>
+</tr>
+<tr>
+<td>S07</td>
+<td>Defragmentation: drain the cheapest nodes so a waiting 4-node gang can start</td>
+<td>3 of 3</td>
+</tr>
+<tr>
+<td>S08</td>
+<td>Quotas: nominal shares, borrowing, a lending limit, and reclaim</td>
+<td>2 of 2</td>
+</tr>
+<tr>
+<td>S09</td>
+<td>Fair share: weighted shares of borrowed capacity, and admission fair sharing inside a team</td>
+<td>2 of 2</td>
+</tr>
+<tr>
+<td>S10</td>
+<td>Priority, preemption and backfill: urgent work, the cost of preemption, and bounded small jobs</td>
+<td>5 of 5</td>
+</tr>
+<tr>
+<td>S11</td>
+<td>Measuring the scheduler: where every GPU-hour of this run went, and queue wait by job size</td>
+<td>3 of 3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a18-1">Context: the problem, the actors and who talks to whom</h3>
+<p><strong>Scenario.</strong> The design's opening case: finance reports 58% of GPU-hours doing useful work; a 256-GPU job has waited three days while 180 GPUs sit free in fragments; two 64-GPU jobs deadlocked each other for six hours; a team's notebooks hold 96 GPUs at 8% use; and another team says the queue is unfair. This build reproduces each of those situations on purpose, at a smaller size, and shows the mechanism the design proposes for it.</p>
+<p>Six terms are used throughout.</p>
+<ul>
+<li><strong>Gang.</strong> A job whose pods are only useful together, such as distributed training. Here every multi-pod Job is a gang.</li>
+<li><strong>Admission.</strong> <mark class="kw-tool">Kueue</mark>'s decision that a job may start: its whole request fits the <mark class="kw">quota</mark> (and, with <mark class="kw">topology-aware scheduling</mark>, the topology). Until then the Job is suspended and has no pods.</li>
+<li><strong>Placement.</strong> <mark class="kw-tool">kube-scheduler</mark>'s choice of a node for each pod of an <mark class="kw-act">admitted</mark> job.</li>
+<li><strong>ClusterQueue and cohort.</strong> A team's quota (nominal, <mark class="kw-act">borrowing</mark> limit, lending limit); queues in one <mark class="kw">cohort</mark> lend unused quota to each other.</li>
+<li><strong>Fragmentation.</strong> Free GPUs scattered so that no pending pod fits. Reported as whole free nodes, the fragmented share of free GPUs, and the largest gang of 8-GPU pods that could start now.</li>
+<li><strong>GPU-hour breakdown.</strong> Every GPU of every GPU node, every 10 seconds, in one category: busy, allocated but idle, waiting for a gang, fragmented, blocked by quota policy, or free; plus work lost to <mark class="kw-act">preemption</mark>.</li>
+</ul>
+<figure class="diagram"><button aria-label="Open diagram full screen: Who uses the platform, what it is made of, and what it talks to" class="open" data-src="diagrams/appendix/a18-1.svg" data-title="Who uses the platform, what it is made of, and what it talks to" type="button"><img alt="Diagram: Who uses the platform, what it is made of, and what it talks to" decoding="async" loading="lazy" src="diagrams/appendix/a18-1.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> Teams submit Jobs labelled with a queue. <mark class="kw-tool">Kueue</mark> <mark class="kw-act">admits</mark> them, the second scheduler places their pods on the simulated fleet, and the accounting service reads nodes, pods, workloads and <mark class="kw-tool">DCGM</mark> to explain where the GPU-hours went. Everything goes through the Kubernetes API server.</p>
+<h3 id="appendix-design-17-eks-1-the-software-components-i-implemented">1. The software components I implemented</h3>
+<p><strong>Scenario.</strong> A reader needs to know which parts I wrote and which I reused, before reading any result.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Component</th>
+<th>What it does</th>
+<th>Where it runs</th>
+<th>Written or reused</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Standard EKS cluster</strong></td>
+<td>Kubernetes 1.37 with a system node group and a real-GPU node group.</td>
+<td>AWS</td>
+<td>Written (Terraform)</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Kueue 0.20.8</strong></td>
+<td>Admission: the design's Configuration (waitForPodsReady, fair sharing, admission fair sharing), a three-level Topology, two ResourceFlavors over the simulated fleet (with and without topology), three WorkloadPriorityClasses. Each scenario creates its own ClusterQueues and LocalQueues.</td>
+<td><code>kueue-system</code></td>
+<td>Reused, configured</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Second kube-scheduler 1.37.1</strong></td>
+<td>The design's KubeSchedulerConfiguration as two profiles, <code>gpu-binpack</code> (MostAllocated) and <code>gpu-spread</code> (LeastAllocated), both weighting GPUs 10 to 1 over CPU and memory, with BalancedAllocation off.</td>
+<td><code>kube-system</code></td>
+<td>Reused, configured</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>KWOK 0.8.0</strong></td>
+<td>Runs the 16 simulated nodes and moves pods bound to them through their lifecycle; a pod completes after the delay in its annotation. One stage written for this build marks a pod being evicted as failed, so its Job replaces it.</td>
+<td><code>kube-system</code></td>
+<td>Reused, plus one stage</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Simulated fleet (<code>make_fleet.py</code>)</strong></td>
+<td>16 Node objects, 8 GPUs each, labelled with block, rack and host, tainted so only Kueue-admitted or explicitly tolerating pods land there.</td>
+<td>Applied by <code>up.sh</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Device plugin 0.20.2 and DCGM exporter 4.9.0</strong></td>
+<td>Advertise the two real GPUs and export their utilization per pod.</td>
+<td>GPU nodes</td>
+<td>Reused</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Accounting service (<code>accounting.py</code>)</strong></td>
+<td>Every 10 s: every GPU into one category from nodes, pods, workloads and DCGM; lost work at each preemption; <code>/breakdown</code> and <code>/now</code>.</td>
+<td><code>platform</code></td>
+<td>Written</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Scenario runner and screenshot renderer</strong></td>
+<td>Creates each scenario's queues and jobs, runs the commands, records output, redacts private values, draws terminal-style screenshots.</td>
+<td><code>tests/</code></td>
+<td>Adapted from Appendix K</td>
+</tr>
+</tbody>
+</table>
+<p>The Terraform is about 890 lines; the platform's own code (the accounting service and the fleet generator) about 270 lines of Python; the test code about 1120 lines.</p>
+<details class="acc gd"><summary><span class="acc-title">Going deeper</span><span class="acc-count">3 points</span></summary><div class="acc-body"><ul>
+<li><strong>Why a second scheduler.</strong> EKS runs <mark class="kw-tool">kube-scheduler</mark> in its managed control plane and does not expose its configuration, so the design's <mark class="kw-act">bin-packing</mark> profile runs as a second scheduler in the cluster. Jobs choose it with <code>schedulerName</code>. Running both profiles in one binary means S06 compares exactly one setting.</li>
+<li><strong>Why two flavors over the same nodes.</strong> With <mark class="kw">topology-aware scheduling</mark>, <mark class="kw-tool">Kueue</mark> itself chooses the domain and pins pods to it at <mark class="kw-act">admission</mark>, which would hide what the scheduler profile does. S06 and S07 use the flavor without topology; S04 and S05 use the one with it.</li>
+<li><strong>Scaled timeouts.</strong> The design's <code>waitForPodsReady</code> timeout is 10 minutes, to cover image pulls of real jobs; here it is 60 seconds and the <mark class="kw-act">requeue</mark> backoff starts at 10 seconds, so a scenario can show an <mark class="kw-act">eviction</mark> and a requeue.</li>
+</ul></div></details>
+
+<h3 id="a18-2">2. EKS topology and instances</h3>
+<p><strong>Scenario.</strong> The design needs one cluster whose scheduler can be configured, a GPU fleet with a known topology, and a way to measure whether an allocated GPU works.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: One VPC in us-east-2: a system node group, a small real-GPU node group, and a simulated fleet" class="open" data-src="diagrams/appendix/a18-2.svg" data-title="One VPC in us-east-2: a system node group, a small real-GPU node group, and a simulated fleet" type="button"><img alt="Diagram: One VPC in us-east-2: a system node group, a small real-GPU node group, and a simulated fleet" decoding="async" loading="lazy" src="diagrams/appendix/a18-2.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The VPC with three private subnets and one NAT gateway, the EKS cluster with its two managed node groups, and the simulated fleet's two blocks of two racks, which exist only as Node objects.</p>
+<p><strong>Why standard EKS with managed node groups, and not Auto Mode.</strong> EKS Auto Mode runs its own node provisioning and does not let you add the components this design depends on in the same way: a second scheduler that owns placement of GPU pods, fake nodes that the provisioner must ignore, and a GPU pool whose driver stays fixed while utilization is measured. A standard cluster with managed node groups keeps every one of those under this build's control, and its instances are ordinary EC2 instances that <code>verify-clean.sh</code> can check after teardown.</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What I built</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Region</strong></td>
+<td>us-east-2, one VPC (10.86.0.0/16), one NAT gateway.</td>
+<td>Design 21's build uses us-east-1 in the same account.</td>
+</tr>
+<tr>
+<td><strong>System node group</strong></td>
+<td>2 × <code>m6i.2xlarge</code>, on demand.</td>
+<td>Kueue, the second scheduler, KWOK, the accounting service, CoreDNS.</td>
+</tr>
+<tr>
+<td><strong>GPU node group</strong></td>
+<td>2 nodes, one GPU each, on demand, pinned AL2023 NVIDIA AMI; types in the order <code>g6e.xlarge</code>, <code>g6.2xlarge</code>, <code>g6e.2xlarge</code>, <code>g5.xlarge</code>, <code>g5.2xlarge</code>, <code>g6.xlarge</code>.</td>
+<td>S02 needs one busy and one idle pod on whole GPUs. EC2 chooses the type by capacity; S01 records what the run got.</td>
+</tr>
+<tr>
+<td><strong>Simulated fleet</strong></td>
+<td>16 nodes × 8 <code>nvidia.com/gpu</code>, labels <code>network.ds17.io/block</code> and <code>network.ds17.io/rack</code>, taint <code>kwok.x-k8s.io/node=fake</code>.</td>
+<td>The design's scheduling problems need a fleet of 8-GPU nodes in a topology; 128 GPUs keep every effect visible at a small cost.</td>
+</tr>
+<tr>
+<td><strong>Namespaces</strong></td>
+<td><code>team-llm</code>, <code>team-vision</code>, <code>team-research</code>, <code>research-sweeps</code>, <code>research-paper</code>, <code>nokueue</code>, <code>gpu-real</code>, <code>platform</code>, each labelled with its team.</td>
+<td>ClusterQueues select namespaces by team label.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="a18-3">3. Architecture</h3>
+<p><strong>Scenario.</strong> One map of who decides what, so each scenario can say which layer produced what it shows.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Two layers: when a job may start, and where its pods go" class="open" data-src="diagrams/appendix/a18-3.svg" data-title="Two layers: when a job may start, and where its pods go" type="button"><img alt="Diagram: Two layers: when a job may start, and where its pods go" decoding="async" loading="lazy" src="diagrams/appendix/a18-3.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The path of a job from submission to ready pods, and the two status sources a user reads: <mark class="kw-tool">Kueue</mark>'s Workload conditions for <mark class="kw-act">admission</mark>, and the pod's scheduling status for placement.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: The same 64 GPUs of small jobs, spread and packed (S06)" class="open" data-src="diagrams/appendix/a18-4.svg" data-title="The same 64 GPUs of small jobs, spread and packed (S06)" type="button"><img alt="Diagram: The same 64 GPUs of small jobs, spread and packed (S06)" decoding="async" loading="lazy" src="diagrams/appendix/a18-4.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The two layouts the scheduler profiles produced in the development run for the same trace of small jobs: <mark class="kw-act">spread</mark> leaves every node partly used, packed leaves 8 nodes whole.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Quotas in a cohort: nominal, borrowing, lending, reclaim (S08)" class="open" data-src="diagrams/appendix/a18-5.svg" data-title="Quotas in a cohort: nominal, borrowing, lending, reclaim (S08)" type="button"><img alt="Diagram: Quotas in a cohort: nominal, borrowing, lending, reclaim (S08)" decoding="async" loading="lazy" src="diagrams/appendix/a18-5.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The two team queues of S08, and how S09 and S10 use the same objects for <mark class="kw">fair sharing</mark> and priority.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: Every GPU, every 10 seconds, in exactly one category" class="open" data-src="diagrams/appendix/a18-6.svg" data-title="Every GPU, every 10 seconds, in exactly one category" type="button"><img alt="Diagram: Every GPU, every 10 seconds, in exactly one category" decoding="async" loading="lazy" src="diagrams/appendix/a18-6.svg"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>What the picture shows.</strong> The accounting service's categories and inputs.</p>
+<h3 id="appendix-design-17-eks-4-how-i-implemented-it">4. How I implemented it</h3>
+<p><strong>Scenario.</strong> Someone who wants to rebuild or extend this needs to know how the pieces fit, in the order they are built.</p>
+<ol>
+<li><strong>Terraform, cluster layer (<code>terraform/10-cluster</code>).</strong> The VPC, subnets, NAT gateway and S3 endpoint; the cluster and its roles; the node add-ons; the system and GPU node groups; <mark class="kw-tool">CoreDNS</mark> and metrics-server. The provider has <code>allowed_account_ids</code>; the account ID and the administrator's addresses live only in a git-ignored <code>local.auto.tfvars</code>. State is local and git-ignored.</li>
+<li><strong>Terraform, platform layer (<code>terraform/20-platform</code>).</strong> Namespaces; the <mark class="kw">device plugin</mark> and <mark class="kw-tool">DCGM exporter</mark>; KWOK's controller and stages (vendored under <code>platform/kwok</code>, image pinned by digest, without its FlowSchema, which EKS refuses); <mark class="kw-tool">Kueue</mark> with the Configuration; the Topology, the two flavors and the <mark class="kw">priority classes</mark>; the second scheduler with its <mark class="kw">RBAC</mark> and configuration; the accounting service with read-only access to nodes, pods and Kueue objects.</li>
+<li><strong>The simulated fleet.</strong> <code>up.sh</code> applies the 16 Node objects from <code>platform/make_fleet.py</code> and waits until KWOK reports all of them Ready.</li>
+<li><strong>Jobs.</strong> Every scenario job is an Indexed Job. A job with a queue label is created suspended and <mark class="kw-act">admitted</mark> by Kueue; a job without one carries its own <mark class="kw">toleration</mark> and node selector and goes straight to the scheduler (S03, and the filler jobs that occupy GPUs). Each pod carries its run time, its declared activity and its <mark class="kw-act">checkpoint</mark> interval as annotations, and a pod failure policy that ignores <mark class="kw-act">eviction</mark>, so a <mark class="kw-act">drained</mark> pod is replaced instead of failing its job.</li>
+<li><strong>Queues.</strong> Each scenario creates the <mark class="kw">ClusterQueues</mark> and <mark class="kw">LocalQueues</mark> it needs (<mark class="kw">quotas</mark>, <mark class="kw">cohorts</mark>, weights, limits, <mark class="kw-act">preemption</mark> settings, <mark class="kw-act">admission</mark> scope) and deletes them, with its jobs, at the end.</li>
+<li><strong>Accounting.</strong> Every 10 seconds the service lists nodes, pods and Workloads, scrapes every DCGM exporter pod, and assigns every GPU one category (section 3). It keeps the samples in memory and answers <code>/breakdown</code> for a time window, per team and per pool.</li>
+<li><strong>Scenarios and evidence.</strong> <code>tests/run_scenarios.py</code> runs every command it shows, records the real output, redacts the account ID, the administrator's addresses and the local user name, computes each check from the output, and draws the screenshot from the same text.</li>
+</ol>
+<h3 id="appendix-design-17-eks-5-the-scenarios-i-tested">5. The scenarios I tested</h3>
+<p><strong>Scenario.</strong> Each test below starts from a question the design asks and ends with evidence. Every command was run by the scenario runner against the live platform, in one run from a fresh build, in the order shown, and the output is what the command printed (shortened here; the screenshot and the evidence file have it in full). Each check is computed by the program from that output, not written by hand. An earlier fresh build was run first and failed two checks: on that build EC2 replaced a real GPU node for capacity while S02 was running, and S11's check asked for at least 30 recorded queue waits where the run recorded 28. I made <code>up.sh</code> wait until both real GPU nodes stay Ready for a minute, made S11 check the size classes instead of a count, tore the build down, built again and ran all eleven scenarios once. What is shown is that run.</p>
+<p><strong>How to read the screenshots.</strong> They are drawn from the recorded text by the renderer in <code>tests/render_terminal.py</code>. Lines starting with <code>$</code> are the commands; lines starting with <code>[PASS]</code> or <code>[FAIL]</code> are the checks. Where a step reads the cluster or the accounting service rather than running one command, the step's title says what it read.</p>
+<h3 id="appendix-design-17-eks-s01-the-platform-at-rest-cluster-real-and-simulated-gpus-kueue-the-second-scheduler-accounting">S01: The platform at rest: cluster, real and simulated GPUs, Kueue, the second scheduler, accounting</h3>
+<p><strong>Design reference:</strong> Two layers: <mark class="kw-act">admission</mark> and placement.</p>
+<p><strong>What this tests.</strong> Check that the platform is what section 2 says before testing behaviour: a standard EKS cluster with a system and a real-GPU node group, 16 simulated 8-GPU nodes in two blocks of two racks, <mark class="kw-tool">Kueue</mark> with the topology and flavors, a second scheduler with two GPU profiles, <mark class="kw-tool">DCGM</mark> on the real GPUs, the accounting service, and no workload.</p>
+<p>Before testing behaviour I check that the platform is what section 2 says: the cluster, the two node groups, the 16 simulated nodes and their GPUs, Kueue and its objects, the second scheduler's two profiles, DCGM and the accounting service, and no workload.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S01: The platform at rest: cluster, real and simulated GPUs, Kueue, the second scheduler, accounting" class="open" data-src="diagrams/appendix/a18-evidence/S01.png" data-title="S01: The platform at rest: cluster, real and simulated GPUs, Kueue, the second scheduler, accounting" type="button"><img alt="Diagram: S01: The platform at rest: cluster, real and simulated GPUs, Kueue, the second scheduler, accounting" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S01.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ aws eks describe-cluster --name ds17-sched --query cluster.{status:status,version:version,autoMode:computeConfig.enabled}</span><span class="ln">{</span><span class="ln">    "status": "ACTIVE",</span><span class="ln">    "version": "1.37",</span><span class="ln">    "autoMode": false</span><span class="ln">}</span><span class="ln"> </span><span class="ln">$ kubectl get nodes -L ds17/pool,node.kubernetes.io/instance-type,network.ds17.io/block,network.ds17.io/rack --sort-by=.metadata.name</span><span class="ln">NAME                                         STATUS   ROLES    AGE     VERSION               POOL       INSTANCE-TYPE   BLOCK   RACK</span><span class="ln">fake-b1-r1-h1                                Ready    &lt;none&gt;   70s     kwok-v0.8.0           fake-gpu                   b1      b1-r1</span><span class="ln">fake-b1-r1-h2                                Ready    &lt;none&gt;   70s     kwok-v0.8.0           fake-gpu                   b1      b1-r1</span><span class="ln">fake-b1-r1-h3                                Ready    &lt;none&gt;   70s     kwok-v0.8.0           fake-gpu                   b1      b1-r1</span><span class="ln">fake-b1-r1-h4                                Ready    &lt;none&gt;   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r1</span><span class="ln">fake-b1-r2-h1                                Ready    &lt;none&gt;   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r2</span><span class="ln">fake-b1-r2-h2                                Ready    &lt;none&gt;   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r2</span><span class="ln">fake-b1-r2-h3                                Ready    &lt;none&gt;   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r2</span><span class="ln">fake-b1-r2-h4                                Ready    &lt;none&gt;   68s     kwok-v0.8.0           fake-gpu                   b1      b1-r2</span><span class="ln">fake-b2-r1-h1                                Ready    &lt;none&gt;   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1</span><span class="ln">fake-b2-r1-h2                                Ready    &lt;none&gt;   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1</span><span class="ln">fake-b2-r1-h3                                Ready    &lt;none&gt;   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1</span><span class="ln">fake-b2-r1-h4                                Ready    &lt;none&gt;   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1</span><span class="ln">fake-b2-r2-h1                                Ready    &lt;none&gt;   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r2</span><span class="ln">fake-b2-r2-h2                                Ready    &lt;none&gt;   67s     kwok-v0.8.0           fake-gpu                   b2      b2-r2</span><span class="ln">fake-b2-r2-h3                                Ready    &lt;none&gt;   67s     kwok-v0.8.0           fake-gpu                   b2      b2-r2</span><span class="ln">… (5 more lines in the screenshot and in evidence/S01.txt)</span><span class="ln"> </span><span class="ln">$ GPUs each pool advertises (status.allocatable nvidia.com/gpu)</span><span class="ln">simulated: 16 nodes, 128 GPUs, blocks ['b1', 'b2'], racks ['b1-r1', 'b1-r2', 'b2-r1', 'b2-r2']</span><span class="ln">real: 2 nodes, 2 GPUs, types ['g6e.2xlarge', 'g6e.xlarge']</span><span class="ln"> </span><span class="ln">$ kubectl -n kueue-system get deploy kueue-controller-manager -o jsonpath='{..image}'</span><span class="ln">registry.k8s.io/kueue/kueue:v0.20.8</span><span class="ln"> </span><span class="ln">$ kubectl get topology,resourceflavor,workloadpriorityclass -o name</span><span class="ln">topology.kueue.x-k8s.io/ds17-fabric</span><span class="ln">resourceflavor.kueue.x-k8s.io/fake-h100</span><span class="ln">resourceflavor.kueue.x-k8s.io/fake-h100-plain</span><span class="ln">workloadpriorityclass.kueue.x-k8s.io/best-effort</span><span class="ln">workloadpriorityclass.kueue.x-k8s.io/release</span><span class="ln">workloadpriorityclass.kueue.x-k8s.io/standard</span><span class="ln"> </span><span class="ln">$ the second scheduler's profiles (ds17-scheduler-config)</span><span class="ln">          "weight": 10</span><span class="ln">          "weight": 1</span><span class="ln">          "weight": 1</span><span class="ln">  "schedulerName": "gpu-binpack"</span><span class="ln">          "weight": 10</span><span class="ln">          "weight": 1</span><span class="ln">          "weight": 1</span><span class="ln">  "schedulerName": "gpu-spread"</span><span class="ln"> </span><span class="ln">$ kubectl -n kube-system get deploy ds17-scheduler -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,IMAGE:.spec.template.spec.containers[0].image</span><span class="ln">NAME             READY   IMAGE</span><span class="ln">ds17-scheduler   1       registry.k8s.io/kube-scheduler:v1.37.1@sha256:b6e2474a6c20309f0df1e7337364281fda95c6a0722259ba7f032a1e177d3f29</span><span class="ln"> </span><span class="ln">$ kubectl -n gpu-monitoring get pods -o wide</span><span class="ln">NAME                  READY   STATUS    RESTARTS   AGE    IP             NODE                                         NOMINATED NODE   READINESS GATES</span><span class="ln">dcgm-exporter-2pddk   1/1     Running   0          4m7s   10.86.61.247   ip-10-86-52-153.us-east-2.compute.internal   &lt;none&gt;           &lt;none&gt;</span><span class="ln">dcgm-exporter-748jz   1/1     Running   0          4m7s   10.86.25.39    ip-10-86-25-255.us-east-2.compute.internal   &lt;none&gt;           &lt;none&gt;</span><span class="ln"> </span><span class="ln">$ kubectl get jobs,workloads -A</span><span class="ln"> </span><span class="ln">No resources found</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the cluster is ACTIVE on Kubernetes 1.37, standard EKS (Auto Mode off)</td>
+<td>Terraform creates a plain cluster with managed node groups and no compute configuration.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>16 simulated nodes with 8 GPUs each (128 GPUs) in 2 blocks of 2 racks, all Ready; 2 real one-GPU nodes; 2 system nodes</td>
+<td>KWOK keeps the Node objects up/make_fleet.py created Ready; the device plugin advertises the real GPUs.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>Kueue runs with the topology ds17-fabric, two flavors over the simulated fleet and three priority classes</td>
+<td>The platform layer creates them after the Kueue chart is ready.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>a second kube-scheduler runs with a bin-packing (MostAllocated) and a spreading (LeastAllocated) GPU profile</td>
+<td>Both profiles weight GPUs 10 to 1 over CPU and memory and differ only in strategy.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>DCGM runs on both real GPU nodes, and the accounting service is sampling</td>
+<td>The chart's DaemonSet selects the GPU pool; the accounting service samples every 10 s.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>no job and no workload exist yet</td>
+<td>A fresh build.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Every fact comes from the system that owns it: the cluster from the EKS API, nodes and their allocatable GPUs from the API server, the profiles from the scheduler's own ConfigMap.</li>
+<li>The simulated nodes are listed next to the real ones by the same command; the difference is visible in their labels and instance types.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The simulated nodes are Ready because KWOK renews their leases and status, as a <mark class="kw-tool">kubelet</mark> would.</li>
+<li>The real GPU nodes advertise one GPU each because the <mark class="kw">device plugin</mark> runs on the GPU pool.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s02-allocation-is-not-utilization-two-real-gpus-one-working-one-held-by-an-idle-notebook">S02: Allocation is not utilization: two real GPUs, one working, one held by an idle notebook</h3>
+<p><strong>Design reference:</strong> Where GPU-hours go.</p>
+<p><strong>What this tests.</strong> On the two real GPUs, start a pod that runs the CUDA n-body benchmark in a loop and a 'notebook' pod that holds a GPU and does nothing. Both GPUs are allocated; read what <mark class="kw-tool">DCGM</mark> measures on each, and how the accounting service classifies them.</p>
+<p>The design's first warning is that allocation is not utilization. On the two real GPUs, one pod runs the CUDA n-body benchmark and one 'notebook' holds a GPU doing nothing. Both GPUs are 100% allocated.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S02: Allocation is not utilization: two real GPUs, one working, one held by an idle notebook" class="open" data-src="diagrams/appendix/a18-evidence/S02.png" data-title="S02: Allocation is not utilization: two real GPUs, one working, one held by an idle notebook" type="button"><img alt="Diagram: S02: Allocation is not utilization: two real GPUs, one working, one held by an idle notebook" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S02.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f real-gpu-pods.yaml   <span class="tc"># trainer-busy (n-body loop), notebook-idle (sleep)</span></span><span class="ln">pod/trainer-busy created</span><span class="ln">pod/notebook-idle created</span><span class="ln"> </span><span class="ln">$ kubectl -n gpu-real get pods -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName,PHASE:.status.phase,GPU:.spec.containers[0].resources.limits.nvidia\.com/gpu</span><span class="ln">POD             NODE                                         PHASE     GPU</span><span class="ln">notebook-idle   ip-10-86-25-255.us-east-2.compute.internal   Running   1</span><span class="ln">trainer-busy    ip-10-86-52-153.us-east-2.compute.internal   Running   1</span><span class="ln"> </span><span class="ln">$ DCGM_FI_DEV_GPU_UTIL_RATIO from each DCGM exporter pod (kubectl get --raw .../pods/&lt;exporter&gt;:9400/proxy/metrics)</span><span class="ln">DCGM_FI_DEV_GPU_UTIL_RATIO{gpu="0",UUID="GPU-8195f9d4-db93-2ae3-790b-4b44d4db51c1",pci_bus_id="00000000:30:00.0",device="nvidia0",modelName="NVIDIA L40S",hostname="ip-10-86-52-153.us-east-2.compute.i…</span><span class="ln">DCGM_FI_DEV_GPU_UTIL_RATIO{gpu="0",UUID="GPU-1259fda4-38e4-a2d7-e464-6efb65514e1e",pci_bus_id="00000000:30:00.0",device="nvidia0",modelName="NVIDIA L40S",hostname="ip-10-86-25-255.us-east-2.compute.i…</span><span class="ln"> </span><span class="ln">$ accounting: GPU-minutes of the real pool over the last 90 s, by category</span><span class="ln">{</span><span class="ln"> "samples": 10,</span><span class="ln"> "gpu_minutes_by_category": {</span><span class="ln">  "allocated_idle": 1.7,</span><span class="ln">  "busy": 1.7</span><span class="ln"> },</span><span class="ln"> "share": {</span><span class="ln">  "allocated_idle": 0.5,</span><span class="ln">  "busy": 0.5</span><span class="ln"> }</span><span class="ln">}</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>both GPUs are allocated, on two different nodes: 100% allocation</td>
+<td>Each pod requests one nvidia.com/gpu; the device plugin assigns each a whole device.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>DCGM measures the trainer's GPU above 50% busy and the notebook's at 0%</td>
+<td>Allocation counts requests; DCGM counts the GPU's own activity.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the accounting service puts half of the allocated GPU-minutes in busy and half in allocated_idle</td>
+<td>It matches DCGM's per-pod utilization to the pod that holds each GPU.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Utilization is DCGM's own measurement, read from each exporter pod and labelled with the pod that holds the GPU.</li>
+<li>The accounting service gets the same numbers independently and classifies them; its result is compared, not copied.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The trainer's GPU is busy because the benchmark keeps its kernels running; the notebook's is at 0% because sleep never touches it.</li>
+<li>The accounting service splits the allocated GPU-minutes in half because one of two allocated GPUs is idle.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s03-gang-scheduling-per-pod-placement-deadlocks-two-jobs-kueue-admits-one-whole-job">S03: Gang scheduling: per-pod placement deadlocks two jobs; Kueue admits one whole job</h3>
+<p><strong>Design reference:</strong> <mark class="kw">Gang scheduling</mark>: all or nothing.</p>
+<p><strong>What this tests.</strong> Leave 16 free GPUs in rack b1-r1 and submit two 12-pod jobs (one GPU per pod) at the same time, first straight to the scheduler, then through a <mark class="kw-tool">Kueue</mark> queue with a 16-GPU <mark class="kw">quota</mark>. Distributed training needs all 12 workers.</p>
+<p>Two jobs of 12 one-GPU pods compete for 16 free GPUs in one rack, first straight through the scheduler, then through a Kueue queue with 16 GPUs of quota. Real job controllers create pods in growing batches; to make the race reproducible, the scenario raises both jobs' parallelism in alternating steps of 2.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S03: Gang scheduling: per-pod placement deadlocks two jobs; Kueue admits one whole job" class="open" data-src="diagrams/appendix/a18-evidence/S03.png" data-title="S03: Gang scheduling: per-pod placement deadlocks two jobs; Kueue admits one whole job" type="button"><img alt="Diagram: S03: Gang scheduling: per-pod placement deadlocks two jobs; Kueue admits one whole job" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S03.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f filler.yaml   <span class="tc"># 2 pods x 8 GPUs in rack b1-r1: 16 of its 32 GPUs remain free</span></span><span class="ln">job.batch/filler created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f gang-a.yaml -f gang-b.yaml   <span class="tc"># no queue: every pod goes straight to the scheduler; parallelism 2 of 12</span></span><span class="ln">job.batch/gang-a created</span><span class="ln">job.batch/gang-b created</span><span class="ln"> </span><span class="ln">$ kubectl -n nokueue get jobs   <span class="tc"># after raising both to parallelism 12 in alternating steps of 2</span></span><span class="ln">JOB      PARALLELISM   COMPLETIONS</span><span class="ln">gang-a   12            12</span><span class="ln">gang-b   12            12</span><span class="ln"> </span><span class="ln">$ pods of each job after 40 s</span><span class="ln">gang-a {'running': 8, 'pending': 4, 'gpus_held': 8}</span><span class="ln">gang-b {'running': 8, 'pending': 4, 'gpus_held': 8}</span><span class="ln"> </span><span class="ln">$ accounting /now: GPUs waiting for a gang</span><span class="ln">16</span><span class="ln"> </span><span class="ln">$ kubectl apply -f gang-a.yaml -f gang-b.yaml   <span class="tc"># labelled kueue.x-k8s.io/queue-name: gangs (ClusterQueue quota 16 GPUs)</span></span><span class="ln">job.batch/gang-a created</span><span class="ln">job.batch/gang-b created</span><span class="ln"> </span><span class="ln">$ kubectl -n team-llm get workloads -o custom-columns=WORKLOAD:.metadata.name,ADMITTED:.status.conditions[?(@.type=='Admitted')].status,PENDING:.status.conditions[?(@.type=='QuotaReserved')].message</span><span class="ln">WORKLOAD           ADMITTED   PENDING</span><span class="ln">job-gang-a-1df3d   True       Quota reserved in ClusterQueue cq-gang</span><span class="ln">job-gang-b-e54e5   False      couldn't assign flavors to pod set main: insufficient unused quota for nvidia.com/gpu in flavor fake-h100-plain, 8 more needed</span><span class="ln"> </span><span class="ln">$ pods of each job after admission</span><span class="ln">gang-a {'running': 12, 'pending': 0, 'gpus_held': 12}</span><span class="ln">gang-b {'running': 0, 'pending': 0, 'gpus_held': 0}</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>without admission both jobs start part of their pods and neither has all 12: a deadlock that holds GPUs</td>
+<td>The scheduler places each pod alone as GPUs are free; both jobs take part of the 16 and wait for the rest.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>with Kueue one job is admitted whole (12 pods running) and the other holds nothing until it fits; no GPU waits for a gang</td>
+<td>Kueue admits a workload only if its whole request fits the quota; the second one stays suspended with no pods.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The pod counts are the API server's; the GPUs waiting for a gang are the accounting service's count of GPUs held by pods of an incomplete gang.</li>
+<li>The Kueue half uses the same jobs, nodes and free GPUs; only the queue label differs.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Without <mark class="kw-act">admission</mark> each pod is placed on its own as soon as a GPU is free, so both jobs take part of the 16 and neither can start training.</li>
+<li>With Kueue the second job's whole request does not fit the remaining quota, so it stays suspended with no pods and holds nothing.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s04-quota-fit-is-not-node-fit-the-pods-ready-timeout-and-topology-aware-admission">S04: Quota fit is not node fit: the pods-ready timeout, and topology-aware admission</h3>
+<p><strong>Design reference:</strong> <mark class="kw">Gang scheduling</mark>: all or nothing (waitForPodsReady); <mark class="kw">Topology-aware</mark> gang placement.</p>
+<p><strong>What this tests.</strong> Rack b1-r1 has 8 free GPUs, but the queue has 16 GPUs of <mark class="kw">quota</mark>. Submit a 12-pod job through a queue without topology: <mark class="kw-tool">Kueue</mark> <mark class="kw-act">admits</mark> it, only 8 pods can run, and waitForPodsReady (60 s here) must <mark class="kw-act">evict</mark> and <mark class="kw-act">requeue</mark> it. Then free the rack and watch it start. Finally submit the same job through a topology-aware queue, which checks the rack's real free GPUs before <mark class="kw-act">admitting</mark>.</p>
+<p>Quota fit is not node fit. The queue has 16 GPUs of quota but the rack has only 8 free, because pods Kueue does not manage use the rest.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S04: Quota fit is not node fit: the pods-ready timeout, and topology-aware admission" class="open" data-src="diagrams/appendix/a18-evidence/S04.png" data-title="S04: Quota fit is not node fit: the pods-ready timeout, and topology-aware admission" type="button"><img alt="Diagram: S04: Quota fit is not node fit: the pods-ready timeout, and topology-aware admission" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S04.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f filler.yaml   <span class="tc"># 3 pods x 8 GPUs: rack b1-r1 keeps 8 of 32 GPUs free</span></span><span class="ln">job.batch/filler created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f train-12.yaml   <span class="tc"># 12 pods x 1 GPU, queue plain (flavor without topology)</span></span><span class="ln">job.batch/train-12 created</span><span class="ln"> </span><span class="ln">$ pods 15 s after admission</span><span class="ln">{'running': 8, 'pending': 4, 'gpus_held': 8}</span><span class="ln"> </span><span class="ln">$ kubectl -n team-llm get workload &lt;train-12's&gt; -o jsonpath='{.status.conditions[?(@.type=="Evicted")]} {.status.requeueState}'</span><span class="ln">{"reason": "PodsReadyTimeout", "message": "Exceeded the PodsReady timeout team-llm/job-train-12-f0d95", "requeueState": {"count": 1, "requeueAt": "2026-11-27T23:35:09Z"}}</span><span class="ln"> </span><span class="ln">$ after the filler is deleted (rack fully free)</span><span class="ln">{'running': 12, 'pending': 0, 'gpus_held': 12}</span><span class="ln"> </span><span class="ln">$ kubectl apply -f filler.yaml   <span class="tc"># the same 3 x 8 GPUs: rack b1-r1 keeps 8 free</span></span><span class="ln">job.batch/filler created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f train-12-tas.yaml   <span class="tc"># the same job, queue tas (flavor with topology), podset-required-topology: rack</span></span><span class="ln">job.batch/train-12 created</span><span class="ln"> </span><span class="ln">$ the workload 30 s later</span><span class="ln">{"admitted": false, "pods": {"running": 0, "pending": 0, "gpus_held": 0}, "message": "couldn't assign flavors to pod set main: topology \"ds17-fabric\" allows to fit only 8 out of 12 pod(s); all pods…</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>Kueue admits the job on quota, 8 pods run and 4 stay pending, and after the 60 s timeout the workload is evicted (PodsReadyTimeout) and requeued with backoff</td>
+<td>waitForPodsReady: all pods of an admitted workload must be ready within the timeout, or it gives its quota back and waits.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>once the rack has room, the requeued workload is admitted again and all 12 pods run</td>
+<td>The requeue backoff expired and the quota still fitted; this time the nodes did too.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>through the topology-aware queue the job is not admitted while the rack lacks 12 free GPUs, and holds none</td>
+<td>TAS checks the free GPUs of the topology domain, including those used by pods Kueue does not manage, before it admits.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The eviction reason and requeue count are Kueue's own Workload status.</li>
+<li>The topology-aware queue's refusal is Kueue's own message, naming how many of the 12 pods fit in the rack.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Kueue admits on quota, the scheduler can place only 8 pods, and waitForPodsReady evicts the workload after 60 s and <mark class="kw-act">requeues</mark> it with backoff.</li>
+<li>When the rack is free, the requeued workload is admitted again and every pod is placed.</li>
+<li>Topology-aware <mark class="kw-act">admission</mark> counts the rack's real free GPUs, including those used by unmanaged pods, so it never admits what cannot be placed.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s05-topology-aware-gang-placement-whole-jobs-inside-one-block-slices-inside-one-rack">S05: Topology-aware gang placement: whole jobs inside one block, slices inside one rack</h3>
+<p><strong>Design reference:</strong> <mark class="kw">Topology-aware</mark> gang placement.</p>
+<p><strong>What this tests.</strong> Through one queue on the topology-aware flavor, with more <mark class="kw">quota</mark> (256 GPUs) than the 128 GPUs exist so that only placement can hold a job back, submit in order: an 8-node job that requires one block, a 4-node job that requires one block with slices of 2 nodes that each require one rack, a second 8-node job that requires one block (no block has 8 free nodes left), and a 4-node job that only prefers one rack.</p>
+<p>Four jobs through one topology-aware queue whose quota (256 GPUs) exceeds the fleet, so only the topology can hold a job back.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S05: Topology-aware gang placement: whole jobs inside one block, slices inside one rack" class="open" data-src="diagrams/appendix/a18-evidence/S05.png" data-title="S05: Topology-aware gang placement: whole jobs inside one block, slices inside one rack" type="button"><img alt="Diagram: S05: Topology-aware gang placement: whole jobs inside one block, slices inside one rack" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S05.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f pretrain.yaml   <span class="tc"># 8 pods x 8 GPUs, topology=network.ds17.io/block</span></span><span class="ln">job.batch/pretrain created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f finetune.yaml   <span class="tc"># 4 pods x 8 GPUs, topology=network.ds17.io/block, slice_topology=network.ds17.io/rack, slice_size=2</span></span><span class="ln">job.batch/finetune created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f pretrain-2.yaml   <span class="tc"># 8 pods x 8 GPUs, topology=network.ds17.io/block</span></span><span class="ln">job.batch/pretrain-2 created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f flex.yaml   <span class="tc"># 4 pods x 8 GPUs, preferred=network.ds17.io/rack</span></span><span class="ln">job.batch/flex created</span><span class="ln"> </span><span class="ln">$ where each job's pods landed (node labels network.ds17.io/block and rack)</span><span class="ln">pretrain    admitted True  pods 8/8  blocks ['b1']  racks [('b1-r1', 4), ('b1-r2', 4)]</span><span class="ln">finetune    admitted True  pods 4/4  blocks ['b2']  racks [('b2-r1', 4)]</span><span class="ln">pretrain-2  admitted False pods 0/8  blocks []  racks []</span><span class="ln">flex        admitted True  pods 4/4  blocks ['b2']  racks [('b2-r2', 4)]</span><span class="ln"> </span><span class="ln">$ the second 8-node job's QuotaReserved condition</span><span class="ln">couldn't assign flavors to pod set main: topology "ds17-fabric" allows to fit only 4 out of 8 pod(s); all pods must fit in a single "network.ds17.io/block" topology domain. Total nodes: 16; excluded:…</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the first 8-node job runs entirely inside one block</td>
+<td>podset-required-topology: block; Kueue picks a block with 8 free nodes and pins each pod to a node in it.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the sliced job runs in one block, with every rack holding a whole number of 2-node slices</td>
+<td>podset-slice-required-topology: rack with podset-slice-size 2.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the second 8-node job waits, holding nothing, because no block has 8 free nodes</td>
+<td>Required topology waits for a domain rather than spreading the job.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the job that only prefers a rack is admitted anyway, in the smallest domain that fits</td>
+<td>podset-preferred-topology tries one rack and falls back to a wider domain; BestEffortFIFO lets it pass the waiting job.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Each pod's node is read from the API server, and its block and rack from that node's labels.</li>
+<li>The waiting job's reason is <mark class="kw-tool">Kueue</mark>'s own message.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>A required block makes Kueue pick a block with enough free nodes and pin every pod there.</li>
+<li>Slices of 2 nodes that each require a rack keep pairs together inside the block.</li>
+<li>The second 8-node job waits because neither block has 8 free nodes; the job that only prefers a rack is <mark class="kw-act">admitted</mark> into a wider domain, and BestEffortFIFO lets it pass.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s06-bin-packing-against-spreading-the-same-64-gpus-of-small-jobs-and-a-4-node-gang-after-them">S06: Bin-packing against spreading: the same 64 GPUs of small jobs, and a 4-node gang after them</h3>
+<p><strong>Design reference:</strong> <mark class="kw-act">Bin-packing</mark> to reduce fragmentation.</p>
+<p><strong>What this tests.</strong> Replay the same seeded trace of single-pod 1-, 2- and 4-GPU jobs (64 GPUs) twice, once with the <mark class="kw-act">spreading</mark> profile and once with the bin-packing profile of the second scheduler, through a queue on the flavor without topology so that only the scheduler decides placement. After each, read the fragmentation and submit a gang of 4 pods with 8 GPUs each.</p>
+<p>The same seeded trace of 31 single-pod jobs (64 GPUs) runs twice through a queue without topology, once with each scheduler profile, and then a gang of four 8-GPU pods is submitted.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S06: Bin-packing against spreading: the same 64 GPUs of small jobs, and a 4-node gang after them" class="open" data-src="diagrams/appendix/a18-evidence/S06.png" data-title="S06: Bin-packing against spreading: the same 64 GPUs of small jobs, and a 4-node gang after them" type="button"><img alt="Diagram: S06: Bin-packing against spreading: the same 64 GPUs of small jobs, and a 4-node gang after them" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S06.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f trace.yaml   <span class="tc"># 31 single-pod jobs of 1, 2 or 4 GPUs (64 GPUs), schedulerName gpu-spread</span></span><span class="ln">job.batch/small-00 created</span><span class="ln">job.batch/small-01 created</span><span class="ln">job.batch/small-02 created</span><span class="ln">job.batch/small-03 created</span><span class="ln">job.batch/small-04 created</span><span class="ln">job.batch/small-05 created</span><span class="ln">job.batch/small-06 created</span><span class="ln">job.batch/small-07 created</span><span class="ln">job.batch/small-08 created</span><span class="ln">job.batch/small-09 created</span><span class="ln">job.batch/small-10 created</span><span class="ln">job.batch/small-11 created</span><span class="ln">job.batch/small-12 created</span><span class="ln">job.batch/small-13 created</span><span class="ln">job.batch/small-14 created</span><span class="ln">job.batch/small-15 created</span><span class="ln">… (15 more lines in the screenshot and in evidence/S06.txt)</span><span class="ln"> </span><span class="ln">$ gpu-spread: free GPUs per node, then the fragmentation report</span><span class="ln">5 4 2 4 2 3 2 4 4 5 5 4 5 5 5 5</span><span class="ln">{"free_gpus": 64, "whole_free_nodes": 0, "fragmented_share": 1.0, "largest_gang_of_8gpu_pods": 0, "pods_of_1_that_fit": 64, "pods_of_2_that_fit": 28, "pods_of_4_that_fit": 12, "pods_of_8_that_fit": 0}</span><span class="ln"> </span><span class="ln">$ kubectl apply -f gang-4x8.yaml   <span class="tc"># 4 pods x 8 GPUs, schedulerName gpu-spread</span></span><span class="ln">job.batch/gang-4x8 created</span><span class="ln"> </span><span class="ln">$ gpu-spread: the gang 30 s after submission, and accounting /now for the simulated fleet (GPUs per category)</span><span class="ln">{"gang": {"running": 0, "pending": 4, "gpus_held": 0}, "categories": {"busy": 64, "fragmented": 64}}</span><span class="ln"> </span><span class="ln">$ kubectl apply -f trace.yaml   <span class="tc"># 31 single-pod jobs of 1, 2 or 4 GPUs (64 GPUs), schedulerName gpu-binpack</span></span><span class="ln">job.batch/small-00 created</span><span class="ln">job.batch/small-01 created</span><span class="ln">job.batch/small-02 created</span><span class="ln">job.batch/small-03 created</span><span class="ln">job.batch/small-04 created</span><span class="ln">job.batch/small-05 created</span><span class="ln">job.batch/small-06 created</span><span class="ln">job.batch/small-07 created</span><span class="ln">job.batch/small-08 created</span><span class="ln">job.batch/small-09 created</span><span class="ln">job.batch/small-10 created</span><span class="ln">job.batch/small-11 created</span><span class="ln">job.batch/small-12 created</span><span class="ln">job.batch/small-13 created</span><span class="ln">job.batch/small-14 created</span><span class="ln">job.batch/small-15 created</span><span class="ln">… (15 more lines in the screenshot and in evidence/S06.txt)</span><span class="ln"> </span><span class="ln">$ gpu-binpack: free GPUs per node, then the fragmentation report</span><span class="ln">0 0 0 8 0 0 0 8 0 0 8 8 8 8 8 8</span><span class="ln">{"free_gpus": 64, "whole_free_nodes": 8, "fragmented_share": 0.0, "largest_gang_of_8gpu_pods": 8, "pods_of_1_that_fit": 64, "pods_of_2_that_fit": 32, "pods_of_4_that_fit": 16, "pods_of_8_that_fit": 8}</span><span class="ln"> </span><span class="ln">$ kubectl apply -f gang-4x8.yaml   <span class="tc"># 4 pods x 8 GPUs, schedulerName gpu-binpack</span></span><span class="ln">job.batch/gang-4x8 created</span><span class="ln"> </span><span class="ln">$ gpu-binpack: the gang 30 s after submission, and accounting /now for the simulated fleet (GPUs per category)</span><span class="ln">{"gang": {"running": 4, "pending": 0, "gpus_held": 32}, "categories": {"busy": 96, "free": 32}}</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>spreading leaves almost no whole free node; bin-packing leaves at least 6 of 16</td>
+<td>MostAllocated scores the fullest node highest, so small jobs fill few nodes; LeastAllocated puts each on the emptiest node.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>after spreading the 4-node gang cannot start, and its waiting GPUs are counted as fragmented; after packing it runs</td>
+<td>The free GPUs are the same in total; only their arrangement decides whether an 8-GPU pod fits.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Measured in this run:</strong> Whole free nodes: spreading 0, packing 8; fragmented share 1.0 vs 0.0.</p>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Both runs use the same trace, the same nodes and the same scheduler binary; only schedulerName differs.</li>
+<li>Free GPUs per node are computed from the pods the API server lists on each node.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li><mark class="kw">MostAllocated</mark> <mark class="kw-act">scores</mark> the fullest node that fits highest, so small jobs fill nodes one after another and whole nodes stay free.</li>
+<li><mark class="kw">LeastAllocated</mark> scores the emptiest node highest, so every node gets a few small jobs and none stays whole; the gang's 8-GPU pods fit nowhere, and the accounting service counts those free GPUs as fragmented.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s07-defragmentation-drain-the-cheapest-nodes-so-a-waiting-4-node-gang-can-start">S07: Defragmentation: drain the cheapest nodes so a waiting 4-node gang can start</h3>
+<p><strong>Design reference:</strong> Defragmentation and right-sizing.</p>
+<p><strong>What this tests.</strong> Recreate S06's <mark class="kw-act">spread</mark> state, so the 4-node gang waits. Plan which nodes to empty with the fewest GPUs moved, <mark class="kw-act">drain</mark> them (the <mark class="kw-act">evicted</mark> small pods are recreated on other nodes), and let the gang take the whole nodes. Count the work the moved pods lost since their last <mark class="kw-act">checkpoint</mark>.</p>
+<p>Packing only helps new pods. Starting from the spread layout with the gang waiting, the planner picks the nodes that are cheapest to empty, they are drained, and the gang takes them.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S07: Defragmentation: drain the cheapest nodes so a waiting 4-node gang can start" class="open" data-src="diagrams/appendix/a18-evidence/S07.png" data-title="S07: Defragmentation: drain the cheapest nodes so a waiting 4-node gang can start" type="button"><img alt="Diagram: S07: Defragmentation: drain the cheapest nodes so a waiting 4-node gang can start" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S07.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f trace.yaml   <span class="tc"># 31 single-pod jobs of 1, 2 or 4 GPUs (64 GPUs), schedulerName gpu-spread</span></span><span class="ln">job.batch/small-00 created</span><span class="ln">job.batch/small-01 created</span><span class="ln">job.batch/small-02 created</span><span class="ln">job.batch/small-03 created</span><span class="ln">job.batch/small-04 created</span><span class="ln">job.batch/small-05 created</span><span class="ln">job.batch/small-06 created</span><span class="ln">job.batch/small-07 created</span><span class="ln">job.batch/small-08 created</span><span class="ln">job.batch/small-09 created</span><span class="ln">job.batch/small-10 created</span><span class="ln">job.batch/small-11 created</span><span class="ln">job.batch/small-12 created</span><span class="ln">job.batch/small-13 created</span><span class="ln">job.batch/small-14 created</span><span class="ln">job.batch/small-15 created</span><span class="ln">… (15 more lines in the screenshot and in evidence/S07.txt)</span><span class="ln"> </span><span class="ln">$ kubectl apply -f gang-4x8.yaml   <span class="tc"># 4 pods x 8 GPUs, waits for whole nodes</span></span><span class="ln">job.batch/gang-4x8 created</span><span class="ln"> </span><span class="ln">$ before: fragmentation, and the gang</span><span class="ln">{"fragmentation": {"free_gpus": 64, "whole_free_nodes": 0, "fragmented_share": 1.0, "largest_gang_of_8gpu_pods": 0, "pods_of_1_that_fit": 64, "pods_of_2_that_fit": 28, "pods_of_4_that_fit": 12, "pods…</span><span class="ln"> </span><span class="ln">$ the compaction plan (fewest GPUs moved first)</span><span class="ln">{"drain": ["fake-b1-r1-h1", "fake-b1-r1-h2", "fake-b1-r2-h3", "fake-b2-r1-h1"], "gpus_moved": 12, "room_elsewhere": 44, "feasible": true}</span><span class="ln"> </span><span class="ln">$ kubectl drain fake-b1-r1-h1 --pod-selector=ds17/gang   <span class="tc"># evict the small pods, cordon the node</span></span><span class="ln">node/fake-b1-r1-h1 cordoned</span><span class="ln">evicting pod team-research/small-21-0-tfvpv</span><span class="ln">evicting pod team-research/small-04-0-hhwc8</span><span class="ln">pod/small-21-0-tfvpv evicted</span><span class="ln">pod/small-04-0-hhwc8 evicted</span><span class="ln">node/fake-b1-r1-h1 drained</span><span class="ln"> </span><span class="ln">$ kubectl drain fake-b1-r1-h2 --pod-selector=ds17/gang   <span class="tc"># evict the small pods, cordon the node</span></span><span class="ln">node/fake-b1-r1-h2 cordoned</span><span class="ln">evicting pod team-research/small-20-0-zwwqx</span><span class="ln">evicting pod team-research/small-02-0-nxhwf</span><span class="ln">pod/small-02-0-nxhwf evicted</span><span class="ln">pod/small-20-0-zwwqx evicted</span><span class="ln">node/fake-b1-r1-h2 drained</span><span class="ln"> </span><span class="ln">$ kubectl drain fake-b1-r2-h3 --pod-selector=ds17/gang   <span class="tc"># evict the small pods, cordon the node</span></span><span class="ln">node/fake-b1-r2-h3 cordoned</span><span class="ln">evicting pod team-research/small-22-0-bbm9v</span><span class="ln">evicting pod team-research/small-12-0-wtbt2</span><span class="ln">pod/small-12-0-wtbt2 evicted</span><span class="ln">pod/small-22-0-bbm9v evicted</span><span class="ln">node/fake-b1-r2-h3 drained</span><span class="ln"> </span><span class="ln">$ kubectl drain fake-b2-r1-h1 --pod-selector=ds17/gang   <span class="tc"># evict the small pods, cordon the node</span></span><span class="ln">node/fake-b2-r1-h1 cordoned</span><span class="ln">evicting pod team-research/small-21-0-f5xbn</span><span class="ln">evicting pod team-research/small-16-0-rxv5w</span><span class="ln">evicting pod team-research/small-05-0-9b9m7</span><span class="ln">pod/small-21-0-f5xbn evicted</span><span class="ln">pod/small-05-0-9b9m7 evicted</span><span class="ln">pod/small-16-0-rxv5w evicted</span><span class="ln">node/fake-b2-r1-h1 drained</span><span class="ln"> </span><span class="ln">$ kubectl uncordon fake-b1-r1-h1 fake-b1-r1-h2 fake-b1-r2-h3 fake-b2-r1-h1   <span class="tc"># the empty nodes take new pods again</span></span><span class="ln">node/fake-b1-r1-h1 already uncordoned</span><span class="ln">node/fake-b1-r1-h2 already uncordoned</span><span class="ln">node/fake-b1-r2-h3 already uncordoned</span><span class="ln">node/fake-b2-r1-h1 already uncordoned</span><span class="ln"> </span><span class="ln">$ after: the gang, the small jobs, fragmentation and the work lost</span><span class="ln">{"gang": {"running": 4, "pending": 0, "gpus_held": 32}, "small_pods_running": 31, "fragmentation": {"free_gpus": 32, "whole_free_nodes": 0, "fragmented_share": 1.0, "largest_gang_of_8gpu_pods": 0, "p…</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the plan empties 4 nodes and the moved GPUs fit on the other nodes</td>
+<td>Nodes are sorted by GPUs in use; only nodes whose GPUs are all held by movable pods are candidates.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>after the drain every small job runs again elsewhere, and the 4-node gang runs on the emptied nodes</td>
+<td>The podFailurePolicy ignores DisruptionTarget, so the Job recreates each evicted pod.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>compaction cost work: the moved pods lost the time since their last checkpoint</td>
+<td>Each pod checkpoints every 600 s (ds17/checkpoint-seconds); everything since is lost.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The plan is computed from the pods on each node; the drain uses kubectl drain, which evicts through the Eviction API.</li>
+<li>Lost work is computed from each moved pod's start time and its 600 s checkpoint interval.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Evicted pods get a DisruptionTarget condition, the Jobs' pod failure policy ignores it, and each Job recreates its pod on another node.</li>
+<li>The emptied nodes are whole again, so the gang's pods fit there.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s08-quotas-nominal-shares-borrowing-a-lending-limit-and-reclaim">S08: Quotas: nominal shares, borrowing, a lending limit, and reclaim</h3>
+<p><strong>Design reference:</strong> <mark class="kw">Quotas</mark>: nominal, <mark class="kw-act">borrowing</mark> and lending.</p>
+<p><strong>What this tests.</strong> Two teams in one <mark class="kw">cohort</mark>, 32 GPUs of nominal quota each. Vision lends at most 24 of its 32; LLM may borrow up to 32. LLM submits eight 8-GPU jobs while vision is idle, then vision submits three.</p>
+<p>Two teams with 32 GPUs of nominal quota each in one cohort. Vision lends at most 24; LLM may borrow up to 32.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S08: Quotas: nominal shares, borrowing, a lending limit, and reclaim" class="open" data-src="diagrams/appendix/a18-evidence/S08.png" data-title="S08: Quotas: nominal shares, borrowing, a lending limit, and reclaim" type="button"><img alt="Diagram: S08: Quotas: nominal shares, borrowing, a lending limit, and reclaim" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S08.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f llm-jobs.yaml   <span class="tc"># 8 jobs x 8 GPUs = 64 GPUs; nominal 32</span></span><span class="ln">job.batch/llm-0 created</span><span class="ln">job.batch/llm-1 created</span><span class="ln">job.batch/llm-2 created</span><span class="ln">job.batch/llm-3 created</span><span class="ln">job.batch/llm-4 created</span><span class="ln">job.batch/llm-5 created</span><span class="ln">job.batch/llm-6 created</span><span class="ln">job.batch/llm-7 created</span><span class="ln"> </span><span class="ln">$ kubectl get clusterqueue cq-llm cq-vision -o custom-columns=QUEUE:.metadata.name,ADMITTED:.status.admittedWorkloads,PENDING:.status.pendingWorkloads,USAGE:.status.flavorsUsage[0].resources[0].total,BORROWED:.status.flavorsUsage[0].resources[0].borrowed</span><span class="ln">QUEUE       ADMITTED   PENDING   USAGE   BORROWED</span><span class="ln">cq-llm      7          1         7       0</span><span class="ln">cq-vision   0          0         0       0</span><span class="ln"> </span><span class="ln">$ the pending LLM job's QuotaReserved condition</span><span class="ln">couldn't assign flavors to pod set main: insufficient unused quota for nvidia.com/gpu in flavor fake-h100-plain, 8 more needed</span><span class="ln"> </span><span class="ln">$ accounting /now: free GPUs blocked by quota policy while that job waits</span><span class="ln">72</span><span class="ln"> </span><span class="ln">$ kubectl apply -f vision-jobs.yaml   <span class="tc"># vision returns: 3 jobs x 8 GPUs</span></span><span class="ln">job.batch/vision-0 created</span><span class="ln">job.batch/vision-1 created</span><span class="ln">job.batch/vision-2 created</span><span class="ln"> </span><span class="ln">$ kubectl get clusterqueue cq-llm cq-vision -o custom-columns=QUEUE:.metadata.name,ADMITTED:.status.admittedWorkloads,PENDING:.status.pendingWorkloads,USAGE:.status.flavorsUsage[0].resources[0].total,BORROWED:.status.flavorsUsage[0].resources[0].borrowed</span><span class="ln">QUEUE       ADMITTED   PENDING   USAGE   BORROWED</span><span class="ln">cq-llm      5          3         5       0</span><span class="ln">cq-vision   3          0         3       0</span><span class="ln"> </span><span class="ln">$ LLM workloads preempted, with the reason</span><span class="ln">{"llm-4": "InCohortReclamation", "llm-5": "InCohortReclamation"}</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>LLM runs 56 GPUs: its 32 plus the 24 vision may lend; the eighth job waits although the fleet has free GPUs</td>
+<td>borrowingLimit 32 on LLM, lendingLimit 24 on vision: 8 of vision's GPUs stay reserved for vision.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>vision gets its 24 GPUs at once: one job from its reserved 8, two by reclaiming borrowed GPUs from LLM (InCohortReclamation)</td>
+<td>reclaimWithinCohort: Any; LLM's usage beyond its nominal 32 was borrowed, so it is what gets preempted.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Usage, borrowing and <mark class="kw-act">preemption</mark> reasons are <mark class="kw-tool">Kueue</mark>'s own <mark class="kw">ClusterQueue</mark> and Workload status.</li>
+<li>The blocked-by-quota GPUs are the accounting service's count of free GPUs that fit a pending workload that is not <mark class="kw-act">admitted</mark>.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>LLM's eighth job waits because borrowing stops at vision's lending limit, although the fleet has free GPUs.</li>
+<li>When vision returns, its kept 8 GPUs start one job at once, and reclaimWithinCohort preempts two of LLM's borrowed jobs for the other two.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s09-fair-share-weighted-shares-of-borrowed-capacity-and-admission-fair-sharing-inside-a-team">S09: Fair share: weighted shares of borrowed capacity, and admission fair sharing inside a team</h3>
+<p><strong>Design reference:</strong> Fair share: weighted shares and fairness over time.</p>
+<p><strong>What this tests.</strong> A pool queue owns 96 GPUs and runs nothing; research (weight 1) and LLM (weight 2) own none and <mark class="kw-act">borrow</mark>. Research submits twelve 8-GPU jobs first and takes everything; then LLM submits twelve. Then, inside one team queue with 16 GPUs and usage-based <mark class="kw-act">admission</mark> <mark class="kw">fair sharing</mark>, a sweep project that has been using the queue competes with a paper project that has not.</p>
+<p>Borrowed capacity is split by weight between two teams, and inside one team a project that has used less goes first.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S09: Fair share: weighted shares of borrowed capacity, and admission fair sharing inside a team" class="open" data-src="diagrams/appendix/a18-evidence/S09.png" data-title="S09: Fair share: weighted shares of borrowed capacity, and admission fair sharing inside a team" type="button"><img alt="Diagram: S09: Fair share: weighted shares of borrowed capacity, and admission fair sharing inside a team" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S09.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f research-jobs.yaml   <span class="tc"># 12 x 8 GPUs, weight 1</span></span><span class="ln">job.batch/res-00 created</span><span class="ln">job.batch/res-01 created</span><span class="ln">job.batch/res-02 created</span><span class="ln">job.batch/res-03 created</span><span class="ln">job.batch/res-04 created</span><span class="ln">job.batch/res-05 created</span><span class="ln">job.batch/res-06 created</span><span class="ln">job.batch/res-07 created</span><span class="ln">job.batch/res-08 created</span><span class="ln">job.batch/res-09 created</span><span class="ln">job.batch/res-10 created</span><span class="ln">job.batch/res-11 created</span><span class="ln"> </span><span class="ln">$ research alone</span><span class="ln">research 96 GPUs</span><span class="ln"> </span><span class="ln">$ kubectl apply -f llm-jobs.yaml   <span class="tc"># 12 x 8 GPUs, weight 2</span></span><span class="ln">job.batch/llm-00 created</span><span class="ln">job.batch/llm-01 created</span><span class="ln">job.batch/llm-02 created</span><span class="ln">job.batch/llm-03 created</span><span class="ln">job.batch/llm-04 created</span><span class="ln">job.batch/llm-05 created</span><span class="ln">job.batch/llm-06 created</span><span class="ln">job.batch/llm-07 created</span><span class="ln">job.batch/llm-08 created</span><span class="ln">job.batch/llm-09 created</span><span class="ln">job.batch/llm-10 created</span><span class="ln">job.batch/llm-11 created</span><span class="ln"> </span><span class="ln">$ kubectl get clusterqueue cq-research cq-llm -o custom-columns=QUEUE:.metadata.name,WEIGHT:.spec.fairSharing.weight,ADMITTED:.status.admittedWorkloads,WEIGHTED_SHARE:.status.fairSharing.weightedShare</span><span class="ln">QUEUE         WEIGHT   ADMITTED   WEIGHTED_SHARE</span><span class="ln">cq-research   1        4          334</span><span class="ln">cq-llm        2        8          334</span><span class="ln"> </span><span class="ln">$ after LLM arrives</span><span class="ln">research 32 GPUs, LLM 64 GPUs; research workloads preempted: 8 (['InCohortFairSharing'])</span><span class="ln"> </span><span class="ln">$ kubectl apply -f sweeps-1.yaml   <span class="tc"># 2 x 8 GPUs, 150 s each: the sweeps project uses the queue</span></span><span class="ln">job.batch/sweep-0 created</span><span class="ln">job.batch/sweep-1 created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f sweeps-2.yaml   <span class="tc"># 4 more sweeps, queued first</span></span><span class="ln">job.batch/sweep-2 created</span><span class="ln">job.batch/sweep-3 created</span><span class="ln">job.batch/sweep-4 created</span><span class="ln">job.batch/sweep-5 created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f paper.yaml   <span class="tc"># 1 paper job, queued after them</span></span><span class="ln">job.batch/paper-0 created</span><span class="ln"> </span><span class="ln">$ kubectl get localqueue -A -o custom-columns=QUEUE:.metadata.name,NAMESPACE:.metadata.namespace,CONSUMED_GPU:.status.fairSharing.admissionFairSharingStatus.consumedResources.nvidia\.com/gpu,PENDING:.status.pendingWorkloads</span><span class="ln">QUEUE    NAMESPACE         CONSUMED_GPU   PENDING</span><span class="ln">paper    research-paper    302757124n     0</span><span class="ln">sweeps   research-sweeps   3024550576n    3</span><span class="ln"> </span><span class="ln">$ the jobs admitted into the two slots the first sweeps freed</span><span class="ln">paper-0, sweep-5</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>fair sharing moves the borrowed 96 GPUs to the 2:1 weights: LLM 64, research 32 (within one 8-GPU job)</td>
+<td>A queue below its weighted share preempts workloads of a queue above it; the strategies stop when shares are as fair as the 8-GPU jobs allow.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>when capacity frees up, the paper project's job takes one of the two freed slots, ahead of three of the four sweeps queued before it</td>
+<td>Usage-based admission fair sharing orders pending workloads by their LocalQueue's recent usage, decayed with a 10 min half-life.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li><mark class="kw-act">Admitted</mark> GPUs per team and the <mark class="kw-act">preemption</mark> reasons are <mark class="kw-tool">Kueue</mark>'s status; the weighted shares are in the <mark class="kw">ClusterQueues</mark>' status.</li>
+<li>The admission order is read from the Workloads' conditions after the two freed slots are filled.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>A queue below its weighted share preempts a queue above it until the shares are as close to 2:1 as 8-GPU jobs allow.</li>
+<li>Usage-based admission fair sharing orders pending workloads by their <mark class="kw">LocalQueue</mark>'s decayed recent usage, so the paper project's job passes sweeps queued before it.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s10-priority-preemption-and-backfill-urgent-work-the-cost-of-preemption-and-bounded-small-jobs">S10: Priority, preemption and backfill: urgent work, the cost of preemption, and bounded small jobs</h3>
+<p><strong>Design reference:</strong> Priority, <mark class="kw-act">preemption</mark> and backfill.</p>
+<p><strong>What this tests.</strong> One team queue with 32 GPUs. Four best-effort 8-GPU jobs (<mark class="kw-act">checkpoint</mark> every 600 s) fill it; a release job arrives. Then a 32-GPU job waits behind a 24-GPU job while an 8-GPU job with a declared 90 s runtime limit fills the gap.</p>
+<p>Urgent work gets capacity by preemption, the cost of preemption is measured, and a small job with a declared run-time limit fills a gap.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S10: Priority, preemption and backfill: urgent work, the cost of preemption, and bounded small jobs" class="open" data-src="diagrams/appendix/a18-evidence/S10.png" data-title="S10: Priority, preemption and backfill: urgent work, the cost of preemption, and bounded small jobs" type="button"><img alt="Diagram: S10: Priority, preemption and backfill: urgent work, the cost of preemption, and bounded small jobs" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S10.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl apply -f sweeps.yaml   <span class="tc"># 4 x 8 GPUs, priority best-effort</span></span><span class="ln">job.batch/sweep-0 created</span><span class="ln">job.batch/sweep-1 created</span><span class="ln">job.batch/sweep-2 created</span><span class="ln">job.batch/sweep-3 created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f rc-eval.yaml   <span class="tc"># 1 x 8 GPUs, priority release</span></span><span class="ln">job.batch/rc-eval created</span><span class="ln"> </span><span class="ln">$ kubectl -n team-llm get workloads -o custom-columns=WORKLOAD:.metadata.name,PRIORITY:.spec.priority,ADMITTED:.status.conditions[?(@.type=='Admitted')].status,PREEMPTED:.status.conditions[?(@.type=='Preempted')].reason</span><span class="ln">WORKLOAD            PRIORITY   ADMITTED   PREEMPTED</span><span class="ln">job-rc-eval-c404d   1000       True       &lt;none&gt;</span><span class="ln">job-sweep-0-f7399   10         True       &lt;none&gt;</span><span class="ln">job-sweep-1-cf2ba   10         True       &lt;none&gt;</span><span class="ln">job-sweep-2-733ac   10         False      InClusterQueue</span><span class="ln">job-sweep-3-2b8d1   10         True       &lt;none&gt;</span><span class="ln"> </span><span class="ln">$ accounting: work lost to that preemption</span><span class="ln">{</span><span class="ln"> "lost_to_preemption_gpu_minutes": 10.7,</span><span class="ln"> "preemptions": [</span><span class="ln">  {</span><span class="ln">   "t": 1795823820.02433,</span><span class="ln">   "workload": "team-llm/job-sweep-2-733ac",</span><span class="ln">   "team": "llm",</span><span class="ln">   "gpus": 8,</span><span class="ln">   "ran_seconds": 80,</span><span class="ln">   "checkpoint_seconds": 600.0,</span><span class="ln">   "reason": "Preempted to accommodate a workload (UID: f5fb4c15-66e3-4455-a540-f8c7036bfbf8, JobUID: 3eae00bf-0035-465f-88fc-4ea5f02e39ca) due to prioritization in the Clust",</span><span class="ln">   "lost_gpu_minutes": 10.67</span><span class="ln">  }</span><span class="ln"> ]</span><span class="ln">}</span><span class="ln"> </span><span class="ln">$ kubectl apply -f eval-24.yaml   <span class="tc"># 3 x 8 GPUs for 150 s</span></span><span class="ln">job.batch/eval-24 created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f train-32.yaml   <span class="tc"># 4 x 8 GPUs: must wait for eval-24</span></span><span class="ln">job.batch/train-32 created</span><span class="ln"> </span><span class="ln">$ kubectl apply -f probe-8.yaml   <span class="tc"># 1 x 8 GPUs, kueue.x-k8s.io/max-exec-time-seconds: 90 (it would run 1 h)</span></span><span class="ln">job.batch/probe-8 created</span><span class="ln"> </span><span class="ln">$ 15 s later</span><span class="ln">{"train-32_admitted": false, "probe-8_admitted": true}</span><span class="ln"> </span><span class="ln">$ the bounded job after its limit</span><span class="ln">{"condition": "Evicted", "reason": "DeactivatedDueToMaximumExecutionTimeExceeded", "message": "The workload is deactivated due to exceeding the maximum execution time", "active": false, "pods": {"run…</span><span class="ln"> </span><span class="ln">$ when eval-24 finished</span><span class="ln">{"train-32": {"running": 4, "pending": 0, "gpus_held": 32}}</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>the release job is admitted at once by preempting one best-effort job (InClusterQueue)</td>
+<td>withinClusterQueue: LowerPriority; release 1000 against best-effort 10.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the accounting service records the preempted job's work since its last checkpoint as lost</td>
+<td>8 GPUs times the time since the last 600 s checkpoint boundary.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>while the 32-GPU job waits, the bounded 8-GPU job runs in the gap</td>
+<td>BestEffortFIFO admits a later workload that fits when the head of the queue does not.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>Kueue stops the bounded job at its declared 90 s although it would have run an hour, so it cannot delay the big job</td>
+<td>kueue.x-k8s.io/max-exec-time-seconds: the workload is deactivated when its admitted time passes the limit.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>the 32-GPU job starts when the 24-GPU job finishes</td>
+<td>Its whole request fits once eval-24's quota is released.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>Priorities, preemption reasons and the run-time limit's effect are <mark class="kw-tool">Kueue</mark>'s Workload status.</li>
+<li>The lost work is the accounting service's record of the <mark class="kw-act">eviction</mark>.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>The release job preempts one best-effort job because withinClusterQueue is LowerPriority and release outranks best-effort.</li>
+<li>BestEffortFIFO <mark class="kw-act">admits</mark> the small job while the large one waits, and Kueue deactivates it when its <mark class="kw-act">admitted</mark> time passes the declared limit.</li>
+</ul>
+<h3 id="appendix-design-17-eks-s11-measuring-the-scheduler-where-every-gpu-hour-of-this-run-went-and-queue-wait-by-job-size">S11: Measuring the scheduler: where every GPU-hour of this run went, and queue wait by job size</h3>
+<p><strong>Design reference:</strong> Measuring and tuning the scheduler; Where GPU-hours go.</p>
+<p><strong>What this tests.</strong> Read the accounting service's breakdown for the whole run (S02 to S10), for the real and the simulated GPUs, per category and per team, and the queue wait of every <mark class="kw-tool">Kueue</mark> workload by size class.</p>
+<p>The accounting service's breakdown for the whole run, and the queue wait of every Kueue workload by job size.</p>
+<figure class="diagram"><button aria-label="Open diagram full screen: S11: Measuring the scheduler: where every GPU-hour of this run went, and queue wait by job size" class="open" data-src="diagrams/appendix/a18-evidence/S11.png" data-title="S11: Measuring the scheduler: where every GPU-hour of this run went, and queue wait by job size" type="button"><img alt="Diagram: S11: Measuring the scheduler: where every GPU-hour of this run went, and queue wait by job size" decoding="async" loading="lazy" src="diagrams/appendix/a18-evidence/S11.png"/><span class="hint">Open full screen</span></button></figure>
+<p><strong>Commands I ran and what they printed</strong> (shortened; the full text is in the screenshot):</p>
+<pre class="snippet"><code class="language-text"><span class="ln">$ kubectl get --raw .../services/accounting:8080/proxy/breakdown?since=&lt;S01&gt;   <span class="tc"># all GPUs</span></span><span class="ln">{</span><span class="ln"> "samples": 193,</span><span class="ln"> "gpu_minutes": 4181.7,</span><span class="ln"> "share": {</span><span class="ln">  "free": 0.425,</span><span class="ln">  "busy": 0.312,</span><span class="ln">  "blocked_by_quota": 0.208,</span><span class="ln">  "fragmented": 0.033,</span><span class="ln">  "waiting_for_gang": 0.021,</span><span class="ln">  "allocated_idle": 0.001</span><span class="ln"> },</span><span class="ln"> "gpu_minutes_by_category": {</span><span class="ln">  "free": 1776.2,</span><span class="ln">  "busy": 1306.5,</span><span class="ln">  "blocked_by_quota": 871.7,</span><span class="ln">  "fragmented": 137.7,</span><span class="ln">… (5 more lines in the screenshot and in evidence/S11.txt)</span><span class="ln"> </span><span class="ln">$ by team (GPU-minutes; '-' is free capacity)</span><span class="ln">-         {"free": 1776.2, "blocked_by_quota": 871.7, "fragmented": 137.7}</span><span class="ln">gpu       {"allocated_idle": 2.7, "busy": 2.0}</span><span class="ln">llm       {"waiting_for_gang": 50.7, "busy": 652.0}</span><span class="ln">nokueue   {"busy": 101.3, "waiting_for_gang": 17.7}</span><span class="ln">research  {"busy": 539.2, "waiting_for_gang": 14.7}</span><span class="ln">vision    {"waiting_for_gang": 4.0, "busy": 12.0}</span><span class="ln"> </span><span class="ln">$ queue wait (creation to quota reserved) by job size in GPUs: workloads, median, max, in seconds</span><span class="ln">8      n  20  median     1.5  max     9.0</span><span class="ln">12-24  n   2  median     0.0  max     0.0</span><span class="ln">32     n   5  median     0.0  max   157.0</span><span class="ln">64     n   1  median     0.0  max     0.0</span></code></pre>
+<p><strong>What each check proved, and why the output is what it is:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Check</th>
+<th>Why this output (what I implemented that causes it)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>every sampled GPU-minute of 130 GPUs is in exactly one category (total within 2% of 130 GPUs times the sampled time)</td>
+<td>Each sample assigns every GPU of every GPU node one category.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>each cause the design names was observed: busy, allocated but idle, waiting for a gang, fragmented, blocked by quota, and lost to preemption</td>
+<td>S02, S03, S06, S08 and S10 each create one of them on purpose.</td>
+</tr>
+<tr>
+<td>PASS</td>
+<td>queue wait is reported for at least three size classes, from the workloads of S03 to S10</td>
+<td>Kueue records when each workload reserved quota; the scenarios kept those times before cleaning up.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why you can trust this result.</strong></p>
+<ul>
+<li>The total is checked against the number of GPUs times the sampled time, so no GPU-minute is missing or counted twice.</li>
+<li>The waits were recorded from Kueue's own timestamps before each scenario cleaned up.</li>
+</ul>
+<p><strong>Why you get this output.</strong></p>
+<ul>
+<li>Each category is present because an earlier scenario created it on purpose: S02 idle GPUs, S03 a partial gang, S06 fragments, S08 <mark class="kw">quota</mark> policy, S10 <mark class="kw-act">preemption</mark>.</li>
+</ul>
+<h3 id="appendix-design-17-eks-6-what-i-did-not-build-and-why">6. What I did not build, and why</h3>
+<p><strong>Scenario.</strong> A build is only credible if it says where it stops. These are the parts of Design 17 that this implementation does not cover, with the reason for each.</p>
+<table>
+<thead>
+<tr>
+<th>Not built</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A real 1,024-GPU fleet</strong></td>
+<td>128 of the GPUs here are simulated: KWOK nodes with no hardware, whose pods never run. Admission, preemption, fair sharing, topology placement and bin-packing are decided by the real Kueue and kube-scheduler on real API objects, so those results carry over; what does not carry over is anything a running workload does (all-reduce speed across racks, data loading, how long a real gang takes to become ready).</td>
+</tr>
+<tr>
+<td><strong>Busy and idle on the simulated GPUs</strong></td>
+<td>A simulated GPU has no activity. Each simulated pod declares one, and the accounting service uses it; only S02's real GPUs are measured by DCGM.</td>
+</tr>
+<tr>
+<td><strong>Changing the cluster's own scheduler</strong></td>
+<td>EKS manages kube-scheduler and does not expose its configuration, so the profiles run in a second scheduler. Pods that do not name it still use the default scheduler.</td>
+</tr>
+<tr>
+<td><strong>JobSet, LeaderWorkerSet, RayJob, PyTorchJob</strong></td>
+<td>Every gang here is an Indexed <code>batch/v1</code> Job; Kueue treats it as one workload with one PodSet. Multi-PodSet workloads and topology groups across PodSets are not tested.</td>
+</tr>
+<tr>
+<td><strong>Checkpoint-aware choice of preemption victims</strong></td>
+<td>Lost work is measured (S10), but Kueue chooses victims by priority and fair share, not by the time since their last checkpoint.</td>
+</tr>
+<tr>
+<td><strong>Reservation-based backfill</strong></td>
+<td>S10 shows a bounded small job running while a large one waits, and Kueue stopping it at its limit. Kueue does not reserve future capacity for the waiting job, so nothing here guarantees the large job starts at a known time.</td>
+</tr>
+<tr>
+<td><strong>GPU partitioning (MIG, time-slicing, MPS), idle culling</strong></td>
+<td>The design's right-sizing tools for small work are not built; S02 only measures the idle notebook.</td>
+</tr>
+<tr>
+<td><strong>Trace replay of real submissions</strong></td>
+<td>S06 replays one seeded synthetic trace against two profiles. There is no recorder of real submissions and no scheduler simulator.</td>
+</tr>
+<tr>
+<td><strong>Elastic jobs and native gang scheduling in kube-scheduler</strong></td>
+<td>Open questions in the design; kube-scheduler's workload-aware scheduling is off by default in 1.37 and not exposed by EKS.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="appendix-design-17-eks-7-run-it-yourself-and-take-it-down">7. Run it yourself, and take it down</h3>
+<p><strong>Scenario.</strong> The point of Terraform is that anyone can rebuild this from the repository and remove it again. These are the exact steps.</p>
+<p><strong>What you need on your machine.</strong> Terraform 1.9 or later, the AWS CLI v2 signed in to the account you want to use, Helm 3, and Python 3 with Pillow and PyYAML. <code>scripts/setup-tools.sh</code> downloads a matching <code>kubectl</code> into the project folder with a checksum check. The build needs up to 16 vCPU of on-demand G instance <mark class="kw">quota</mark> in us-east-2.</p>
+<p><strong>Build.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">cd implementations/ds17-gpu-scheduling-on-eks</span><span class="ln">export AWS_PROFILE=&lt;your profile&gt;</span><span class="ln">./scripts/up.sh</span></code></pre>
+<p><code>up.sh</code> writes small local files with your account ID and your public addresses (git-ignored), builds the VPC, the cluster and the two node groups, then the platform, then the 16 simulated nodes, and waits until the scheduler and the accounting service are ready.</p>
+<p><strong>Test.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">python3 tests/run_scenarios.py all</span></code></pre>
+<p>The whole run takes about 50 minutes; most of it is waiting for timeouts, backoffs and simulated run times.</p>
+<p><strong>Take it down.</strong></p>
+<pre class="snippet"><code class="language-text"><span class="ln">./scripts/down.sh --yes</span></code></pre>
+<p><code>down.sh</code> deletes the scenario jobs and the simulated nodes, destroys the platform layer, destroys the cluster layer, and then runs <code>verify-clean.sh</code>, which looks in us-east-2 for anything of this build and prints <code>CLEAN</code> when nothing is left.</p>
+<p><strong>The teardown after the final run.</strong> This is the output of <code>verify-clean.sh</code> after <code>down.sh</code> removed the build that produced the evidence above:</p>
+<pre class="snippet"><code class="language-text"><span class="ln">ok         EKS clusters: none</span><span class="ln">ok         EC2 instances: none</span><span class="ln">ok         EC2 instances (Project): none</span><span class="ln">ok         Auto Scaling groups: none</span><span class="ln">ok         Launch templates: none</span><span class="ln">ok         NAT gateways: none</span><span class="ln">ok         Elastic IPs: none</span><span class="ln">ok         VPCs: none</span><span class="ln">ok         VPC endpoints: none</span><span class="ln">ok         Security groups: none</span><span class="ln">ok         EBS volumes: none</span><span class="ln">ok         CSI volumes: none</span><span class="ln">ok         CSI snapshots: none</span><span class="ln">ok         Network interfaces: none</span><span class="ln">ok         S3 buckets: none</span><span class="ln">ok         IAM roles: none</span><span class="ln">ok         CloudWatch log groups: none</span><span class="ln">info       tagging index still lists (it lags deletions): 8 item(s)</span><span class="ln"> </span><span class="ln">CLEAN: nothing from ds17-sched remains in this account and region.</span></code></pre>
+<p><strong>Keeping it safe in a public repository.</strong> Terraform state, plans, kubeconfig files, local variable files and scratch evidence are git-ignored. <code>scripts/check-no-secrets.sh --all</code> blocks any file containing a credential pattern, the account ID or one of the administrator's addresses. The test harness redacts those values, and the local user name, before anything is written.</p>
+<h3 id="appendix-design-17-eks-8-screenshots-of-the-aws-console">8. Screenshots of the AWS Console</h3>
+<p>The terminal screenshots above are rendered from recorded command output. I could not capture the AWS Console from here. If you want console pictures, these pages show the same facts. Crop out the account number and your user name in the top bar before publishing.</p>
+<ul>
+<li>EKS, Clusters: <code>ds17-sched</code>, its Compute tab with the two node groups, and its Resources tab, where the 16 simulated nodes appear next to the real ones.</li>
+<li>EC2, Instances: the two GPU instances and their types.</li>
+</ul></div>
 </section>
     <footer>
       <p>Facts about Kubernetes, Kueue and AWS reflect public documentation at the time of writing.</p>

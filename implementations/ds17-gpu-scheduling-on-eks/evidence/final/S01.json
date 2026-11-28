@@ -9,17 +9,17 @@
    "display": "aws eks describe-cluster --name ds17-sched --query cluster.{status:status,version:version,autoMode:computeConfig.enabled}",
    "output": "{\n    \"status\": \"ACTIVE\",\n    \"version\": \"1.37\",\n    \"autoMode\": false\n}",
    "exit_code": 0,
-   "seconds": 1.27
+   "seconds": 1.26
   },
   {
    "display": "kubectl get nodes -L ds17/pool,node.kubernetes.io/instance-type,network.ds17.io/block,network.ds17.io/rack --sort-by=.metadata.name",
-   "output": "NAME                                         STATUS   ROLES    AGE     VERSION               POOL       INSTANCE-TYPE   BLOCK   RACK\nfake-b1-r1-h1                                Ready    <none>   11s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r1-h2                                Ready    <none>   11s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r1-h3                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r1-h4                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r2-h1                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b1-r2-h2                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b1-r2-h3                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b1-r2-h4                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b2-r1-h1                                Ready    <none>   10s     kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r1-h2                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r1-h3                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r1-h4                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r2-h1                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2\nfake-b2-r2-h2                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2\nfake-b2-r2-h3                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2\nfake-b2-r2-h4                                Ready    <none>   9s      kwok-v0.8.0           fake-gpu                   b2      b2-r2\nip-10-86-20-154.us-east-2.compute.internal   Ready    <none>   45m     v1.37.1-eks-9adbfea   system     m6i.2xlarge             \nip-10-86-44-192.us-east-2.compute.internal   Ready    <none>   45m     v1.37.1-eks-9adbfea   system     m6i.2xlarge             \nip-10-86-49-187.us-east-2.compute.internal   Ready    <none>   2m36s   v1.37.1-eks-9adbfea   gpu        g6e.2xlarge             \nip-10-86-55-196.us-east-2.compute.internal   Ready    <none>   2m53s   v1.37.1-eks-9adbfea   gpu        g5.xlarge               ",
+   "output": "NAME                                         STATUS   ROLES    AGE     VERSION               POOL       INSTANCE-TYPE   BLOCK   RACK\nfake-b1-r1-h1                                Ready    <none>   70s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r1-h2                                Ready    <none>   70s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r1-h3                                Ready    <none>   70s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r1-h4                                Ready    <none>   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r1\nfake-b1-r2-h1                                Ready    <none>   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b1-r2-h2                                Ready    <none>   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b1-r2-h3                                Ready    <none>   69s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b1-r2-h4                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b1      b1-r2\nfake-b2-r1-h1                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r1-h2                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r1-h3                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r1-h4                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r1\nfake-b2-r2-h1                                Ready    <none>   68s     kwok-v0.8.0           fake-gpu                   b2      b2-r2\nfake-b2-r2-h2                                Ready    <none>   67s     kwok-v0.8.0           fake-gpu                   b2      b2-r2\nfake-b2-r2-h3                                Ready    <none>   67s     kwok-v0.8.0           fake-gpu                   b2      b2-r2\nfake-b2-r2-h4                                Ready    <none>   67s     kwok-v0.8.0           fake-gpu                   b2      b2-r2\nip-10-86-16-85.us-east-2.compute.internal    Ready    <none>   5m21s   v1.37.1-eks-9adbfea   system     m6i.2xlarge             \nip-10-86-25-255.us-east-2.compute.internal   Ready    <none>   5m14s   v1.37.1-eks-9adbfea   gpu        g6e.xlarge              \nip-10-86-48-4.us-east-2.compute.internal     Ready    <none>   5m22s   v1.37.1-eks-9adbfea   system     m6i.2xlarge             \nip-10-86-52-153.us-east-2.compute.internal   Ready    <none>   5m14s   v1.37.1-eks-9adbfea   gpu        g6e.2xlarge             ",
    "exit_code": 0,
-   "seconds": 1.22
+   "seconds": 1.51
   },
   {
    "display": "GPUs each pool advertises (status.allocatable nvidia.com/gpu)",
-   "output": "simulated: 16 nodes, 128 GPUs, blocks ['b1', 'b2'], racks ['b1-r1', 'b1-r2', 'b2-r1', 'b2-r2']\nreal: 2 nodes, 2 GPUs, types ['g5.xlarge', 'g6e.2xlarge']",
+   "output": "simulated: 16 nodes, 128 GPUs, blocks ['b1', 'b2'], racks ['b1-r1', 'b1-r2', 'b2-r1', 'b2-r2']\nreal: 2 nodes, 2 GPUs, types ['g6e.2xlarge', 'g6e.xlarge']",
    "exit_code": 0,
    "seconds": 0
   },
@@ -33,7 +33,7 @@
    "display": "kubectl get topology,resourceflavor,workloadpriorityclass -o name",
    "output": "topology.kueue.x-k8s.io/ds17-fabric\nresourceflavor.kueue.x-k8s.io/fake-h100\nresourceflavor.kueue.x-k8s.io/fake-h100-plain\nworkloadpriorityclass.kueue.x-k8s.io/best-effort\nworkloadpriorityclass.kueue.x-k8s.io/release\nworkloadpriorityclass.kueue.x-k8s.io/standard",
    "exit_code": 0,
-   "seconds": 1.23
+   "seconds": 1.28
   },
   {
    "display": "the second scheduler's profiles (ds17-scheduler-config)",
@@ -45,19 +45,19 @@
    "display": "kubectl -n kube-system get deploy ds17-scheduler -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,IMAGE:.spec.template.spec.containers[0].image",
    "output": "NAME             READY   IMAGE\nds17-scheduler   1       registry.k8s.io/kube-scheduler:v1.37.1@sha256:b6e2474a6c20309f0df1e7337364281fda95c6a0722259ba7f032a1e177d3f29",
    "exit_code": 0,
-   "seconds": 1.18
+   "seconds": 1.19
   },
   {
    "display": "kubectl -n gpu-monitoring get pods -o wide",
-   "output": "NAME                  READY   STATUS    RESTARTS   AGE   IP             NODE                                         NOMINATED NODE   READINESS GATES\ndcgm-exporter-h4cdf   1/1     Running   0          87s   10.86.58.224   ip-10-86-55-196.us-east-2.compute.internal   <none>           <none>\ndcgm-exporter-zx22p   1/1     Running   0          87s   10.86.60.13    ip-10-86-49-187.us-east-2.compute.internal   <none>           <none>",
+   "output": "NAME                  READY   STATUS    RESTARTS   AGE    IP             NODE                                         NOMINATED NODE   READINESS GATES\ndcgm-exporter-2pddk   1/1     Running   0          4m7s   10.86.61.247   ip-10-86-52-153.us-east-2.compute.internal   <none>           <none>\ndcgm-exporter-748jz   1/1     Running   0          4m7s   10.86.25.39    ip-10-86-25-255.us-east-2.compute.internal   <none>           <none>",
    "exit_code": 0,
-   "seconds": 1.27
+   "seconds": 1.22
   },
   {
    "display": "kubectl get jobs,workloads -A",
    "output": "\nNo resources found",
    "exit_code": 0,
-   "seconds": 1.12
+   "seconds": 1.26
   }
  ],
  "checks": [

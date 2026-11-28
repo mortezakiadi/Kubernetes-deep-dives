@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420px" height="470px" viewBox="0 0 1420 470" style="background:#ffffff"><title>Two layers: when a job may start, and where its pods go</title><defs><marker id="a-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><marker id="a-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="a-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="a-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker><marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker><marker id="a-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker></defs><rect width="1420" height="470" fill="#ffffff"/><rect x="30" y="70" width="210" height="110" rx="10" fill="#ffffff" stroke="#059669" stroke-width="1.6"/>
+<rect x="30" y="70" width="210" height="30" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<rect x="31" y="88" width="208" height="12" fill="#ecfdf5"/>
+<text x="42" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#065f46">1 Submit</text>
+<text x="42" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">a Job with a queue label;</text>
+<text x="42" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">created suspended</text>
+<path d="M240 125 L260 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="260" y="70" width="210" height="110" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="260" y="70" width="210" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="261" y="88" width="208" height="12" fill="#eff6ff"/>
+<text x="272" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">2 Workload</text>
+<text x="272" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Kueue turns it into a</text>
+<text x="272" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">Workload in a LocalQueue</text>
+<path d="M470 125 L490 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="490" y="70" width="210" height="110" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="490" y="70" width="210" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="491" y="88" width="208" height="12" fill="#eff6ff"/>
+<text x="502" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">3 Admit</text>
+<text x="502" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">whole request fits quota</text>
+<text x="502" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">(and topology, with TAS)</text>
+<path d="M700 125 L720 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="720" y="70" width="210" height="110" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="720" y="70" width="210" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="721" y="88" width="208" height="12" fill="#eff6ff"/>
+<text x="732" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">4 Unsuspend</text>
+<text x="732" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">pods are created with</text>
+<text x="732" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the flavor's selectors</text>
+<path d="M930 125 L950 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="950" y="70" width="210" height="110" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="950" y="70" width="210" height="30" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="951" y="88" width="208" height="12" fill="#f5f3ff"/>
+<text x="962" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#5b21b6">5 Place</text>
+<text x="962" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">the second scheduler scores</text>
+<text x="962" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">nodes: pack or spread</text>
+<path d="M1160 125 L1180 125" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#a-flow)"/>
+<rect x="1180" y="70" width="210" height="110" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1180" y="70" width="210" height="30" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1181" y="88" width="208" height="12" fill="#fef2f2"/>
+<text x="1192" y="90" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#991b1b">6 Ready</text>
+<text x="1192" y="118" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">all pods ready within</text>
+<text x="1192" y="135" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">60 s, or evict and requeue</text>
+<rect x="30" y="230" width="670" height="200" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="30" y="230" width="670" height="30" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<rect x="31" y="248" width="668" height="12" fill="#eff6ff"/>
+<text x="42" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1e40af">Admission answers 'may it start?'</text>
+<text x="42" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">quota per ClusterQueue and flavor, borrowing and lending in a cohort,</text>
+<text x="42" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">priorities and preemption, fair sharing between queues,</text>
+<text x="42" y="312" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">admission fair sharing between LocalQueues, a runtime limit;</text>
+<text x="42" y="329" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">status: QuotaReserved / Admitted / Evicted with a reason</text>
+<rect x="730" y="230" width="660" height="200" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="730" y="230" width="660" height="30" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+<rect x="731" y="248" width="658" height="12" fill="#f5f3ff"/>
+<text x="742" y="250" font-family="Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#5b21b6">Placement answers 'which node?'</text>
+<text x="742" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">kube-scheduler filters and scores nodes for each pod;</text>
+<text x="742" y="295" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">MostAllocated keeps whole nodes free, LeastAllocated spreads;</text>
+<text x="742" y="312" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">with a topology flavor Kueue has already chosen the domain;</text>
+<text x="742" y="329" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#334155">status: pod Pending with the scheduler's reason</text></svg>

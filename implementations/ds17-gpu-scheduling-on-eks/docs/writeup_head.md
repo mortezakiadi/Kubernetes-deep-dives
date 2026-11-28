@@ -103,7 +103,7 @@ Six terms are used throughout.
 
 ### 5. The scenarios I tested
 
-**Scenario.** Each test below starts from a question the design asks and ends with evidence. Every command was run by the scenario runner against the live platform, in one run from a fresh build, in the order shown, and the output is what the command printed (shortened here; the screenshot and the evidence file have it in full). Each check is computed by the program from that output, not written by hand.
+**Scenario.** Each test below starts from a question the design asks and ends with evidence. Every command was run by the scenario runner against the live platform, in one run from a fresh build, in the order shown, and the output is what the command printed (shortened here; the screenshot and the evidence file have it in full). Each check is computed by the program from that output, not written by hand. An earlier fresh build was run first and failed two checks: on that build EC2 replaced a real GPU node for capacity while S02 was running, and S11's check asked for at least 30 recorded queue waits where the run recorded 28. I made `up.sh` wait until both real GPU nodes stay Ready for a minute, made S11 check the size classes instead of a count, tore the build down, built again and ran all eleven scenarios once. What is shown is that run.
 
 **How to read the screenshots.** They are drawn from the recorded text by the renderer in `tests/render_terminal.py`. Lines starting with `$` are the commands; lines starting with `[PASS]` or `[FAIL]` are the checks. Where a step reads the cluster or the accounting service rather than running one command, the step's title says what it read.
 

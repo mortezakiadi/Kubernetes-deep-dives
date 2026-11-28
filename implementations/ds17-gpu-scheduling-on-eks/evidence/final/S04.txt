@@ -11,7 +11,7 @@ $ pods 15 s after admission
 {'running': 8, 'pending': 4, 'gpus_held': 8}
 
 $ kubectl -n team-llm get workload <train-12's> -o jsonpath='{.status.conditions[?(@.type=="Evicted")]} {.status.requeueState}'
-{"reason": "PodsReadyTimeout", "message": "Exceeded the PodsReady timeout team-llm/job-train-12-b2ea8", "requeueState": {"count": 1, "requeueAt": "2026-11-27T20:13:45Z"}}
+{"reason": "PodsReadyTimeout", "message": "Exceeded the PodsReady timeout team-llm/job-train-12-f0d95", "requeueState": {"count": 1, "requeueAt": "2026-11-27T23:35:09Z"}}
 
 $ after the filler is deleted (rack fully free)
 {'running': 12, 'pending': 0, 'gpus_held': 12}

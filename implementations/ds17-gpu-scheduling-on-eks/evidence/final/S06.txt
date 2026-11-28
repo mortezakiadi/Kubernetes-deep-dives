@@ -35,7 +35,7 @@ job.batch/small-29 created
 job.batch/small-30 created
 
 $ gpu-spread: free GPUs per node, then the fragmentation report
-4 5 2 5 4 5 5 5 4 5 2 5 2 4 3 4
+5 4 2 4 2 3 2 4 4 5 5 4 5 5 5 5
 {"free_gpus": 64, "whole_free_nodes": 0, "fragmented_share": 1.0, "largest_gang_of_8gpu_pods": 0, "pods_of_1_that_fit": 64, "pods_of_2_that_fit": 28, "pods_of_4_that_fit": 12, "pods_of_8_that_fit": 0}
 
 $ kubectl apply -f gang-4x8.yaml   # 4 pods x 8 GPUs, schedulerName gpu-spread
@@ -78,7 +78,7 @@ job.batch/small-29 created
 job.batch/small-30 created
 
 $ gpu-binpack: free GPUs per node, then the fragmentation report
-0 0 0 0 0 8 0 8 0 8 0 8 8 8 8 8
+0 0 0 8 0 0 0 8 0 0 8 8 8 8 8 8
 {"free_gpus": 64, "whole_free_nodes": 8, "fragmented_share": 0.0, "largest_gang_of_8gpu_pods": 8, "pods_of_1_that_fit": 64, "pods_of_2_that_fit": 32, "pods_of_4_that_fit": 16, "pods_of_8_that_fit": 8}
 
 $ kubectl apply -f gang-4x8.yaml   # 4 pods x 8 GPUs, schedulerName gpu-binpack

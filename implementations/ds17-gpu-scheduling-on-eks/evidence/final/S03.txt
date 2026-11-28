@@ -26,8 +26,8 @@ job.batch/gang-b created
 
 $ kubectl -n team-llm get workloads -o custom-columns=WORKLOAD:.metadata.name,ADMITTED:.status.conditions[?(@.type=='Admitted')].status,PENDING:.status.conditions[?(@.type=='QuotaReserved')].message
 WORKLOAD           ADMITTED   PENDING
-job-gang-a-3abef   True       Quota reserved in ClusterQueue cq-gang
-job-gang-b-62eab   False      couldn't assign flavors to pod set main: insufficient unused quota for nvidia.com/gpu in flavor fake-h100-plain, 8 more needed
+job-gang-a-1df3d   True       Quota reserved in ClusterQueue cq-gang
+job-gang-b-e54e5   False      couldn't assign flavors to pod set main: insufficient unused quota for nvidia.com/gpu in flavor fake-h100-plain, 8 more needed
 
 $ pods of each job after admission
 gang-a {'running': 12, 'pending': 0, 'gpus_held': 12}

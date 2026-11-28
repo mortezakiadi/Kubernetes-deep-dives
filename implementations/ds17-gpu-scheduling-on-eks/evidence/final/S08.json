@@ -9,13 +9,13 @@
    "display": "kubectl apply -f llm-jobs.yaml   # 8 jobs x 8 GPUs = 64 GPUs; nominal 32",
    "output": "job.batch/llm-0 created\njob.batch/llm-1 created\njob.batch/llm-2 created\njob.batch/llm-3 created\njob.batch/llm-4 created\njob.batch/llm-5 created\njob.batch/llm-6 created\njob.batch/llm-7 created",
    "exit_code": 0,
-   "seconds": 4.13
+   "seconds": 4.23
   },
   {
    "display": "kubectl get clusterqueue cq-llm cq-vision -o custom-columns=QUEUE:.metadata.name,ADMITTED:.status.admittedWorkloads,PENDING:.status.pendingWorkloads,USAGE:.status.flavorsUsage[0].resources[0].total,BORROWED:.status.flavorsUsage[0].resources[0].borrowed",
    "output": "QUEUE       ADMITTED   PENDING   USAGE   BORROWED\ncq-llm      7          1         7       0\ncq-vision   0          0         0       0",
    "exit_code": 0,
-   "seconds": 1.24
+   "seconds": 1.15
   },
   {
    "display": "the pending LLM job's QuotaReserved condition",
@@ -33,17 +33,17 @@
    "display": "kubectl apply -f vision-jobs.yaml   # vision returns: 3 jobs x 8 GPUs",
    "output": "job.batch/vision-0 created\njob.batch/vision-1 created\njob.batch/vision-2 created",
    "exit_code": 0,
-   "seconds": 3.02
+   "seconds": 2.8
   },
   {
    "display": "kubectl get clusterqueue cq-llm cq-vision -o custom-columns=QUEUE:.metadata.name,ADMITTED:.status.admittedWorkloads,PENDING:.status.pendingWorkloads,USAGE:.status.flavorsUsage[0].resources[0].total,BORROWED:.status.flavorsUsage[0].resources[0].borrowed",
    "output": "QUEUE       ADMITTED   PENDING   USAGE   BORROWED\ncq-llm      5          3         5       0\ncq-vision   3          0         3       0",
    "exit_code": 0,
-   "seconds": 1.2
+   "seconds": 1.09
   },
   {
    "display": "LLM workloads preempted, with the reason",
-   "output": "{\"llm-3\": \"InCohortReclamation\", \"llm-5\": \"InCohortReclamation\"}",
+   "output": "{\"llm-4\": \"InCohortReclamation\", \"llm-5\": \"InCohortReclamation\"}",
    "exit_code": 0,
    "seconds": 0
   }

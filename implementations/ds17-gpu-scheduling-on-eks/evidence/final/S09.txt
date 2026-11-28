@@ -55,11 +55,11 @@ job.batch/paper-0 created
 
 $ kubectl get localqueue -A -o custom-columns=QUEUE:.metadata.name,NAMESPACE:.metadata.namespace,CONSUMED_GPU:.status.fairSharing.admissionFairSharingStatus.consumedResources.nvidia\.com/gpu,PENDING:.status.pendingWorkloads
 QUEUE    NAMESPACE         CONSUMED_GPU   PENDING
-paper    research-paper    302952517n     0
-sweeps   research-sweeps   3019798234n    3
+paper    research-paper    302757124n     0
+sweeps   research-sweeps   3024550576n    3
 
 $ the jobs admitted into the two slots the first sweeps freed
-paper-0, sweep-3
+paper-0, sweep-5
 
 [PASS] fair sharing moves the borrowed 96 GPUs to the 2:1 weights: LLM 64, research 32 (within one 8-GPU job)
 [PASS] when capacity frees up, the paper project's job takes one of the two freed slots, ahead of three of the four sweeps queued before it

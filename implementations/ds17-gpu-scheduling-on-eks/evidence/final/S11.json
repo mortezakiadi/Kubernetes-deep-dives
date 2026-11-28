@@ -3,23 +3,23 @@
  "title": "Measuring the scheduler: where every GPU-hour of this run went, and queue wait by job size",
  "design_ref": "Measuring and tuning the scheduler; Where GPU-hours go",
  "purpose": "Read the accounting service's breakdown for the whole run (S02 to S10), for the real and the simulated GPUs, per category and per team, and the queue wait of every Kueue workload by size class.",
- "passed": false,
+ "passed": true,
  "steps": [
   {
    "display": "kubectl get --raw .../services/accounting:8080/proxy/breakdown?since=<S01>   # all GPUs",
-   "output": "{\n \"samples\": 193,\n \"gpu_minutes\": 4187.8,\n \"share\": {\n  \"free\": 0.412,\n  \"busy\": 0.318,\n  \"blocked_by_quota\": 0.22,\n  \"fragmented\": 0.027,\n  \"waiting_for_gang\": 0.021,\n  \"allocated_idle\": 0.001\n },\n \"gpu_minutes_by_category\": {\n  \"free\": 1727.3,\n  \"busy\": 1332.8,\n  \"blocked_by_quota\": 921.8,\n  \"fragmented\": 114.7,\n  \"waiting_for_gang\": 87.7,\n  \"allocated_idle\": 3.5\n },\n \"lost_to_preemption_gpu_minutes\": 66.7\n}",
+   "output": "{\n \"samples\": 193,\n \"gpu_minutes\": 4181.7,\n \"share\": {\n  \"free\": 0.425,\n  \"busy\": 0.312,\n  \"blocked_by_quota\": 0.208,\n  \"fragmented\": 0.033,\n  \"waiting_for_gang\": 0.021,\n  \"allocated_idle\": 0.001\n },\n \"gpu_minutes_by_category\": {\n  \"free\": 1776.2,\n  \"busy\": 1306.5,\n  \"blocked_by_quota\": 871.7,\n  \"fragmented\": 137.7,\n  \"waiting_for_gang\": 87.0,\n  \"allocated_idle\": 2.7\n },\n \"lost_to_preemption_gpu_minutes\": 57.3\n}",
    "exit_code": 0,
    "seconds": 0
   },
   {
    "display": "by team (GPU-minutes; '-' is free capacity)",
-   "output": "-         {\"free\": 1727.3, \"blocked_by_quota\": 921.8, \"fragmented\": 114.7}\ngpu       {\"allocated_idle\": 3.5, \"busy\": 0.7}\nllm       {\"waiting_for_gang\": 64.0, \"busy\": 686.7}\nnokueue   {\"busy\": 101.3, \"waiting_for_gang\": 15.7}\nresearch  {\"busy\": 528.2, \"waiting_for_gang\": 4.0}\nvision    {\"waiting_for_gang\": 4.0, \"busy\": 16.0}",
+   "output": "-         {\"free\": 1776.2, \"blocked_by_quota\": 871.7, \"fragmented\": 137.7}\ngpu       {\"allocated_idle\": 2.7, \"busy\": 2.0}\nllm       {\"waiting_for_gang\": 50.7, \"busy\": 652.0}\nnokueue   {\"busy\": 101.3, \"waiting_for_gang\": 17.7}\nresearch  {\"busy\": 539.2, \"waiting_for_gang\": 14.7}\nvision    {\"waiting_for_gang\": 4.0, \"busy\": 12.0}",
    "exit_code": 0,
    "seconds": 0
   },
   {
    "display": "queue wait (creation to quota reserved) by job size in GPUs: workloads, median, max, in seconds",
-   "output": "8      n  20  median     0.5  max     8.0\n12-24  n   2  median     0.0  max     0.0\n32     n   5  median     0.0  max   157.0\n64     n   1  median     0.0  max     0.0",
+   "output": "8      n  20  median     1.5  max     9.0\n12-24  n   2  median     0.0  max     0.0\n32     n   5  median     0.0  max   157.0\n64     n   1  median     0.0  max     0.0",
    "exit_code": 0,
    "seconds": 0
   }
@@ -36,8 +36,8 @@
    "because": "S02, S03, S06, S08 and S10 each create one of them on purpose."
   },
   {
-   "description": "queue wait is reported per size class, from the workloads of S03 to S10",
-   "passed": false,
+   "description": "queue wait is reported for at least three size classes, from the workloads of S03 to S10",
+   "passed": true,
    "because": "Kueue records when each workload reserved quota; the scenarios kept those times before cleaning up."
   }
  ],

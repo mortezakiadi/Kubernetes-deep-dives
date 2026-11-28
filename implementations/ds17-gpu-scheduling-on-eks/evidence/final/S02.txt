@@ -6,27 +6,27 @@ pod/trainer-busy created
 pod/notebook-idle created
 
 $ kubectl -n gpu-real get pods -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName,PHASE:.status.phase,GPU:.spec.containers[0].resources.limits.nvidia\.com/gpu
-POD            NODE                                         PHASE     GPU
-trainer-busy   ip-10-86-49-187.us-east-2.compute.internal   Running   1
+POD             NODE                                         PHASE     GPU
+notebook-idle   ip-10-86-25-255.us-east-2.compute.internal   Running   1
+trainer-busy    ip-10-86-52-153.us-east-2.compute.internal   Running   1
 
 $ DCGM_FI_DEV_GPU_UTIL_RATIO from each DCGM exporter pod (kubectl get --raw .../pods/<exporter>:9400/proxy/metrics)
-DCGM_FI_DEV_GPU_UTIL_RATIO{gpu="0",UUID="GPU-e282bf92-f391-4cd9-a936-1d7470912c28",pci_bus_id="00000000:30:00.0",device="nvidia0",modelName="NVIDIA L40S",hostname="ip-10-86-49-187.us-east-2.compute.internal",DCGM_FI_SYSTEM_DRIVER_VERSION="580.178.04",container="c",namespace="gpu-real",pod="trainer-busy"} 1
+DCGM_FI_DEV_GPU_UTIL_RATIO{gpu="0",UUID="GPU-8195f9d4-db93-2ae3-790b-4b44d4db51c1",pci_bus_id="00000000:30:00.0",device="nvidia0",modelName="NVIDIA L40S",hostname="ip-10-86-52-153.us-east-2.compute.internal",DCGM_FI_SYSTEM_DRIVER_VERSION="580.178.04",container="c",namespace="gpu-real",pod="trainer-busy"} 1
+DCGM_FI_DEV_GPU_UTIL_RATIO{gpu="0",UUID="GPU-1259fda4-38e4-a2d7-e464-6efb65514e1e",pci_bus_id="00000000:30:00.0",device="nvidia0",modelName="NVIDIA L40S",hostname="ip-10-86-25-255.us-east-2.compute.internal",DCGM_FI_SYSTEM_DRIVER_VERSION="580.178.04",container="c",namespace="gpu-real",pod="notebook-idle"} 0
 
 $ accounting: GPU-minutes of the real pool over the last 90 s, by category
 {
  "samples": 10,
  "gpu_minutes_by_category": {
-  "allocated_idle": 2.2,
-  "free": 1.5,
-  "busy": 0.7
+  "allocated_idle": 1.7,
+  "busy": 1.7
  },
  "share": {
   "allocated_idle": 0.5,
-  "free": 0.346,
-  "busy": 0.154
+  "busy": 0.5
  }
 }
 
-[FAIL] both GPUs are allocated: 100% allocation
-[FAIL] DCGM measures the trainer's GPU above 50% busy and the notebook's at 0%
-[FAIL] the accounting service puts half of the allocated GPU-minutes in busy and half in allocated_idle
+[PASS] both GPUs are allocated, on two different nodes: 100% allocation
+[PASS] DCGM measures the trainer's GPU above 50% busy and the notebook's at 0%
+[PASS] the accounting service puts half of the allocated GPU-minutes in busy and half in allocated_idle

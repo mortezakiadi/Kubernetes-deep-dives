@@ -9,25 +9,25 @@
    "display": "kubectl apply -f pretrain.yaml   # 8 pods x 8 GPUs, topology=network.ds17.io/block",
    "output": "job.batch/pretrain created",
    "exit_code": 0,
-   "seconds": 2.44
+   "seconds": 3.03
   },
   {
    "display": "kubectl apply -f finetune.yaml   # 4 pods x 8 GPUs, topology=network.ds17.io/block, slice_topology=network.ds17.io/rack, slice_size=2",
    "output": "job.batch/finetune created",
    "exit_code": 0,
-   "seconds": 2.41
+   "seconds": 2.71
   },
   {
    "display": "kubectl apply -f pretrain-2.yaml   # 8 pods x 8 GPUs, topology=network.ds17.io/block",
    "output": "job.batch/pretrain-2 created",
    "exit_code": 0,
-   "seconds": 2.31
+   "seconds": 3.5
   },
   {
    "display": "kubectl apply -f flex.yaml   # 4 pods x 8 GPUs, preferred=network.ds17.io/rack",
    "output": "job.batch/flex created",
    "exit_code": 0,
-   "seconds": 2.42
+   "seconds": 2.53
   },
   {
    "display": "where each job's pods landed (node labels network.ds17.io/block and rack)",

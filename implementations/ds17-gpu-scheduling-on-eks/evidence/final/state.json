@@ -1,14 +1,14 @@
 {
- "t_start": 1795810049.97145,
+ "t_start": 1795822123.281885,
  "cuda_image": "nvcr.io/nvidia/k8s/cuda-sample:nbody@sha256:59261e419d6d48a772aad5bb213f9f1588fcdb042b115ceb7166c89a51f03363",
  "s02": {
   "util": {
-   "trainer-busy": 100.0
+   "trainer-busy": 100.0,
+   "notebook-idle": 0.0
   },
   "breakdown": {
-   "allocated_idle": 2.2,
-   "free": 1.5,
-   "busy": 0.7
+   "allocated_idle": 1.7,
+   "busy": 1.7
   }
  },
  "waits": [
@@ -52,7 +52,7 @@
    "scenario": "S08",
    "job": "llm-0",
    "gpus": 8,
-   "wait_s": 0.0
+   "wait_s": 1.0
   },
   {
    "scenario": "S08",
@@ -68,7 +68,7 @@
   },
   {
    "scenario": "S08",
-   "job": "llm-4",
+   "job": "llm-3",
    "gpus": 8,
    "wait_s": 0.0
   },
@@ -88,7 +88,7 @@
    "scenario": "S08",
    "job": "vision-1",
    "gpus": 8,
-   "wait_s": 1.0
+   "wait_s": 2.0
   },
   {
    "scenario": "S08",
@@ -130,7 +130,7 @@
    "scenario": "S09",
    "job": "llm-01",
    "gpus": 8,
-   "wait_s": 6.0
+   "wait_s": 3.0
   },
   {
    "scenario": "S09",
@@ -142,29 +142,29 @@
    "scenario": "S09",
    "job": "llm-03",
    "gpus": 8,
-   "wait_s": 4.0
+   "wait_s": 5.0
   },
   {
    "scenario": "S09",
    "job": "llm-04",
    "gpus": 8,
-   "wait_s": 3.0
+   "wait_s": 6.0
   },
   {
    "scenario": "S09",
-   "job": "llm-07",
-   "gpus": 8,
-   "wait_s": 8.0
-  },
-  {
-   "scenario": "S09",
-   "job": "llm-08",
+   "job": "llm-06",
    "gpus": 8,
    "wait_s": 7.0
   },
   {
    "scenario": "S09",
-   "job": "llm-09",
+   "job": "llm-07",
+   "gpus": 8,
+   "wait_s": 9.0
+  },
+  {
+   "scenario": "S09",
+   "job": "llm-08",
    "gpus": 8,
    "wait_s": 6.0
   },
@@ -243,22 +243,22 @@
    "fragmented_share": 1.0,
    "largest_gang_of_8gpu_pods": 0,
    "pods_of_1_that_fit": 32,
-   "pods_of_2_that_fit": 14,
-   "pods_of_4_that_fit": 2,
+   "pods_of_2_that_fit": 13,
+   "pods_of_4_that_fit": 1,
    "pods_of_8_that_fit": 0
   },
   "plan": {
    "drain": [
-    "fake-b1-r1-h3",
-    "fake-b1-r1-h4",
-    "fake-b1-r2-h2",
-    "fake-b1-r2-h3"
+    "fake-b1-r1-h1",
+    "fake-b1-r1-h2",
+    "fake-b1-r2-h3",
+    "fake-b2-r1-h1"
    ],
    "gpus_moved": 12,
    "room_elsewhere": 44,
    "feasible": true
   },
-  "lost_gpu_minutes": 19.9
+  "lost_gpu_minutes": 19.7
  },
  "s09": {
   "research": 32,
@@ -268,160 +268,160 @@
   "breakdown": {
    "samples": 193,
    "sample_seconds": 10,
-   "gpu_minutes": 4187.8,
+   "gpu_minutes": 4181.7,
    "share": {
-    "free": 0.412,
-    "busy": 0.318,
-    "blocked_by_quota": 0.22,
-    "fragmented": 0.027,
+    "free": 0.425,
+    "busy": 0.312,
+    "blocked_by_quota": 0.208,
+    "fragmented": 0.033,
     "waiting_for_gang": 0.021,
     "allocated_idle": 0.001
    },
    "gpu_minutes_by_category": {
-    "free": 1727.3,
-    "busy": 1332.8,
-    "blocked_by_quota": 921.8,
-    "fragmented": 114.7,
-    "waiting_for_gang": 87.7,
-    "allocated_idle": 3.5
+    "free": 1776.2,
+    "busy": 1306.5,
+    "blocked_by_quota": 871.7,
+    "fragmented": 137.7,
+    "waiting_for_gang": 87.0,
+    "allocated_idle": 2.7
    },
    "by_team": {
     "-": {
-     "free": 1727.3,
-     "blocked_by_quota": 921.8,
-     "fragmented": 114.7
+     "free": 1776.2,
+     "blocked_by_quota": 871.7,
+     "fragmented": 137.7
     },
     "gpu": {
-     "allocated_idle": 3.5,
-     "busy": 0.7
+     "allocated_idle": 2.7,
+     "busy": 2.0
     },
     "llm": {
-     "waiting_for_gang": 64.0,
-     "busy": 686.7
+     "waiting_for_gang": 50.7,
+     "busy": 652.0
     },
     "nokueue": {
      "busy": 101.3,
-     "waiting_for_gang": 15.7
+     "waiting_for_gang": 17.7
     },
     "research": {
-     "busy": 528.2,
-     "waiting_for_gang": 4.0
+     "busy": 539.2,
+     "waiting_for_gang": 14.7
     },
     "vision": {
      "waiting_for_gang": 4.0,
-     "busy": 16.0
+     "busy": 12.0
     }
    },
-   "lost_to_preemption_gpu_minutes": 66.7,
+   "lost_to_preemption_gpu_minutes": 57.3,
    "preemptions": [
     {
-     "t": 1795811146.708553,
-     "workload": "team-llm/job-llm-3-fba3a",
+     "t": 1795823240.0196757,
+     "workload": "team-llm/job-llm-4-62d76",
      "team": "llm",
      "gpus": 8,
-     "ran_seconds": 60,
+     "ran_seconds": 50,
      "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: ae5f2130-de53-4b9f-a1fd-f4e9a60c5ed4, JobUID: 210b26ee-db1b-4c60-bfd0-bab61a2589b9) due to reclamation within the coho",
-     "lost_gpu_minutes": 8.0
+     "reason": "Preempted to accommodate a workload (UID: 8b0e3781-1889-4d43-aa54-021d740466c0, JobUID: deda1751-6409-44c4-bbaa-4ede5cdfcb50) due to reclamation within the coho",
+     "lost_gpu_minutes": 6.67
     },
     {
-     "t": 1795811146.708553,
-     "workload": "team-llm/job-llm-5-5fa12",
+     "t": 1795823240.0196757,
+     "workload": "team-llm/job-llm-5-83365",
      "team": "llm",
      "gpus": 8,
-     "ran_seconds": 60,
+     "ran_seconds": 50,
      "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: 46b9779b-1d16-4115-b099-de976f7ac7c8, JobUID: 51add188-ed73-4b6b-ba11-ae0c79bffa0c) due to reclamation within the coho",
-     "lost_gpu_minutes": 8.0
+     "reason": "Preempted to accommodate a workload (UID: 65483e9f-af7c-495e-a84f-514fb70f5b7f, JobUID: 0880bfcb-fbff-46bc-a5ed-7eb5968068c4) due to reclamation within the coho",
+     "lost_gpu_minutes": 6.67
     },
     {
-     "t": 1795811246.7092977,
-     "workload": "team-research/job-res-10-314be",
+     "t": 1795823340.020465,
+     "workload": "team-research/job-res-04-9c26b",
      "team": "research",
      "gpus": 8,
      "ran_seconds": 30,
      "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: 96a6f63e-b0f1-4d57-8a82-21dbade6d682, JobUID: 2d249c94-38f9-4c66-a31a-3f1ab91abfc8) due to Fair Sharing within the coh",
+     "reason": "Preempted to accommodate a workload (UID: 92284486-c11b-468c-b95d-aac155679f9d, JobUID: 62715fdc-7dfe-41d8-8cc9-a74dd82338c6) due to Fair Sharing within the coh",
      "lost_gpu_minutes": 4.0
     },
     {
-     "t": 1795811246.7092977,
-     "workload": "team-research/job-res-11-a7da0",
+     "t": 1795823340.020465,
+     "workload": "team-research/job-res-06-a07c0",
      "team": "research",
      "gpus": 8,
      "ran_seconds": 30,
      "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: 5f362006-d3b4-4789-a616-d2df9f4733f5, JobUID: 5dd62845-b863-49f5-b80d-7752e24cb0c8) due to Fair Sharing within the coh",
+     "reason": "Preempted to accommodate a workload (UID: 222aae24-1ec5-48c4-822f-b095123523a3, JobUID: aca841e1-eefa-4432-af29-ea9658caba19) due to Fair Sharing within the coh",
      "lost_gpu_minutes": 4.0
     },
     {
-     "t": 1795811256.7093787,
-     "workload": "team-research/job-res-04-ff939",
+     "t": 1795823340.020465,
+     "workload": "team-research/job-res-07-d6125",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 30,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: c78c0655-efb9-4b50-897b-d5421d12d0da, JobUID: f392ba3e-b8ad-44f7-a601-40478fa91acf) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 4.0
+    },
+    {
+     "t": 1795823340.020465,
+     "workload": "team-research/job-res-08-429db",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 30,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: 3e3c28c9-afd1-420c-b818-b718bbd2c725, JobUID: 4f8b4742-ed7d-49ea-9751-07092087bf8d) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 4.0
+    },
+    {
+     "t": 1795823340.020465,
+     "workload": "team-research/job-res-09-aa6c6",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 30,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: 63d4df2d-4357-4486-a675-ef5fafdf751c, JobUID: 11ac4b8d-f40d-4250-b137-301a9a6d2095) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 4.0
+    },
+    {
+     "t": 1795823340.020465,
+     "workload": "team-research/job-res-10-513f7",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 30,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: 22478551-0e84-49b9-ab65-4fa6d9208d08, JobUID: a64b9768-c676-4b4f-a7fb-bff5b8edfaf3) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 4.0
+    },
+    {
+     "t": 1795823340.020465,
+     "workload": "team-research/job-res-11-ef1b9",
+     "team": "research",
+     "gpus": 8,
+     "ran_seconds": 30,
+     "checkpoint_seconds": 300.0,
+     "reason": "Preempted to accommodate a workload (UID: 911a3fa6-e9a8-415b-a03b-a1deef9cbea2, JobUID: 8494e52f-a19c-46f8-b7c0-10064fc413eb) due to Fair Sharing within the coh",
+     "lost_gpu_minutes": 4.0
+    },
+    {
+     "t": 1795823350.0205467,
+     "workload": "team-research/job-res-05-b71f8",
      "team": "research",
      "gpus": 8,
      "ran_seconds": 40,
      "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: 1686724b-9e9c-4b48-85f5-ed205b50e3d2, JobUID: 8b38122b-d67c-4f8a-ab89-f7ba3725650c) due to Fair Sharing within the coh",
+     "reason": "Preempted to accommodate a workload (UID: ce3732d5-1d1d-4364-9e46-4fe7f0c8aa0e, JobUID: 4721f936-5a90-43bb-b124-35ef1218f652) due to Fair Sharing within the coh",
      "lost_gpu_minutes": 5.33
     },
     {
-     "t": 1795811256.7093787,
-     "workload": "team-research/job-res-05-d018b",
-     "team": "research",
-     "gpus": 8,
-     "ran_seconds": 40,
-     "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: af332cbb-e38a-4349-8d9c-637a9018d0c9, JobUID: b4e9a9f0-9b67-4ee7-b8b5-9684c2493269) due to Fair Sharing within the coh",
-     "lost_gpu_minutes": 5.33
-    },
-    {
-     "t": 1795811256.7093787,
-     "workload": "team-research/job-res-06-3b487",
-     "team": "research",
-     "gpus": 8,
-     "ran_seconds": 40,
-     "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: da94eff7-edbf-4132-bdcd-e872f7d669cb, JobUID: 5f4bdb8e-daab-412c-a690-84edca12d1d5) due to Fair Sharing within the coh",
-     "lost_gpu_minutes": 5.33
-    },
-    {
-     "t": 1795811256.7093787,
-     "workload": "team-research/job-res-07-07ce1",
-     "team": "research",
-     "gpus": 8,
-     "ran_seconds": 40,
-     "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: a1e2ea55-ebe1-4c26-a7dc-afe2f470da11, JobUID: 89fa0115-1fd9-4c9c-a528-ed1822a478c0) due to Fair Sharing within the coh",
-     "lost_gpu_minutes": 5.33
-    },
-    {
-     "t": 1795811256.7093787,
-     "workload": "team-research/job-res-08-75523",
-     "team": "research",
-     "gpus": 8,
-     "ran_seconds": 40,
-     "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: 2532c4a0-f706-45ff-a0e9-10d9832081db, JobUID: 0c209f6f-6622-4eaf-b6b0-1c6c22915cc8) due to Fair Sharing within the coh",
-     "lost_gpu_minutes": 5.33
-    },
-    {
-     "t": 1795811256.7093787,
-     "workload": "team-research/job-res-09-31be8",
-     "team": "research",
-     "gpus": 8,
-     "ran_seconds": 40,
-     "checkpoint_seconds": 300.0,
-     "reason": "Preempted to accommodate a workload (UID: aa1e9c37-8a82-4844-bf0f-a50f7dce1451, JobUID: e5af0b66-d496-4ee2-aef7-c8ccc1226396) due to Fair Sharing within the coh",
-     "lost_gpu_minutes": 5.33
-    },
-    {
-     "t": 1795811746.7132664,
-     "workload": "team-llm/job-sweep-2-bd996",
+     "t": 1795823820.02433,
+     "workload": "team-llm/job-sweep-2-733ac",
      "team": "llm",
      "gpus": 8,
      "ran_seconds": 80,
      "checkpoint_seconds": 600.0,
-     "reason": "Preempted to accommodate a workload (UID: 41da5a8e-b7e7-4798-ae8d-1fc3010410d4, JobUID: e471cb25-315d-424b-8f0a-517530c4acec) due to prioritization in the Clust",
+     "reason": "Preempted to accommodate a workload (UID: f5fb4c15-66e3-4455-a540-f8c7036bfbf8, JobUID: 3eae00bf-0035-465f-88fc-4ea5f02e39ca) due to prioritization in the Clust",
      "lost_gpu_minutes": 10.67
     }
    ]
@@ -444,8 +444,8 @@
    },
    "8": {
     "n": 20,
-    "median": 0.5,
-    "max": 8.0
+    "median": 1.5,
+    "max": 9.0
    }
   }
  }

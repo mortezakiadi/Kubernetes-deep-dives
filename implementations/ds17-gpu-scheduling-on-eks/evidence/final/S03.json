@@ -9,19 +9,19 @@
    "display": "kubectl apply -f filler.yaml   # 2 pods x 8 GPUs in rack b1-r1: 16 of its 32 GPUs remain free",
    "output": "job.batch/filler created",
    "exit_code": 0,
-   "seconds": 2.45
+   "seconds": 2.53
   },
   {
    "display": "kubectl apply -f gang-a.yaml -f gang-b.yaml   # no queue: every pod goes straight to the scheduler; parallelism 2 of 12",
    "output": "job.batch/gang-a created\njob.batch/gang-b created",
    "exit_code": 0,
-   "seconds": 2.88
+   "seconds": 3.73
   },
   {
    "display": "kubectl -n nokueue get jobs   # after raising both to parallelism 12 in alternating steps of 2",
    "output": "JOB      PARALLELISM   COMPLETIONS\ngang-a   12            12\ngang-b   12            12",
    "exit_code": 0,
-   "seconds": 1.28
+   "seconds": 1.54
   },
   {
    "display": "pods of each job after 40 s",
@@ -39,13 +39,13 @@
    "display": "kubectl apply -f gang-a.yaml -f gang-b.yaml   # labelled kueue.x-k8s.io/queue-name: gangs (ClusterQueue quota 16 GPUs)",
    "output": "job.batch/gang-a created\njob.batch/gang-b created",
    "exit_code": 0,
-   "seconds": 2.72
+   "seconds": 2.77
   },
   {
    "display": "kubectl -n team-llm get workloads -o custom-columns=WORKLOAD:.metadata.name,ADMITTED:.status.conditions[?(@.type=='Admitted')].status,PENDING:.status.conditions[?(@.type=='QuotaReserved')].message",
-   "output": "WORKLOAD           ADMITTED   PENDING\njob-gang-a-3abef   True       Quota reserved in ClusterQueue cq-gang\njob-gang-b-62eab   False      couldn't assign flavors to pod set main: insufficient unused quota for nvidia.com/gpu in flavor fake-h100-plain, 8 more needed",
+   "output": "WORKLOAD           ADMITTED   PENDING\njob-gang-a-1df3d   True       Quota reserved in ClusterQueue cq-gang\njob-gang-b-e54e5   False      couldn't assign flavors to pod set main: insufficient unused quota for nvidia.com/gpu in flavor fake-h100-plain, 8 more needed",
    "exit_code": 0,
-   "seconds": 1.13
+   "seconds": 1.21
   },
   {
    "display": "pods of each job after admission",
